@@ -36,11 +36,17 @@ export class PackageService {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => ServicePackage, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => ServicePackage,
+    (servicePackage) => servicePackage.packageServices,
+    { onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'package_id' })
   package: ServicePackage;
 
-  @ManyToOne(() => Service, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.packageServices, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

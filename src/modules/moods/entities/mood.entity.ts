@@ -1,7 +1,9 @@
+import { CycleMood } from '@modules/cycle-moods/entities/cycle-mood.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -22,4 +24,8 @@ export class Mood {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // Relations
+  @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood)
+  cycleMoods: CycleMood[];
 }

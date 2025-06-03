@@ -1,8 +1,11 @@
+import { PackageService } from '@modules/package-services/entities/package-service.entity';
+import { UserPackageSubscription } from '@modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -41,4 +44,14 @@ export class ServicePackage {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
+
+  // Relations
+  @OneToMany(() => PackageService, (packageService) => packageService.package)
+  packageServices: PackageService[];
+
+  @OneToMany(
+    () => UserPackageSubscription,
+    (subscription) => subscription.package,
+  )
+  subscriptions: UserPackageSubscription[];
 }

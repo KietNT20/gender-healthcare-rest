@@ -20,11 +20,15 @@ export class BlogServiceRelation {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => Blog, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'blog_id' })
   blog: Blog;
 
-  @ManyToOne(() => Service, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.blogServiceRelations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

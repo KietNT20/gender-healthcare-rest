@@ -31,15 +31,22 @@ export class PackageServiceUsage {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => UserPackageSubscription, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => UserPackageSubscription,
+    (subscription) => subscription.serviceUsages,
+    { onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'subscription_id' })
   subscription: UserPackageSubscription;
 
-  @ManyToOne(() => Service)
+  @ManyToOne(() => Service, (service) => service.packageServiceUsages)
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
-  @ManyToOne(() => Appointment)
+  @ManyToOne(
+    () => Appointment,
+    (appointment) => appointment.packageServiceUsages,
+  )
   @JoinColumn({ name: 'appointment_id' })
   appointment: Appointment;
 }

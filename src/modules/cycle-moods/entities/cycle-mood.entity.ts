@@ -27,11 +27,13 @@ export class CycleMood {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => MenstrualCycle, { onDelete: 'CASCADE' })
+  @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'cycle_id' })
   cycle: MenstrualCycle;
 
-  @ManyToOne(() => Mood, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Mood, (mood) => mood.cycleMoods, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'mood_id' })
   mood: Mood;
 }

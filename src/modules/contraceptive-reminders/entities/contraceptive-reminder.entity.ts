@@ -60,7 +60,9 @@ export class ContraceptiveReminder {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.contraceptiveReminders, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

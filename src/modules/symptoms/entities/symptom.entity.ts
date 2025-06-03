@@ -1,10 +1,12 @@
 import { Category } from '@modules/categories/entities/category.entity';
+import { CycleSymptom } from '@modules/cycle-symptoms/entities/cycle-symptom.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,4 +35,7 @@ export class Symptom {
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
   category: Category;
+
+  @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.symptom)
+  cycleSymptoms: CycleSymptom[];
 }

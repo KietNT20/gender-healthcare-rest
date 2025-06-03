@@ -1,4 +1,5 @@
 import { SubscriptionStatusType } from '@enums/index';
+import { PackageServiceUsage } from '@modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from '@modules/payments/entities/payment.entity';
 import { ServicePackage } from '@modules/service-packages/entities/service-package.entity';
 import { User } from '@modules/users/entities/user.entity';
@@ -8,6 +9,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -49,15 +51,23 @@ export class UserPackageSubscription {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.packageSubscriptions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => ServicePackage)
+  @ManyToOne(
+    () => ServicePackage,
+    (servicePackage) => servicePackage.subscriptions,
+  )
   @JoinColumn({ name: 'package_id' })
   package: ServicePackage;
 
-  @ManyToOne(() => Payment)
+  @ManyToOne(() => Payment, (payment) => payment.packageSubscriptions)
   @JoinColumn({ name: 'payment_id' })
   payment: Payment;
+
+  @OneToMany(() => PackageServiceUsage, (usage) => usage.subscription)
+  serviceUsages: PackageServiceUsage[];
 }

@@ -1,7 +1,9 @@
+import { QuestionTag } from '@modules/question-tags/entities/question-tag.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -22,4 +24,8 @@ export class Tag {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // Relations
+  @OneToMany(() => QuestionTag, (questionTag) => questionTag.tag)
+  questionTags: QuestionTag[];
 }

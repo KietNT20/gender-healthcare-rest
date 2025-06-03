@@ -1,3 +1,5 @@
+import { CycleMood } from '@modules/cycle-moods/entities/cycle-mood.entity';
+import { CycleSymptom } from '@modules/cycle-symptoms/entities/cycle-symptom.entity';
 import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
@@ -5,6 +7,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -65,7 +68,15 @@ export class MenstrualCycle {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.menstrualCycles, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)
+  cycleMoods: CycleMood[];
+
+  @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.cycle)
+  cycleSymptoms: CycleSymptom[];
 }

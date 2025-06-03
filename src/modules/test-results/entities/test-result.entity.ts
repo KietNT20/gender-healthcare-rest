@@ -59,11 +59,13 @@ export class TestResult {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Appointment, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'appointment_id' })
   appointment: Appointment;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.testResults)
   @JoinColumn({ name: 'staff_id' })
   staff: User;
 }

@@ -1,8 +1,13 @@
+import { Blog } from '@modules/blogs/entities/blog.entity';
+import { Question } from '@modules/questions/entities/question.entity';
+import { Service } from '@modules/services/entities/service.entity';
+import { Symptom } from '@modules/symptoms/entities/symptom.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Tree,
   TreeChildren,
@@ -49,4 +54,17 @@ export class Category {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
+
+  // Relations
+  @OneToMany(() => Service, (service) => service.category)
+  services: Service[];
+
+  @OneToMany(() => Blog, (blog) => blog.category)
+  blogs: Blog[];
+
+  @OneToMany(() => Question, (question) => question.category)
+  questions: Question[];
+
+  @OneToMany(() => Symptom, (symptom) => symptom.category)
+  symptoms: Symptom[];
 }

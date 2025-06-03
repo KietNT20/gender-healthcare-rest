@@ -11,11 +11,17 @@ export class AppointmentService {
   serviceId: string;
 
   // Relations
-  @ManyToOne(() => Appointment, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => Appointment,
+    (appointment) => appointment.appointmentServices,
+    { onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'appointment_id' })
   appointment: Appointment;
 
-  @ManyToOne(() => Service, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.appointmentServices, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

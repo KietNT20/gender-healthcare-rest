@@ -20,11 +20,13 @@ export class QuestionTag {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => Question, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Question, (question) => question.questionTags, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => Tag, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tag, (tag) => tag.questionTags, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tag_id' })
   tag: Tag;
 }

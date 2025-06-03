@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@exceptions/*": ["src/exceptions/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@middlewares/*": ["src/middlewares/*"],
+      "@modules/*": ["src/modules/*"],
+      "@filters/*": ["src/filters/*"],
+      "@pipes/*": ["src/pipes/*"],
+      "@enums/*": ["src/enums/*"],
+      "@guards/*": ["src/guards/*"],
+      "@decorators/*": ["src/decorators/*"],
+      "@auth/*": ["src/auth/*"],
+      "@auth/guards/*": ["src/auth/guards/*"],
+      "@auth/decorators/*": ["src/auth/decorators/*"],
+      "@auth/services/*": ["src/auth/services/*"],
+      "@auth/dto/*": ["src/auth/dto/*"],
+      "@auth/entities/*": ["src/auth/entities/*"],
+      "@auth/repositories/*": ["src/auth/repositories/*"]
+    }
+  }
+}

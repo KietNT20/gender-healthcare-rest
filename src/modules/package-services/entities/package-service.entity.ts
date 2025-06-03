@@ -1,0 +1,46 @@
+import { ServicePackage } from '@modules/service-packages/entities/service-package.entity';
+import { Service } from '@modules/services/entities/service.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+@Entity('package_services')
+export class PackageService {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'package_id' })
+  packageId: string;
+
+  @Column({ name: 'service_id' })
+  serviceId: string;
+
+  @Column({ nullable: true, name: 'quantity_limit' })
+  quantityLimit: number;
+
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+    name: 'discount_percentage',
+  })
+  discountPercentage: number;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  // Relations
+  @ManyToOne(() => ServicePackage, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'package_id' })
+  package: ServicePackage;
+
+  @ManyToOne(() => Service, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'service_id' })
+  service: Service;
+}

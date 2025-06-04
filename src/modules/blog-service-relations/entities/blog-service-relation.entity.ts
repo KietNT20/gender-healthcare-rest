@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('blog_service_relations')
@@ -19,16 +20,15 @@ export class BlogServiceRelation {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
   // Relations
-  @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations)
   @JoinColumn({ name: 'blog_id' })
   blog: Blog;
 
-  @ManyToOne(() => Service, (service) => service.blogServiceRelations, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Service, (service) => service.blogServiceRelations)
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

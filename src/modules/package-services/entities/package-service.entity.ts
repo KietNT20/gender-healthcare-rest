@@ -3,10 +3,12 @@ import { Service } from '@modules/services/entities/service.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('package_services')
@@ -35,18 +37,21 @@ export class PackageService {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   // Relations
   @ManyToOne(
     () => ServicePackage,
     (servicePackage) => servicePackage.packageServices,
-    { onDelete: 'CASCADE' },
   )
   @JoinColumn({ name: 'package_id' })
   package: ServicePackage;
 
-  @ManyToOne(() => Service, (service) => service.packageServices, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Service, (service) => service.packageServices)
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

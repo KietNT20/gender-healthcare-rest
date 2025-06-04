@@ -12,6 +12,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  W,
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 

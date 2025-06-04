@@ -4,10 +4,12 @@ import { UserPackageSubscription } from '@modules/user-package-subscriptions/ent
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('package_service_usage')
@@ -30,11 +32,16 @@ export class PackageServiceUsage {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   // Relations
   @ManyToOne(
     () => UserPackageSubscription,
     (subscription) => subscription.serviceUsages,
-    { onDelete: 'CASCADE' },
   )
   @JoinColumn({ name: 'subscription_id' })
   subscription: UserPackageSubscription;

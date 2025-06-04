@@ -4,6 +4,7 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -51,6 +52,9 @@ export class Feedback {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 
   // Relations
   @ManyToOne(() => User, (user) => user.feedbacks)

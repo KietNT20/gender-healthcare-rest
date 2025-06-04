@@ -6,6 +6,7 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -50,10 +51,11 @@ export class UserPackageSubscription {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   // Relations
-  @ManyToOne(() => User, (user) => user.packageSubscriptions, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => User, (user) => user.packageSubscriptions)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

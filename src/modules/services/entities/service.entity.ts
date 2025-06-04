@@ -70,7 +70,7 @@ export class Service {
   deletedAt: Date;
 
   // Relations
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category, (category) => category.services)
   @JoinColumn({ name: 'category_id' })
   category: Category;
 

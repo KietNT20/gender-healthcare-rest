@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('notifications')
@@ -48,8 +49,11 @@ export class Notification {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
   // Relations
-  @ManyToOne(() => User, (user) => user.notifications, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.notifications)
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

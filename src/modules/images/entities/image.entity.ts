@@ -2,11 +2,11 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('images')
@@ -53,8 +53,8 @@ export class Image {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   // Relations
   @ManyToOne(() => User, (user) => user.images)

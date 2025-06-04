@@ -32,7 +32,7 @@ export class Symptom {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category, (category) => category.symptoms)
   @JoinColumn({ name: 'category_id' })
   category: Category;
 

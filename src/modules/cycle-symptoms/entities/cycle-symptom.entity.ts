@@ -3,10 +3,12 @@ import { Symptom } from '@modules/symptoms/entities/symptom.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('cycle_symptoms')
@@ -26,16 +28,18 @@ export class CycleSymptom {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   // Relations
-  @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)
   @JoinColumn({ name: 'cycle_id' })
   cycle: MenstrualCycle;
 
-  @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms)
   @JoinColumn({ name: 'symptom_id' })
   symptom: Symptom;
 }

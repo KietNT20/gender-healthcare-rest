@@ -3,10 +3,12 @@ import { Mood } from '@modules/moods/entities/mood.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('cycle_moods')
@@ -26,14 +28,18 @@ export class CycleMood {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
   // Relations
-  @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods)
   @JoinColumn({ name: 'cycle_id' })
   cycle: MenstrualCycle;
 
-  @ManyToOne(() => Mood, (mood) => mood.cycleMoods, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Mood, (mood) => mood.cycleMoods)
   @JoinColumn({ name: 'mood_id' })
   mood: Mood;
 }

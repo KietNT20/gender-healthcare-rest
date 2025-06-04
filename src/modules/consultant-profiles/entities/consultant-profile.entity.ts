@@ -13,6 +13,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 
 @Entity('consultant_profiles')
 export class ConsultantProfile {
@@ -35,7 +36,7 @@ export class ConsultantProfile {
   bio: string;
 
   @Column({ type: 'jsonb', nullable: true, name: 'working_hours' })
-  workingHours: any;
+  workingHours: WorkingHours;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
   rating: number;
@@ -52,7 +53,7 @@ export class ConsultantProfile {
   profileStatus: ProfileStatusType;
 
   @Column({ type: 'jsonb', nullable: true })
-  certificates: any;
+  certificates: Certificates;
 
   @Column({ type: 'text', array: true, nullable: true })
   languages: string[];

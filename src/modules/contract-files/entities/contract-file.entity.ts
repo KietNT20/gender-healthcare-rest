@@ -1,6 +1,14 @@
 import { Document } from '@modules/documents/entities/document.entity';
 import { EmploymentContract } from '@modules/employment-contracts/entities/employment-contract.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('contract_files')
 export class ContractFile {
@@ -13,15 +21,14 @@ export class ContractFile {
   @Column({ length: 50, nullable: true, name: 'file_type' })
   fileType: string;
 
-  @Column({
-    type: 'timestamp with time zone',
-    default: () => 'CURRENT_TIMESTAMP',
-    name: 'upload_date',
-  })
-  uploadDate: Date;
-
   @Column({ type: 'text', nullable: true })
   notes: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   // Relations
   @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {

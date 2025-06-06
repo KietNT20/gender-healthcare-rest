@@ -4,7 +4,6 @@ import { UserPackageSubscription } from '@modules/user-package-subscriptions/ent
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -34,9 +33,6 @@ export class PackageServiceUsage {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
 
   // Relations
   @ManyToOne(

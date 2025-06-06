@@ -1,6 +1,12 @@
 import { Appointment } from '@modules/appointments/entities/appointment.entity';
 import { Service } from '@modules/services/entities/service.entity';
-import { CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 
 @Entity('appointment_services')
 export class AppointmentService {
@@ -13,15 +19,15 @@ export class AppointmentService {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
-
   // Relations
-  @ManyToOne(() => Appointment, appointment => appointment.appointmentServices)
+  @ManyToOne(
+    () => Appointment,
+    (appointment) => appointment.appointmentServices,
+  )
   @JoinColumn({ name: 'appointment_id' })
   appointment: Appointment;
 
-  @ManyToOne(() => Service, service => service.appointmentServices)
+  @ManyToOne(() => Service, (service) => service.appointmentServices)
   @JoinColumn({ name: 'service_id' })
   service: Service;
 }

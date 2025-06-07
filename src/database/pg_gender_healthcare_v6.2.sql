@@ -259,7 +259,9 @@ ALTER TABLE public.answers OWNER TO postgres;
 
 CREATE TABLE public.appointment_services (
     appointment_id uuid NOT NULL,
-    service_id uuid NOT NULL
+    service_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -322,7 +324,8 @@ ALTER TABLE public.audit_logs OWNER TO postgres;
 CREATE TABLE public.blog_service_relations (
     blog_id uuid NOT NULL,
     service_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -471,8 +474,9 @@ CREATE TABLE public.contract_files (
     contract_id uuid NOT NULL,
     file_id uuid NOT NULL,
     file_type character varying(50),
-    upload_date timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    notes text
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    notes text,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -488,6 +492,7 @@ CREATE TABLE public.cycle_moods (
     intensity integer,
     notes text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT cycle_moods_intensity_check CHECK (((intensity >= 1) AND (intensity <= 5)))
 );
 
@@ -504,6 +509,7 @@ CREATE TABLE public.cycle_symptoms (
     intensity integer,
     notes text,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT cycle_symptoms_intensity_check CHECK (((intensity >= 1) AND (intensity <= 5)))
 );
 
@@ -531,7 +537,8 @@ CREATE TABLE public.documents (
     hash character varying(64),
     metadata jsonb,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    deleted_at timestamp with time zone
+    deleted_at timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -602,7 +609,8 @@ CREATE TABLE public.images (
     user_id uuid,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     deleted_at timestamp with time zone,
-    url text DEFAULT ''::text NOT NULL
+    url text DEFAULT ''::text NOT NULL,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -697,7 +705,8 @@ CREATE TABLE public.notifications (
     read_at timestamp with time zone,
     action_url text,
     priority public.priority_type,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -713,7 +722,8 @@ CREATE TABLE public.package_service_usage (
     service_id uuid NOT NULL,
     appointment_id uuid,
     usage_date date DEFAULT CURRENT_DATE NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -736,7 +746,8 @@ CREATE TABLE public.package_services (
     service_id uuid NOT NULL,
     quantity_limit integer,
     discount_percentage numeric(5,2) DEFAULT 0,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -819,7 +830,9 @@ CREATE TABLE public.roles (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name public.roles_name_enum DEFAULT 'customer'::public.roles_name_enum NOT NULL,
     description character varying(60),
-    deleted_at timestamp with time zone
+    deleted_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1435,6 +1448,13 @@ CREATE INDEX idx_appointments_location ON public.appointments USING btree (appoi
 
 
 --
+-- Name: idx_appointments_not_deleted; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_appointments_not_deleted ON public.appointments USING btree (id) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: idx_appointments_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1502,6 +1522,13 @@ CREATE INDEX idx_blogs_author_id ON public.blogs USING btree (author_id);
 --
 
 CREATE INDEX idx_blogs_deleted_at ON public.blogs USING btree (deleted_at);
+
+
+--
+-- Name: idx_blogs_not_deleted; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_blogs_not_deleted ON public.blogs USING btree (id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -1883,6 +1910,13 @@ CREATE INDEX idx_package_usage_appointment ON public.package_service_usage USING
 
 
 --
+-- Name: idx_package_usage_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_package_usage_created_at ON public.package_service_usage USING btree (created_at);
+
+
+--
 -- Name: idx_package_usage_date; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1988,6 +2022,13 @@ CREATE INDEX idx_questions_user_id ON public.questions USING btree (user_id);
 
 
 --
+-- Name: idx_roles_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_roles_created_at ON public.roles USING btree (created_at);
+
+
+--
 -- Name: idx_roles_deleted_at; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -2027,6 +2068,13 @@ CREATE INDEX idx_services_deleted_at ON public.services USING btree (deleted_at)
 --
 
 CREATE INDEX idx_services_featured ON public.services USING btree (featured) WHERE (featured = true);
+
+
+--
+-- Name: idx_services_not_deleted; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_services_not_deleted ON public.services USING btree (id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -2146,6 +2194,13 @@ CREATE INDEX idx_users_email ON public.users USING btree (email);
 --
 
 CREATE INDEX idx_users_is_active ON public.users USING btree (is_active);
+
+
+--
+-- Name: idx_users_not_deleted; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_users_not_deleted ON public.users USING btree (id) WHERE (deleted_at IS NULL);
 
 
 --

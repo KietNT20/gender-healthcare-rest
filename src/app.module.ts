@@ -9,6 +9,7 @@ import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { BlogServiceRelationsModule } from './modules/blog-service-relations/blog-service-relations.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
@@ -39,12 +40,13 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -57,7 +59,7 @@ import { AuthModule } from './modules/auth/auth.module';
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
-        dropSchema: true,
+        dropSchema: false,
       }),
       inject: [ConfigService],
     }),
@@ -96,6 +98,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UserPackageSubscriptionsModule,
     PackageServiceUsageModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

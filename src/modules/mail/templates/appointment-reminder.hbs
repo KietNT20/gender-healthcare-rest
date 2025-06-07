@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head lang='en'>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Nhắc nhở lịch hẹn</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #ffc107;
+        color: #212529;
+        padding: 30px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        padding: 30px;
+      }
+      .appointment-details {
+        background-color: #fff3cd;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border: 1px solid #ffeaa7;
+      }
+      .detail-row {
+        margin: 10px 0;
+      }
+      .button {
+        display: inline-block;
+        background-color: #ffc107;
+        color: #212529;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 20px;
+        text-align: center;
+        border-radius: 0 0 8px 8px;
+        color: #6c757d;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h1>{{appName}}</h1>
+        <h2>⏰ Nhắc nhở lịch hẹn</h2>
+      </div>
+      <div class='content'>
+        <p>Xin chào <strong>{{userName}}</strong>,</p>
+        <p>Đây là email nhắc nhở về lịch hẹn tư vấn của bạn sẽ diễn ra trong
+          <strong>1 giờ tới</strong>:</p>
+
+        <div class='appointment-details'>
+          <h3>📋 Thông tin lịch hẹn</h3>
+          <div class='detail-row'><strong>Dịch vụ:</strong>
+            {{serviceName}}</div>
+          <div class='detail-row'><strong>Tư vấn viên:</strong>
+            {{consultantName}}</div>
+          <div class='detail-row'><strong>Thời gian:</strong>
+            {{appointmentTime}}
+            -
+            {{appointmentDate}}</div>
+          {{#if meetingLink}}
+            <div class='detail-row'>
+              <strong>Link tham gia:</strong>
+              <div style='margin-top: 10px;'>
+                <a href='{{meetingLink}}' class='button'>Tham gia ngay</a>
+              </div>
+            </div>
+          {{/if}}
+        </div>
+
+        <p><strong>Chuẩn bị cho cuộc hẹn:</strong></p>
+        <ul>
+          <li>Kiểm tra kết nối internet (nếu tư vấn online)</li>
+          <li>Chuẩn bị danh sách câu hỏi cần tư vấn</li>
+          <li>Mang theo giấy tờ tùy thân và kết quả xét nghiệm (nếu có)</li>
+        </ul>
+      </div>
+      <div class='footer'>
+        <p>© 2024 {{appName}}. Mọi quyền được bảo lưu.</p>
+        <p>Chúc bạn có buổi tư vấn hiệu quả!</p>
+      </div>
+    </div>
+  </body>
+</html>

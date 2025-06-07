@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head lang='en'>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Nhắc nhở uống thuốc</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #e83e8c;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        padding: 30px;
+      }
+      .reminder-box {
+        background-color: #fce4ec;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border: 1px solid #f8bbd9;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 20px;
+        text-align: center;
+        border-radius: 0 0 8px 8px;
+        color: #6c757d;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h1>{{appName}}</h1>
+        <h2>💊 Nhắc nhở uống thuốc</h2>
+      </div>
+      <div class='content'>
+        <p>Xin chào <strong>{{userName}}</strong>,</p>
+        <p>Đây là lời nhắc nhở uống thuốc tránh thai của bạn:</p>
+
+        <div class='reminder-box'>
+          <h3>🕐 Đã đến giờ uống thuốc!</h3>
+          <p><strong>Loại thuốc:</strong> {{contraceptiveType}}</p>
+          {{#if reminderMessage}}
+            <p><strong>Ghi chú:</strong> {{reminderMessage}}</p>
+          {{/if}}
+        </div>
+
+        <p><strong>Lưu ý quan trọng:</strong></p>
+        <ul>
+          <li>Uống thuốc đúng giờ để đảm bảo hiệu quả tránh thai</li>
+          <li>Nếu quên uống, hãy uống ngay khi nhớ ra (trong vòng 12 giờ)</li>
+          <li>Tham khảo hướng dẫn sử dụng thuốc khi có thắc mắc</li>
+          <li>Liên hệ bác sĩ nếu có tác dụng phụ bất thường</li>
+        </ul>
+
+        <p>Chúc bạn một ngày tốt lành! 🌸</p>
+      </div>
+      <div class='footer'>
+        <p>© 2024 {{appName}}. Mọi quyền được bảo lưu.</p>
+        <p>Sức khỏe của bạn là ưu tiên hàng đầu của chúng tôi.</p>
+      </div>
+    </div>
+  </body>
+</html>

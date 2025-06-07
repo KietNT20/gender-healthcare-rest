@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head lang='en'>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Nhắc nhở chu kỳ</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #fd7e14;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        padding: 30px;
+      }
+      .cycle-box {
+        background-color: #fff3e0;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+        border: 1px solid #ffcc80;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 20px;
+        text-align: center;
+        border-radius: 0 0 8px 8px;
+        color: #6c757d;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h1>{{appName}}</h1>
+        {{#if (eq cycleType 'ovulation')}}
+          <h2>🥚 Ngày rụng trứng dự kiến</h2>
+        {{else if (eq cycleType 'period_start')}}
+          <h2>🩸 Chu kỳ kinh nguyệt sắp bắt đầu</h2>
+        {{else if (eq cycleType 'fertile_window')}}
+          <h2>🌺 Thời kỳ thụ thai</h2>
+        {{/if}}
+      </div>
+      <div class='content'>
+        <p>Xin chào <strong>{{userName}}</strong>,</p>
+
+        <div class='cycle-box'>
+          {{#if (eq cycleType 'ovulation')}}
+            <h3>🥚 Ngày rụng trứng dự kiến</h3>
+            <p>Theo dự đoán, ngày rụng trứng của bạn dự kiến vào
+              <strong>{{predictedDate}}</strong>.</p>
+            <p>Đây là thời điểm khả năng thụ thai cao nhất trong chu kỳ.</p>
+
+          {{else if (eq cycleType 'period_start')}}
+            <h3>🩸 Chu kỳ kinh nguyệt sắp bắt đầu</h3>
+            <p>Chu kỳ kinh nguyệt tiếp theo của bạn dự kiến bắt đầu vào
+              <strong>{{predictedDate}}</strong>.</p>
+            <p>Hãy chuẩn bị sẵn đồ dùng cá nhân và chú ý chăm sóc sức khỏe.</p>
+
+          {{else if (eq cycleType 'fertile_window')}}
+            <h3>🌺 Thời kỳ thụ thai</h3>
+            <p>Bạn đang trong thời kỳ thụ thai, dự kiến kéo dài đến
+              <strong>{{predictedDate}}</strong>.</p>
+            <p>Đây là thời điểm khả năng thụ thai cao trong chu kỳ kinh nguyệt.</p>
+          {{/if}}
+        </div>
+
+        <p><strong>Gợi ý chăm sóc sức khỏe:</strong></p>
+        <ul>
+          {{#if (eq cycleType 'ovulation')}}
+            <li>Theo dõi các dấu hiệu rụng trứng (thay đổi dịch âm đạo, đau bụng
+              dưới nhẹ)</li>
+            <li>Sử dụng biện pháp tránh thai nếu không muốn có thai</li>
+            <li>Uống đủ nước và ăn dinh dưỡng</li>
+
+          {{else if (eq cycleType 'period_start')}}
+            <li>Chuẩn bị băng vệ sinh, tampon hoặc cốc nguyệt san</li>
+            <li>Thực hiện chế độ ăn giàu sắt</li>
+            <li>Nghỉ ngơi đầy đủ và tránh căng thẳng</li>
+            <li>Có thể sử dụng túi chườm ấm nếu bị đau bụng</li>
+
+          {{else if (eq cycleType 'fertile_window')}}
+            <li>Sử dụng biện pháp tránh thai nếu không muốn có thai</li>
+            <li>Theo dõi các thay đổi của cơ thể</li>
+            <li>Tăng cường chăm sóc vệ sinh cá nhân</li>
+          {{/if}}
+        </ul>
+
+        <p>Hãy tiếp tục ghi nhận chu kỳ để dự đoán chính xác hơn! 📱</p>
+      </div>
+      <div class='footer'>
+        <p>© 2024 {{appName}}. Mọi quyền được bảo lưu.</p>
+        <p>Thông tin này chỉ mang tính chất tham khảo.</p>
+      </div>
+    </div>
+  </body>
+</html>

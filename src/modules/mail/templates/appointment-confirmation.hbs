@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head lang='en'>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Xác nhận lịch hẹn</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #28a745;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        padding: 30px;
+      }
+      .appointment-details {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .detail-row {
+        margin: 10px 0;
+      }
+      .button {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 20px;
+        text-align: center;
+        border-radius: 0 0 8px 8px;
+        color: #6c757d;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h1>{{appName}}</h1>
+        <h2>✅ Lịch hẹn đã được xác nhận</h2>
+      </div>
+      <div class='content'>
+        <p>Xin chào <strong>{{userName}}</strong>,</p>
+        <p>Lịch hẹn tư vấn của bạn đã được xác nhận thành công. Dưới đây là
+          thông tin chi tiết:</p>
+
+        <div class='appointment-details'>
+          <h3>📋 Thông tin lịch hẹn</h3>
+          <div class='detail-row'><strong>Dịch vụ:</strong>
+            {{serviceName}}</div>
+          <div class='detail-row'><strong>Tư vấn viên:</strong>
+            {{consultantName}}</div>
+          <div class='detail-row'><strong>Ngày:</strong>
+            {{appointmentDate}}</div>
+          <div class='detail-row'><strong>Giờ:</strong>
+            {{appointmentTime}}</div>
+          <div class='detail-row'><strong>Hình thức:</strong>
+            {{appointmentLocation}}</div>
+          {{#if meetingLink}}
+            <div class='detail-row'><strong>Link tham gia:</strong>
+              <a href='{{meetingLink}}'>{{meetingLink}}</a></div>
+          {{/if}}
+        </div>
+
+        <p><strong>Lưu ý quan trọng:</strong></p>
+        <ul>
+          <li>Vui lòng có mặt đúng giờ hoặc truy cập link 5 phút trước giờ hẹn</li>
+          <li>Chuẩn bị các câu hỏi bạn muốn tư vấn</li>
+          <li>Mang theo giấy tờ tùy thân (nếu tư vấn trực tiếp)</li>
+          <li>Bạn sẽ nhận được email nhắc nhở trước cuộc hẹn 1 giờ</li>
+        </ul>
+      </div>
+      <div class='footer'>
+        <p>© 2024 {{appName}}. Mọi quyền được bảo lưu.</p>
+        <p>Nếu cần hỗ trợ, vui lòng liên hệ với chúng tôi.</p>
+      </div>
+    </div>
+  </body>
+</html>

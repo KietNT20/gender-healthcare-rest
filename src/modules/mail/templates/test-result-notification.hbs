@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head lang='en'>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Kết quả xét nghiệm</title>
+  </head>
+  <body
+    style='font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;'
+  >
+    <div
+      style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'
+    >
+
+      <div
+        style='background-color: #17a2b8; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;'
+      >
+        <h1 style='margin: 0;'>{{appName}}</h1>
+        <h2 style='margin: 10px 0 0 0;'>🧪 Kết quả xét nghiệm đã có</h2>
+      </div>
+
+      <div style='padding: 30px;'>
+        <p>Xin chào <strong>{{userName}}</strong>,</p>
+        <p>Kết quả xét nghiệm
+          <strong>{{testType}}</strong>
+          của bạn đã có kết quả vào ngày
+          {{resultDate}}.</p>
+
+        {{#if isAbnormal}}
+          <div
+            style='padding: 20px; border-radius: 5px; margin: 20px 0; background-color: #f8d7da; border: 1px solid #f5c6cb;'
+          >
+            <h3 style='margin-top: 0;'>⚠️ Cần chú ý</h3>
+            <p style='margin-bottom: 0;'>Kết quả xét nghiệm cho thấy một số chỉ
+              số cần được theo dõi và tư vấn thêm.</p>
+
+            {{#if recommendation}}
+              <div style='margin-top: 15px;'>
+                <strong>Khuyến nghị:</strong>
+                <p
+                  style='margin-top: 5px; margin-bottom: 0;'
+                >{{recommendation}}</p>
+              </div>
+            {{/if}}
+          </div>
+        {{else}}
+          <div
+            style='padding: 20px; border-radius: 5px; margin: 20px 0; background-color: #d4edda; border: 1px solid #c3e6cb;'
+          >
+            <h3 style='margin-top: 0;'>✅ Kết quả bình thường</h3>
+            <p style='margin-bottom: 0;'>Kết quả xét nghiệm của bạn nằm trong
+              phạm vi bình thường.</p>
+
+            {{#if recommendation}}
+              <div style='margin-top: 15px;'>
+                <strong>Khuyến nghị:</strong>
+                <p
+                  style='margin-top: 5px; margin-bottom: 0;'
+                >{{recommendation}}</p>
+              </div>
+            {{/if}}
+          </div>
+        {{/if}}
+
+        <div style='text-align: center;'>
+          <a
+            href='{{loginUrl}}'
+            style='display: inline-block; background-color: #17a2b8; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0;'
+          >Xem kết quả chi tiết</a>
+        </div>
+
+        {{#if isAbnormal}}
+          <p><strong>Lưu ý quan trọng:</strong></p>
+          <ul>
+            <li>Vui lòng đặt lịch tư vấn với bác sĩ để được giải thích chi tiết.</li>
+            <li>Không tự ý chẩn đoán hoặc điều trị dựa trên kết quả.</li>
+            <li>Tuân thủ theo khuyến nghị của chuyên gia y tế.</li>
+          </ul>
+        {{/if}}
+      </div>
+
+      <div
+        style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; color: #6c757d; font-size: 14px;'
+      >
+        <p style='margin: 0;'>© 2024 {{appName}}. Mọi quyền được bảo lưu.</p>
+        <p style='margin: 5px 0 0 0;'>Thông tin y tế được bảo mật tuyệt đối.</p>
+      </div>
+
+    </div>
+  </body>
+</html>

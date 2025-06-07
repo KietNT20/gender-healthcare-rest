@@ -133,6 +133,13 @@ export class User {
   @Column({ default: false, name: 'health_data_consent' })
   healthDataConsent: boolean;
 
+  @Column({
+    length: 255,
+    nullable: true,
+    name: 'refresh_token',
+  })
+  refreshToken: string;
+
   @Column({ default: 0 })
   version: number;
 

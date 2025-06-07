@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { RefreshTokenDto } from '../dto/refresh-toekn.dto';
 
 @Injectable()
-export class RefreshJwtStrategy extends PassportStrategy(Strategy) {
+export class RefreshJwtStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -14,8 +18,19 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(req: Request, payload: any) {
-    const refreshToken = req.get('authorization').replace('Bearer', '').trim();
+  validate(req: Request, payload: RefreshTokenDto) {
+    const authHeader = req.get('authorization');
+
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header not found');
+    }
+
+    const refreshToken = authHeader.replace('Bearer', '').trim();
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
     return { ...payload, refreshToken };
   }
 }

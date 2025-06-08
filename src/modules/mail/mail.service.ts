@@ -11,7 +11,11 @@ export class MailService {
     private readonly configService: ConfigService,
   ) {}
 
-  async sendEmailVerification(email: string, token: string, userName: string) {
+  async sendEmailVerification(
+    email: string,
+    token: string,
+    userName: string,
+  ): Promise<void> {
     const url = `${this.configService.get('APP_URL')}/auth/verify-email?token=${token}`;
 
     try {
@@ -36,7 +40,11 @@ export class MailService {
     }
   }
 
-  async sendPasswordReset(email: string, token: string, userName: string) {
+  async sendPasswordReset(
+    email: string,
+    token: string,
+    userName: string,
+  ): Promise<void> {
     const url = `${this.configService.get('APP_URL')}/auth/reset-password?token=${token}`;
 
     try {
@@ -72,7 +80,7 @@ export class MailService {
       serviceName: string;
       appointmentLocation: string;
     },
-  ) {
+  ): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -104,7 +112,7 @@ export class MailService {
       meetingLink?: string;
       serviceName: string;
     },
-  ) {
+  ): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -135,7 +143,7 @@ export class MailService {
       isAbnormal: boolean;
       recommendation?: string;
     },
-  ) {
+  ): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -165,7 +173,7 @@ export class MailService {
       contraceptiveType: string;
       reminderMessage?: string;
     },
-  ) {
+  ): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -194,7 +202,7 @@ export class MailService {
       cycleType: 'ovulation' | 'period_start' | 'fertile_window';
       predictedDate: string;
     },
-  ) {
+  ): Promise<void> {
     const subjects = {
       ovulation: 'Ngày rụng trứng dự kiến',
       period_start: 'Chu kỳ kinh nguyệt sắp bắt đầu',
@@ -222,7 +230,7 @@ export class MailService {
     }
   }
 
-  async sendWelcomeEmail(email: string, userName: string) {
+  async sendWelcomeEmail(email: string, userName: string): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -247,7 +255,12 @@ export class MailService {
   }
 
   // Generic method to send custom emails
-  async sendEmail(to: string, subject: string, template: string, context: any) {
+  async sendEmail(
+    to: string,
+    subject: string,
+    template: string,
+    context: any,
+  ): Promise<void> {
     try {
       await this.mailerService.sendMail({
         to,

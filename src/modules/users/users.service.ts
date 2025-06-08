@@ -159,7 +159,6 @@ export class UsersService {
         'fullName',
         'isActive',
         'emailVerified',
-        'accountLockedUntil',
         'loginAttempts',
       ],
     });
@@ -231,8 +230,8 @@ export class UsersService {
       updatedAt: new Date(),
     };
 
-    // Lock account after 5 failed attempts for 30 minutes
-    if (newAttempts >= 5) {
+    // Lock account after 10 failed attempts for 30 minutes
+    if (newAttempts >= 10) {
       const lockUntil = new Date();
       lockUntil.setMinutes(lockUntil.getMinutes() + 30);
       updateData.accountLockedUntil = lockUntil;
@@ -244,7 +243,6 @@ export class UsersService {
   async resetLoginAttempts(id: string): Promise<void> {
     await this.userRepository.update(id, {
       loginAttempts: 0,
-      accountLockedUntil: undefined,
       updatedAt: new Date(),
     });
   }

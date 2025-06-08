@@ -93,19 +93,13 @@ export class AuthService {
     const user = await this.usersService.findByEmailWithPassword(
       loginDto.email,
     );
-
     if (!user) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
+      throw new UnauthorizedException('Tài khoản không tồn tại');
     }
 
     // Check if account is active
     if (!user.isActive) {
       throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
-    }
-
-    // Check if account is locked
-    if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      throw new UnauthorizedException('Tài khoản đã bị khóa tạm thời');
     }
 
     // Verify password

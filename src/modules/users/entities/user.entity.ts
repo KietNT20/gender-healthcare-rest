@@ -78,7 +78,7 @@ export class User {
     nullable: true,
     name: 'account_locked_until',
   })
-  accountLockedUntil: Date;
+  accountLockedUntil: Date | null;
 
   @Column({ default: 0, name: 'login_attempts' })
   loginAttempts: number;
@@ -163,21 +163,24 @@ export class User {
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'deleted_by_id' })
-  deletedBy: User;
+  deletedBy: User | null;
 
   @OneToMany(() => User, (user) => user.deletedBy)
   deletedUsers: User[];
 
   // Consultant Profile relation
-  @OneToOne(() => ConsultantProfile, (profile) => profile.user)
-  consultantProfile: ConsultantProfile;
+  @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
+    nullable: true,
+  })
+  consultantProfile: ConsultantProfile | null;
 
   // Consultant Availability relations
   @OneToMany(
     () => ConsultantAvailability,
     (availability) => availability.consultantProfile,
+    { nullable: true },
   )
-  consultantAvailabilities: ConsultantAvailability[];
+  consultantAvailabilities: ConsultantAvailability[] | null;
 
   // Appointment relations
   @OneToMany(() => Appointment, (appointment) => appointment.user)

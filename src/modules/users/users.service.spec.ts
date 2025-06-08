@@ -1,3 +1,5 @@
+import { GenderType, RolesNameEnum } from '@enums/index';
+import { Role } from '@modules/roles/entities/role.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -6,8 +8,6 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
-import { Role } from '@modules/roles/entities/role.entity';
-import { GenderType, RolesNameEnum } from '@enums/index';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -27,7 +27,7 @@ describe('UsersService', () => {
     roleId: 'role-id',
     profilePicture: '',
     isActive: true,
-    accountLockedUntil: new Date(),
+    accountLockedUntil: null,
     loginAttempts: 0,
     emailVerified: false,
     emailVerificationToken: '',

@@ -1,9 +1,6 @@
-import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppService } from './app.service';
 import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
@@ -99,12 +96,6 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     MailModule,
   ],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
+  providers: [],
 })
 export class AppModule {}

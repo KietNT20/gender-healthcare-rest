@@ -1,6 +1,14 @@
 import { RolesNameEnum } from '@enums/index';
 import { User } from '@modules/users/entities/user.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('roles')
 export class Role {
@@ -17,6 +25,15 @@ export class Role {
 
   @Column({ length: 60, nullable: true })
   description: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 
   // Relations
   @OneToMany(() => User, (user) => user.role)

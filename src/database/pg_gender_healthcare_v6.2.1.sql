@@ -1012,7 +1012,8 @@ CREATE TABLE public.users (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     deleted_at timestamp with time zone,
-    deleted_by_id uuid
+    deleted_by_id uuid,
+    refresh_token character varying(255)
 );
 
 

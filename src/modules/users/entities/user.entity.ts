@@ -39,7 +39,7 @@ export class User {
   @Column({ length: 60, unique: true })
   email: string;
 
-  @Column({ length: 60 })
+  @Column({ length: 60, select: false })
   password: string;
 
   @Column({ length: 255, name: 'full_name' })
@@ -137,6 +137,7 @@ export class User {
     length: 255,
     nullable: true,
     name: 'refresh_token',
+    select: false,
   })
   refreshToken: string;
 
@@ -152,8 +153,8 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => Role, (role) => role.users)

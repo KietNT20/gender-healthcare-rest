@@ -12,7 +12,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  W,
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 
@@ -104,8 +103,8 @@ export class ConsultantProfile {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 
   // Relations
   @OneToOne(() => User, (user) => user.consultantProfile)

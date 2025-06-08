@@ -1,3 +1,5 @@
+import { RolesNameEnum } from '@enums/index';
+import { Role } from '@modules/roles/entities/role.entity';
 import {
   BadRequestException,
   ConflictException,
@@ -23,6 +25,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -140,6 +144,158 @@ export class UsersService {
     return this.userRepository.findOne({
       where: { email: email.toLowerCase(), deletedAt: IsNull() },
       relations: ['role'],
+    });
+  }
+
+  // Auth-related methods
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email: email.toLowerCase(), deletedAt: IsNull() },
+      relations: ['role'],
+      select: [
+        'id',
+        'email',
+        'password',
+        'fullName',
+        'isActive',
+        'emailVerified',
+        'accountLockedUntil',
+        'loginAttempts',
+      ],
+    });
+  }
+
+  async findByEmailVerificationToken(token: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: {
+        emailVerificationToken: token,
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: {
+        passwordResetToken: token,
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async findByIdAndRefreshToken(
+    id: string,
+    refreshToken: string,
+  ): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id,
+        deletedAt: IsNull(),
+      },
+      relations: ['role'],
+      select: ['id', 'email', 'fullName', 'isActive', 'refreshToken'],
+    });
+
+    if (!user || !user.refreshToken) {
+      return null;
+    }
+
+    // Compare the provided refresh token with the hashed one in database
+    const isValidRefreshToken = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
+
+    return isValidRefreshToken ? user : null;
+  }
+
+  async getCustomerRoleId(): Promise<string> {
+    const customerRole = await this.roleRepository.findOne({
+      where: { name: RolesNameEnum.CUSTOMER },
+    });
+
+    if (!customerRole) {
+      throw new NotFoundException('Customer role not found');
+    }
+
+    return customerRole.id;
+  }
+
+  async incrementLoginAttempts(id: string): Promise<void> {
+    const user = await this.findOneById(id);
+    if (!user) return;
+
+    const newAttempts = user.loginAttempts + 1;
+    const updateData: Partial<User> = {
+      loginAttempts: newAttempts,
+      updatedAt: new Date(),
+    };
+
+    // Lock account after 5 failed attempts for 30 minutes
+    if (newAttempts >= 5) {
+      const lockUntil = new Date();
+      lockUntil.setMinutes(lockUntil.getMinutes() + 30);
+      updateData.accountLockedUntil = lockUntil;
+    }
+
+    await this.userRepository.update(id, updateData);
+  }
+
+  async resetLoginAttempts(id: string): Promise<void> {
+    await this.userRepository.update(id, {
+      loginAttempts: 0,
+      accountLockedUntil: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  async updateRefreshToken(id: string, refreshToken: string): Promise<void> {
+    // Hash the refresh token before storing
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+    await this.userRepository.update(id, {
+      refreshToken: hashedRefreshToken,
+      updatedAt: new Date(),
+    });
+  }
+
+  async clearRefreshToken(id: string): Promise<void> {
+    await this.userRepository.update(id, {
+      refreshToken: undefined,
+      updatedAt: new Date(),
+    });
+  }
+
+  async updateVerificationToken(
+    id: string,
+    token: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.userRepository.update(id, {
+      emailVerificationToken: token,
+      emailVerificationExpires: expires,
+      updatedAt: new Date(),
+    });
+  }
+
+  async updatePasswordResetToken(
+    id: string,
+    token: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.userRepository.update(id, {
+      passwordResetToken: token,
+      passwordResetExpires: expires,
+      updatedAt: new Date(),
+    });
+  }
+
+  async updatePassword(id: string, hashedPassword: string): Promise<void> {
+    await this.userRepository.update(id, {
+      password: hashedPassword,
+      passwordResetToken: undefined,
+      passwordResetExpires: undefined,
+      updatedAt: new Date(),
     });
   }
 
@@ -306,8 +462,8 @@ export class UsersService {
 
     await this.userRepository.update(id, {
       emailVerified: true,
-      emailVerificationToken: '',
-      emailVerificationExpires: new Date(),
+      emailVerificationToken: undefined,
+      emailVerificationExpires: undefined,
       updatedAt: new Date(),
     });
   }

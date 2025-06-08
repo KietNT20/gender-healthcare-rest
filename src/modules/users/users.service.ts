@@ -209,7 +209,7 @@ export class UsersService {
     return isValidRefreshToken ? user : null;
   }
 
-  async getCustomerRoleId(): Promise<string> {
+  async getCustomerRoleId(): Promise<any> {
     const customerRole = await this.roleRepository.findOne({
       where: { name: RolesNameEnum.CUSTOMER },
     });
@@ -218,7 +218,7 @@ export class UsersService {
       throw new NotFoundException('Customer role not found');
     }
 
-    return customerRole.id;
+    return customerRole;
   }
 
   async incrementLoginAttempts(id: string): Promise<void> {

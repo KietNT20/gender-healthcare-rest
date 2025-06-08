@@ -1,14 +1,18 @@
 import { MailService } from '@modules/mail/mail.service';
 import { UsersService } from '@modules/users/users.service';
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -89,6 +93,7 @@ export class AuthService {
     const user = await this.usersService.findByEmailWithPassword(
       loginDto.email,
     );
+
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }

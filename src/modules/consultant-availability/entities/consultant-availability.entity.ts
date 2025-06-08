@@ -1,7 +1,6 @@
 import { LocationTypeEnum } from '@enums/index';
 import { Appointment } from '@modules/appointments/entities/appointment.entity';
 import { ConsultantProfile } from '@modules/consultant-profiles/entities/consultant-profile.entity';
-import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -56,10 +55,6 @@ export class ConsultantAvailability {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.consultantAvailabilities)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
-
   @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
   @JoinColumn({ name: 'consultant_id', referencedColumnName: 'userId' })
   consultantProfile: ConsultantProfile;

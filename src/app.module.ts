@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
@@ -23,6 +22,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { EmploymentContractsModule } from './modules/employment-contracts/employment-contracts.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import { ImagesModule } from './modules/images/images.module';
+import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
 import { MoodsModule } from './modules/moods/moods.module';
@@ -40,7 +40,6 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -58,7 +57,7 @@ import { MailModule } from './modules/mail/mail.module';
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false,
+        synchronize: true,
         dropSchema: false,
       }),
       inject: [ConfigService],
@@ -100,7 +99,6 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     MailModule,
   ],
-  controllers: [AppController],
   providers: [
     AppService,
     {

@@ -175,7 +175,7 @@ export class User {
   // Consultant Availability relations
   @OneToMany(
     () => ConsultantAvailability,
-    (availability) => availability.consultant,
+    (availability) => availability.consultantProfile,
   )
   consultantAvailabilities: ConsultantAvailability[];
 

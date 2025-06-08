@@ -3,7 +3,6 @@ import { Service } from '@modules/services/entities/service.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -39,9 +38,6 @@ export class PackageService {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(

@@ -3,7 +3,6 @@ import { EmploymentContract } from '@modules/employment-contracts/entities/emplo
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -34,9 +33,6 @@ export class ContractFile {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {

@@ -3,7 +3,6 @@ import { Mood } from '@modules/moods/entities/mood.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -34,9 +33,6 @@ export class CycleMood {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods)

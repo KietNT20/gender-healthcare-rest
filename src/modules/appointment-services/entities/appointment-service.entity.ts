@@ -3,6 +3,7 @@ import { Service } from '@modules/services/entities/service.entity';
 import {
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -10,11 +11,14 @@ import {
 } from 'typeorm';
 
 @Entity('appointment_services')
+@Index('appointment_services_pkey', ['appointmentId', 'serviceId'])
 export class AppointmentService {
   @PrimaryColumn({ name: 'appointment_id' })
+  @Index('idx_appointment_services_appointment_id')
   appointmentId: string;
 
   @PrimaryColumn({ name: 'service_id' })
+  @Index('idx_appointment_services_service_id')
   serviceId: string;
 
   @CreateDateColumn({ name: 'created_at' })

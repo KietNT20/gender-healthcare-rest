@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -12,11 +13,14 @@ import {
 } from 'typeorm';
 
 @Entity('contract_files')
+@Index('contract_files_contract_id_file_id_unique', ['contractId', 'fileId'])
 export class ContractFile {
   @PrimaryColumn({ name: 'contract_id' })
+  @Index('idx_contract_files_contract_id')
   contractId: string;
 
   @PrimaryColumn({ name: 'file_id' })
+  @Index('idx_contract_files_file_id')
   fileId: string;
 
   @Column({ length: 50, nullable: true, name: 'file_type' })

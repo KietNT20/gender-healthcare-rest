@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -15,6 +16,7 @@ import {
 } from 'typeorm';
 
 @Entity('blogs')
+@Index('idx_blogs_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
 export class Blog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,12 +25,14 @@ export class Blog {
   title: string;
 
   @Column({ length: 255, unique: true })
+  @Index('idx_blogs_slug')
   slug: string;
 
   @Column({ type: 'text' })
   content: string;
 
   @Column({ name: 'author_id', nullable: true })
+  @Index('idx_blogs_author_id')
   authorId: string;
 
   @Column({
@@ -36,6 +40,7 @@ export class Blog {
     enum: ContentStatusType,
     default: ContentStatusType.DRAFT,
   })
+  @Index('idx_blogs_status')
   status: ContentStatusType;
 
   @Column({ length: 255, nullable: true, name: 'featured_image' })
@@ -68,6 +73,7 @@ export class Blog {
   readTime: number;
 
   @Column({ name: 'reviewed_by_id', nullable: true })
+  @Index('idx_blogs_reviewed_by')
   reviewedById: string;
 
   @Column({
@@ -91,6 +97,7 @@ export class Blog {
     nullable: true,
     name: 'published_at',
   })
+  @Index('idx_blogs_published_at')
   publishedAt: Date;
 
   @Column({ name: 'category_id', nullable: true })
@@ -103,6 +110,7 @@ export class Blog {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_blogs_deleted_at')
   deletedAt: Date | null;
 
   // Relations

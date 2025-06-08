@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -10,6 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity('images')
+@Index('idx_images_entity', ['entityId', 'entityType'])
 export class Image {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -45,6 +47,7 @@ export class Image {
   isPublic: boolean;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_images_user_id')
   userId: string;
 
   @Column({ type: 'text', default: '' })

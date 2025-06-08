@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -13,6 +14,7 @@ import {
 } from 'typeorm';
 
 @Entity('documents')
+@Index('idx_documents_entity', ['entityId', 'entityType'])
 export class Document {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -36,6 +38,7 @@ export class Document {
   description: string;
 
   @Column({ length: 50, nullable: true, name: 'document_type' })
+  @Index('idx_documents_document_type')
   documentType: string;
 
   @Column({ length: 50, nullable: true, name: 'entity_type' })
@@ -51,6 +54,7 @@ export class Document {
   isSensitive: boolean;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_documents_user_id')
   userId: string;
 
   @Column({ length: 64, nullable: true })

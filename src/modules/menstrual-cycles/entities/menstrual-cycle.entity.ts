@@ -4,7 +4,9 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -18,9 +20,11 @@ export class MenstrualCycle {
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_menstrual_cycles_user_id')
   userId: string;
 
   @Column({ type: 'date', name: 'cycle_start_date' })
+  @Index('idx_menstrual_cycles_start_date')
   cycleStartDate: Date;
 
   @Column({ type: 'date', nullable: true, name: 'cycle_end_date' })
@@ -66,6 +70,10 @@ export class MenstrualCycle {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_menstrual_cycles_deleted_at')
+  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.menstrualCycles, {

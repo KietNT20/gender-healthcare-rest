@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -18,9 +19,11 @@ export class ConsultantAvailability {
   id: string;
 
   @Column({ name: 'consultant_id' })
+  @Index('idx_consultant_avail_consultant_id')
   consultantId: string;
 
   @Column({ name: 'day_of_week' })
+  @Index('idx_consultant_avail_day')
   dayOfWeek: number;
 
   @Column({ type: 'time', name: 'start_time' })
@@ -30,6 +33,7 @@ export class ConsultantAvailability {
   endTime: string;
 
   @Column({ default: true, name: 'is_available' })
+  @Index('idx_consultant_avail_is_available')
   isAvailable: boolean;
 
   @Column({ default: 1, name: 'max_appointments' })

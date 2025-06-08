@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -18,18 +19,23 @@ export class Feedback {
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_feedbacks_user_id')
   userId: string;
 
   @Column({ name: 'service_id', nullable: true })
+  @Index('idx_feedbacks_service_id')
   serviceId: string;
 
   @Column({ name: 'appointment_id', nullable: true })
+  @Index('idx_feedbacks_appointment_id')
   appointmentId: string;
 
   @Column({ name: 'consultant_id', nullable: true })
+  @Index('idx_feedbacks_consultant_id')
   consultantId: string;
 
-  @Column()
+  @Column({ type: 'integer' })
+  @Index('idx_feedbacks_rating')
   rating: number;
 
   @Column({ type: 'text', nullable: true })
@@ -54,6 +60,7 @@ export class Feedback {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_feedbacks_deleted_at')
   deletedAt: Date | null;
 
   // Relations

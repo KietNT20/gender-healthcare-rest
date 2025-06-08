@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -17,15 +18,18 @@ export class Answer {
   id: string;
 
   @Column({ name: 'question_id', nullable: true })
+  @Index('idx_answers_question_id')
   questionId: string;
 
   @Column({ name: 'consultant_id', nullable: true })
+  @Index('idx_answers_consultant_id')
   consultantId: string;
 
   @Column({ type: 'text' })
   content: string;
 
   @Column({ default: false, name: 'is_accepted' })
+  @Index('idx_answers_accepted')
   isAccepted: boolean;
 
   @Column({ default: 0 })
@@ -44,6 +48,7 @@ export class Answer {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_answers_deleted_at')
   deletedAt: Date | null;
 
   // Relations

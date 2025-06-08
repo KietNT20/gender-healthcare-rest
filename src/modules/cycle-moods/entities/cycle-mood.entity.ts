@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -12,11 +13,14 @@ import {
 } from 'typeorm';
 
 @Entity('cycle_moods')
+@Index('cycle_moods_pkey', ['cycleId', 'moodId'])
 export class CycleMood {
   @PrimaryColumn({ name: 'cycle_id' })
+  @Index('idx_cycle_moods_cycle_id')
   cycleId: string;
 
   @PrimaryColumn({ name: 'mood_id' })
+  @Index('idx_cycle_moods_mood_id')
   moodId: string;
 
   @Column({ nullable: true })

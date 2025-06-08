@@ -3,7 +3,9 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -16,6 +18,7 @@ export class ContraceptiveReminder {
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_contraceptive_reminders_user_id')
   userId: string;
 
   @Column({ length: 100, name: 'contraceptive_type' })
@@ -25,6 +28,7 @@ export class ContraceptiveReminder {
   reminderTime: string;
 
   @Column({ type: 'date', name: 'start_date' })
+  @Index('idx_contraceptive_reminders_start_date')
   startDate: Date;
 
   @Column({ type: 'date', nullable: true, name: 'end_date' })
@@ -42,6 +46,7 @@ export class ContraceptiveReminder {
     enum: ReminderStatusType,
     default: ReminderStatusType.ACTIVE,
   })
+  @Index('idx_contraceptive_reminders_status')
   status: ReminderStatusType;
 
   @Column({ type: 'int', array: true, nullable: true, name: 'days_of_week' })
@@ -58,6 +63,10 @@ export class ContraceptiveReminder {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_contraceptive_reminders_deleted_at')
+  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.contraceptiveReminders, {

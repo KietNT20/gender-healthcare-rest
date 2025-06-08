@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
   Tree,
@@ -17,6 +18,8 @@ import {
 } from 'typeorm';
 
 @Entity('categories')
+@Index('idx_categories_is_active', ['isActive'])
+@Index('idx_categories_parent_id', ['parentId'])
 @Tree('closure-table')
 export class Category {
   @PrimaryGeneratedColumn('uuid')
@@ -26,12 +29,14 @@ export class Category {
   name: string;
 
   @Column({ length: 100, unique: true })
+  @Index('idx_categories_slug')
   slug: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column({ length: 50 })
+  @Index('idx_categories_type')
   type: string;
 
   @Column({ default: true, name: 'is_active' })

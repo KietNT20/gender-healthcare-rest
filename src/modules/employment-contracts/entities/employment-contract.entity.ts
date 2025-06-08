@@ -4,7 +4,9 @@ import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -13,6 +15,7 @@ import {
 } from 'typeorm';
 
 @Entity('employment_contracts')
+@Index('idx_employment_contracts_user_id', ['userId'])
 export class EmploymentContract {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -37,6 +40,7 @@ export class EmploymentContract {
     enum: ContractStatusType,
     default: ContractStatusType.PENDING,
   })
+  @Index('idx_employment_contracts_status')
   status: ContractStatusType;
 
   @Column({ type: 'text', nullable: true })
@@ -47,6 +51,10 @@ export class EmploymentContract {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_employment_contracts_deleted_at')
+  deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.employmentContracts)

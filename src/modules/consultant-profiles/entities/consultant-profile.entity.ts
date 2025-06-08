@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -21,9 +22,11 @@ export class ConsultantProfile {
   id: string;
 
   @Column({ name: 'user_id' })
+  @Index('idx_consultant_profiles_user_id')
   userId: string;
 
   @Column({ length: 255 })
+  @Index('idx_consultant_profiles_specialization')
   specialization: string;
 
   @Column({ type: 'text' })
@@ -39,6 +42,7 @@ export class ConsultantProfile {
   workingHours: WorkingHours;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  @Index('idx_consultant_profiles_rating')
   rating: number;
 
   @Column({ default: true, name: 'is_available' })
@@ -50,6 +54,7 @@ export class ConsultantProfile {
     default: ProfileStatusType.ACTIVE,
     name: 'profile_status',
   })
+  @Index('idx_consultant_profiles_status')
   profileStatus: ProfileStatusType;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -104,6 +109,7 @@ export class ConsultantProfile {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_consultant_profiles_deleted_at')
   deletedAt: Date | null;
 
   // Relations

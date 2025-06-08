@@ -11,6 +11,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -19,17 +20,22 @@ import {
 } from 'typeorm';
 
 @Entity('appointments')
+@Index('idx_appointments_consultant_date', ['consultantId', 'appointmentDate'])
+@Index('idx_appointments_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
 export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_appointments_user_id')
   userId: string;
 
   @Column({ name: 'consultant_id', nullable: true })
+  @Index('idx_appointments_consultant_id')
   consultantId: string;
 
   @Column({ type: 'timestamp with time zone', name: 'appointment_date' })
+  @Index('idx_appointments_date')
   appointmentDate: Date;
 
   @Column({
@@ -37,6 +43,7 @@ export class Appointment {
     enum: AppointmentStatusType,
     default: AppointmentStatusType.PENDING,
   })
+  @Index('idx_appointments_status')
   status: AppointmentStatusType;
 
   @Column({ type: 'text', nullable: true })
@@ -85,6 +92,7 @@ export class Appointment {
     default: LocationTypeEnum.OFFICE,
     name: 'appointment_location',
   })
+  @Index('idx_appointments_location')
   appointmentLocation: LocationTypeEnum;
 
   @Column({ name: 'availability_id', nullable: true })
@@ -97,6 +105,7 @@ export class Appointment {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_appointments_deleted_at')
   deletedAt: Date | null;
 
   // Relations

@@ -3,20 +3,24 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity('audit_logs')
+@Index('idx_audit_logs_entity', ['entityType', 'entityId'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
+  @Index('idx_audit_logs_user_id')
   userId: string;
 
   @Column({ length: 50 })
+  @Index('idx_audit_logs_action')
   action: string;
 
   @Column({ length: 50, name: 'entity_type' })
@@ -41,6 +45,7 @@ export class AuditLog {
   status: string;
 
   @CreateDateColumn({ name: 'created_at' })
+  @Index('idx_audit_logs_created_at')
   createdAt: Date;
 
   // Relations

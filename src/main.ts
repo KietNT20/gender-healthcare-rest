@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -20,6 +21,8 @@ async function bootstrap() {
     new AllExceptionsFilter(httpAdapter),
     new HttpExceptionFilter(),
   );
+  // Security
+  app.use(helmet());
 
   // Enable CORS
   app.enableCors();

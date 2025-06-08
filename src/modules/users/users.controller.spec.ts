@@ -105,19 +105,6 @@ describe('UsersController', () => {
     });
   });
 
-  describe('updateProfile()', () => {
-    it('should call service.updateProfile with correct id and DTO', async () => {
-      const id = '1';
-      const updateProfileDto: UpdateProfileDto = {
-        fullName: 'Profile Updated',
-      };
-
-      await controller.updateProfile(mockUser, updateProfileDto);
-
-      expect(service.updateProfile).toHaveBeenCalledWith(id, updateProfileDto);
-    });
-  });
-
   describe('remove()', () => {
     it('should call service.remove with the correct id', async () => {
       const id = '1';

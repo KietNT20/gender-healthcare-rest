@@ -1,5 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
@@ -15,7 +15,11 @@ async function bootstrap() {
     }),
   );
   // Global filters
-  app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(
+    new AllExceptionsFilter(httpAdapter),
+    new HttpExceptionFilter(),
+  );
 
   // Enable CORS
   app.enableCors();

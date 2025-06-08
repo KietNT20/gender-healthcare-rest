@@ -26,6 +26,7 @@ export class Category {
   id: string;
 
   @Column({ length: 100 })
+  @Index('idx_categories_name')
   name: string;
 
   @Column({ length: 100, unique: true })

@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';

@@ -31,7 +31,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new user account' })
   @ApiResponse({
@@ -47,7 +46,6 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login user and get access tokens' })
   @ApiResponse({

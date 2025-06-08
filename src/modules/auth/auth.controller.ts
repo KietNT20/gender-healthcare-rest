@@ -1,5 +1,4 @@
 import { CurrentUser } from '@decorators/current-user.decorator';
-import { Public } from '@decorators/public.decorator';
 import { ResponseMessage } from '@decorators/response-message.decorator';
 import { RefreshJwtGuard } from '@modules/auth/guards/refresh-jwt.guard';
 import { User } from '@modules/users/entities/user.entity';
@@ -61,7 +60,6 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Public()
   @Get('verify-email')
   @ApiOperation({ summary: 'Verify user email with token' })
   @ApiQuery({
@@ -82,7 +80,6 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @Public()
   @Post('resend-verification')
   @ApiOperation({ summary: 'Resend email verification' })
   @ApiResponse({
@@ -102,7 +99,6 @@ export class AuthController {
     );
   }
 
-  @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
   @ApiBody({
@@ -123,7 +119,6 @@ export class AuthController {
     return this.authService.forgotPassword(email);
   }
 
-  @Public()
   @Put('reset-password/:token')
   @ApiOperation({ summary: 'Reset password with token' })
   @ApiParam({

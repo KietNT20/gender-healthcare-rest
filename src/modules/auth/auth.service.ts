@@ -149,7 +149,10 @@ export class AuthService {
       throw new BadRequestException('Token xác thực không hợp lệ');
     }
 
-    if (user.emailVerificationExpires < new Date()) {
+    if (
+      user.emailVerificationExpires &&
+      user.emailVerificationExpires < new Date()
+    ) {
       throw new BadRequestException('Token xác thực đã hết hạn');
     }
 
@@ -244,7 +247,7 @@ export class AuthService {
       throw new BadRequestException('Token đặt lại mật khẩu không hợp lệ');
     }
 
-    if (user.passwordResetExpires < new Date()) {
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
       throw new BadRequestException('Token đặt lại mật khẩu đã hết hạn');
     }
 

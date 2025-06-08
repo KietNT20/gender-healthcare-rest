@@ -432,7 +432,7 @@ export class UsersService {
 
     await this.userRepository.update(id, {
       deletedAt: new Date(),
-      deletedById,
+      deletedBy: deletedById ? { id: deletedById } : null,
       updatedAt: new Date(),
     });
   }

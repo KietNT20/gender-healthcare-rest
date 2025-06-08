@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -41,9 +42,9 @@ export class RegisterDto {
   phone: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Address is required' })
   @IsString()
-  address: string;
+  @IsOptional()
+  address?: string;
 
   @ApiProperty()
   @IsNotEmpty({ message: 'Gender is required' })

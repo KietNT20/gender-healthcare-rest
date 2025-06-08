@@ -36,16 +36,16 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 60, unique: true })
+  @Column({ type: 'varchar', length: 60, unique: true })
   email: string;
 
-  @Column({ length: 60, select: false })
+  @Column({ type: 'varchar', length: 60, select: false })
   password: string;
 
-  @Column({ length: 255, name: 'full_name' })
+  @Column({ type: 'varchar', length: 255, name: 'full_name' })
   fullName: string;
 
-  @Column({ length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
 
   @Column({ type: 'date', nullable: true, name: 'date_of_birth' })
@@ -56,19 +56,24 @@ export class User {
     enum: GenderType,
     nullable: true,
   })
-  gender: GenderType;
+  gender?: GenderType;
 
-  @Column({ length: 20, nullable: true })
-  phone: string;
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  phone?: string;
 
   @Column({ type: 'text', nullable: true })
-  address: string;
+  address?: string;
 
   @Column({ name: 'role_id' })
   roleId: string;
 
-  @Column({ length: 255, nullable: true, name: 'profile_picture' })
-  profilePicture: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'profile_picture',
+  })
+  profilePicture?: string;
 
   @Column({ default: true, name: 'is_active' })
   isActive: boolean;
@@ -78,7 +83,7 @@ export class User {
     nullable: true,
     name: 'account_locked_until',
   })
-  accountLockedUntil: Date | null;
+  accountLockedUntil?: Date;
 
   @Column({ default: 0, name: 'login_attempts' })
   loginAttempts: number;
@@ -86,37 +91,47 @@ export class User {
   @Column({ default: false, name: 'email_verified' })
   emailVerified: boolean;
 
-  @Column({ length: 255, nullable: true, name: 'email_verification_token' })
-  emailVerificationToken: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'email_verification_token',
+  })
+  emailVerificationToken?: string;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
     name: 'email_verification_expires',
   })
-  emailVerificationExpires: Date;
+  emailVerificationExpires?: Date;
 
   @Column({ default: false, name: 'phone_verified' })
   phoneVerified: boolean;
 
-  @Column({ length: 255, nullable: true, name: 'password_reset_token' })
-  passwordResetToken: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'password_reset_token',
+  })
+  passwordResetToken?: string;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
     name: 'password_reset_expires',
   })
-  passwordResetExpires: Date;
+  passwordResetExpires?: Date;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
     name: 'last_login',
   })
-  lastLogin: Date;
+  lastLogin?: Date;
 
-  @Column({ length: 10, default: 'vi' })
+  @Column({ type: 'varchar', length: 10, default: 'vi' })
   locale: string;
 
   @Column({
@@ -139,13 +154,10 @@ export class User {
     name: 'refresh_token',
     select: false,
   })
-  refreshToken: string;
+  refreshToken?: string;
 
   @Column({ default: 0 })
   version: number;
-
-  @Column({ name: 'deleted_by_id', nullable: true })
-  deletedById: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

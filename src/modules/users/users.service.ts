@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
@@ -208,7 +208,7 @@ export class UsersService {
     return isValidRefreshToken ? user : null;
   }
 
-  async getCustomerRoleId(): Promise<any> {
+  async getCustomerRoleId(): Promise<string> {
     const customerRole = await this.roleRepository.findOne({
       where: { name: RolesNameEnum.CUSTOMER },
     });
@@ -217,7 +217,7 @@ export class UsersService {
       throw new NotFoundException('Customer role not found');
     }
 
-    return customerRole;
+    return customerRole.id;
   }
 
   async incrementLoginAttempts(id: string): Promise<void> {

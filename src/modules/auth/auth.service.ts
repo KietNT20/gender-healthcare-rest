@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';

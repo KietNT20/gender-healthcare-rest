@@ -1,6 +1,6 @@
-import { LocationTypeEnum } from '@enums/index';
-import { Appointment } from '@modules/appointments/entities/appointment.entity';
-import { ConsultantProfile } from '@modules/consultant-profiles/entities/consultant-profile.entity';
+import { LocationTypeEnum } from 'src/enums';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import {
   Column,
   CreateDateColumn,

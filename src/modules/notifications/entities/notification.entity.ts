@@ -1,5 +1,5 @@
-import { PriorityType } from '@enums/index';
-import { User } from '@modules/users/entities/user.entity';
+import { PriorityType } from 'src/enums';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

@@ -1,5 +1,5 @@
-import { Question } from '@modules/questions/entities/question.entity';
-import { Tag } from '@modules/tags/entities/tag.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
+import { Tag } from 'src/modules/tags/entities/tag.entity';
 import {
   CreateDateColumn,
   Entity,

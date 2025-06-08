@@ -1,4 +1,4 @@
-import { QuestionTag } from '@modules/question-tags/entities/question-tag.entity';
+import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
 import {
   Column,
   CreateDateColumn,

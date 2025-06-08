@@ -1,5 +1,5 @@
-import { PackageService } from '@modules/package-services/entities/package-service.entity';
-import { UserPackageSubscription } from '@modules/user-package-subscriptions/entities/user-package-subscription.entity';
+import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
+import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
   Column,
   CreateDateColumn,

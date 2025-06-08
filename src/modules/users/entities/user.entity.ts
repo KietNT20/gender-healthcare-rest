@@ -1,23 +1,23 @@
-import { GenderType } from '@enums/index';
-import { Answer } from '@modules/answers/entities/answer.entity';
-import { Appointment } from '@modules/appointments/entities/appointment.entity';
-import { AuditLog } from '@modules/audit-logs/entities/audit-log.entity';
-import { Blog } from '@modules/blogs/entities/blog.entity';
-import { ConsultantAvailability } from '@modules/consultant-availability/entities/consultant-availability.entity';
-import { ConsultantProfile } from '@modules/consultant-profiles/entities/consultant-profile.entity';
-import { ContraceptiveReminder } from '@modules/contraceptive-reminders/entities/contraceptive-reminder.entity';
-import { Document } from '@modules/documents/entities/document.entity';
-import { EmploymentContract } from '@modules/employment-contracts/entities/employment-contract.entity';
-import { Feedback } from '@modules/feedbacks/entities/feedback.entity';
-import { Image } from '@modules/images/entities/image.entity';
-import { MenstrualCycle } from '@modules/menstrual-cycles/entities/menstrual-cycle.entity';
-import { MenstrualPrediction } from '@modules/menstrual-predictions/entities/menstrual-prediction.entity';
-import { Notification } from '@modules/notifications/entities/notification.entity';
-import { Payment } from '@modules/payments/entities/payment.entity';
-import { Question } from '@modules/questions/entities/question.entity';
-import { Role } from '@modules/roles/entities/role.entity';
-import { TestResult } from '@modules/test-results/entities/test-result.entity';
-import { UserPackageSubscription } from '@modules/user-package-subscriptions/entities/user-package-subscription.entity';
+import { GenderType } from 'src/enums';
+import { Answer } from 'src/modules/answers/entities/answer.entity';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { AuditLog } from 'src/modules/audit-logs/entities/audit-log.entity';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
+import { ContraceptiveReminder } from 'src/modules/contraceptive-reminders/entities/contraceptive-reminder.entity';
+import { Document } from 'src/modules/documents/entities/document.entity';
+import { EmploymentContract } from 'src/modules/employment-contracts/entities/employment-contract.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
+import { Image } from 'src/modules/images/entities/image.entity';
+import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
+import { MenstrualPrediction } from 'src/modules/menstrual-predictions/entities/menstrual-prediction.entity';
+import { Notification } from 'src/modules/notifications/entities/notification.entity';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
+import { Role } from 'src/modules/roles/entities/role.entity';
+import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
+import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
   Column,
   CreateDateColumn,

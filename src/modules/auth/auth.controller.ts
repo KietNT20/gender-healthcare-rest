@@ -1,7 +1,3 @@
-import { CurrentUser } from '@decorators/current-user.decorator';
-import { ResponseMessage } from '@decorators/response-message.decorator';
-import { RefreshJwtGuard } from '@modules/auth/guards/refresh-jwt.guard';
-import { User } from '@modules/users/entities/user.entity';
 import {
   Body,
   Controller,
@@ -19,12 +15,16 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-toekn.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshJwtGuard } from './guards/refresh-jwt.guard';
 
 @Controller('auth')
 export class AuthController {

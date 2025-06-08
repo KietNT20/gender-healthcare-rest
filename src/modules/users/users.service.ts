@@ -1,5 +1,3 @@
-import { RolesNameEnum } from '@enums/index';
-import { Role } from '@modules/roles/entities/role.entity';
 import {
   BadRequestException,
   ConflictException,
@@ -10,7 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
+import { RolesNameEnum } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
+import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';

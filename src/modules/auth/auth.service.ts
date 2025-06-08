@@ -1,5 +1,3 @@
-import { MailService } from '@modules/mail/mail.service';
-import { UsersService } from '@modules/users/users.service';
 import {
   BadRequestException,
   Injectable,
@@ -11,6 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 

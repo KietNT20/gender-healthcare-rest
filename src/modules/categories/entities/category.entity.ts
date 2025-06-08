@@ -1,7 +1,7 @@
-import { Blog } from '@modules/blogs/entities/blog.entity';
-import { Question } from '@modules/questions/entities/question.entity';
-import { Service } from '@modules/services/entities/service.entity';
-import { Symptom } from '@modules/symptoms/entities/symptom.entity';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
+import { Symptom } from 'src/modules/symptoms/entities/symptom.entity';
 import {
   Column,
   CreateDateColumn,

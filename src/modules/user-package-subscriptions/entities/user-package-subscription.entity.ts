@@ -1,8 +1,8 @@
-import { SubscriptionStatusType } from '@enums/index';
-import { PackageServiceUsage } from '@modules/package-service-usage/entities/package-service-usage.entity';
-import { Payment } from '@modules/payments/entities/payment.entity';
-import { ServicePackage } from '@modules/service-packages/entities/service-package.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { SubscriptionStatusType } from 'src/enums';
+import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

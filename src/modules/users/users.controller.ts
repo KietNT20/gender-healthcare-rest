@@ -1,9 +1,3 @@
-import { CurrentUser } from '@decorators/current-user.decorator';
-import { ResponseMessage } from '@decorators/response-message.decorator';
-import { Roles } from '@decorators/roles.decorator';
-import { RolesNameEnum } from '@enums/index';
-import { RoleGuard } from '@guards/role.guard';
-import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import {
   Body,
   Controller,
@@ -18,6 +12,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesNameEnum } from 'src/enums';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';

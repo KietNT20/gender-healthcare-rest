@@ -1,4 +1,4 @@
-import { CycleMood } from '@modules/cycle-moods/entities/cycle-mood.entity';
+import { CycleMood } from 'src/modules/cycle-moods/entities/cycle-mood.entity';
 import {
   Column,
   CreateDateColumn,

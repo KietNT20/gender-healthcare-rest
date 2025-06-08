@@ -1,11 +1,11 @@
-import { AppointmentStatusType, LocationTypeEnum } from '@enums/index';
-import { AppointmentService } from '@modules/appointment-services/entities/appointment-service.entity';
-import { ConsultantAvailability } from '@modules/consultant-availability/entities/consultant-availability.entity';
-import { Feedback } from '@modules/feedbacks/entities/feedback.entity';
-import { PackageServiceUsage } from '@modules/package-service-usage/entities/package-service-usage.entity';
-import { Payment } from '@modules/payments/entities/payment.entity';
-import { TestResult } from '@modules/test-results/entities/test-result.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
+import { AppointmentService } from 'src/modules/appointment-services/entities/appointment-service.entity';
+import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
+import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

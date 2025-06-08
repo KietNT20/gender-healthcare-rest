@@ -1,5 +1,3 @@
-import { ResponseMessage } from '@decorators/response-message.decorator';
-import { ApiResponse } from '@interfaces/response.interface';
 import {
   CallHandler,
   ExecutionContext,
@@ -9,6 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { ApiResponse } from 'src/interfaces/response.interface';
 
 @Injectable()
 export class TransformInterceptor<T>

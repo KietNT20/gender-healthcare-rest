@@ -1,4 +1,3 @@
-import { GenderType } from '@enums/index';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -10,6 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { GenderType } from 'src/enums';
 
 export class RegisterDto {
   @ApiProperty()

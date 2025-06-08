@@ -1,7 +1,7 @@
-import { ContentStatusType } from '@enums/index';
-import { BlogServiceRelation } from '@modules/blog-service-relations/entities/blog-service-relation.entity';
-import { Category } from '@modules/categories/entities/category.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { ContentStatusType } from 'src/enums';
+import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

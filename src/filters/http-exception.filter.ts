@@ -1,4 +1,3 @@
-import { ApiResponse } from '@interfaces/response.interface';
 import {
   ArgumentsHost,
   Catch,
@@ -6,6 +5,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ApiResponse } from 'src/interfaces/response.interface';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {

@@ -1,10 +1,10 @@
-import { GenderType, RolesNameEnum } from '@enums/index';
-import { Role } from '@modules/roles/entities/role.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { GenderType, RolesNameEnum } from 'src/enums';
 import { Repository } from 'typeorm';
+import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';

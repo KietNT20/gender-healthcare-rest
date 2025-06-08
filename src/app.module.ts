@@ -59,6 +59,8 @@ import { UsersModule } from './modules/users/users.module';
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
+    MailModule,
     UsersModule,
     RolesModule,
     ConsultantProfilesModule,
@@ -93,8 +95,6 @@ import { UsersModule } from './modules/users/users.module';
     PackageServicesModule,
     UserPackageSubscriptionsModule,
     PackageServiceUsageModule,
-    AuthModule,
-    MailModule,
   ],
   providers: [],
 })

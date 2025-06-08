@@ -1,5 +1,5 @@
 import { UsersService } from '@modules/users/users.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -18,10 +18,19 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { sub: string; email: string }) {
-    // Passport sẽ tự động xác thực token.
-    // Dữ liệu trả về ở đây sẽ được gán vào request.user
     const user = await this.usersService.findOneById(payload.sub);
-    // Bạn có thể thêm các thông tin khác vào user object nếu cần
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Kiểm tra user có active không
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is disabled');
+    }
+
+    // Cập nhật last login
+    await this.usersService.updateLastLogin(user.id);
+
     return user;
   }
 }

@@ -20,6 +20,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 import {
   ChangePasswordDto,
   UpdateProfileDto,
@@ -50,24 +51,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @ResponseMessage('Users retrieved successfully')
-  async findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('search') search?: string,
-    @Query('roleId') roleId?: string,
-    @Query('isActive') isActive?: string,
-  ) {
-    const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
-    const isActiveBoolean = isActive ? isActive === 'true' : undefined;
-
-    return this.usersService.findAll(
-      pageNumber,
-      limitNumber,
-      search,
-      roleId,
-      isActiveBoolean,
-    );
+  async findAll(@Query() userQueryDto: UserQueryDto) {
+    return this.usersService.findAll(userQueryDto);
   }
 
   @Get('me')
@@ -77,7 +62,7 @@ export class UsersController {
     description: 'Current user profile retrieved successfully',
   })
   @ResponseMessage('Current user profile retrieved successfully')
-  async getProfile(@CurrentUser() user: User): Promise<UserResponseDto> {
+  getProfile(@CurrentUser() user: User) {
     return this.usersService.findOne(user.id);
   }
 

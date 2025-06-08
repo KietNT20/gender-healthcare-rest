@@ -13,6 +13,7 @@ import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 import {
   ChangePasswordDto,
   UpdateProfileDto,
@@ -69,13 +70,7 @@ export class UsersService {
     return this.toUserResponse(savedUser);
   }
 
-  async findAll(
-    page: number = 1,
-    limit: number = 10,
-    search?: string,
-    roleId?: string,
-    isActive?: boolean,
-  ): Promise<{
+  async findAll(userQueryDto: UserQueryDto): Promise<{
     users: UserResponseDto[];
     total: number;
     totalPages: number;
@@ -87,36 +82,54 @@ export class UsersService {
       .where('user.deletedAt IS NULL');
 
     // Apply filters
-    if (search) {
-      queryBuilder.andWhere(
-        '(user.fullName ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` },
-      );
+    // fullName
+    if (userQueryDto.fullName) {
+      queryBuilder.andWhere('(user.fullName ILIKE :fullName)', {
+        fullName: `%${userQueryDto.fullName}%`,
+      });
     }
 
-    if (roleId) {
-      queryBuilder.andWhere('user.roleId = :roleId', { roleId });
+    // email
+    if (userQueryDto.email) {
+      queryBuilder.andWhere('user.email ILIKE :email', {
+        email: `%${userQueryDto.email}%`,
+      });
     }
 
-    if (isActive !== undefined) {
-      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
+    // phone
+    if (userQueryDto.phone) {
+      queryBuilder.andWhere('user.phone ILIKE :phone', {
+        phone: `%${userQueryDto.phone}%`,
+      });
+    }
+
+    if (userQueryDto.roleId) {
+      queryBuilder.andWhere('user.roleId = :roleId', {
+        roleId: userQueryDto.roleId,
+      });
+    }
+
+    if (userQueryDto.isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', {
+        isActive: userQueryDto.isActive,
+      });
     }
 
     // Apply pagination
-    const offset = (page - 1) * limit;
-    queryBuilder.skip(offset).take(limit);
+    const offset = (userQueryDto.page - 1) * userQueryDto.limit;
+    queryBuilder.skip(offset).take(userQueryDto.limit);
 
     // Order by creation date
     queryBuilder.orderBy('user.createdAt', 'DESC');
 
     const [users, total] = await queryBuilder.getManyAndCount();
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / userQueryDto.limit);
 
     return {
       users: users.map((user) => this.toUserResponse(user)),
       total,
       totalPages,
-      currentPage: page,
+      currentPage: userQueryDto.page,
     };
   }
 

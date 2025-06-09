@@ -58,14 +58,6 @@ export class Blog {
   @Column({ type: 'text', nullable: true, name: 'seo_description' })
   seoDescription: string;
 
-  @Column({
-    type: 'uuid',
-    array: true,
-    nullable: true,
-    name: 'related_services',
-  })
-  relatedServicesIds: string[];
-
   @Column({ type: 'text', nullable: true })
   excerpt: string;
 

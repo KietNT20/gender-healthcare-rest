@@ -15,10 +15,6 @@ export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_audit_logs_user_id')
-  userId: string;
-
   @Column({ length: 50 })
   @Index('idx_audit_logs_action')
   action: string;

@@ -72,6 +72,7 @@ import { UsersModule } from './modules/users/users.module';
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
+        autoLoadEntities: true,
         dropSchema: false,
       }),
       inject: [ConfigService],

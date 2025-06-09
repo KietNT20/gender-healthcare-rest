@@ -58,7 +58,7 @@ export class User {
   })
   gender?: GenderType;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone?: string;
 
   @Column({ type: 'text', nullable: true })

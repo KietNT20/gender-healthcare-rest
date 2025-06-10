@@ -176,7 +176,7 @@ export class User {
   deletedBy?: User;
 
   // Consultant Profile relation
-  @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
+  @OneToOne(() => ConsultantProfile, (profile) => profile.id, {
     nullable: true,
   })
   @JoinColumn({ name: 'consultant_profile_id' })
@@ -186,11 +186,11 @@ export class User {
   @OneToMany(() => Blog, (blog) => blog.author)
   authoredBlogs: Blog[];
 
-  @OneToMany(() => Blog, (blog) => blog.reviewedBy)
-  reviewedBlogs: Blog[];
-
   @OneToMany(() => Blog, (blog) => blog.publishedBy)
   publishedBlogs: Blog[];
+
+  @OneToMany(() => Blog, (blog) => blog.reviewedBy)
+  reviewedBlogs: Blog[];
 
   // Appointment relations
   @OneToMany(() => Appointment, (appointment) => appointment.user)

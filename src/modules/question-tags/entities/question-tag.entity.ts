@@ -3,7 +3,6 @@ import { Tag } from 'src/modules/tags/entities/tag.entity';
 import {
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -25,10 +24,8 @@ export class QuestionTag {
 
   // Relations
   @ManyToOne(() => Question, (question) => question.questionTags)
-  @JoinColumn({ name: 'question_id' })
   question: Question;
 
   @ManyToOne(() => Tag, (tag) => tag.questionTags)
-  @JoinColumn({ name: 'tag_id' })
   tag: Tag;
 }

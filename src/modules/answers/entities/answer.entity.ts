@@ -1,5 +1,5 @@
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Question } from 'src/modules/questions/entities/question.entity';
-import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -50,9 +50,13 @@ export class Answer {
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => User, (user) => user.answers, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+  @ManyToOne(
+    () => ConsultantProfile,
+    (consultantProfile) => consultantProfile.answers,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({ name: 'consultant_profile_id' })
+  consultantProfile: ConsultantProfile;
 }

@@ -11,7 +11,6 @@ import {
   Entity,
   Index,
   JoinColumn,
-  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -23,10 +22,6 @@ import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 export class ConsultantProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id' })
-  @Index('idx_consultant_profiles_user_id')
-  userId: string;
 
   @Column({ length: 255 })
   @Index('idx_consultant_profiles_specialization')
@@ -116,14 +111,18 @@ export class ConsultantProfile {
   deletedAt: Date | null;
 
   // Relations
-  @OneToOne(() => User, (user) => user.consultantProfile)
+  @OneToOne(() => User, (user) => user.id, {
+    eager: true,
+    cascade: true,
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
-    nullable: true,
+  @OneToOne(() => User, (user) => user.id, {
+    eager: true,
+    cascade: true,
   })
-  @JoinColumn({ name: 'verified_by_id' })
+  @JoinColumn({ name: 'verified_by_user_id' })
   verifiedBy: User;
 
   @OneToMany(
@@ -135,7 +134,7 @@ export class ConsultantProfile {
   @OneToMany(() => Appointment, (appointment) => appointment.consultant)
   consultantAppointments: Appointment[];
 
-  @OneToMany(() => Answer, (answer) => answer.consultant)
+  @OneToMany(() => Answer, (answer) => answer.consultantProfile)
   answers: Answer[];
 
   // Feedback relations

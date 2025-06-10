@@ -1,5 +1,8 @@
 import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
+import { Answer } from 'src/modules/answers/entities/answer.entity';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
@@ -128,4 +131,14 @@ export class ConsultantProfile {
     (availability) => availability.consultantProfile,
   )
   availabilities: ConsultantAvailability[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.consultant)
+  consultantAppointments: Appointment[];
+
+  @OneToMany(() => Answer, (answer) => answer.consultant)
+  answers: Answer[];
+
+  // Feedback relations
+  @OneToMany(() => Feedback, (feedback) => feedback.consultant)
+  consultantFeedbacks: Feedback[];
 }

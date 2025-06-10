@@ -68,6 +68,7 @@ export enum ProfileStatusType {
 export enum QuestionStatusType {
   PENDING = 'pending',
   ANSWERED = 'answered',
+  RESOLVED = 'resolved',
   CLOSED = 'closed',
 }
 

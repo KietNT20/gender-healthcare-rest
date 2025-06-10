@@ -69,7 +69,7 @@ export class User {
 
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 1024,
     nullable: true,
     name: 'profile_picture',
   })

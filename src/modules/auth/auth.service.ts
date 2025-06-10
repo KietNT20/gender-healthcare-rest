@@ -297,4 +297,33 @@ export class AuthService {
       message: 'Đăng xuất thành công',
     };
   }
+
+  async verifyToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.usersService.findOneById(payload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role?.name || 'user',
+        fullName: user.fullName,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async verifyTokenForWebSocket(token: string) {
+    try {
+      const cleanToken = token.replace('Bearer ', '');
+      return await this.verifyToken(cleanToken);
+    } catch (error) {
+      return null;
+    }
+  }
 }

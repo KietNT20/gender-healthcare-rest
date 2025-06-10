@@ -17,14 +17,6 @@ export class Answer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'question_id', nullable: true })
-  @Index('idx_answers_question_id')
-  questionId: string;
-
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_answers_consultant_id')
-  consultantId: string;
-
   @Column({ type: 'text' })
   content: string;
 
@@ -52,11 +44,15 @@ export class Answer {
   deletedAt: Date | null;
 
   // Relations
-  @ManyToOne(() => Question, (question) => question.answers)
+  @ManyToOne(() => Question, (question) => question.answers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => User, (user) => user.answers)
+  @ManyToOne(() => User, (user) => user.answers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'consultant_id' })
   consultant: User;
 }

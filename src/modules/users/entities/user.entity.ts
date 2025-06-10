@@ -64,9 +64,6 @@ export class User {
   @Column({ type: 'text', nullable: true })
   address?: string;
 
-  @Column({ name: 'role_id' })
-  roleId: string;
-
   @Column({
     type: 'varchar',
     length: 1024,
@@ -166,7 +163,7 @@ export class User {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
+  deletedAt?: Date;
 
   // Relations
   @ManyToOne(() => Role, (role) => role.users)
@@ -175,7 +172,7 @@ export class User {
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'deleted_by_id' })
-  deletedBy: User | null;
+  deletedBy?: User;
 
   @OneToMany(() => User, (user) => user.deletedBy)
   deletedUsers: User[];
@@ -184,7 +181,7 @@ export class User {
   @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
     nullable: true,
   })
-  consultantProfile: ConsultantProfile | null;
+  consultantProfile?: ConsultantProfile;
 
   // Consultant Availability relations
   @OneToMany(
@@ -192,7 +189,7 @@ export class User {
     (availability) => availability.consultantProfile,
     { nullable: true },
   )
-  consultantAvailabilities: ConsultantAvailability[] | null;
+  consultantAvailabilities?: ConsultantAvailability[];
 
   // Appointment relations
   @OneToMany(() => Appointment, (appointment) => appointment.user)

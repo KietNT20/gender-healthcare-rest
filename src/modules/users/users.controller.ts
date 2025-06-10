@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -51,8 +53,16 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @ResponseMessage('Users retrieved successfully')
-  findAll(@Query() userQueryDto: UserQueryDto) {
-    return this.usersService.findAll(userQueryDto);
+  findAll(
+    @Query() userQueryDto: UserQueryDto,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.usersService.findAll({
+      ...userQueryDto,
+      page,
+      limit,
+    });
   }
 
   @Get('me')

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -40,12 +41,12 @@ export class AnswersController {
   @ApiOperation({ summary: 'Get all answers for a question' })
   findByQuestion(
     @Param('questionId') questionId: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.answersService.findByQuestion(questionId, {
-      page: Number(page),
-      limit: Number(limit),
+      page,
+      limit,
     });
   }
 
@@ -56,8 +57,8 @@ export class AnswersController {
   @ApiOperation({ summary: 'Get consultant own answers' })
   getMyAnswers(
     @Request() req: any,
-    @Query('page', new DefaultValuePipe(1)) page: number,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.answersService.findByConsultant(req.user.id, {
       page,

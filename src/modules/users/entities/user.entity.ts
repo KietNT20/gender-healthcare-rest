@@ -1,9 +1,7 @@
 import { GenderType } from 'src/enums';
-import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { AuditLog } from 'src/modules/audit-logs/entities/audit-log.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { ContraceptiveReminder } from 'src/modules/contraceptive-reminders/entities/contraceptive-reminder.entity';
 import { Document } from 'src/modules/documents/entities/document.entity';
@@ -166,61 +164,44 @@ export class User {
   deletedAt?: Date;
 
   // Relations
-  @ManyToOne(() => Role, (role) => role.users)
+  @OneToOne(() => Role, (role) => role.id, {
+    eager: true,
+    cascade: true,
+  })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'deleted_by_id' })
+  @JoinColumn({ name: 'deleted_by_user_id' })
   deletedBy?: User;
 
-  @OneToMany(() => User, (user) => user.deletedBy)
-  deletedUsers: User[];
-
   // Consultant Profile relation
-  @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
+  @OneToOne(() => ConsultantProfile, (profile) => profile.id, {
     nullable: true,
   })
+  @JoinColumn({ name: 'consultant_profile_id' })
   consultantProfile?: ConsultantProfile;
-
-  // Consultant Availability relations
-  @OneToMany(
-    () => ConsultantAvailability,
-    (availability) => availability.consultantProfile,
-    { nullable: true },
-  )
-  consultantAvailabilities?: ConsultantAvailability[];
-
-  // Appointment relations
-  @OneToMany(() => Appointment, (appointment) => appointment.user)
-  appointments: Appointment[];
-
-  @OneToMany(() => Appointment, (appointment) => appointment.consultant)
-  consultantAppointments: Appointment[];
 
   // Blog relations
   @OneToMany(() => Blog, (blog) => blog.author)
   authoredBlogs: Blog[];
 
+  @OneToMany(() => Blog, (blog) => blog.publishedBy)
+  publishedBlogs: Blog[];
+
   @OneToMany(() => Blog, (blog) => blog.reviewedBy)
   reviewedBlogs: Blog[];
 
-  @OneToMany(() => Blog, (blog) => blog.publishedBy)
-  publishedBlogs: Blog[];
+  // Appointment relations
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
 
   // Question & Answer relations
   @OneToMany(() => Question, (question) => question.user)
   questions: Question[];
 
-  @OneToMany(() => Answer, (answer) => answer.consultant)
-  answers: Answer[];
-
-  // Feedback relations
   @OneToMany(() => Feedback, (feedback) => feedback.user)
   feedbacks: Feedback[];
-
-  @OneToMany(() => Feedback, (feedback) => feedback.consultant)
-  consultantFeedbacks: Feedback[];
 
   // Cycle tracking relations
   @OneToMany(() => MenstrualCycle, (cycle) => cycle.user)

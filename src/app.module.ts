@@ -42,7 +42,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true,
+      isGlobal: true, // Đảm bảo ConfigModule là global để các module khác có thể sử dụng
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -54,7 +54,7 @@ import { UsersModule } from './modules/users/users.module';
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: true, // Chỉ dùng trong dev, tắt trong production
         dropSchema: false,
       }),
       inject: [ConfigService],

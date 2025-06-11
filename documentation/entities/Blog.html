@@ -138,6 +138,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#authorId" >authorId</a>
                             </li>
                             <li>
@@ -163,6 +164,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#deletedAt" >deletedAt</a>
                             </li>
                             <li>
@@ -178,6 +180,7 @@
                                 <a href="#id" >id</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#publishedAt" >publishedAt</a>
                             </li>
@@ -213,6 +216,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#reviewedById" >reviewedById</a>
                             </li>
                             <li>
@@ -229,9 +233,11 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#slug" >slug</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#status" >status</a>
                             </li>
@@ -299,7 +305,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="111" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:111</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="119" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:119</a></div>
                         </td>
                     </tr>
 
@@ -312,6 +318,7 @@
                 <td class="col-md-4">
                     <a name="authorId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>authorId</b></span>
                         <a href="#authorId"><span class="icon ion-ios-link"></span></a>
@@ -329,13 +336,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;author_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;author_id&#x27;, nullable: true})<br />@Index(&#x27;idx_blogs_author_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:32</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:36</a></div>
                         </td>
                     </tr>
 
@@ -371,7 +378,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="126" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:126</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="134" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:134</a></div>
                         </td>
                     </tr>
 
@@ -408,7 +415,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="115" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:115</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:123</a></div>
                         </td>
                     </tr>
 
@@ -444,7 +451,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:97</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:104</a></div>
                         </td>
                     </tr>
 
@@ -480,7 +487,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:32</a></div>
                         </td>
                     </tr>
 
@@ -516,7 +523,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="100" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:100</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="107" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:107</a></div>
                         </td>
                     </tr>
 
@@ -529,6 +536,7 @@
                 <td class="col-md-4">
                     <a name="deletedAt"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>deletedAt</b></span>
                         <a href="#deletedAt"><span class="icon ion-ios-link"></span></a>
@@ -546,13 +554,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />
+                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />@Index(&#x27;idx_blogs_deleted_at&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="106" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:106</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="114" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:114</a></div>
                         </td>
                     </tr>
 
@@ -588,7 +596,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:65</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:70</a></div>
                         </td>
                     </tr>
 
@@ -624,7 +632,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:42</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:47</a></div>
                         </td>
                     </tr>
 
@@ -660,7 +668,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:20</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:22</a></div>
                         </td>
                     </tr>
 
@@ -673,6 +681,7 @@
                 <td class="col-md-4">
                     <a name="publishedAt"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>publishedAt</b></span>
                         <a href="#publishedAt"><span class="icon ion-ios-link"></span></a>
@@ -690,13 +699,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({type: &#x27;timestamp with time zone&#x27;, nullable: true, name: &#x27;published_at&#x27;})<br />
+                            @Column({type: &#x27;timestamp with time zone&#x27;, nullable: true, name: &#x27;published_at&#x27;})<br />@Index(&#x27;idx_blogs_published_at&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:94</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:101</a></div>
                         </td>
                     </tr>
 
@@ -733,7 +742,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:123</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="131" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:131</a></div>
                         </td>
                     </tr>
 
@@ -769,7 +778,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:87</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:93</a></div>
                         </td>
                     </tr>
 
@@ -805,7 +814,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:68</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:73</a></div>
                         </td>
                     </tr>
 
@@ -841,7 +850,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="81" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:81</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:87</a></div>
                         </td>
                     </tr>
 
@@ -877,7 +886,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:62</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:67</a></div>
                         </td>
                     </tr>
 
@@ -913,7 +922,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="78" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:78</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:84</a></div>
                         </td>
                     </tr>
 
@@ -950,7 +959,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="119" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:119</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="127" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:127</a></div>
                         </td>
                     </tr>
 
@@ -963,6 +972,7 @@
                 <td class="col-md-4">
                     <a name="reviewedById"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>reviewedById</b></span>
                         <a href="#reviewedById"><span class="icon ion-ios-link"></span></a>
@@ -980,13 +990,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;reviewed_by_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;reviewed_by_id&#x27;, nullable: true})<br />@Index(&#x27;idx_blogs_reviewed_by&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="71" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:71</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:77</a></div>
                         </td>
                     </tr>
 
@@ -1022,7 +1032,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:84</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:90</a></div>
                         </td>
                     </tr>
 
@@ -1058,7 +1068,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:54</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:59</a></div>
                         </td>
                     </tr>
 
@@ -1094,7 +1104,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:51</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:56</a></div>
                         </td>
                     </tr>
 
@@ -1107,6 +1117,7 @@
                 <td class="col-md-4">
                     <a name="slug"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>slug</b></span>
                         <a href="#slug"><span class="icon ion-ios-link"></span></a>
@@ -1124,13 +1135,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({length: 255, unique: true})<br />
+                            @Column({length: 255, unique: true})<br />@Index(&#x27;idx_blogs_slug&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:29</a></div>
                         </td>
                     </tr>
 
@@ -1143,6 +1154,7 @@
                 <td class="col-md-4">
                     <a name="status"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>status</b></span>
                         <a href="#status"><span class="icon ion-ios-link"></span></a>
@@ -1160,13 +1172,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({type: &#x27;enum&#x27;, enum: ContentStatusType, default: undefined})<br />
+                            @Column({type: &#x27;enum&#x27;, enum: ContentStatusType, default: undefined})<br />@Index(&#x27;idx_blogs_status&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:39</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -1202,7 +1214,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:45</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:50</a></div>
                         </td>
                     </tr>
 
@@ -1238,7 +1250,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:25</a></div>
                         </td>
                     </tr>
 
@@ -1274,7 +1286,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="103" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:103</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:110</a></div>
                         </td>
                     </tr>
 
@@ -1310,7 +1322,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:48</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/modules/blogs/entities/blog.entity.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -1331,6 +1343,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -1339,6 +1352,7 @@ import {
 } from &#x27;typeorm&#x27;;
 
 @Entity(&#x27;blogs&#x27;)
+@Index(&#x27;idx_blogs_not_deleted&#x27;, [&#x27;id&#x27;], { where: &#x27;deleted_at IS NULL&#x27; })
 export class Blog {
   @PrimaryGeneratedColumn(&#x27;uuid&#x27;)
   id: string;
@@ -1347,12 +1361,14 @@ export class Blog {
   title: string;
 
   @Column({ length: 255, unique: true })
+  @Index(&#x27;idx_blogs_slug&#x27;)
   slug: string;
 
   @Column({ type: &#x27;text&#x27; })
   content: string;
 
   @Column({ name: &#x27;author_id&#x27;, nullable: true })
+  @Index(&#x27;idx_blogs_author_id&#x27;)
   authorId: string;
 
   @Column({
@@ -1360,6 +1376,7 @@ export class Blog {
     enum: ContentStatusType,
     default: ContentStatusType.DRAFT,
   })
+  @Index(&#x27;idx_blogs_status&#x27;)
   status: ContentStatusType;
 
   @Column({ length: 255, nullable: true, name: &#x27;featured_image&#x27; })
@@ -1392,6 +1409,7 @@ export class Blog {
   readTime: number;
 
   @Column({ name: &#x27;reviewed_by_id&#x27;, nullable: true })
+  @Index(&#x27;idx_blogs_reviewed_by&#x27;)
   reviewedById: string;
 
   @Column({
@@ -1415,6 +1433,7 @@ export class Blog {
     nullable: true,
     name: &#x27;published_at&#x27;,
   })
+  @Index(&#x27;idx_blogs_published_at&#x27;)
   publishedAt: Date;
 
   @Column({ name: &#x27;category_id&#x27;, nullable: true })
@@ -1427,6 +1446,7 @@ export class Blog {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: &#x27;deleted_at&#x27;, nullable: true })
+  @Index(&#x27;idx_blogs_deleted_at&#x27;)
   deletedAt: Date | null;
 
   // Relations

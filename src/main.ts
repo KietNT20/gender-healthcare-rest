@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as dotenv from 'dotenv';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,5 +32,12 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3333);
+
+  async function bootstrap() {
+    dotenv.config(); // Tải biến môi trường
+    const app = await NestFactory.create(AppModule);
+    await app.listen(3000);
+  }
+
 }
 bootstrap();

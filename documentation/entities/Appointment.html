@@ -133,9 +133,11 @@
                         <ul class="index-list">
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#appointmentDate" >appointmentDate</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#appointmentLocation" >appointmentLocation</a>
                             </li>
@@ -167,6 +169,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#consultantId" >consultantId</a>
                             </li>
                             <li>
@@ -178,6 +181,7 @@
                                 <a href="#createdAt" >createdAt</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#deletedAt" >deletedAt</a>
                             </li>
@@ -219,6 +223,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#status" >status</a>
                             </li>
                             <li>
@@ -235,6 +240,7 @@
                                 <a href="#user" >user</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#userId" >userId</a>
                             </li>
@@ -263,6 +269,7 @@
                     <a name="appointmentDate"></a>
                     <span class="name">
                             <span class="modifier"></span>
+                            <span class="modifier"></span>
                         <span ><b>appointmentDate</b></span>
                         <a href="#appointmentDate"><span class="icon ion-ios-link"></span></a>
                     </span>
@@ -279,13 +286,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({type: &#x27;timestamp with time zone&#x27;, name: &#x27;appointment_date&#x27;})<br />
+                            @Column({type: &#x27;timestamp with time zone&#x27;, name: &#x27;appointment_date&#x27;})<br />@Index(&#x27;idx_appointments_date&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:39</a></div>
                         </td>
                     </tr>
 
@@ -298,6 +305,7 @@
                 <td class="col-md-4">
                     <a name="appointmentLocation"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>appointmentLocation</b></span>
                         <a href="#appointmentLocation"><span class="icon ion-ios-link"></span></a>
@@ -315,13 +323,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({type: &#x27;enum&#x27;, enum: LocationTypeEnum, default: undefined, name: &#x27;appointment_location&#x27;})<br />
+                            @Column({type: &#x27;enum&#x27;, enum: LocationTypeEnum, default: undefined, name: &#x27;appointment_location&#x27;})<br />@Index(&#x27;idx_appointments_location&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:88</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:96</a></div>
                         </td>
                     </tr>
 
@@ -357,7 +365,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="122" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:122</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="131" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:131</a></div>
                         </td>
                     </tr>
 
@@ -394,7 +402,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="116" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:116</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="125" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:125</a></div>
                         </td>
                     </tr>
 
@@ -430,7 +438,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="91" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:91</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="99" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:99</a></div>
                         </td>
                     </tr>
 
@@ -466,7 +474,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:63</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:70</a></div>
                         </td>
                     </tr>
 
@@ -502,7 +510,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:70</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="77" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:77</a></div>
                         </td>
                     </tr>
 
@@ -539,7 +547,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="109" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:109</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="118" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:118</a></div>
                         </td>
                     </tr>
 
@@ -552,6 +560,7 @@
                 <td class="col-md-4">
                     <a name="consultantId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>consultantId</b></span>
                         <a href="#consultantId"><span class="icon ion-ios-link"></span></a>
@@ -569,13 +578,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;consultant_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;consultant_id&#x27;, nullable: true})<br />@Index(&#x27;idx_appointments_consultant_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:30</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:35</a></div>
                         </td>
                     </tr>
 
@@ -611,7 +620,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="80" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:80</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:87</a></div>
                         </td>
                     </tr>
 
@@ -647,7 +656,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:94</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:102</a></div>
                         </td>
                     </tr>
 
@@ -660,6 +669,7 @@
                 <td class="col-md-4">
                     <a name="deletedAt"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>deletedAt</b></span>
                         <a href="#deletedAt"><span class="icon ion-ios-link"></span></a>
@@ -677,13 +687,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />
+                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />@Index(&#x27;idx_appointments_deleted_at&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="100" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:100</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="109" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:109</a></div>
                         </td>
                     </tr>
 
@@ -719,7 +729,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="128" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:128</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="137" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:137</a></div>
                         </td>
                     </tr>
 
@@ -755,7 +765,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="73" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:73</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="80" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:80</a></div>
                         </td>
                     </tr>
 
@@ -791,7 +801,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:24</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:27</a></div>
                         </td>
                     </tr>
 
@@ -827,7 +837,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:46</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="53" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:53</a></div>
                         </td>
                     </tr>
 
@@ -863,7 +873,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:43</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:50</a></div>
                         </td>
                     </tr>
 
@@ -899,7 +909,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="134" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:134</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="143" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:143</a></div>
                         </td>
                     </tr>
 
@@ -935,7 +945,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="125" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:125</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="134" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:134</a></div>
                         </td>
                     </tr>
 
@@ -971,7 +981,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:56</a></div>
                         </td>
                     </tr>
 
@@ -1007,7 +1017,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:56</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:63</a></div>
                         </td>
                     </tr>
 
@@ -1020,6 +1030,7 @@
                 <td class="col-md-4">
                     <a name="status"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>status</b></span>
                         <a href="#status"><span class="icon ion-ios-link"></span></a>
@@ -1037,13 +1048,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({type: &#x27;enum&#x27;, enum: AppointmentStatusType, default: undefined})<br />
+                            @Column({type: &#x27;enum&#x27;, enum: AppointmentStatusType, default: undefined})<br />@Index(&#x27;idx_appointments_status&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:40</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:47</a></div>
                         </td>
                     </tr>
 
@@ -1079,7 +1090,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="131" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:131</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="140" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:140</a></div>
                         </td>
                     </tr>
 
@@ -1115,7 +1126,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:97</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="105" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:105</a></div>
                         </td>
                     </tr>
 
@@ -1152,7 +1163,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="105" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:105</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="114" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:114</a></div>
                         </td>
                     </tr>
 
@@ -1165,6 +1176,7 @@
                 <td class="col-md-4">
                     <a name="userId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>userId</b></span>
                         <a href="#userId"><span class="icon ion-ios-link"></span></a>
@@ -1182,13 +1194,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;user_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;user_id&#x27;, nullable: true})<br />@Index(&#x27;idx_appointments_user_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:27</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/modules/appointments/entities/appointment.entity.ts:31</a></div>
                         </td>
                     </tr>
 
@@ -1213,6 +1225,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -1221,17 +1234,22 @@ import {
 } from &#x27;typeorm&#x27;;
 
 @Entity(&#x27;appointments&#x27;)
+@Index(&#x27;idx_appointments_consultant_date&#x27;, [&#x27;consultantId&#x27;, &#x27;appointmentDate&#x27;])
+@Index(&#x27;idx_appointments_not_deleted&#x27;, [&#x27;id&#x27;], { where: &#x27;deleted_at IS NULL&#x27; })
 export class Appointment {
   @PrimaryGeneratedColumn(&#x27;uuid&#x27;)
   id: string;
 
   @Column({ name: &#x27;user_id&#x27;, nullable: true })
+  @Index(&#x27;idx_appointments_user_id&#x27;)
   userId: string;
 
   @Column({ name: &#x27;consultant_id&#x27;, nullable: true })
+  @Index(&#x27;idx_appointments_consultant_id&#x27;)
   consultantId: string;
 
   @Column({ type: &#x27;timestamp with time zone&#x27;, name: &#x27;appointment_date&#x27; })
+  @Index(&#x27;idx_appointments_date&#x27;)
   appointmentDate: Date;
 
   @Column({
@@ -1239,6 +1257,7 @@ export class Appointment {
     enum: AppointmentStatusType,
     default: AppointmentStatusType.PENDING,
   })
+  @Index(&#x27;idx_appointments_status&#x27;)
   status: AppointmentStatusType;
 
   @Column({ type: &#x27;text&#x27;, nullable: true })
@@ -1287,6 +1306,7 @@ export class Appointment {
     default: LocationTypeEnum.OFFICE,
     name: &#x27;appointment_location&#x27;,
   })
+  @Index(&#x27;idx_appointments_location&#x27;)
   appointmentLocation: LocationTypeEnum;
 
   @Column({ name: &#x27;availability_id&#x27;, nullable: true })
@@ -1299,6 +1319,7 @@ export class Appointment {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: &#x27;deleted_at&#x27;, nullable: true })
+  @Index(&#x27;idx_appointments_deleted_at&#x27;)
   deletedAt: Date | null;
 
   // Relations

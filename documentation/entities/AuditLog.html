@@ -133,9 +133,11 @@
                         <ul class="index-list">
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#action" >action</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#createdAt" >createdAt</a>
                             </li>
@@ -178,6 +180,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#userId" >userId</a>
                             </li>
                         </ul>
@@ -205,6 +208,7 @@
                     <a name="action"></a>
                     <span class="name">
                             <span class="modifier"></span>
+                            <span class="modifier"></span>
                         <span ><b>action</b></span>
                         <a href="#action"><span class="icon ion-ios-link"></span></a>
                     </span>
@@ -221,13 +225,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({length: 50})<br />
+                            @Column({length: 50})<br />@Index(&#x27;idx_audit_logs_action&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:20</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:24</a></div>
                         </td>
                     </tr>
 
@@ -240,6 +244,7 @@
                 <td class="col-md-4">
                     <a name="createdAt"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>createdAt</b></span>
                         <a href="#createdAt"><span class="icon ion-ios-link"></span></a>
@@ -257,13 +262,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @CreateDateColumn({name: &#x27;created_at&#x27;})<br />
+                            @CreateDateColumn({name: &#x27;created_at&#x27;})<br />@Index(&#x27;idx_audit_logs_created_at&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:44</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:49</a></div>
                         </td>
                     </tr>
 
@@ -299,7 +304,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:38</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:42</a></div>
                         </td>
                     </tr>
 
@@ -335,7 +340,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:30</a></div>
                         </td>
                     </tr>
 
@@ -371,7 +376,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:27</a></div>
                         </td>
                     </tr>
 
@@ -407,7 +412,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="14" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:14</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="16" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:16</a></div>
                         </td>
                     </tr>
 
@@ -443,7 +448,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:32</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:36</a></div>
                         </td>
                     </tr>
 
@@ -479,7 +484,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -515,7 +520,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:41</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:45</a></div>
                         </td>
                     </tr>
 
@@ -552,7 +557,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:49</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:54</a></div>
                         </td>
                     </tr>
 
@@ -588,7 +593,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:35</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:39</a></div>
                         </td>
                     </tr>
 
@@ -601,6 +606,7 @@
                 <td class="col-md-4">
                     <a name="userId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>userId</b></span>
                         <a href="#userId"><span class="icon ion-ios-link"></span></a>
@@ -618,13 +624,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;user_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;user_id&#x27;, nullable: true})<br />@Index(&#x27;idx_audit_logs_user_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="17" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:17</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/modules/audit-logs/entities/audit-log.entity.ts:20</a></div>
                         </td>
                     </tr>
 
@@ -641,20 +647,24 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from &#x27;typeorm&#x27;;
 
 @Entity(&#x27;audit_logs&#x27;)
+@Index(&#x27;idx_audit_logs_entity&#x27;, [&#x27;entityType&#x27;, &#x27;entityId&#x27;])
 export class AuditLog {
   @PrimaryGeneratedColumn(&#x27;uuid&#x27;)
   id: string;
 
   @Column({ name: &#x27;user_id&#x27;, nullable: true })
+  @Index(&#x27;idx_audit_logs_user_id&#x27;)
   userId: string;
 
   @Column({ length: 50 })
+  @Index(&#x27;idx_audit_logs_action&#x27;)
   action: string;
 
   @Column({ length: 50, name: &#x27;entity_type&#x27; })
@@ -679,6 +689,7 @@ export class AuditLog {
   status: string;
 
   @CreateDateColumn({ name: &#x27;created_at&#x27; })
+  @Index(&#x27;idx_audit_logs_created_at&#x27;)
   createdAt: Date;
 
   // Relations

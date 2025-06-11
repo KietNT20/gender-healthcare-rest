@@ -18,17 +18,17 @@ export class FeedbacksController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.feedbacksService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.feedbacksService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFeedbackDto: UpdateFeedbackDto) {
-    return this.feedbacksService.update(+id, updateFeedbackDto);
+  update(@Param('id') id: number, @Body() updateFeedbackDto: UpdateFeedbackDto) {
+    return this.feedbacksService.update(id, updateFeedbackDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.feedbacksService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.feedbacksService.remove(id);
   }
 }

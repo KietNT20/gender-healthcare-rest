@@ -138,6 +138,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#consultantId" >consultantId</a>
                             </li>
                             <li>
@@ -149,6 +150,7 @@
                                 <a href="#createdAt" >createdAt</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#deletedAt" >deletedAt</a>
                             </li>
@@ -162,6 +164,7 @@
                             </li>
                             <li>
                                     <span class="modifier"></span>
+                                    <span class="modifier"></span>
                                 <a href="#isAccepted" >isAccepted</a>
                             </li>
                             <li>
@@ -174,6 +177,7 @@
                                 <a href="#question" >question</a>
                             </li>
                             <li>
+                                    <span class="modifier"></span>
                                     <span class="modifier"></span>
                                 <a href="#questionId" >questionId</a>
                             </li>
@@ -233,7 +237,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:56</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -246,6 +250,7 @@
                 <td class="col-md-4">
                     <a name="consultantId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>consultantId</b></span>
                         <a href="#consultantId"><span class="icon ion-ios-link"></span></a>
@@ -263,13 +268,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;consultant_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;consultant_id&#x27;, nullable: true})<br />@Index(&#x27;idx_answers_consultant_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:23</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:26</a></div>
                         </td>
                     </tr>
 
@@ -305,7 +310,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:26</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:29</a></div>
                         </td>
                     </tr>
 
@@ -341,7 +346,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:41</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:45</a></div>
                         </td>
                     </tr>
 
@@ -354,6 +359,7 @@
                 <td class="col-md-4">
                     <a name="deletedAt"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>deletedAt</b></span>
                         <a href="#deletedAt"><span class="icon ion-ios-link"></span></a>
@@ -371,13 +377,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />
+                            @DeleteDateColumn({name: &#x27;deleted_at&#x27;, nullable: true})<br />@Index(&#x27;idx_answers_deleted_at&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:47</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:52</a></div>
                         </td>
                     </tr>
 
@@ -413,7 +419,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:35</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:39</a></div>
                         </td>
                     </tr>
 
@@ -449,7 +455,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="17" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:17</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="18" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:18</a></div>
                         </td>
                     </tr>
 
@@ -462,6 +468,7 @@
                 <td class="col-md-4">
                     <a name="isAccepted"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>isAccepted</b></span>
                         <a href="#isAccepted"><span class="icon ion-ios-link"></span></a>
@@ -479,13 +486,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({default: false, name: &#x27;is_accepted&#x27;})<br />
+                            @Column({default: false, name: &#x27;is_accepted&#x27;})<br />@Index(&#x27;idx_answers_accepted&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:33</a></div>
                         </td>
                     </tr>
 
@@ -521,7 +528,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:38</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:42</a></div>
                         </td>
                     </tr>
 
@@ -558,7 +565,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:52</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:57</a></div>
                         </td>
                     </tr>
 
@@ -571,6 +578,7 @@
                 <td class="col-md-4">
                     <a name="questionId"></a>
                     <span class="name">
+                            <span class="modifier"></span>
                             <span class="modifier"></span>
                         <span ><b>questionId</b></span>
                         <a href="#questionId"><span class="icon ion-ios-link"></span></a>
@@ -588,13 +596,13 @@
                         <b>Decorators : </b>
                         <br />
                         <code>
-                            @Column({name: &#x27;question_id&#x27;, nullable: true})<br />
+                            @Column({name: &#x27;question_id&#x27;, nullable: true})<br />@Index(&#x27;idx_answers_question_id&#x27;)<br />
                         </code>
                     </td>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:20</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:22</a></div>
                         </td>
                     </tr>
 
@@ -630,7 +638,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:44</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:48</a></div>
                         </td>
                     </tr>
 
@@ -666,7 +674,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:32</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/modules/answers/entities/answer.entity.ts:36</a></div>
                         </td>
                     </tr>
 
@@ -685,6 +693,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -697,15 +706,18 @@ export class Answer {
   id: string;
 
   @Column({ name: &#x27;question_id&#x27;, nullable: true })
+  @Index(&#x27;idx_answers_question_id&#x27;)
   questionId: string;
 
   @Column({ name: &#x27;consultant_id&#x27;, nullable: true })
+  @Index(&#x27;idx_answers_consultant_id&#x27;)
   consultantId: string;
 
   @Column({ type: &#x27;text&#x27; })
   content: string;
 
   @Column({ default: false, name: &#x27;is_accepted&#x27; })
+  @Index(&#x27;idx_answers_accepted&#x27;)
   isAccepted: boolean;
 
   @Column({ default: 0 })
@@ -724,6 +736,7 @@ export class Answer {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: &#x27;deleted_at&#x27;, nullable: true })
+  @Index(&#x27;idx_answers_deleted_at&#x27;)
   deletedAt: Date | null;
 
   // Relations

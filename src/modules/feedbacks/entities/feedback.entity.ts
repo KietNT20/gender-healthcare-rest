@@ -15,8 +15,8 @@ import {
 
 @Entity('feedbacks')
 export class Feedback {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
   @Column({ name: 'user_id', nullable: true })
   @Index('idx_feedbacks_user_id')

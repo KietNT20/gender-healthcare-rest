@@ -4,6 +4,7 @@ import { ConsultantAvailability } from '@modules/consultant-availability/entitie
 import { Feedback } from '@modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from '@modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from '@modules/payments/entities/payment.entity';
+import { Service } from '@modules/services/entities/service.entity';
 import { TestResult } from '@modules/test-results/entities/test-result.entity';
 import { User } from '@modules/users/entities/user.entity';
 import {
@@ -13,6 +14,8 @@ import {
   Entity,
   Index,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -141,4 +144,19 @@ export class Appointment {
 
   @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
   packageServiceUsages: PackageServiceUsage[];
+
+
+  @ManyToMany(() => Service, (service) => service.id)
+  @JoinTable({
+    name :'appointment_id',
+    joinColumn : {
+      name :'appointment_id',
+      referencedColumnName :'id',
+    },
+    inverseJoinColumn : {
+      name : 'service_id',
+      referencedColumnName : 'id',
+    },
+  })
+  services: Service[];
 }

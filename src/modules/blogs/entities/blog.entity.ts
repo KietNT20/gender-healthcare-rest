@@ -111,15 +111,18 @@ export class Blog {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   @Index('idx_blogs_deleted_at')
-  deletedAt: Date | null;
+  deletedAt?: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.authoredBlogs)
-  @JoinColumn({ name: 'author_id' })
+  @ManyToOne(() => User, (user) => user.authoredBlogs,{
+    eager : true,
+    cascade : true, //moi lien he thay doi thi no cung thay doi
+    onDelete : 'CASCADE',
+  })
   author: User;
 
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
+  
   category: Category;
 
   @ManyToOne(() => User, (user) => user.reviewedBlogs)

@@ -19,7 +19,7 @@ import {
 
 @Entity('categories')
 @Index('idx_categories_is_active', ['isActive'])
-@Index('idx_categories_parent_id', ['parentId'])
+
 @Tree('closure-table')
 export class Category {
   @PrimaryGeneratedColumn('uuid')

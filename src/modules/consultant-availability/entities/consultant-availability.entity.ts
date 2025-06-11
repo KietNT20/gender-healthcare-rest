@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -18,10 +17,6 @@ import {
 export class ConsultantAvailability {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column({ name: 'consultant_id' })
-    @Index('idx_consultant_avail_consultant_id')
-    consultantId: string;
 
     @Column({ name: 'day_of_week' })
     @Index('idx_consultant_avail_day')
@@ -64,7 +59,6 @@ export class ConsultantAvailability {
 
     // Relations
     @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
-    @JoinColumn({ name: 'consultant_id', referencedColumnName: 'userId' })
     consultantProfile: ConsultantProfile;
 
     @OneToMany(() => Appointment, (appointment) => appointment.availability)

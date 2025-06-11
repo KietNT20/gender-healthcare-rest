@@ -175,11 +175,9 @@ export class User {
     deletedBy?: User;
 
     // Consultant Profile relation
-    @OneToOne(() => ConsultantProfile, (profile) => profile.id, {
-        nullable: true,
-    })
-    @JoinColumn({ name: 'consultant_profile_id' })
-    consultantProfile?: ConsultantProfile;
+    @OneToOne(() => ConsultantProfile, (profile) => profile.user)
+    @JoinColumn()
+    consultantProfile: ConsultantProfile;
 
     // Blog relations
     @OneToMany(() => Blog, (blog) => blog.author)
@@ -245,8 +243,4 @@ export class User {
         (subscription) => subscription.user,
     )
     packageSubscriptions: UserPackageSubscription[];
-
-    // Consultant profile verification relations
-    @OneToMany(() => ConsultantProfile, (profile) => profile.verifiedBy)
-    verifiedConsultantProfiles: ConsultantProfile[];
 }

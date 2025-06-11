@@ -13,7 +13,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -23,19 +22,10 @@ import {
 } from 'typeorm';
 
 @Entity('appointments')
-@Index('idx_appointments_consultant_date', ['consultantId', 'appointmentDate'])
 @Index('idx_appointments_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
 export class Appointment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column({ name: 'user_id', nullable: true })
-    @Index('idx_appointments_user_id')
-    userId: string;
-
-    @Column({ name: 'consultant_id', nullable: true })
-    @Index('idx_appointments_consultant_id')
-    consultantId: string;
 
     @Column({ type: 'timestamp with time zone', name: 'appointment_date' })
     @Index('idx_appointments_date')
@@ -109,11 +99,10 @@ export class Appointment {
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     @Index('idx_appointments_deleted_at')
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.appointments)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @ManyToOne(
@@ -126,7 +115,6 @@ export class Appointment {
         () => ConsultantAvailability,
         (availability) => availability.appointments,
     )
-    @JoinColumn({ name: 'availability_id' })
     availability: ConsultantAvailability;
 
     @OneToMany(() => Payment, (payment) => payment.appointment)

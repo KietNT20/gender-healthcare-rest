@@ -41,7 +41,7 @@ export class Answer {
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     @Index('idx_answers_deleted_at')
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => Question, (question) => question.answers, {
@@ -57,6 +57,6 @@ export class Answer {
             onDelete: 'CASCADE',
         },
     )
-    @JoinColumn({ name: 'consultant_profile_id' })
+    @JoinColumn()
     consultantProfile: ConsultantProfile;
 }

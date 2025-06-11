@@ -10,7 +10,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -81,9 +80,6 @@ export class ConsultantProfile {
     @Column({ default: false, name: 'is_verified' })
     isVerified: boolean;
 
-    @Column({ name: 'verified_by_id', nullable: true })
-    verifiedById: string;
-
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
@@ -108,22 +104,11 @@ export class ConsultantProfile {
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     @Index('idx_consultant_profiles_deleted_at')
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
-    @OneToOne(() => User, (user) => user.id, {
-        eager: true,
-        cascade: true,
-    })
-    @JoinColumn({ name: 'user_id' })
+    @OneToOne(() => User, (user) => user.consultantProfile)
     user: User;
-
-    @OneToOne(() => User, (user) => user.id, {
-        eager: true,
-        cascade: true,
-    })
-    @JoinColumn({ name: 'verified_by_user_id' })
-    verifiedBy: User;
 
     @OneToMany(
         () => ConsultantAvailability,

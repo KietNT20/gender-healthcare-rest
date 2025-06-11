@@ -36,14 +36,14 @@ export class Image {
   @Column({ length: 255, nullable: true })
   altText: string;
 
-  @Column({ length: 50, nullable: true })
-  entityType: string;
+    @Column({ length: 50, nullable: true })
+    entityType: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  entityId: string;
+    @Column({ type: 'uuid', nullable: true })
+    entityId: string;
 
-  @Column({ default: false })
-  isPublic: boolean;
+    @Column({ default: false })
+    isPublic: boolean;
 
   @Column({ nullable: true })
   @Index()
@@ -55,8 +55,8 @@ export class Image {
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
   // Relations
   @ManyToOne(() => User, (user) => user.images)

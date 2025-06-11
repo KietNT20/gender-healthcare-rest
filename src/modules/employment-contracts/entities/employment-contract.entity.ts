@@ -22,17 +22,17 @@ export class EmploymentContract {
   @Column()
   userId: string;
 
-  @Column({ length: 50 })
-  contractNumber: string;
+    @Column({ length: 50 })
+    contractNumber: string;
 
-  @Column({ length: 50 })
-  contractType: string;
+    @Column({ length: 50 })
+    contractType: string;
 
-  @Column({ type: 'date' })
-  startDate: Date;
+    @Column({ type: 'date' })
+    startDate: Date;
 
-  @Column({ type: 'date', nullable: true })
-  endDate: Date;
+    @Column({ type: 'date', nullable: true })
+    endDate: Date;
 
   @Column({
     type: 'enum',
@@ -48,17 +48,17 @@ export class EmploymentContract {
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  @Index()
-  deletedAt: Date | null;
+    @DeleteDateColumn({ nullable: true })
+    @Index()
+    deletedAt: Date | null;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.employmentContracts)
-  @JoinColumn()
-  user: User;
+    // Relations
+    @ManyToOne(() => User, (user) => user.employmentContracts)
+    @JoinColumn()
+    user: User;
 
   @OneToMany(() => ContractFile, (contractFile) => contractFile.contract)
   contractFiles: ContractFile[];

@@ -1,127 +1,131 @@
 import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
+import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    OneToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 
 @Entity()
 export class ConsultantProfile {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column()
-  @Index()
-  userId: string;
+    @Column()
+    @Index()
+    userId: string;
 
-  @Column({ length: 255 })
-  @Index()
-  specialization: string;
+    @Column({ length: 255 })
+    @Index()
+    specialization: string;
 
-  @Column({ type: 'text' })
-  qualification: string;
+    @Column({ type: 'text' })
+    qualification: string;
 
-  @Column({ type: 'text' })
-  experience: string;
+    @Column({ type: 'text' })
+    experience: string;
 
-  @Column({ type: 'text', nullable: true })
-  bio: string;
+    @Column({ type: 'text', nullable: true })
+    bio: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  workingHours: WorkingHours;
+    @Column({ type: 'jsonb', nullable: true })
+    workingHours: WorkingHours;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
-  @Index()
-  rating: number;
+    @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+    @Index()
+    rating: number;
 
-  @Column({ default: true })
-  isAvailable: boolean;
+    @Column({ default: true })
+    isAvailable: boolean;
 
-  @Column({
-    type: 'enum',
-    enum: ProfileStatusType,
-    default: ProfileStatusType.ACTIVE,
-  })
-  @Index()
-  profileStatus: ProfileStatusType;
+    @Column({
+        type: 'enum',
+        enum: ProfileStatusType,
+        default: ProfileStatusType.ACTIVE,
+    })
+    @Index()
+    profileStatus: ProfileStatusType;
 
-  @Column({ type: 'jsonb', nullable: true })
-  certificates: Certificates;
+    @Column({ type: 'jsonb', nullable: true })
+    certificates: Certificates;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  languages: string[];
+    @Column({ type: 'text', array: true, nullable: true })
+    languages: string[];
 
-  @Column({ type: 'text', nullable: true })
-  educationBackground: string;
+    @Column({ type: 'text', nullable: true })
+    educationBackground: string;
 
-  @Column({
-    type: 'decimal',
-    precision: 10,
-    scale: 2,
-  })
-  consultationFee: number;
+    @Column({
+        type: 'decimal',
+        precision: 10,
+        scale: 2,
+    })
+    consultationFee: number;
 
-  @Column({ default: 10 })
-  maxAppointmentsPerDay: number;
+    @Column({ default: 10 })
+    maxAppointmentsPerDay: number;
 
-  @Column({ default: 0 })
-  version: number;
+    @Column({ default: 0 })
+    version: number;
 
-  @Column({ default: false })
-  isVerified: boolean;
+    @Column({ default: false })
+    isVerified: boolean;
 
-  @Column({ nullable: true })
-  verifiedById: string;
+    @Column({ nullable: true })
+    verifiedById: string;
 
-  @Column({
-    type: 'timestamp with time zone',
-    nullable: true,
-  })
-  verifiedAt: Date;
+    @Column({
+        type: 'timestamp with time zone',
+        nullable: true,
+    })
+    verifiedAt: Date;
 
-  @Column({
-    type: 'enum',
-    enum: LocationTypeEnum,
-    array: true,
-    default: [LocationTypeEnum.OFFICE],
-  })
-  consultationTypes: LocationTypeEnum[];
+    @Column({
+        type: 'enum',
+        enum: LocationTypeEnum,
+        array: true,
+        default: [LocationTypeEnum.OFFICE],
+    })
+    consultationTypes: LocationTypeEnum[];
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  @Index()
-  deletedAt: Date | null;
+    @DeleteDateColumn({ nullable: true })
+    @Index()
+    deletedAt: Date | null;
 
-  // Relations
-  @OneToOne(() => User, (user) => user.consultantProfile)
-  @JoinColumn()
-  user: User;
+    // Relations
+    @OneToOne(() => User, (user) => user.consultantProfile)
+    @JoinColumn()
+    user: User;
 
-  @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
-    nullable: true,
-  })
-  @JoinColumn()
-  verifiedBy: User;
+    @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
+        nullable: true,
+    })
+    @JoinColumn()
+    verifiedBy: User;
 
-  @OneToMany(
-    () => ConsultantAvailability,
-    (availability) => availability.consultantProfile,
-  )
-  availabilities: ConsultantAvailability[];
+    @OneToMany(
+        () => ConsultantAvailability,
+        (availability) => availability.consultantProfile,
+    )
+    availabilities: ConsultantAvailability[];
+
+    @OneToMany(() => Answer, (answer) => answer.consultant)
+    answers: Answer[];
 }

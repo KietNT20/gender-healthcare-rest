@@ -13,70 +13,74 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('feedbacks')
+@Entity()
 export class Feedback {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_feedbacks_user_id')
+  @Column({ nullable: true })
+  @Index()
   userId: string;
 
-  @Column({ name: 'service_id', nullable: true })
-  @Index('idx_feedbacks_service_id')
+  @Column({ nullable: true })
+  @Index()
   serviceId: string;
 
-  @Column({ name: 'appointment_id', nullable: true })
-  @Index('idx_feedbacks_appointment_id')
+  @Column({ nullable: true })
+  @Index()
   appointmentId: string;
 
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_feedbacks_consultant_id')
+  @Column({ nullable: true })
+  @Index()
   consultantId: string;
 
   @Column({ type: 'integer' })
-  @Index('idx_feedbacks_rating')
+  @Index()
   rating: number;
 
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ default: false, name: 'is_anonymous' })
+  @Column({ default: false })
   isAnonymous: boolean;
 
-  @Column({ default: true, name: 'is_public' })
+  @Column({ default: true })
   isPublic: boolean;
 
-  @Column({ type: 'text', nullable: true, name: 'staff_response' })
+  @Column({ type: 'text', nullable: true })
   staffResponse: string;
 
   @Column({ type: 'text', array: true, nullable: true })
   categories: string[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_feedbacks_deleted_at')
+  @DeleteDateColumn({ nullable: true })
+  @Index()
   deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.feedbacks)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => Service)
-  @JoinColumn({ name: 'service_id' })
+  @JoinColumn()
   service: Service;
 
   @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-  @JoinColumn({ name: 'appointment_id' })
+  @JoinColumn()
   appointment: Appointment;
 
   @ManyToOne(() => User, (user) => user.consultantFeedbacks)
-  @JoinColumn({ name: 'consultant_id' })
+  @JoinColumn()
   consultant: User;
 }
+
+
+
+

@@ -11,7 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('symptoms')
+@Entity()
 export class Symptom {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,20 +22,24 @@ export class Symptom {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ name: 'category_id', nullable: true })
+  @Column({ nullable: true })
   categoryId: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Category, (category) => category.symptoms)
-  @JoinColumn({ name: 'category_id' })
+  @JoinColumn()
   category: Category;
 
   @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.symptom)
   cycleSymptoms: CycleSymptom[];
 }
+
+
+
+

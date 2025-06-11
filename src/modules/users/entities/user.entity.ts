@@ -31,7 +31,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('users')
+@Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -42,13 +42,13 @@ export class User {
   @Column({ type: 'varchar', length: 60, select: false })
   password: string;
 
-  @Column({ type: 'varchar', length: 255, name: 'full_name' })
+  @Column({ type: 'varchar', length: 255 })
   fullName: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
 
-  @Column({ type: 'date', nullable: true, name: 'date_of_birth' })
+  @Column({ type: 'date', nullable: true })
   dateOfBirth: Date;
 
   @Column({
@@ -68,63 +68,56 @@ export class User {
     type: 'varchar',
     length: 1024,
     nullable: true,
-    name: 'profile_picture',
   })
   profilePicture?: string;
 
-  @Column({ default: true, name: 'is_active' })
+  @Column({ default: true })
   isActive: boolean;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'account_locked_until',
   })
   accountLockedUntil?: Date;
 
-  @Column({ default: 0, name: 'login_attempts' })
+  @Column({ default: 0 })
   loginAttempts: number;
 
-  @Column({ default: false, name: 'email_verified' })
+  @Column({ default: false })
   emailVerified: boolean;
 
   @Column({
     type: 'varchar',
     length: 255,
     nullable: true,
-    name: 'email_verification_token',
   })
   emailVerificationToken?: string;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'email_verification_expires',
   })
   emailVerificationExpires?: Date;
 
-  @Column({ default: false, name: 'phone_verified' })
+  @Column({ default: false })
   phoneVerified: boolean;
 
   @Column({
     type: 'varchar',
     length: 255,
     nullable: true,
-    name: 'password_reset_token',
   })
   passwordResetToken?: string;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'password_reset_expires',
   })
   passwordResetExpires?: Date;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'last_login',
   })
   lastLogin?: Date;
 
@@ -134,21 +127,18 @@ export class User {
   @Column({
     type: 'jsonb',
     default: { sms: false, push: true, email: true },
-    name: 'notification_preferences',
   })
   notificationPreferences: {
     sms: boolean;
     push: boolean;
     email: boolean;
   };
-
-  @Column({ default: false, name: 'health_data_consent' })
+  @Column({ default: false })
   healthDataConsent: boolean;
 
   @Column({
     length: 255,
     nullable: true,
-    name: 'refresh_token',
     select: false,
   })
   refreshToken?: string;
@@ -156,22 +146,28 @@ export class User {
   @Column({ default: 0 })
   version: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ nullable: true })
   deletedAt?: Date;
+
+  // Foreign Keys
+  @Column()
+  roleId: string;
+
+  @Column({ nullable: true })
+  deletedById?: string;
 
   // Relations
   @ManyToOne(() => Role, (role) => role.users)
-  @JoinColumn({ name: 'role_id' })
+  @JoinColumn()
   role: Role;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'deleted_by_id' })
+  @JoinColumn()
   deletedBy?: User;
 
   @OneToMany(() => User, (user) => user.deletedBy)
@@ -202,10 +198,10 @@ export class User {
   @OneToMany(() => Blog, (blog) => blog.author)
   authoredBlogs: Blog[];
 
-  @OneToMany(() => Blog, (blog) => blog.reviewedBy)
+  @OneToMany(() => Blog, (blog) => blog.reviewedByUser)
   reviewedBlogs: Blog[];
 
-  @OneToMany(() => Blog, (blog) => blog.publishedBy)
+  @OneToMany(() => Blog, (blog) => blog.publishedByUser)
   publishedBlogs: Blog[];
 
   // Question & Answer relations

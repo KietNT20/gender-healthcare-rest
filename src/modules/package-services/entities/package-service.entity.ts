@@ -10,33 +10,31 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('package_services')
+@Entity()
 export class PackageService {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'package_id' })
+  @Column()
   packageId: string;
 
-  @Column({ name: 'service_id' })
+  @Column()
   serviceId: string;
 
-  @Column({ nullable: true, name: 'quantity_limit' })
+  @Column({ nullable: true })
   quantityLimit: number;
 
   @Column({
     type: 'decimal',
     precision: 5,
     scale: 2,
-    default: 0,
-    name: 'discount_percentage',
-  })
+    default: 0 })
   discountPercentage: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
@@ -44,10 +42,14 @@ export class PackageService {
     () => ServicePackage,
     (servicePackage) => servicePackage.packageServices,
   )
-  @JoinColumn({ name: 'package_id' })
+  @JoinColumn()
   package: ServicePackage;
 
   @ManyToOne(() => Service, (service) => service.packageServices)
-  @JoinColumn({ name: 'service_id' })
+  @JoinColumn()
   service: Service;
 }
+
+
+
+

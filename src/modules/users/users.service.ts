@@ -486,10 +486,9 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
     await this.userRepository.update(id, {
       deletedAt: new Date(),
-      deletedBy: deletedById ? { id: deletedById } : null,
+      deletedById: deletedById,
       updatedAt: new Date(),
     });
   }

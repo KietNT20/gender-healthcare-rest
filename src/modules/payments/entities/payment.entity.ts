@@ -14,41 +14,38 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('payments')
+@Entity()
 export class Payment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ nullable: true })
   userId: string;
 
-  @Column({ name: 'appointment_id', nullable: true })
+  @Column({ nullable: true })
   appointmentId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
-  @Column({ length: 50, name: 'payment_method' })
+  @Column({ length: 50 })
   paymentMethod: string;
 
   @Column({
     type: 'enum',
     enum: PaymentStatusType,
-    default: PaymentStatusType.PENDING,
-  })
+    default: PaymentStatusType.PENDING })
   status: PaymentStatusType;
 
-  @Column({ length: 255, nullable: true, name: 'transaction_id' })
+  @Column({ length: 255, nullable: true })
   transactionId: string;
 
   @Column({
     type: 'timestamp with time zone',
-    nullable: true,
-    name: 'payment_date',
-  })
+    nullable: true })
   paymentDate: Date;
 
-  @Column({ type: 'jsonb', nullable: true, name: 'gateway_response' })
+  @Column({ type: 'jsonb', nullable: true })
   gatewayResponse: any;
 
   @Column({ default: false })
@@ -58,33 +55,31 @@ export class Payment {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    default: 0,
-    name: 'refund_amount',
-  })
+    default: 0 })
   refundAmount: number;
 
-  @Column({ type: 'text', nullable: true, name: 'refund_reason' })
+  @Column({ type: 'text', nullable: true })
   refundReason: string;
 
-  @Column({ length: 50, nullable: true, name: 'invoice_number' })
+  @Column({ length: 50, nullable: true })
   invoiceNumber: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ nullable: true })
   deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.payments)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => Appointment, (appointment) => appointment.payments)
-  @JoinColumn({ name: 'appointment_id' })
+  @JoinColumn()
   appointment: Appointment;
 
   @OneToMany(
@@ -93,3 +88,7 @@ export class Payment {
   )
   packageSubscriptions: UserPackageSubscription[];
 }
+
+
+
+

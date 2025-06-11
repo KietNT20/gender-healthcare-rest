@@ -11,15 +11,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('cycle_moods')
-@Index('cycle_moods_pkey', ['cycleId', 'moodId'])
+@Entity()
 export class CycleMood {
-  @PrimaryColumn({ name: 'cycle_id' })
-  @Index('idx_cycle_moods_cycle_id')
+  @PrimaryColumn({ })
+  @Index()
   cycleId: string;
 
-  @PrimaryColumn({ name: 'mood_id' })
-  @Index('idx_cycle_moods_mood_id')
+  @PrimaryColumn({ })
+  @Index()
   moodId: string;
 
   @Column({ nullable: true })
@@ -28,18 +27,22 @@ export class CycleMood {
   @Column({ type: 'text', nullable: true })
   notes: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods)
-  @JoinColumn({ name: 'cycle_id' })
+  @JoinColumn()
   cycle: MenstrualCycle;
 
   @ManyToOne(() => Mood, (mood) => mood.cycleMoods)
-  @JoinColumn({ name: 'mood_id' })
+  @JoinColumn()
   mood: Mood;
 }
+
+
+
+

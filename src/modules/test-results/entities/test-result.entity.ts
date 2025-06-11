@@ -10,24 +10,24 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('test_results')
+@Entity()
 export class TestResult {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'appointment_id', nullable: true })
+  @Column({ nullable: true })
   appointmentId: string;
 
-  @Column({ name: 'staff_id', nullable: true })
+  @Column({ nullable: true })
   staffId: string;
 
-  @Column({ type: 'jsonb', name: 'result_data' })
+  @Column({ type: 'jsonb' })
   resultData: any;
 
-  @Column({ type: 'text', nullable: true, name: 'result_summary' })
+  @Column({ type: 'text', nullable: true })
   resultSummary: string;
 
-  @Column({ default: false, name: 'is_abnormal' })
+  @Column({ default: false })
   isAbnormal: boolean;
 
   @Column({ type: 'text', nullable: true })
@@ -35,37 +35,39 @@ export class TestResult {
 
   @Column({
     type: 'timestamp with time zone',
-    nullable: true,
-    name: 'viewed_at',
-  })
+    nullable: true })
   viewedAt: Date;
 
-  @Column({ default: false, name: 'notification_sent' })
+  @Column({ default: false })
   notificationSent: boolean;
 
-  @Column({ type: 'text', array: true, nullable: true, name: 'file_uploads' })
+  @Column({ type: 'text', array: true, nullable: true })
   fileUploads: string[];
 
-  @Column({ default: false, name: 'follow_up_required' })
+  @Column({ default: false })
   followUpRequired: boolean;
 
-  @Column({ type: 'text', nullable: true, name: 'follow_up_notes' })
+  @Column({ type: 'text', nullable: true })
   followUpNotes: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'appointment_id' })
+  @JoinColumn()
   appointment: Appointment;
 
   @ManyToOne(() => User, (user) => user.testResults)
-  @JoinColumn({ name: 'staff_id' })
+  @JoinColumn()
   staff: User;
 }
+
+
+
+

@@ -12,66 +12,68 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('contraceptive_reminders')
+@Entity()
 export class ContraceptiveReminder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_contraceptive_reminders_user_id')
+  @Column({ nullable: true })
+  @Index()
   userId: string;
 
-  @Column({ length: 100, name: 'contraceptive_type' })
+  @Column({ length: 100 })
   contraceptiveType: string;
 
-  @Column({ type: 'time', name: 'reminder_time' })
+  @Column({ type: 'time' })
   reminderTime: string;
 
-  @Column({ type: 'date', name: 'start_date' })
-  @Index('idx_contraceptive_reminders_start_date')
+  @Column({ type: 'date' })
+  @Index()
   startDate: Date;
 
-  @Column({ type: 'date', nullable: true, name: 'end_date' })
+  @Column({ type: 'date', nullable: true })
   endDate: Date;
 
   @Column({
     type: 'enum',
     enum: ReminderFrequencyType,
-    default: ReminderFrequencyType.DAILY,
-  })
+    default: ReminderFrequencyType.DAILY })
   frequency: ReminderFrequencyType;
 
   @Column({
     type: 'enum',
     enum: ReminderStatusType,
-    default: ReminderStatusType.ACTIVE,
-  })
-  @Index('idx_contraceptive_reminders_status')
+    default: ReminderStatusType.ACTIVE })
+  @Index()
   status: ReminderStatusType;
 
-  @Column({ type: 'int', array: true, nullable: true, name: 'days_of_week' })
+  @Column({ type: 'int', array: true, nullable: true })
   daysOfWeek: number[];
 
-  @Column({ type: 'text', nullable: true, name: 'reminder_message' })
+  @Column({ type: 'text', nullable: true })
   reminderMessage: string;
 
-  @Column({ default: 0, name: 'snooze_count' })
+  @Column({ default: 0 })
   snoozeCount: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_contraceptive_reminders_deleted_at')
+  @DeleteDateColumn({ nullable: true })
+  @Index()
   deletedAt: Date | null;
 
   // Relations
   @ManyToOne(() => User, (user) => user.contraceptiveReminders, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 }
+
+
+
+

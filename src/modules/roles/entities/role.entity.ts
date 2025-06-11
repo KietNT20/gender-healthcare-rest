@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('roles')
+@Entity()
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,24 +18,26 @@ export class Role {
   @Column({
     type: 'enum',
     enum: RolesNameEnum,
-    default: RolesNameEnum.CUSTOMER,
-    name: 'name',
-  })
+    default: RolesNameEnum.CUSTOMER })
   name: RolesNameEnum;
 
   @Column({ length: 60, nullable: true })
   description: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ nullable: true })
   deletedAt: Date | null;
 
   // Relations
   @OneToMany(() => User, (user) => user.role)
   users: User[];
 }
+
+
+
+

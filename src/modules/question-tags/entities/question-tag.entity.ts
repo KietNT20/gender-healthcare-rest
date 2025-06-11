@@ -9,26 +9,30 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('question_tags')
+@Entity()
 export class QuestionTag {
-  @PrimaryColumn({ name: 'question_id' })
+  @PrimaryColumn({ })
   questionId: string;
 
-  @PrimaryColumn({ name: 'tag_id' })
+  @PrimaryColumn({ })
   tagId: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Question, (question) => question.questionTags)
-  @JoinColumn({ name: 'question_id' })
+  @JoinColumn()
   question: Question;
 
   @ManyToOne(() => Tag, (tag) => tag.questionTags)
-  @JoinColumn({ name: 'tag_id' })
+  @JoinColumn()
   tag: Tag;
 }
+
+
+
+

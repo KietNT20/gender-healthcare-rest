@@ -16,17 +16,17 @@ import {
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
 
-@Entity('consultant_profiles')
+@Entity()
 export class ConsultantProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
-  @Index('idx_consultant_profiles_user_id')
+  @Column()
+  @Index()
   userId: string;
 
   @Column({ length: 255 })
-  @Index('idx_consultant_profiles_specialization')
+  @Index()
   specialization: string;
 
   @Column({ type: 'text' })
@@ -38,23 +38,22 @@ export class ConsultantProfile {
   @Column({ type: 'text', nullable: true })
   bio: string;
 
-  @Column({ type: 'jsonb', nullable: true, name: 'working_hours' })
+  @Column({ type: 'jsonb', nullable: true })
   workingHours: WorkingHours;
 
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
-  @Index('idx_consultant_profiles_rating')
+  @Index()
   rating: number;
 
-  @Column({ default: true, name: 'is_available' })
+  @Column({ default: true })
   isAvailable: boolean;
 
   @Column({
     type: 'enum',
     enum: ProfileStatusType,
     default: ProfileStatusType.ACTIVE,
-    name: 'profile_status',
   })
-  @Index('idx_consultant_profiles_status')
+  @Index()
   profileStatus: ProfileStatusType;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -63,33 +62,31 @@ export class ConsultantProfile {
   @Column({ type: 'text', array: true, nullable: true })
   languages: string[];
 
-  @Column({ type: 'text', nullable: true, name: 'education_background' })
+  @Column({ type: 'text', nullable: true })
   educationBackground: string;
 
   @Column({
     type: 'decimal',
     precision: 10,
     scale: 2,
-    name: 'consultation_fee',
   })
   consultationFee: number;
 
-  @Column({ default: 10, name: 'max_appointments_per_day' })
+  @Column({ default: 10 })
   maxAppointmentsPerDay: number;
 
   @Column({ default: 0 })
   version: number;
 
-  @Column({ default: false, name: 'is_verified' })
+  @Column({ default: false })
   isVerified: boolean;
 
-  @Column({ name: 'verified_by_id', nullable: true })
+  @Column({ nullable: true })
   verifiedById: string;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'verified_at',
   })
   verifiedAt: Date;
 
@@ -98,29 +95,28 @@ export class ConsultantProfile {
     enum: LocationTypeEnum,
     array: true,
     default: [LocationTypeEnum.OFFICE],
-    name: 'consultation_types',
   })
   consultationTypes: LocationTypeEnum[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_consultant_profiles_deleted_at')
+  @DeleteDateColumn({ nullable: true })
+  @Index()
   deletedAt: Date | null;
 
   // Relations
   @OneToOne(() => User, (user) => user.consultantProfile)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
     nullable: true,
   })
-  @JoinColumn({ name: 'verified_by_id' })
+  @JoinColumn()
   verifiedBy: User;
 
   @OneToMany(

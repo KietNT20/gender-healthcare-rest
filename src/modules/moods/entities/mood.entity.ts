@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('moods')
+@Entity()
 export class Mood {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -19,13 +19,17 @@ export class Mood {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood)
   cycleMoods: CycleMood[];
 }
+
+
+
+

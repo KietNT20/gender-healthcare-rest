@@ -1,9 +1,9 @@
 import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
-import { AppointmentService } from 'src/modules/appointment-services/entities/appointment-service.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -13,29 +13,20 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('appointments')
-@Index('idx_appointments_consultant_date', ['consultantId', 'appointmentDate'])
-@Index('idx_appointments_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
+@Entity()
 export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_appointments_user_id')
-  userId: string;
-
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_appointments_consultant_id')
-  consultantId: string;
-
-  @Column({ type: 'timestamp with time zone', name: 'appointment_date' })
-  @Index('idx_appointments_date')
+  @Column({ type: 'timestamp with time zone' })
+  @Index()
   appointmentDate: Date;
 
   @Column({
@@ -43,46 +34,42 @@ export class Appointment {
     enum: AppointmentStatusType,
     default: AppointmentStatusType.PENDING,
   })
-  @Index('idx_appointments_status')
+  @Index()
   status: AppointmentStatusType;
 
   @Column({ type: 'text', nullable: true })
-  notes: string;
+  notes?: string;
 
-  @Column({ length: 255, nullable: true, name: 'meeting_link' })
-  meetingLink: string;
+  @Column({ length: 255, nullable: true })
+  meetingLink?: string;
 
-  @Column({ default: false, name: 'reminder_sent' })
+  @Column({ default: false })
   reminderSent: boolean;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'reminder_sent_at',
   })
-  reminderSentAt: Date;
+  reminderSentAt?: Date;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'check_in_time',
   })
-  checkInTime: Date;
+  checkInTime?: Date;
 
   @Column({
     type: 'timestamp with time zone',
     nullable: true,
-    name: 'check_out_time',
   })
-  checkOutTime: Date;
+  checkOutTime?: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'fixed_price' })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   fixedPrice: number;
 
   @Column({
     length: 20,
     default: 'system',
-    name: 'consultant_selection_type',
   })
   consultantSelectionType: string;
 
@@ -90,45 +77,35 @@ export class Appointment {
     type: 'enum',
     enum: LocationTypeEnum,
     default: LocationTypeEnum.OFFICE,
-    name: 'appointment_location',
   })
-  @Index('idx_appointments_location')
+  @Index()
   appointmentLocation: LocationTypeEnum;
 
-  @Column({ name: 'availability_id', nullable: true })
-  availabilityId: string;
-
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_appointments_deleted_at')
-  deletedAt: Date | null;
+  @DeleteDateColumn({ nullable: true })
+  @Index()
+  deletedAt?: Date;
 
   // Relations
   @ManyToOne(() => User, (user) => user.appointments)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => User, (user) => user.consultantAppointments)
-  @JoinColumn({ name: 'consultant_id' })
+  @JoinColumn()
   consultant: User;
 
   @ManyToOne(
     () => ConsultantAvailability,
-    (availability) => availability.appointments,
+    (consultantAvailability) => consultantAvailability.appointments,
   )
-  @JoinColumn({ name: 'availability_id' })
-  availability: ConsultantAvailability;
-
-  @OneToMany(
-    () => AppointmentService,
-    (appointmentService) => appointmentService.appointment,
-  )
-  appointmentServices: AppointmentService[];
+  @JoinColumn()
+  consultantAvailability: ConsultantAvailability;
 
   @OneToMany(() => Payment, (payment) => payment.appointment)
   payments: Payment[];
@@ -141,4 +118,7 @@ export class Appointment {
 
   @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
   packageServiceUsages: PackageServiceUsage[];
+
+  @ManyToMany(() => Service, (service) => service.appointments)
+  services: Service[];
 }

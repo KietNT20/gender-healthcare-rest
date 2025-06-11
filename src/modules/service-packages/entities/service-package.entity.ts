@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('service_packages')
+@Entity()
 export class ServicePackage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -27,22 +27,22 @@ export class ServicePackage {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ name: 'duration_months' })
+  @Column()
   durationMonths: number;
 
-  @Column({ default: true, name: 'is_active' })
+  @Column({ default: true })
   isActive: boolean;
 
-  @Column({ nullable: true, name: 'max_services_per_month' })
+  @Column({ nullable: true })
   maxServicesPerMonth: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @DeleteDateColumn({ nullable: true })
   deletedAt: Date | null;
 
   // Relations
@@ -55,3 +55,7 @@ export class ServicePackage {
   )
   subscriptions: UserPackageSubscription[];
 }
+
+
+
+

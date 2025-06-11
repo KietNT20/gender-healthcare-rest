@@ -17,29 +17,28 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('categories')
-@Index('idx_categories_is_active', ['isActive'])
+@Entity()
 @Tree('closure-table')
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 100 })
-  @Index('idx_categories_name')
+  @Column({ type: 'varchar', length: 100 })
+  @Index()
   name: string;
 
-  @Column({ length: 100, unique: true })
-  @Index('idx_categories_slug')
+  @Column({ type: 'varchar', length: 100, unique: true })
+  @Index()
   slug: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description?: string;
 
-  @Column({ length: 50 })
-  @Index('idx_categories_type')
+  @Column({ type: 'varchar', length: 50 })
+  @Index()
   type: string;
 
-  @Column({ default: true, name: 'is_active' })
+  @Column({ default: true })
   isActive: boolean;
 
   @TreeChildren()
@@ -51,14 +50,14 @@ export class Category {
   @TreeLevelColumn()
   level: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
   // Relations
   @OneToMany(() => Service, (service) => service.category)

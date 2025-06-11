@@ -11,39 +11,42 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('contract_files')
-@Index('contract_files_contract_id_file_id_unique', ['contractId', 'fileId'])
+@Entity()
 export class ContractFile {
-  @PrimaryColumn({ name: 'contract_id' })
-  @Index('idx_contract_files_contract_id')
+  @PrimaryColumn({ })
+  @Index()
   contractId: string;
 
-  @PrimaryColumn({ name: 'file_id' })
-  @Index('idx_contract_files_file_id')
+  @PrimaryColumn({ })
+  @Index()
   fileId: string;
 
-  @Column({ length: 50, nullable: true, name: 'file_type' })
+  @Column({ length: 50, nullable: true })
   fileType: string;
 
   @Column({ type: 'text', nullable: true })
   notes: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'contract_id' })
+  @JoinColumn()
   contract: EmploymentContract;
 
   @ManyToOne(() => Document, (document) => document.contractFiles, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'file_id' })
+  @JoinColumn()
   file: Document;
 }
+
+
+
+

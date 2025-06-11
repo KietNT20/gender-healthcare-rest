@@ -12,7 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('answers')
+@Entity()
 export class Answer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -20,8 +20,8 @@ export class Answer {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ default: false, name: 'is_accepted' })
-  @Index('idx_answers_accepted')
+  @Column({ default: false })
+  @Index()
   isAccepted: boolean;
 
   @Column({ default: 0 })
@@ -30,29 +30,29 @@ export class Answer {
   @Column({ default: 0 })
   downvotes: number;
 
-  @Column({ default: false, name: 'is_private' })
+  @Column({ default: false })
   isPrivate: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_answers_deleted_at')
-  deletedAt: Date | null;
+  @DeleteDateColumn({ nullable: true })
+  @Index()
+  deletedAt?: Date;
 
   // Relations
   @ManyToOne(() => Question, (question) => question.answers, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'question_id' })
+  @JoinColumn()
   question: Question;
 
   @ManyToOne(() => User, (user) => user.answers, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'consultant_id' })
+  @JoinColumn()
   consultant: User;
 }

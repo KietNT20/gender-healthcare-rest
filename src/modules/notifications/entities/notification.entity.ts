@@ -1,62 +1,59 @@
 import { PriorityType } from 'src/enums';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ nullable: true })
-  userId: string;
+    @Column({ nullable: true })
+    userId: string;
 
-  @Column({ length: 255 })
-  title: string;
+    @Column({ length: 255 })
+    title: string;
 
-  @Column({ type: 'text' })
-  content: string;
+    @Column({ type: 'text' })
+    content: string;
 
-  @Column({ length: 50 })
-  type: string;
+    @Column({ length: 50 })
+    type: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  referenceId: string;
+    @Column({ type: 'uuid', nullable: true })
+    referenceId: string;
 
-  @Column({ default: false })
-  isRead: boolean;
+    @Column({ default: false })
+    isRead: boolean;
 
-  @Column({ type: 'timestamp with time zone', nullable: true })
-  readAt: Date;
+    @Column({ type: 'timestamp with time zone', nullable: true })
+    readAt: Date;
 
-  @Column({ type: 'text', nullable: true })
-  actionUrl: string;
+    @Column({ type: 'text', nullable: true })
+    actionUrl: string;
 
-  @Column({
-    type: 'enum',
-    enum: PriorityType,
-    nullable: true })
-  priority: PriorityType;
+    @Column({
+        type: 'enum',
+        enum: PriorityType,
+        nullable: true,
+    })
+    priority: PriorityType;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn()
-  user: User;
+    // Relations
+    @ManyToOne(() => User, (user) => user.notifications)
+    @JoinColumn()
+    user: User;
 }
-
-
-
-

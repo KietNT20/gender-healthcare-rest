@@ -3,7 +3,7 @@ import { ConsultantProfilesService } from './consultant-profiles.service';
 import { ConsultantProfilesController } from './consultant-profiles.controller';
 
 @Module({
-  controllers: [ConsultantProfilesController],
-  providers: [ConsultantProfilesService],
+    controllers: [ConsultantProfilesController],
+    providers: [ConsultantProfilesService],
 })
 export class ConsultantProfilesModule {}

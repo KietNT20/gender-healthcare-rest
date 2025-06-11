@@ -3,18 +3,18 @@ import { AuditLogsController } from './audit-logs.controller';
 import { AuditLogsService } from './audit-logs.service';
 
 describe('AuditLogsController', () => {
-  let controller: AuditLogsController;
+    let controller: AuditLogsController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuditLogsController],
-      providers: [AuditLogsService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [AuditLogsController],
+            providers: [AuditLogsService],
+        }).compile();
 
-    controller = module.get<AuditLogsController>(AuditLogsController);
-  });
+        controller = module.get<AuditLogsController>(AuditLogsController);
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

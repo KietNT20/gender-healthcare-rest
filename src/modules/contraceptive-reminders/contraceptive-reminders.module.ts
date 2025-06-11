@@ -3,7 +3,7 @@ import { ContraceptiveRemindersService } from './contraceptive-reminders.service
 import { ContraceptiveRemindersController } from './contraceptive-reminders.controller';
 
 @Module({
-  controllers: [ContraceptiveRemindersController],
-  providers: [ContraceptiveRemindersService],
+    controllers: [ContraceptiveRemindersController],
+    providers: [ContraceptiveRemindersService],
 })
 export class ContraceptiveRemindersModule {}

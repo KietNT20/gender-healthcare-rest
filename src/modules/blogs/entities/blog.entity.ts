@@ -44,7 +44,7 @@ export class Blog {
   status: ContentStatusType;
 
   @Column({ length: 255, nullable: true, name: 'featured_image' })
-  featuredImage: string;
+  featuredImage?: string;
 
   @Column({ type: 'text', array: true, nullable: true })
   tags: string[];
@@ -103,15 +103,15 @@ export class Blog {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   @Index('idx_blogs_deleted_at')
-  deletedAt: Date | null;
+  deletedAt?: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.authoredBlogs)
-  @JoinColumn({ name: 'author_id' })
+  @ManyToOne(() => User, (user) => user.authoredBlogs, {
+    eager: true,
+  })
   author: User;
 
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
   category: Category;
 
   @ManyToOne(() => User, (user) => user.reviewedBlogs)

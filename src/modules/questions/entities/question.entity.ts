@@ -38,18 +38,6 @@ export class Question {
   })
   status: QuestionStatusType;
 
-  @Column({ default: false, name: 'is_public' })
-  isPublic: boolean;
-
-  @Column({ default: 0, name: 'view_count' })
-  viewCount: number;
-
-  @Column({ default: false, name: 'is_anonymous' })
-  isAnonymous: boolean;
-
-  @Column({ name: 'category_id', nullable: true })
-  categoryId: string;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -64,8 +52,7 @@ export class Question {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
+  @ManyToOne(() => Category, (category) => category.questions)
   category: Category;
 
   @OneToMany(() => Answer, (answer) => answer.question)

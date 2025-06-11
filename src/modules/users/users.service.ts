@@ -481,17 +481,12 @@ export class UsersService {
     });
   }
 
-  async remove(id: string, deletedById?: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    await this.userRepository.update(id, {
-      deletedAt: new Date(),
-      deletedBy: deletedById ? { id: deletedById } : null,
-      updatedAt: new Date(),
-    });
+    await this.userRepository.softDelete(id);
   }
 
   async toggleActive(id: string): Promise<UserResponseDto> {

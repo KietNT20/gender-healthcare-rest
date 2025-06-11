@@ -1,9 +1,10 @@
 import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
-import { AppointmentService } from 'src/modules/appointment-services/entities/appointment-service.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -13,6 +14,8 @@ import {
   Entity,
   Index,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -113,9 +116,11 @@ export class Appointment {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, (user) => user.consultantAppointments)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+  @ManyToOne(
+    () => ConsultantProfile,
+    (consultantProfile) => consultantProfile.consultantAppointments,
+  )
+  consultant: ConsultantProfile;
 
   @ManyToOne(
     () => ConsultantAvailability,
@@ -123,12 +128,6 @@ export class Appointment {
   )
   @JoinColumn({ name: 'availability_id' })
   availability: ConsultantAvailability;
-
-  @OneToMany(
-    () => AppointmentService,
-    (appointmentService) => appointmentService.appointment,
-  )
-  appointmentServices: AppointmentService[];
 
   @OneToMany(() => Payment, (payment) => payment.appointment)
   payments: Payment[];
@@ -141,4 +140,18 @@ export class Appointment {
 
   @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
   packageServiceUsages: PackageServiceUsage[];
+
+  @ManyToMany(() => Service, (service) => service.id)
+  @JoinTable({
+    name: 'appointment_services',
+    joinColumn: {
+      name: 'appointment_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'service_id',
+      referencedColumnName: 'id',
+    },
+  })
+  services: Service[];
 }

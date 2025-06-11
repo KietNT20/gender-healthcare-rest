@@ -3,7 +3,7 @@ import { MenstrualCyclesService } from './menstrual-cycles.service';
 import { MenstrualCyclesController } from './menstrual-cycles.controller';
 
 @Module({
-  controllers: [MenstrualCyclesController],
-  providers: [MenstrualCyclesService],
+    controllers: [MenstrualCyclesController],
+    providers: [MenstrualCyclesService],
 })
 export class MenstrualCyclesModule {}

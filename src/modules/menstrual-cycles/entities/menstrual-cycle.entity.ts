@@ -2,89 +2,87 @@ import { CycleMood } from 'src/modules/cycle-moods/entities/cycle-mood.entity';
 import { CycleSymptom } from 'src/modules/cycle-symptoms/entities/cycle-symptom.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('menstrual_cycles')
 export class MenstrualCycle {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_menstrual_cycles_user_id')
-  userId: string;
+    @Column({ name: 'user_id', nullable: true })
+    @Index('idx_menstrual_cycles_user_id')
+    userId: string;
 
-  @Column({ type: 'date', name: 'cycle_start_date' })
-  @Index('idx_menstrual_cycles_start_date')
-  cycleStartDate: Date;
+    @Column({ type: 'date', name: 'cycle_start_date' })
+    @Index('idx_menstrual_cycles_start_date')
+    cycleStartDate: Date;
 
-  @Column({ type: 'date', nullable: true, name: 'cycle_end_date' })
-  cycleEndDate: Date;
+    @Column({ type: 'date', nullable: true, name: 'cycle_end_date' })
+    cycleEndDate: Date;
 
-  @Column({ nullable: true, name: 'cycle_length' })
-  cycleLength: number;
+    @Column({ nullable: true, name: 'cycle_length' })
+    cycleLength: number;
 
-  @Column({ nullable: true, name: 'period_length' })
-  periodLength: number;
+    @Column({ nullable: true, name: 'period_length' })
+    periodLength: number;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  symptoms: string[];
+    @Column({ type: 'text', array: true, nullable: true })
+    symptoms: string[];
 
-  @Column({ type: 'text', nullable: true })
-  notes: string;
+    @Column({ type: 'text', nullable: true })
+    notes: string;
 
-  @Column({ nullable: true, name: 'flow_intensity' })
-  flowIntensity: number;
+    @Column({ nullable: true, name: 'flow_intensity' })
+    flowIntensity: number;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  mood: string[];
+    @Column({ type: 'text', array: true, nullable: true })
+    mood: string[];
 
-  @Column({ nullable: true, name: 'pain_level' })
-  painLevel: number;
+    @Column({ nullable: true, name: 'pain_level' })
+    painLevel: number;
 
-  @Column({
-    type: 'text',
-    array: true,
-    nullable: true,
-    name: 'medication_taken',
-  })
-  medicationTaken: string[];
+    @Column({
+        type: 'text',
+        array: true,
+        nullable: true,
+        name: 'medication_taken',
+    })
+    medicationTaken: string[];
 
-  @Column({ type: 'decimal', precision: 4, scale: 1, nullable: true })
-  temperature: number;
+    @Column({ type: 'decimal', precision: 4, scale: 1, nullable: true })
+    temperature: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  weight: number;
+    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+    weight: number;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_menstrual_cycles_deleted_at')
-  deletedAt: Date | null;
+    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    @Index('idx_menstrual_cycles_deleted_at')
+    deletedAt: Date | null;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.menstrualCycles, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+    // Relations
+    @ManyToOne(() => User, (user) => user.menstrualCycles, {
+        onDelete: 'CASCADE',
+    })
+    user: User;
 
-  @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)
-  cycleMoods: CycleMood[];
+    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)
+    cycleMoods: CycleMood[];
 
-  @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.cycle)
-  cycleSymptoms: CycleSymptom[];
+    @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.cycle)
+    cycleSymptoms: CycleSymptom[];
 }

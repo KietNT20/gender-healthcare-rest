@@ -1,82 +1,65 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('feedbacks')
 export class Feedback {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_feedbacks_user_id')
-  userId: string;
+    @Column({ type: 'integer' })
+    @Index('idx_feedbacks_rating')
+    rating: number;
 
-  @Column({ name: 'service_id', nullable: true })
-  @Index('idx_feedbacks_service_id')
-  serviceId: string;
+    @Column({ type: 'text', nullable: true })
+    comment: string;
 
-  @Column({ name: 'appointment_id', nullable: true })
-  @Index('idx_feedbacks_appointment_id')
-  appointmentId: string;
+    @Column({ default: false, name: 'is_anonymous' })
+    isAnonymous: boolean;
 
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_feedbacks_consultant_id')
-  consultantId: string;
+    @Column({ default: true, name: 'is_public' })
+    isPublic: boolean;
 
-  @Column({ type: 'integer' })
-  @Index('idx_feedbacks_rating')
-  rating: number;
+    @Column({ type: 'text', nullable: true, name: 'staff_response' })
+    staffResponse: string;
 
-  @Column({ type: 'text', nullable: true })
-  comment: string;
+    @Column({ type: 'text', array: true, nullable: true })
+    categories: string[];
 
-  @Column({ default: false, name: 'is_anonymous' })
-  isAnonymous: boolean;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @Column({ default: true, name: 'is_public' })
-  isPublic: boolean;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @Column({ type: 'text', nullable: true, name: 'staff_response' })
-  staffResponse: string;
+    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    @Index('idx_feedbacks_deleted_at')
+    deletedAt?: Date;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  categories: string[];
+    // Relations
+    @ManyToOne(() => User, (user) => user.feedbacks)
+    user: User;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @ManyToOne(() => Service, (service) => service.feedbacks)
+    service: Service;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
+    appointment: Appointment;
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_feedbacks_deleted_at')
-  deletedAt: Date | null;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.feedbacks)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @ManyToOne(() => Service)
-  @JoinColumn({ name: 'service_id' })
-  service: Service;
-
-  @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-  @JoinColumn({ name: 'appointment_id' })
-  appointment: Appointment;
-
-  @ManyToOne(() => User, (user) => user.consultantFeedbacks)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+    @ManyToOne(
+        () => ConsultantProfile,
+        (consultant) => consultant.consultantFeedbacks,
+    )
+    consultant: ConsultantProfile;
 }

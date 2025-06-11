@@ -1,66 +1,62 @@
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('images')
 @Index('idx_images_entity', ['entityId', 'entityType'])
 export class Image {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ length: 255 })
-  name: string;
+    @Column({ length: 255 })
+    name: string;
 
-  @Column({ length: 255, name: 'original_name' })
-  originalName: string;
+    @Column({ length: 255, name: 'original_name' })
+    originalName: string;
 
-  @Column()
-  size: number;
+    @Column()
+    size: number;
 
-  @Column({ nullable: true })
-  width: number;
+    @Column({ nullable: true })
+    width: number;
 
-  @Column({ nullable: true })
-  height: number;
+    @Column({ nullable: true })
+    height: number;
 
-  @Column({ length: 10, nullable: true })
-  format: string;
+    @Column({ length: 10, nullable: true })
+    format: string;
 
-  @Column({ length: 255, nullable: true, name: 'alt_text' })
-  altText: string;
+    @Column({ length: 255, nullable: true, name: 'alt_text' })
+    altText: string;
 
-  @Column({ length: 50, nullable: true, name: 'entity_type' })
-  entityType: string;
+    @Column({ length: 50, nullable: true, name: 'entity_type' })
+    entityType: string;
 
-  @Column({ type: 'uuid', nullable: true, name: 'entity_id' })
-  entityId: string;
+    @Column({ type: 'uuid', nullable: true, name: 'entity_id' })
+    entityId: string;
 
-  @Column({ default: false, name: 'is_public' })
-  isPublic: boolean;
+    @Column({ default: false, name: 'is_public' })
+    isPublic: boolean;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_images_user_id')
-  userId: string;
+    @Column({ name: 'user_id', nullable: true })
+    @Index('idx_images_user_id')
+    userId: string;
 
-  @Column({ type: 'text', default: '' })
-  url: string;
+    @Column({ type: 'text', default: '' })
+    url: string;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.images)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date; // Relations
+    @ManyToOne(() => User, (user) => user.images)
+    user: User;
 }

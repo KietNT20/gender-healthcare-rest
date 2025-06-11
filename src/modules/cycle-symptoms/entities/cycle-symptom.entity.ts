@@ -5,7 +5,6 @@ import {
     CreateDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryColumn,
     UpdateDateColumn,
@@ -32,14 +31,10 @@ export class CycleSymptom {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)
-    @JoinColumn({ name: 'cycle_id' })
     cycle: MenstrualCycle;
 
     @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms)
-    @JoinColumn({ name: 'symptom_id' })
     symptom: Symptom;
 }

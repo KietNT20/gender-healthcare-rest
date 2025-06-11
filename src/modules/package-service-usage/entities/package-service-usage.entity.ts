@@ -5,7 +5,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -32,24 +31,19 @@ export class PackageServiceUsage {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(
         () => UserPackageSubscription,
         (subscription) => subscription.serviceUsages,
     )
-    @JoinColumn({ name: 'subscription_id' })
     subscription: UserPackageSubscription;
 
     @ManyToOne(() => Service, (service) => service.packageServiceUsages)
-    @JoinColumn({ name: 'service_id' })
     service: Service;
 
     @ManyToOne(
         () => Appointment,
         (appointment) => appointment.packageServiceUsages,
     )
-    @JoinColumn({ name: 'appointment_id' })
     appointment: Appointment;
 }

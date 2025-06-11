@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -54,10 +53,7 @@ export class Notification {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => User, (user) => user.notifications)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 }

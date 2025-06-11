@@ -4,7 +4,6 @@ import {
     CreateDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryColumn,
     UpdateDateColumn,
@@ -25,14 +24,10 @@ export class BlogServiceRelation {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations)
-    @JoinColumn({ name: 'blog_id' })
     blog: Blog;
 
     @ManyToOne(() => Service, (service) => service.blogServiceRelations)
-    @JoinColumn({ name: 'service_id' })
     service: Service;
 }

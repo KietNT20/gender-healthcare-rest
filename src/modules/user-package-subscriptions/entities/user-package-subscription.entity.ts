@@ -8,7 +8,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -52,22 +51,17 @@ export class UserPackageSubscription {
     updatedAt: Date;
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null;
-
-    // Relations
+    deletedAt: Date | null; // Relations
     @ManyToOne(() => User, (user) => user.packageSubscriptions)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @ManyToOne(
         () => ServicePackage,
         (servicePackage) => servicePackage.subscriptions,
     )
-    @JoinColumn({ name: 'package_id' })
     package: ServicePackage;
 
     @ManyToOne(() => Payment, (payment) => payment.packageSubscriptions)
-    @JoinColumn({ name: 'payment_id' })
     payment: Payment;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.subscription)

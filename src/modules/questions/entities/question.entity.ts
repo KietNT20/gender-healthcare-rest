@@ -8,7 +8,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -46,10 +45,7 @@ export class Question {
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     deletedAt: Date | null;
-
-    // Relations
     @ManyToOne(() => User, (user) => user.questions)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @ManyToOne(() => Category, (category) => category.questions)

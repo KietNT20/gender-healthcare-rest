@@ -5,7 +5,6 @@ import {
     CreateDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryColumn,
     UpdateDateColumn,
@@ -32,18 +31,14 @@ export class ContractFile {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'contract_id' })
     contract: EmploymentContract;
 
     @ManyToOne(() => Document, (document) => document.contractFiles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'file_id' })
     file: Document;
 }

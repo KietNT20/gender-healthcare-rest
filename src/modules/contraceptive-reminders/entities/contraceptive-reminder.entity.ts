@@ -6,7 +6,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -66,12 +65,9 @@ export class ContraceptiveReminder {
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
     @Index('idx_contraceptive_reminders_deleted_at')
-    deletedAt: Date | null;
-
-    // Relations
+    deletedAt: Date | null; // Relations
     @ManyToOne(() => User, (user) => user.contraceptiveReminders, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'user_id' })
     user: User;
 }

@@ -4,7 +4,6 @@ import {
     CreateDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -42,10 +41,7 @@ export class AuditLog {
 
     @CreateDateColumn({ name: 'created_at' })
     @Index('idx_audit_logs_created_at')
-    createdAt: Date;
-
-    // Relations
+    createdAt: Date; // Relations
     @ManyToOne(() => User, (user) => user.auditLogs)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 }

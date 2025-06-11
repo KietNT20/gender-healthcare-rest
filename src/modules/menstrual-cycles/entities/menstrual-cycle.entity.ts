@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -79,7 +78,6 @@ export class MenstrualCycle {
     @ManyToOne(() => User, (user) => user.menstrualCycles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)

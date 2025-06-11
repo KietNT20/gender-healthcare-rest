@@ -7,7 +7,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -76,15 +75,11 @@ export class Payment {
     updatedAt: Date;
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null;
-
-    // Relations
+    deletedAt: Date | null; // Relations
     @ManyToOne(() => User, (user) => user.payments)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @ManyToOne(() => Appointment, (appointment) => appointment.payments)
-    @JoinColumn({ name: 'appointment_id' })
     appointment: Appointment;
 
     @OneToMany(

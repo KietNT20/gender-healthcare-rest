@@ -3,7 +3,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -53,7 +52,6 @@ export class MenstrualPrediction {
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
-
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
@@ -61,6 +59,5 @@ export class MenstrualPrediction {
     @ManyToOne(() => User, (user) => user.menstrualPredictions, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'user_id' })
     user: User;
 }

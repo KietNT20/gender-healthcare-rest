@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -56,16 +55,12 @@ export class TestResult {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'appointment_id' })
     appointment: Appointment;
 
     @ManyToOne(() => User, (user) => user.testResults)
-    @JoinColumn({ name: 'staff_id' })
     staff: User;
 }

@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -29,11 +28,8 @@ export class Symptom {
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
-    // Relations
+    updatedAt: Date; // Relations
     @ManyToOne(() => Category, (category) => category.symptoms)
-    @JoinColumn({ name: 'category_id' })
     category: Category;
 
     @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.symptom)

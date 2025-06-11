@@ -6,7 +6,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -70,11 +69,8 @@ export class Document {
     updatedAt: Date;
 
     @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null;
-
-    // Relations
+    deletedAt: Date | null; // Relations
     @ManyToOne(() => User, (user) => user.documents)
-    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.file)

@@ -170,9 +170,7 @@ export class User {
     })
     @JoinColumn({ name: 'role_id' })
     role: Role;
-
     @ManyToOne(() => User, { nullable: true })
-    @JoinColumn({ name: 'deleted_by_user_id' })
     deletedBy?: User;
 
     // Consultant Profile relation

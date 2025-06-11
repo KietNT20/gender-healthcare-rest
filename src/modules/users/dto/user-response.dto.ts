@@ -1,5 +1,3 @@
-import { GenderType } from '@enums/index';
-import { Role } from '@modules/roles/entities/role.entity';
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -10,6 +8,8 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
+import { GenderType } from 'src/enums';
+import { Role } from 'src/modules/roles/entities/role.entity';
 
 export class UserResponseDto {
   @Expose()

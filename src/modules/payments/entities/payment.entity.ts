@@ -1,7 +1,7 @@
-import { PaymentStatusType } from '@enums/index';
-import { Appointment } from '@modules/appointments/entities/appointment.entity';
-import { UserPackageSubscription } from '@modules/user-package-subscriptions/entities/user-package-subscription.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { PaymentStatusType } from 'src/enums';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

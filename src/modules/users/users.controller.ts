@@ -1,15 +1,11 @@
-import { CurrentUser } from '@decorators/current-user.decorator';
-import { ResponseMessage } from '@decorators/response-message.decorator';
-import { Roles } from '@decorators/roles.decorator';
-import { RolesNameEnum } from '@enums/index';
-import { RoleGuard } from '@guards/role.guard';
-import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -18,8 +14,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesNameEnum } from 'src/enums';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 import {
   ChangePasswordDto,
   UpdateProfileDto,
@@ -40,7 +43,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ResponseMessage('User created successfully')
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
@@ -50,24 +53,16 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @ResponseMessage('Users retrieved successfully')
-  async findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('search') search?: string,
-    @Query('roleId') roleId?: string,
-    @Query('isActive') isActive?: string,
+  findAll(
+    @Query() userQueryDto: UserQueryDto,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
-    const isActiveBoolean = isActive ? isActive === 'true' : undefined;
-
-    return this.usersService.findAll(
-      pageNumber,
-      limitNumber,
-      search,
-      roleId,
-      isActiveBoolean,
-    );
+    return this.usersService.findAll({
+      ...userQueryDto,
+      page,
+      limit,
+    });
   }
 
   @Get('me')
@@ -77,7 +72,7 @@ export class UsersController {
     description: 'Current user profile retrieved successfully',
   })
   @ResponseMessage('Current user profile retrieved successfully')
-  async getProfile(@CurrentUser() user: User): Promise<UserResponseDto> {
+  getProfile(@CurrentUser() user: User) {
     return this.usersService.findOne(user.id);
   }
 
@@ -85,7 +80,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by slug' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ResponseMessage('User retrieved successfully')
-  async findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
+  findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
     return this.usersService.findBySlug(slug);
   }
 
@@ -95,9 +90,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ResponseMessage('User retrieved successfully')
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<UserResponseDto> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
     return this.usersService.findOne(id);
   }
 
@@ -105,7 +98,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ResponseMessage('Profile updated successfully')
-  async updateProfile(
+  updateProfile(
     @CurrentUser() user: User,
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
@@ -130,7 +123,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user by ID (Admin/Manager only)' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ResponseMessage('User updated successfully')
-  async update(
+  update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
@@ -143,7 +136,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Toggle user active status (Admin/Manager only)' })
   @ApiResponse({ status: 200, description: 'User status updated successfully' })
   @ResponseMessage('User status updated successfully')
-  async toggleActive(
+  toggleActive(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
     return this.usersService.toggleActive(id);

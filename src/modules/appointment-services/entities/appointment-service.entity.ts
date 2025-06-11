@@ -1,5 +1,5 @@
-import { Appointment } from '@modules/appointments/entities/appointment.entity';
-import { Service } from '@modules/services/entities/service.entity';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import {
   CreateDateColumn,
   Entity,

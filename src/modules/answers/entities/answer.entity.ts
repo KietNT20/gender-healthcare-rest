@@ -1,5 +1,5 @@
-import { Question } from '@modules/questions/entities/question.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
 import {
   Column,
   CreateDateColumn,
@@ -16,14 +16,6 @@ import {
 export class Answer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'question_id', nullable: true })
-  @Index('idx_answers_question_id')
-  questionId: string;
-
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_answers_consultant_id')
-  consultantId: string;
 
   @Column({ type: 'text' })
   content: string;
@@ -52,11 +44,19 @@ export class Answer {
   deletedAt: Date | null;
 
   // Relations
-  @ManyToOne(() => Question, (question) => question.answers)
+  @ManyToOne(() => Question, (question) => question.answers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => User, (user) => user.answers)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+  @ManyToOne(
+    () => ConsultantProfile,
+    (consultantProfile) => consultantProfile.answers,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({ name: 'consultant_profile_id' })
+  consultantProfile: ConsultantProfile;
 }

@@ -1,10 +1,10 @@
-import { GenderType, RolesNameEnum } from '@enums/index';
-import { Role } from '@modules/roles/entities/role.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
+import { GenderType, RolesNameEnum } from 'src/enums';
 import { Repository } from 'typeorm';
+import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
@@ -25,23 +25,22 @@ describe('UsersService', () => {
     phone: '+84123456789',
     address: 'Test Address',
     roleId: 'role-id',
-    profilePicture: '',
+    profilePicture: undefined,
     isActive: true,
-    accountLockedUntil: null,
+    accountLockedUntil: undefined,
     loginAttempts: 0,
     emailVerified: false,
-    emailVerificationToken: '',
+    emailVerificationToken: undefined,
     emailVerificationExpires: new Date(),
     phoneVerified: false,
-    passwordResetToken: '',
+    passwordResetToken: undefined,
     passwordResetExpires: new Date(),
     lastLogin: new Date(),
     locale: 'vi',
     notificationPreferences: { sms: false, push: true, email: true },
     healthDataConsent: false,
-    refreshToken: '',
+    refreshToken: undefined,
     version: 0,
-    deletedById: '',
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: new Date(),

@@ -1,5 +1,5 @@
-import { MenstrualCycle } from '@modules/menstrual-cycles/entities/menstrual-cycle.entity';
-import { Symptom } from '@modules/symptoms/entities/symptom.entity';
+import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
+import { Symptom } from 'src/modules/symptoms/entities/symptom.entity';
 import {
   Column,
   CreateDateColumn,

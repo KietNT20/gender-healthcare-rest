@@ -1,18 +1,21 @@
-import { RolesNameEnum } from '@enums/index';
-import { Role } from '@modules/roles/entities/role.entity';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
-import { IsNull, Repository } from 'typeorm';
+import { RolesNameEnum } from 'src/enums';
+import { DataSource, IsNull, Repository } from 'typeorm';
+import { Role } from '../roles/entities/role.entity';
+import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 import {
   ChangePasswordDto,
   UpdateProfileDto,
@@ -27,6 +30,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -47,7 +51,7 @@ export class UsersService {
     );
 
     // Generate unique slug
-    const baseSlug = slugify(createUserDto.fullName, {
+    const baseSlug = slugify(createUserDto.email, {
       lower: true,
       strict: true,
     });
@@ -69,13 +73,48 @@ export class UsersService {
     return this.toUserResponse(savedUser);
   }
 
-  async findAll(
-    page: number = 1,
-    limit: number = 10,
-    search?: string,
-    roleId?: string,
-    isActive?: boolean,
-  ): Promise<{
+  async createMany(createManyUsersDto: CreateManyUsersDto) {
+    let newUsers: User[] = [];
+    // Create Query Runner Instance
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      // Connect the query ryunner to the datasource
+      await queryRunner.connect();
+      // Start the transaction
+      await queryRunner.startTransaction();
+    } catch (error) {
+      throw new RequestTimeoutException('Could not connect to the database');
+    }
+
+    try {
+      for (let user of createManyUsersDto.users) {
+        let newUser = queryRunner.manager.create(User, user);
+        let result = await queryRunner.manager.save(newUser);
+        newUsers.push(result);
+      }
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      // since we have errors lets rollback the changes we made
+      await queryRunner.rollbackTransaction();
+      throw new ConflictException('Could not complete the transaction', {
+        description: String(error),
+      });
+    } finally {
+      try {
+        // you need to release a queryRunner which was manually instantiated
+        await queryRunner.release();
+      } catch (error) {
+        throw new RequestTimeoutException(
+          'Could not release the query runner connection',
+        );
+      }
+    }
+
+    return newUsers;
+  }
+
+  async findAll(userQueryDto: UserQueryDto): Promise<{
     users: UserResponseDto[];
     total: number;
     totalPages: number;
@@ -87,36 +126,54 @@ export class UsersService {
       .where('user.deletedAt IS NULL');
 
     // Apply filters
-    if (search) {
-      queryBuilder.andWhere(
-        '(user.fullName ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` },
-      );
+    // fullName
+    if (userQueryDto.fullName) {
+      queryBuilder.andWhere('(user.fullName ILIKE :fullName)', {
+        fullName: `%${userQueryDto.fullName}%`,
+      });
     }
 
-    if (roleId) {
-      queryBuilder.andWhere('user.roleId = :roleId', { roleId });
+    // email
+    if (userQueryDto.email) {
+      queryBuilder.andWhere('user.email ILIKE :email', {
+        email: `%${userQueryDto.email}%`,
+      });
     }
 
-    if (isActive !== undefined) {
-      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
+    // phone
+    if (userQueryDto.phone) {
+      queryBuilder.andWhere('user.phone ILIKE :phone', {
+        phone: `%${userQueryDto.phone}%`,
+      });
+    }
+
+    if (userQueryDto.roleId) {
+      queryBuilder.andWhere('user.roleId = :roleId', {
+        roleId: userQueryDto.roleId,
+      });
+    }
+
+    if (userQueryDto.isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', {
+        isActive: userQueryDto.isActive,
+      });
     }
 
     // Apply pagination
-    const offset = (page - 1) * limit;
-    queryBuilder.skip(offset).take(limit);
+    const offset = (userQueryDto.page - 1) * userQueryDto.limit;
+    queryBuilder.skip(offset).take(userQueryDto.limit);
 
     // Order by creation date
     queryBuilder.orderBy('user.createdAt', 'DESC');
 
     const [users, total] = await queryBuilder.getManyAndCount();
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / userQueryDto.limit);
 
     return {
       users: users.map((user) => this.toUserResponse(user)),
       total,
       totalPages,
-      currentPage: page,
+      currentPage: userQueryDto.page,
     };
   }
 
@@ -432,7 +489,7 @@ export class UsersService {
 
     await this.userRepository.update(id, {
       deletedAt: new Date(),
-      deletedById,
+      deletedBy: deletedById ? { id: deletedById } : null,
       updatedAt: new Date(),
     });
   }

@@ -1,5 +1,5 @@
-import { Category } from '@modules/categories/entities/category.entity';
-import { CycleSymptom } from '@modules/cycle-symptoms/entities/cycle-symptom.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { CycleSymptom } from 'src/modules/cycle-symptoms/entities/cycle-symptom.entity';
 import {
   Column,
   CreateDateColumn,

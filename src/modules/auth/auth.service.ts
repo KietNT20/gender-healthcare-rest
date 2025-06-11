@@ -1,5 +1,3 @@
-import { MailService } from '@modules/mail/mail.service';
-import { UsersService } from '@modules/users/users.service';
 import {
   BadRequestException,
   Injectable,
@@ -7,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -149,7 +149,10 @@ export class AuthService {
       throw new BadRequestException('Token xác thực không hợp lệ');
     }
 
-    if (user.emailVerificationExpires < new Date()) {
+    if (
+      user.emailVerificationExpires &&
+      user.emailVerificationExpires < new Date()
+    ) {
       throw new BadRequestException('Token xác thực đã hết hạn');
     }
 
@@ -244,7 +247,7 @@ export class AuthService {
       throw new BadRequestException('Token đặt lại mật khẩu không hợp lệ');
     }
 
-    if (user.passwordResetExpires < new Date()) {
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
       throw new BadRequestException('Token đặt lại mật khẩu đã hết hạn');
     }
 
@@ -293,5 +296,34 @@ export class AuthService {
     return {
       message: 'Đăng xuất thành công',
     };
+  }
+
+  async verifyToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.usersService.findOneById(payload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role?.name || 'user',
+        fullName: user.fullName,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async verifyTokenForWebSocket(token: string) {
+    try {
+      const cleanToken = token.replace('Bearer ', '');
+      return await this.verifyToken(cleanToken);
+    } catch (error) {
+      return null;
+    }
   }
 }

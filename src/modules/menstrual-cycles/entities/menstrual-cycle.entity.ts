@@ -1,6 +1,6 @@
-import { CycleMood } from '@modules/cycle-moods/entities/cycle-mood.entity';
-import { CycleSymptom } from '@modules/cycle-symptoms/entities/cycle-symptom.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { CycleMood } from 'src/modules/cycle-moods/entities/cycle-mood.entity';
+import { CycleSymptom } from 'src/modules/cycle-symptoms/entities/cycle-symptom.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

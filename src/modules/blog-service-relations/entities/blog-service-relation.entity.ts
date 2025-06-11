@@ -1,5 +1,5 @@
-import { Blog } from '@modules/blogs/entities/blog.entity';
-import { Service } from '@modules/services/entities/service.entity';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import {
   CreateDateColumn,
   Entity,

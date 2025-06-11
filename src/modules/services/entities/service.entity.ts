@@ -1,9 +1,9 @@
-import { AppointmentService } from '@modules/appointment-services/entities/appointment-service.entity';
-import { BlogServiceRelation } from '@modules/blog-service-relations/entities/blog-service-relation.entity';
-import { Category } from '@modules/categories/entities/category.entity';
-import { Feedback } from '@modules/feedbacks/entities/feedback.entity';
-import { PackageServiceUsage } from '@modules/package-service-usage/entities/package-service-usage.entity';
-import { PackageService } from '@modules/package-services/entities/package-service.entity';
+import { AppointmentService } from 'src/modules/appointment-services/entities/appointment-service.entity';
+import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
+import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
+import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
 import {
   Column,
   CreateDateColumn,

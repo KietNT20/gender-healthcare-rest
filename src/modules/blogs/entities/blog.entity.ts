@@ -1,7 +1,7 @@
-import { ContentStatusType } from '@enums/index';
-import { BlogServiceRelation } from '@modules/blog-service-relations/entities/blog-service-relation.entity';
-import { Category } from '@modules/categories/entities/category.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { ContentStatusType } from 'src/enums';
+import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -57,14 +57,6 @@ export class Blog {
 
   @Column({ type: 'text', nullable: true, name: 'seo_description' })
   seoDescription: string;
-
-  @Column({
-    type: 'uuid',
-    array: true,
-    nullable: true,
-    name: 'related_services',
-  })
-  relatedServicesIds: string[];
 
   @Column({ type: 'text', nullable: true })
   excerpt: string;

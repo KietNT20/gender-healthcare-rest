@@ -1,8 +1,8 @@
-import { QuestionStatusType } from '@enums/index';
-import { Answer } from '@modules/answers/entities/answer.entity';
-import { Category } from '@modules/categories/entities/category.entity';
-import { QuestionTag } from '@modules/question-tags/entities/question-tag.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { QuestionStatusType } from 'src/enums';
+import { Answer } from 'src/modules/answers/entities/answer.entity';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

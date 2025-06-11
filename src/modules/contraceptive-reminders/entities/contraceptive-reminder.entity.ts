@@ -1,5 +1,5 @@
-import { ReminderFrequencyType, ReminderStatusType } from '@enums/index';
-import { User } from '@modules/users/entities/user.entity';
+import { ReminderFrequencyType, ReminderStatusType } from 'src/enums';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

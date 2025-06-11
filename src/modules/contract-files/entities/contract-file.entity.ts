@@ -1,5 +1,5 @@
-import { Document } from '@modules/documents/entities/document.entity';
-import { EmploymentContract } from '@modules/employment-contracts/entities/employment-contract.entity';
+import { Document } from 'src/modules/documents/entities/document.entity';
+import { EmploymentContract } from 'src/modules/employment-contracts/entities/employment-contract.entity';
 import {
   Column,
   CreateDateColumn,

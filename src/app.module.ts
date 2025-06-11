@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
@@ -44,6 +47,20 @@ import { UsersModule } from './modules/users/users.module';
       envFilePath: '.env',
       isGlobal: true, // Đảm bảo ConfigModule là global để các module khác có thể sử dụng
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'medium',
+          ttl: 10000,
+          limit: 20,
+        },
+        {
+          name: 'long',
+          ttl: 60000,
+          limit: 100,
+        },
+      ],
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -54,48 +71,54 @@ import { UsersModule } from './modules/users/users.module';
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // Chỉ dùng trong dev, tắt trong production
+        synchronize: true,
+        autoLoadEntities: true,
         dropSchema: false,
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
-    RolesModule,
-    ConsultantProfilesModule,
-    EmploymentContractsModule,
-    CategoriesModule,
-    ServicesModule,
-    ConsultantAvailabilityModule,
-    AppointmentsModule,
-    BlogsModule,
-    TagsModule,
-    QuestionsModule,
     AnswersModule,
-    FeedbacksModule,
-    MoodsModule,
     AppointmentServicesModule,
+    AppointmentsModule,
     BlogServiceRelationsModule,
-    QuestionTagsModule,
-    SymptomsModule,
-    MenstrualCyclesModule,
+    BlogsModule,
+    CategoriesModule,
+    ConsultantAvailabilityModule,
+    ConsultantProfilesModule,
+    ContractFilesModule,
+    ContraceptiveRemindersModule,
     CycleMoodsModule,
     CycleSymptomsModule,
-    ContraceptiveRemindersModule,
-    MenstrualPredictionsModule,
-    PaymentsModule,
-    NotificationsModule,
-    TestResultsModule,
     DocumentsModule,
+    EmploymentContractsModule,
+    FeedbacksModule,
     ImagesModule,
-    AuditLogsModule,
-    ContractFilesModule,
-    ServicePackagesModule,
-    PackageServicesModule,
-    UserPackageSubscriptionsModule,
-    PackageServiceUsageModule,
-    AuthModule,
     MailModule,
+    MenstrualCyclesModule,
+    MenstrualPredictionsModule,
+    MoodsModule,
+    NotificationsModule,
+    PackageServiceUsageModule,
+    PackageServicesModule,
+    PaymentsModule,
+    QuestionsModule,
+    QuestionTagsModule,
+    RolesModule,
+    ServicePackagesModule,
+    ServicesModule,
+    SymptomsModule,
+    TagsModule,
+    TestResultsModule,
+    UserPackageSubscriptionsModule,
+    UsersModule,
+    AuthModule,
+    AuditLogsModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+  ],
 })
 export class AppModule {}

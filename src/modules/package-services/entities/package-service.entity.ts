@@ -1,5 +1,5 @@
-import { ServicePackage } from '@modules/service-packages/entities/service-package.entity';
-import { Service } from '@modules/services/entities/service.entity';
+import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import {
   Column,
   CreateDateColumn,

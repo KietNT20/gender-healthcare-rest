@@ -1,5 +1,5 @@
-import { MenstrualCycle } from '@modules/menstrual-cycles/entities/menstrual-cycle.entity';
-import { Mood } from '@modules/moods/entities/mood.entity';
+import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
+import { Mood } from 'src/modules/moods/entities/mood.entity';
 import {
   Column,
   CreateDateColumn,

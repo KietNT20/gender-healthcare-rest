@@ -1,8 +1,3 @@
-import { CurrentUser } from '@decorators/current-user.decorator';
-import { Public } from '@decorators/public.decorator';
-import { ResponseMessage } from '@decorators/response-message.decorator';
-import { RefreshJwtGuard } from '@modules/auth/guards/refresh-jwt.guard';
-import { User } from '@modules/users/entities/user.entity';
 import {
   Body,
   Controller,
@@ -20,18 +15,21 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-toekn.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RefreshJwtGuard } from './guards/refresh-jwt.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new user account' })
   @ApiResponse({
@@ -47,7 +45,6 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login user and get access tokens' })
   @ApiResponse({
@@ -63,7 +60,6 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Public()
   @Get('verify-email')
   @ApiOperation({ summary: 'Verify user email with token' })
   @ApiQuery({
@@ -84,7 +80,6 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @Public()
   @Post('resend-verification')
   @ApiOperation({ summary: 'Resend email verification' })
   @ApiResponse({
@@ -104,7 +99,6 @@ export class AuthController {
     );
   }
 
-  @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
   @ApiBody({
@@ -125,7 +119,6 @@ export class AuthController {
     return this.authService.forgotPassword(email);
   }
 
-  @Public()
   @Put('reset-password/:token')
   @ApiOperation({ summary: 'Reset password with token' })
   @ApiParam({

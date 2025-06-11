@@ -3,20 +3,18 @@ import { PackageServiceUsageController } from './package-service-usage.controlle
 import { PackageServiceUsageService } from './package-service-usage.service';
 
 describe('PackageServiceUsageController', () => {
-    let controller: PackageServiceUsageController;
+  let controller: PackageServiceUsageController;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [PackageServiceUsageController],
-            providers: [PackageServiceUsageService],
-        }).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PackageServiceUsageController],
+      providers: [PackageServiceUsageService],
+    }).compile();
 
-        controller = module.get<PackageServiceUsageController>(
-            PackageServiceUsageController,
-        );
-    });
+    controller = module.get<PackageServiceUsageController>(PackageServiceUsageController);
+  });
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 });

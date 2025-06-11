@@ -3,20 +3,18 @@ import { MenstrualPredictionsController } from './menstrual-predictions.controll
 import { MenstrualPredictionsService } from './menstrual-predictions.service';
 
 describe('MenstrualPredictionsController', () => {
-    let controller: MenstrualPredictionsController;
+  let controller: MenstrualPredictionsController;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [MenstrualPredictionsController],
-            providers: [MenstrualPredictionsService],
-        }).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [MenstrualPredictionsController],
+      providers: [MenstrualPredictionsService],
+    }).compile();
 
-        controller = module.get<MenstrualPredictionsController>(
-            MenstrualPredictionsController,
-        );
-    });
+    controller = module.get<MenstrualPredictionsController>(MenstrualPredictionsController);
+  });
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 });

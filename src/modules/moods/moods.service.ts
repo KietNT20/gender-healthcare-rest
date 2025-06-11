@@ -4,23 +4,23 @@ import { UpdateMoodDto } from './dto/update-mood.dto';
 
 @Injectable()
 export class MoodsService {
-    create(createMoodDto: CreateMoodDto) {
-        return 'This action adds a new mood';
-    }
+  create(createMoodDto: CreateMoodDto) {
+    return 'This action adds a new mood';
+  }
 
-    findAll() {
-        return `This action returns all moods`;
-    }
+  findAll() {
+    return `This action returns all moods`;
+  }
 
-    findOne(id: number) {
-        return `This action returns a #${id} mood`;
-    }
+  findOne(id: number) {
+    return `This action returns a #${id} mood`;
+  }
 
-    update(id: number, updateMoodDto: UpdateMoodDto) {
-        return `This action updates a #${id} mood`;
-    }
+  update(id: number, updateMoodDto: UpdateMoodDto) {
+    return `This action updates a #${id} mood`;
+  }
 
-    remove(id: number) {
-        return `This action removes a #${id} mood`;
-    }
+  remove(id: number) {
+    return `This action removes a #${id} mood`;
+  }
 }

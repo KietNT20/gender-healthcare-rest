@@ -3,20 +3,18 @@ import { ContractFilesController } from './contract-files.controller';
 import { ContractFilesService } from './contract-files.service';
 
 describe('ContractFilesController', () => {
-    let controller: ContractFilesController;
+  let controller: ContractFilesController;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [ContractFilesController],
-            providers: [ContractFilesService],
-        }).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [ContractFilesController],
+      providers: [ContractFilesService],
+    }).compile();
 
-        controller = module.get<ContractFilesController>(
-            ContractFilesController,
-        );
-    });
+    controller = module.get<ContractFilesController>(ContractFilesController);
+  });
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 });

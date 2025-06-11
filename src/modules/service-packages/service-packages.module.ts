@@ -3,7 +3,7 @@ import { ServicePackagesService } from './service-packages.service';
 import { ServicePackagesController } from './service-packages.controller';
 
 @Module({
-    controllers: [ServicePackagesController],
-    providers: [ServicePackagesService],
+  controllers: [ServicePackagesController],
+  providers: [ServicePackagesService],
 })
 export class ServicePackagesModule {}

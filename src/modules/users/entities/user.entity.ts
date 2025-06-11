@@ -1,7 +1,9 @@
 import { GenderType } from 'src/enums';
+import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { AuditLog } from 'src/modules/audit-logs/entities/audit-log.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { ContraceptiveReminder } from 'src/modules/contraceptive-reminders/entities/contraceptive-reminder.entity';
 import { Document } from 'src/modules/documents/entities/document.entity';
@@ -17,229 +19,247 @@ import { Role } from 'src/modules/roles/entities/role.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
-    Column,
-    CreateDateColumn,
-    DeleteDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    OneToOne,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ type: 'varchar', length: 60, unique: true })
-    email: string;
+  @Column({ type: 'varchar', length: 60, unique: true })
+  email: string;
 
-    @Column({ type: 'varchar', length: 60, select: false })
-    password: string;
+  @Column({ type: 'varchar', length: 60, select: false })
+  password: string;
 
-    @Column({ type: 'varchar', length: 255, name: 'full_name' })
-    fullName: string;
+  @Column({ type: 'varchar', length: 255 })
+  fullName: string;
 
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
+  @Column({ type: 'varchar', length: 255, unique: true })
+  slug: string;
 
-    @Column({ type: 'date', nullable: true, name: 'date_of_birth' })
-    dateOfBirth: Date;
+  @Column({ type: 'date', nullable: true })
+  dateOfBirth: Date;
 
-    @Column({
-        type: 'enum',
-        enum: GenderType,
-        nullable: true,
-    })
-    gender?: GenderType;
+  @Column({
+    type: 'enum',
+    enum: GenderType,
+    nullable: true,
+  })
+  gender?: GenderType;
 
-    @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
-    phone?: string;
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  phone?: string;
 
-    @Column({ type: 'text', nullable: true })
-    address?: string;
+  @Column({ type: 'text', nullable: true })
+  address?: string;
 
-    @Column({
-        type: 'varchar',
-        length: 1024,
-        nullable: true,
-        name: 'profile_picture',
-    })
-    profilePicture?: string;
+  @Column({
+    type: 'varchar',
+    length: 1024,
+    nullable: true,
+  })
+  profilePicture?: string;
 
-    @Column({ default: true, name: 'is_active' })
-    isActive: boolean;
+  @Column({ default: true })
+  isActive: boolean;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'account_locked_until',
-    })
-    accountLockedUntil?: Date;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  accountLockedUntil?: Date;
 
-    @Column({ default: 0, name: 'login_attempts' })
-    loginAttempts: number;
+  @Column({ default: 0 })
+  loginAttempts: number;
 
-    @Column({ default: false, name: 'email_verified' })
-    emailVerified: boolean;
+  @Column({ default: false })
+  emailVerified: boolean;
 
-    @Column({
-        type: 'varchar',
-        length: 255,
-        nullable: true,
-        name: 'email_verification_token',
-    })
-    emailVerificationToken?: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  emailVerificationToken?: string;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'email_verification_expires',
-    })
-    emailVerificationExpires?: Date;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  emailVerificationExpires?: Date;
 
-    @Column({ default: false, name: 'phone_verified' })
-    phoneVerified: boolean;
+  @Column({ default: false })
+  phoneVerified: boolean;
 
-    @Column({
-        type: 'varchar',
-        length: 255,
-        nullable: true,
-        name: 'password_reset_token',
-    })
-    passwordResetToken?: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  passwordResetToken?: string;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'password_reset_expires',
-    })
-    passwordResetExpires?: Date;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  passwordResetExpires?: Date;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'last_login',
-    })
-    lastLogin?: Date;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  lastLogin?: Date;
 
-    @Column({ type: 'varchar', length: 10, default: 'vi' })
-    locale: string;
+  @Column({ type: 'varchar', length: 10, default: 'vi' })
+  locale: string;
 
-    @Column({
-        type: 'jsonb',
-        default: { sms: false, push: true, email: true },
-        name: 'notification_preferences',
-    })
-    notificationPreferences: {
-        sms: boolean;
-        push: boolean;
-        email: boolean;
-    };
+  @Column({
+    type: 'jsonb',
+    default: { sms: false, push: true, email: true },
+  })
+  notificationPreferences: {
+    sms: boolean;
+    push: boolean;
+    email: boolean;
+  };
+  @Column({ default: false })
+  healthDataConsent: boolean;
 
-    @Column({ default: false, name: 'health_data_consent' })
-    healthDataConsent: boolean;
+  @Column({
+    length: 255,
+    nullable: true,
+    select: false,
+  })
+  refreshToken?: string;
 
-    @Column({
-        length: 255,
-        nullable: true,
-        name: 'refresh_token',
-        select: false,
-    })
-    refreshToken?: string;
+  @Column({ default: 0 })
+  version: number;
 
-    @Column({ default: 0 })
-    version: number;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
+  // Foreign Keys
+  @Column()
+  roleId: string;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt?: Date;
+  @Column({ nullable: true })
+  deletedById?: string;
 
-    // Relations
-    @OneToOne(() => Role, {
-        eager: true,
-        cascade: true,
-    })
-    @JoinColumn({ name: 'role_id' })
-    role: Role;
-    @ManyToOne(() => User, { nullable: true })
-    deletedBy?: User;
+  // Relations
+  @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn()
+  role: Role;
 
-    // Consultant Profile relation
-    @OneToOne(() => ConsultantProfile, (profile) => profile.user)
-    @JoinColumn()
-    consultantProfile: ConsultantProfile;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  deletedBy?: User;
 
-    // Blog relations
-    @OneToMany(() => Blog, (blog) => blog.author)
-    authoredBlogs: Blog[];
+  @OneToMany(() => User, (user) => user.deletedBy)
+  deletedUsers: User[];
 
-    @OneToMany(() => Blog, (blog) => blog.publishedBy)
-    publishedBlogs: Blog[];
+  // Consultant Profile relation
+  @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
+    nullable: true,
+  })
+  consultantProfile?: ConsultantProfile;
 
-    @OneToMany(() => Blog, (blog) => blog.reviewedBy)
-    reviewedBlogs: Blog[];
+  // Consultant Availability relations
+  @OneToMany(
+    () => ConsultantAvailability,
+    (availability) => availability.consultantProfile,
+    { nullable: true },
+  )
+  consultantAvailabilities?: ConsultantAvailability[];
 
-    // Appointment relations
-    @OneToMany(() => Appointment, (appointment) => appointment.user)
-    appointments: Appointment[];
+  // Appointment relations
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
 
-    // Question & Answer relations
-    @OneToMany(() => Question, (question) => question.user)
-    questions: Question[];
+  @OneToMany(() => Appointment, (appointment) => appointment.consultant)
+  consultantAppointments: Appointment[];
 
-    @OneToMany(() => Feedback, (feedback) => feedback.user)
-    feedbacks: Feedback[];
+  // Blog relations
+  @OneToMany(() => Blog, (blog) => blog.author)
+  authoredBlogs: Blog[];
 
-    // Cycle tracking relations
-    @OneToMany(() => MenstrualCycle, (cycle) => cycle.user)
-    menstrualCycles: MenstrualCycle[];
+  @OneToMany(() => Blog, (blog) => blog.reviewedByUser)
+  reviewedBlogs: Blog[];
 
-    @OneToMany(() => ContraceptiveReminder, (reminder) => reminder.user)
-    contraceptiveReminders: ContraceptiveReminder[];
+  @OneToMany(() => Blog, (blog) => blog.publishedByUser)
+  publishedBlogs: Blog[];
 
-    @OneToMany(() => MenstrualPrediction, (prediction) => prediction.user)
-    menstrualPredictions: MenstrualPrediction[];
+  // Question & Answer relations
+  @OneToMany(() => Question, (question) => question.user)
+  questions: Question[];
 
-    // Payment relations
-    @OneToMany(() => Payment, (payment) => payment.user)
-    payments: Payment[];
+  @OneToMany(() => Answer, (answer) => answer.consultant)
+  answers: Answer[];
 
-    // Notification relations
-    @OneToMany(() => Notification, (notification) => notification.user)
-    notifications: Notification[];
+  // Feedback relations
+  @OneToMany(() => Feedback, (feedback) => feedback.user)
+  feedbacks: Feedback[];
 
-    // Test result relations
-    @OneToMany(() => TestResult, (testResult) => testResult.staff)
-    testResults: TestResult[];
+  @OneToMany(() => Feedback, (feedback) => feedback.consultant)
+  consultantFeedbacks: Feedback[];
 
-    // Document & Image relations
-    @OneToMany(() => Document, (document) => document.user)
-    documents: Document[];
+  // Cycle tracking relations
+  @OneToMany(() => MenstrualCycle, (cycle) => cycle.user)
+  menstrualCycles: MenstrualCycle[];
 
-    @OneToMany(() => Image, (image) => image.user)
-    images: Image[];
+  @OneToMany(() => ContraceptiveReminder, (reminder) => reminder.user)
+  contraceptiveReminders: ContraceptiveReminder[];
 
-    // Audit log relations
-    @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
-    auditLogs: AuditLog[];
+  @OneToMany(() => MenstrualPrediction, (prediction) => prediction.user)
+  menstrualPredictions: MenstrualPrediction[];
 
-    // Employment contract relations
-    @OneToMany(() => EmploymentContract, (contract) => contract.user)
-    employmentContracts: EmploymentContract[];
+  // Payment relations
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 
-    // Package subscription relations
-    @OneToMany(
-        () => UserPackageSubscription,
-        (subscription) => subscription.user,
-    )
-    packageSubscriptions: UserPackageSubscription[];
+  // Notification relations
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
+
+  // Test result relations
+  @OneToMany(() => TestResult, (testResult) => testResult.staff)
+  testResults: TestResult[];
+
+  // Document & Image relations
+  @OneToMany(() => Document, (document) => document.user)
+  documents: Document[];
+
+  @OneToMany(() => Image, (image) => image.user)
+  images: Image[];
+
+  // Audit log relations
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
+  auditLogs: AuditLog[];
+
+  // Employment contract relations
+  @OneToMany(() => EmploymentContract, (contract) => contract.user)
+  employmentContracts: EmploymentContract[];
+
+  // Package subscription relations
+  @OneToMany(() => UserPackageSubscription, (subscription) => subscription.user)
+  packageSubscriptions: UserPackageSubscription[];
+
+  // Consultant profile verification relations
+  @OneToMany(() => ConsultantProfile, (profile) => profile.verifiedBy)
+  verifiedConsultantProfiles: ConsultantProfile[];
 }

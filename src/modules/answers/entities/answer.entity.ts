@@ -40,7 +40,8 @@ export class Answer {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt?: Date; // Relations
+    deletedAt?: Date;
+
     @ManyToOne(() => Question, (question) => question.answers, {
         onDelete: 'CASCADE',
     })

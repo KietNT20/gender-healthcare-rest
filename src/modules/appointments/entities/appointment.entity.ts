@@ -22,13 +22,12 @@ import {
 } from 'typeorm';
 
 @Entity('appointments')
-@Index('idx_appointments_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
 export class Appointment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ type: 'timestamp with time zone', name: 'appointment_date' })
-    @Index('idx_appointments_date')
+    @Index()
     appointmentDate: Date;
 
     @Column({
@@ -36,14 +35,14 @@ export class Appointment {
         enum: AppointmentStatusType,
         default: AppointmentStatusType.PENDING,
     })
-    @Index('idx_appointments_status')
+    @Index()
     status: AppointmentStatusType;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes?: string;
 
     @Column({ length: 255, nullable: true, name: 'meeting_link' })
-    meetingLink: string;
+    meetingLink?: string;
 
     @Column({ default: false, name: 'reminder_sent' })
     reminderSent: boolean;
@@ -53,21 +52,21 @@ export class Appointment {
         nullable: true,
         name: 'reminder_sent_at',
     })
-    reminderSentAt: Date;
+    reminderSentAt?: Date;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
         name: 'check_in_time',
     })
-    checkInTime: Date;
+    checkInTime?: Date;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
         name: 'check_out_time',
     })
-    checkOutTime: Date;
+    checkOutTime?: Date;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, name: 'fixed_price' })
     fixedPrice: number;

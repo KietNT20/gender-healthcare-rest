@@ -166,6 +166,7 @@ export class User {
     // Relations
     @OneToOne(() => Role, {
         eager: true,
+        cascade: true,
     })
     @JoinColumn({ name: 'role_id' })
     role: Role;

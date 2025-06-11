@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -41,7 +43,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ResponseMessage('User created successfully')
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
@@ -51,8 +53,16 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @ResponseMessage('Users retrieved successfully')
-  async findAll(@Query() userQueryDto: UserQueryDto) {
-    return this.usersService.findAll(userQueryDto);
+  findAll(
+    @Query() userQueryDto: UserQueryDto,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.usersService.findAll({
+      ...userQueryDto,
+      page,
+      limit,
+    });
   }
 
   @Get('me')
@@ -70,7 +80,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by slug' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ResponseMessage('User retrieved successfully')
-  async findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
+  findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
     return this.usersService.findBySlug(slug);
   }
 
@@ -80,9 +90,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ResponseMessage('User retrieved successfully')
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<UserResponseDto> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
     return this.usersService.findOne(id);
   }
 
@@ -90,7 +98,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ResponseMessage('Profile updated successfully')
-  async updateProfile(
+  updateProfile(
     @CurrentUser() user: User,
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
@@ -115,7 +123,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update user by ID (Admin/Manager only)' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ResponseMessage('User updated successfully')
-  async update(
+  update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
@@ -128,7 +136,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Toggle user active status (Admin/Manager only)' })
   @ApiResponse({ status: 200, description: 'User status updated successfully' })
   @ResponseMessage('User status updated successfully')
-  async toggleActive(
+  toggleActive(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
     return this.usersService.toggleActive(id);

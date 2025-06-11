@@ -3,14 +3,16 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { RolesNameEnum } from 'src/enums';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { Role } from '../roles/entities/role.entity';
+import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
@@ -28,6 +30,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -48,7 +51,7 @@ export class UsersService {
     );
 
     // Generate unique slug
-    const baseSlug = slugify(createUserDto.fullName, {
+    const baseSlug = slugify(createUserDto.email, {
       lower: true,
       strict: true,
     });
@@ -68,6 +71,47 @@ export class UsersService {
 
     // Return user without password
     return this.toUserResponse(savedUser);
+  }
+
+  async createMany(createManyUsersDto: CreateManyUsersDto) {
+    let newUsers: User[] = [];
+    // Create Query Runner Instance
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      // Connect the query ryunner to the datasource
+      await queryRunner.connect();
+      // Start the transaction
+      await queryRunner.startTransaction();
+    } catch (error) {
+      throw new RequestTimeoutException('Could not connect to the database');
+    }
+
+    try {
+      for (let user of createManyUsersDto.users) {
+        let newUser = queryRunner.manager.create(User, user);
+        let result = await queryRunner.manager.save(newUser);
+        newUsers.push(result);
+      }
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      // since we have errors lets rollback the changes we made
+      await queryRunner.rollbackTransaction();
+      throw new ConflictException('Could not complete the transaction', {
+        description: String(error),
+      });
+    } finally {
+      try {
+        // you need to release a queryRunner which was manually instantiated
+        await queryRunner.release();
+      } catch (error) {
+        throw new RequestTimeoutException(
+          'Could not release the query runner connection',
+        );
+      }
+    }
+
+    return newUsers;
   }
 
   async findAll(userQueryDto: UserQueryDto): Promise<{

@@ -1,11 +1,9 @@
 import { RolesNameEnum } from 'src/enums';
-import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,9 +31,5 @@ export class Role {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
-
-  // Relations
-  @OneToMany(() => User, (user) => user.role)
-  users: User[];
+  deletedAt?: Date;
 }

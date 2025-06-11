@@ -28,13 +28,14 @@ async function bootstrap() {
   app.enableCors();
 
   // Swagger Config
-  const config = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('API Documentation Gender Health Care Service')
     .setDescription('API documentation for the project')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3333);

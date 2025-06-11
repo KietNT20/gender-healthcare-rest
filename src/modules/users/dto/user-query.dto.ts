@@ -7,13 +7,13 @@ export class UserQueryDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  page: number = 1;
+  page: number;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  limit: number = 10;
+  limit: number;
 
   @ApiPropertyOptional()
   @IsOptional()

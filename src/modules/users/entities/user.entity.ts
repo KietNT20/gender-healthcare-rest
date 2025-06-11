@@ -1,9 +1,7 @@
 import { GenderType } from 'src/enums';
-import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { AuditLog } from 'src/modules/audit-logs/entities/audit-log.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { ContraceptiveReminder } from 'src/modules/contraceptive-reminders/entities/contraceptive-reminder.entity';
 import { Document } from 'src/modules/documents/entities/document.entity';
@@ -58,18 +56,15 @@ export class User {
   })
   gender?: GenderType;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone?: string;
 
   @Column({ type: 'text', nullable: true })
   address?: string;
 
-  @Column({ name: 'role_id' })
-  roleId: string;
-
   @Column({
     type: 'varchar',
-    length: 255,
+    length: 1024,
     nullable: true,
     name: 'profile_picture',
   })
@@ -166,64 +161,47 @@ export class User {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
+  deletedAt?: Date;
 
   // Relations
-  @ManyToOne(() => Role, (role) => role.users)
+  @OneToOne(() => Role, (role) => role.id, {
+    eager: true,
+    cascade: true,
+  })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'deleted_by_id' })
-  deletedBy: User | null;
-
-  @OneToMany(() => User, (user) => user.deletedBy)
-  deletedUsers: User[];
+  @JoinColumn({ name: 'deleted_by_user_id' })
+  deletedBy?: User;
 
   // Consultant Profile relation
-  @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
+  @OneToOne(() => ConsultantProfile, (profile) => profile.id, {
     nullable: true,
   })
-  consultantProfile: ConsultantProfile | null;
-
-  // Consultant Availability relations
-  @OneToMany(
-    () => ConsultantAvailability,
-    (availability) => availability.consultantProfile,
-    { nullable: true },
-  )
-  consultantAvailabilities: ConsultantAvailability[] | null;
-
-  // Appointment relations
-  @OneToMany(() => Appointment, (appointment) => appointment.user)
-  appointments: Appointment[];
-
-  @OneToMany(() => Appointment, (appointment) => appointment.consultant)
-  consultantAppointments: Appointment[];
+  @JoinColumn({ name: 'consultant_profile_id' })
+  consultantProfile?: ConsultantProfile;
 
   // Blog relations
   @OneToMany(() => Blog, (blog) => blog.author)
   authoredBlogs: Blog[];
 
+  @OneToMany(() => Blog, (blog) => blog.publishedBy)
+  publishedBlogs: Blog[];
+
   @OneToMany(() => Blog, (blog) => blog.reviewedBy)
   reviewedBlogs: Blog[];
 
-  @OneToMany(() => Blog, (blog) => blog.publishedBy)
-  publishedBlogs: Blog[];
+  // Appointment relations
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
 
   // Question & Answer relations
   @OneToMany(() => Question, (question) => question.user)
   questions: Question[];
 
-  @OneToMany(() => Answer, (answer) => answer.consultant)
-  answers: Answer[];
-
-  // Feedback relations
   @OneToMany(() => Feedback, (feedback) => feedback.user)
   feedbacks: Feedback[];
-
-  @OneToMany(() => Feedback, (feedback) => feedback.consultant)
-  consultantFeedbacks: Feedback[];
 
   // Cycle tracking relations
   @OneToMany(() => MenstrualCycle, (cycle) => cycle.user)

@@ -3,18 +3,18 @@ import { MoodsController } from './moods.controller';
 import { MoodsService } from './moods.service';
 
 describe('MoodsController', () => {
-    let controller: MoodsController;
+  let controller: MoodsController;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [MoodsController],
-            providers: [MoodsService],
-        }).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [MoodsController],
+      providers: [MoodsService],
+    }).compile();
 
-        controller = module.get<MoodsController>(MoodsController);
-    });
+    controller = module.get<MoodsController>(MoodsController);
+  });
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 });

@@ -3,120 +3,110 @@ import { Category } from 'src/modules/categories/entities/category.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-    Column,
-    CreateDateColumn,
-    DeleteDateColumn,
-    Entity,
-    Index,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Blog {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ length: 255 })
-    title: string;
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
 
-    @Column({ length: 255, unique: true })
-    @Index('idx_blogs_slug')
-    slug: string;
+  @Column({ type: 'varchar', length: 255, unique: true })
+  @Index()
+  slug: string;
 
-    @Column({ type: 'text' })
-    content: string;
+  @Column({ type: 'text' })
+  content: string;
 
-    @Column({ name: 'author_id', nullable: true })
-    @Index('idx_blogs_author_id')
-    authorId: string;
+  @Column({
+    type: 'enum',
+    enum: ContentStatusType,
+    default: ContentStatusType.DRAFT,
+  })
+  @Index()
+  status: ContentStatusType;
 
-    @Column({
-        type: 'enum',
-        enum: ContentStatusType,
-        default: ContentStatusType.DRAFT,
-    })
-    @Index('idx_blogs_status')
-    status: ContentStatusType;
+  @Column({ type: 'varchar', length: 1024, nullable: true })
+  featuredImage?: string;
 
-    @Column({ length: 255, nullable: true, name: 'featured_image' })
-    featuredImage?: string;
+  @Column({ type: 'text', array: true, nullable: true })
+  tags: string[];
 
-    @Column({ type: 'text', array: true, nullable: true })
-    tags: string[];
+  @Column({ default: 0 })
+  views: number;
 
-    @Column({ default: 0 })
-    views: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  seoTitle?: string;
 
-    @Column({ length: 255, nullable: true, name: 'seo_title' })
-    seoTitle: string;
+  @Column({ type: 'text', nullable: true })
+  seoDescription?: string;
 
-    @Column({ type: 'text', nullable: true, name: 'seo_description' })
-    seoDescription: string;
+  @Column({ type: 'text', nullable: true })
+  excerpt?: string;
 
-    @Column({ type: 'text', nullable: true })
-    excerpt: string;
+  @Column({ type: 'int', nullable: true })
+  readTime?: number;
 
-    @Column({ nullable: true, name: 'read_time' })
-    readTime: number;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  reviewDate?: Date;
 
-    @Column({ name: 'reviewed_by_id', nullable: true })
-    @Index('idx_blogs_reviewed_by')
-    reviewedById: string;
+  @Column({ type: 'text', nullable: true })
+  rejectionReason?: string;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'review_date',
-    })
-    reviewDate: Date;
+  @Column({ type: 'text', nullable: true })
+  revisionNotes?: string;
 
-    @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
-    rejectionReason: string;
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  @Index()
+  publishedAt?: Date;
 
-    @Column({ type: 'text', nullable: true, name: 'revision_notes' })
-    revisionNotes: string;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column({ name: 'published_by_id', nullable: true })
-    publishedById: string;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'published_at',
-    })
-    @Index('idx_blogs_published_at')
-    publishedAt: Date;
+  @DeleteDateColumn({ nullable: true })
+  @Index()
+  deletedAt?: Date;
 
-    @Column({ name: 'category_id', nullable: true })
-    categoryId: string;
+  // Relations
+  @ManyToOne(() => User, (user) => user.authoredBlogs)
+  @JoinColumn()
+  author: User;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @ManyToOne(() => Category)
+  @JoinColumn()
+  category: Category;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
+  @ManyToOne(() => User, (user) => user.reviewedBlogs)
+  @JoinColumn()
+  reviewedByUser: User;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    @Index('idx_blogs_deleted_at')
-    deletedAt?: Date;
+  @ManyToOne(() => User, (user) => user.publishedBlogs)
+  @JoinColumn()
+  publishedByUser: User;
 
-    // Relations
-    @ManyToOne(() => User, (user) => user.authoredBlogs, {
-        eager: true,
-    })
-    author: User;
-
-    @ManyToOne(() => Category)
-    category: Category;
-    @ManyToOne(() => User, (user) => user.reviewedBlogs)
-    reviewedBy: User;
-
-    @ManyToOne(() => User, (user) => user.publishedBlogs)
-    publishedBy: User;
-
-    @OneToMany(() => BlogServiceRelation, (relation) => relation.blog)
-    blogServiceRelations: BlogServiceRelation[];
+  @ManyToMany(() => Service, (service) => service.blogs)
+  @JoinTable()
+  services: Service[];
 }

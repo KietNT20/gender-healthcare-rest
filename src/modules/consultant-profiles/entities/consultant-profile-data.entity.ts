@@ -2,72 +2,72 @@
  * Giờ làm việc cho một ngày cụ thể
  */
 export class DayWorkingHours {
-    startTime: string; // Format: "HH:mm" (e.g., "09:00")
+  startTime: string; // Format: "HH:mm" (e.g., "09:00")
 
-    endTime: string; // Format: "HH:mm" (e.g., "17:00")
+  endTime: string; // Format: "HH:mm" (e.g., "17:00")
 
-    isAvailable: boolean; // Có làm việc vào ngày này không
+  isAvailable: boolean; // Có làm việc vào ngày này không
 
-    maxAppointments?: number; // Số lượng appointments tối đa trong ngày
+  maxAppointments?: number; // Số lượng appointments tối đa trong ngày
 }
 
 /**
  * Lịch làm việc hàng tuần
  */
 export class WorkingHours {
-    monday?: DayWorkingHours[]; // Danh sách giờ làm việc cho thứ Hai
+  monday?: DayWorkingHours[]; // Danh sách giờ làm việc cho thứ Hai
 
-    tuesday?: DayWorkingHours[];
+  tuesday?: DayWorkingHours[];
 
-    wednesday?: DayWorkingHours[];
+  wednesday?: DayWorkingHours[];
 
-    thursday?: DayWorkingHours[];
+  thursday?: DayWorkingHours[];
 
-    friday?: DayWorkingHours[];
+  friday?: DayWorkingHours[];
 
-    saturday?: DayWorkingHours[];
+  saturday?: DayWorkingHours[];
 
-    sunday?: DayWorkingHours[];
+  sunday?: DayWorkingHours[];
 
-    timezone?: string; // Timezone (e.g., "Asia/Ho_Chi_Minh")
+  timezone?: string; // Timezone (e.g., "Asia/Ho_Chi_Minh")
 
-    notes?: string; // Ghi chú thêm về lịch làm việc
+  notes?: string; // Ghi chú thêm về lịch làm việc
 }
 
 /**
  * Thông tin chứng chỉ chuyên môn
  */
 export class Certificate {
-    name: string; // Tên chứng chỉ
+  name: string; // Tên chứng chỉ
 
-    issuer: string; // Tổ chức cấp chứng chỉ
+  issuer: string; // Tổ chức cấp chứng chỉ
 
-    issueDate: Date; // Ngày cấp
+  issueDate: Date; // Ngày cấp
 
-    expiryDate?: Date; // Ngày hết hạn (nếu có)
+  expiryDate?: Date; // Ngày hết hạn (nếu có)
 
-    certificateNumber?: string; // Số chứng chỉ
+  certificateNumber?: string; // Số chứng chỉ
 
-    description?: string; // Mô tả chi tiết về chứng chỉ
+  description?: string; // Mô tả chi tiết về chứng chỉ
 
-    imageUrl?: string; // URL hình ảnh chứng chỉ
+  imageUrl?: string; // URL hình ảnh chứng chỉ
 
-    isVerified: boolean; // Đã được xác minh chưa
+  isVerified: boolean; // Đã được xác minh chưa
 
-    verifiedAt?: Date; // Ngày xác minh
+  verifiedAt?: Date; // Ngày xác minh
 
-    verificationNotes?: string; // Ghi chú xác minh
+  verificationNotes?: string; // Ghi chú xác minh
 }
 
 /**
  * Tập hợp các chứng chỉ của tư vấn viên
  */
 export class Certificates {
-    items: Certificate[]; // Danh sách chứng chỉ
+  items: Certificate[]; // Danh sách chứng chỉ
 
-    lastUpdated?: Date; // Lần cập nhật cuối
+  lastUpdated?: Date; // Lần cập nhật cuối
 
-    notes?: string; // Ghi chú chung về chứng chỉ
+  notes?: string; // Ghi chú chung về chứng chỉ
 }
 
 

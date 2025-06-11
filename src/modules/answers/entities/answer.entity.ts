@@ -1,3 +1,4 @@
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Question } from 'src/modules/questions/entities/question.entity';
 import {
     Column,
@@ -5,6 +6,7 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -41,17 +43,16 @@ export class Answer {
     @Index()
     deletedAt?: Date;
 
+    // Relations
     @ManyToOne(() => Question, (question) => question.answers, {
         onDelete: 'CASCADE',
     })
+    @JoinColumn()
     question: Question;
 
-    // @ManyToOne(
-    //     () => ConsultantProfile,
-    //     (consultantProfile) => consultantProfile.answers,
-    //     {
-    //         onDelete: 'CASCADE',
-    //     },
-    // )
-    // consultantProfile: ConsultantProfile;
+    @ManyToOne(() => ConsultantProfile, (consultant) => consultant.answers, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn()
+    consultant: ConsultantProfile;
 }

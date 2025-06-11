@@ -4,23 +4,23 @@ import { UpdateServicePackageDto } from './dto/update-service-package.dto';
 
 @Injectable()
 export class ServicePackagesService {
-    create(createServicePackageDto: CreateServicePackageDto) {
-        return 'This action adds a new servicePackage';
-    }
+  create(createServicePackageDto: CreateServicePackageDto) {
+    return 'This action adds a new servicePackage';
+  }
 
-    findAll() {
-        return `This action returns all servicePackages`;
-    }
+  findAll() {
+    return `This action returns all servicePackages`;
+  }
 
-    findOne(id: number) {
-        return `This action returns a #${id} servicePackage`;
-    }
+  findOne(id: number) {
+    return `This action returns a #${id} servicePackage`;
+  }
 
-    update(id: number, updateServicePackageDto: UpdateServicePackageDto) {
-        return `This action updates a #${id} servicePackage`;
-    }
+  update(id: number, updateServicePackageDto: UpdateServicePackageDto) {
+    return `This action updates a #${id} servicePackage`;
+  }
 
-    remove(id: number) {
-        return `This action removes a #${id} servicePackage`;
-    }
+  remove(id: number) {
+    return `This action removes a #${id} servicePackage`;
+  }
 }

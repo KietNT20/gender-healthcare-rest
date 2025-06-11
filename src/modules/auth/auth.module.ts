@@ -12,33 +12,30 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 
 @Module({
-    imports: [
-        ConfigModule,
-        PassportModule,
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
-                signOptions: {
-                    expiresIn: configService.get<string>(
-                        'JWT_EXPIRATION_TIME',
-                        '1h',
-                    ),
-                },
-            }),
-            inject: [ConfigService],
-        }),
-        UsersModule,
-        MailModule,
-    ],
-    providers: [
-        AuthService,
-        JwtStrategy,
-        RefreshJwtStrategy,
-        JwtAuthGuard,
-        RoleGuard,
-    ],
-    controllers: [AuthController],
-    exports: [AuthService, JwtAuthGuard, RoleGuard],
+  imports: [
+    ConfigModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION_TIME', '1h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    UsersModule,
+    MailModule,
+  ],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RefreshJwtStrategy,
+    JwtAuthGuard,
+    RoleGuard,
+  ],
+  controllers: [AuthController],
+  exports: [AuthService, JwtAuthGuard, RoleGuard],
 })
 export class AuthModule {}

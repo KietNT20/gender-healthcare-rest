@@ -6,31 +6,31 @@ import { UsersService } from 'src/modules/users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-    constructor(
-        configService: ConfigService,
-        private readonly usersService: UsersService,
-    ) {
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT_SECRET') as string,
-        });
+  constructor(
+    configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: configService.get<string>('JWT_SECRET') as string,
+    });
+  }
+
+  async validate(payload: { sub: string; email: string }) {
+    const user = await this.usersService.findOneById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
 
-    async validate(payload: { sub: string; email: string }) {
-        const user = await this.usersService.findOneById(payload.sub);
-        if (!user) {
-            throw new UnauthorizedException('User not found');
-        }
-
-        // Kiểm tra user có active không
-        if (!user.isActive) {
-            throw new UnauthorizedException('User account is disabled');
-        }
-
-        // Cập nhật last login
-        await this.usersService.updateLastLogin(user.id);
-
-        return user;
+    // Kiểm tra user có active không
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is disabled');
     }
+
+    // Cập nhật last login
+    await this.usersService.updateLastLogin(user.id);
+
+    return user;
+  }
 }

@@ -3,7 +3,7 @@ import { DocumentsService } from './documents.service';
 import { DocumentsController } from './documents.controller';
 
 @Module({
-    controllers: [DocumentsController],
-    providers: [DocumentsService],
+  controllers: [DocumentsController],
+  providers: [DocumentsService],
 })
 export class DocumentsModule {}

@@ -7,6 +7,7 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -18,43 +19,19 @@ export class EmploymentContract {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-<<<<<<< HEAD
-  @Column()
-  userId: string;
-
-  @Column({ length: 50 })
-  contractNumber: string;
-
-  @Column({ length: 50 })
-  contractType: string;
-
-  @Column({ type: 'date' })
-  startDate: Date;
-
-  @Column({ type: 'date', nullable: true })
-  endDate: Date;
-
-  @Column({
-    type: 'enum',
-    enum: ContractStatusType,
-    default: ContractStatusType.PENDING,
-  })
-  @Index()
-  status: ContractStatusType;
-=======
-    @Column({ name: 'user_id' })
+    @Column()
     userId: string;
 
-    @Column({ length: 50, name: 'contract_number' })
+    @Column({ length: 50 })
     contractNumber: string;
 
-    @Column({ length: 50, name: 'contract_type' })
+    @Column({ length: 50 })
     contractType: string;
 
-    @Column({ type: 'date', name: 'start_date' })
+    @Column({ type: 'date' })
     startDate: Date;
 
-    @Column({ type: 'date', nullable: true, name: 'end_date' })
+    @Column({ type: 'date', nullable: true })
     endDate: Date;
 
     @Column({
@@ -62,45 +39,27 @@ export class EmploymentContract {
         enum: ContractStatusType,
         default: ContractStatusType.PENDING,
     })
-    @Index('idx_employment_contracts_status')
+    @Index()
     status: ContractStatusType;
->>>>>>> 32dc73d01d2cb4e219acfc28d224170e1b513be8
 
     @Column({ type: 'text', nullable: true })
     description: string;
 
-<<<<<<< HEAD
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  @Index()
-  deletedAt: Date | null;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.employmentContracts)
-  @JoinColumn()
-  user: User;
-
-  @OneToMany(() => ContractFile, (contractFile) => contractFile.contract)
-  contractFiles: ContractFile[];
-=======
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    @Index('idx_employment_contracts_deleted_at')
-    deletedAt: Date | null; // Relations
+    @DeleteDateColumn({ nullable: true })
+    @Index()
+    deletedAt: Date | null;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.employmentContracts)
+    @JoinColumn()
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.contract)
     contractFiles: ContractFile[];
->>>>>>> 32dc73d01d2cb4e219acfc28d224170e1b513be8
 }

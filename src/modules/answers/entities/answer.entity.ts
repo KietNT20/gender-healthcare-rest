@@ -1,4 +1,3 @@
-import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Question } from 'src/modules/questions/entities/question.entity';
 import {
     Column,
@@ -47,12 +46,12 @@ export class Answer {
     })
     question: Question;
 
-    @ManyToOne(
-        () => ConsultantProfile,
-        (consultantProfile) => consultantProfile.answers,
-        {
-            onDelete: 'CASCADE',
-        },
-    )
-    consultantProfile: ConsultantProfile;
+    // @ManyToOne(
+    //     () => ConsultantProfile,
+    //     (consultantProfile) => consultantProfile.answers,
+    //     {
+    //         onDelete: 'CASCADE',
+    //     },
+    // )
+    // consultantProfile: ConsultantProfile;
 }

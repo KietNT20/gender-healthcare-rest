@@ -4,6 +4,7 @@ import {
     CreateDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -17,13 +18,8 @@ export class Image {
     @Column({ length: 255 })
     name: string;
 
-<<<<<<< HEAD
-  @Column({ length: 255 })
-  originalName: string;
-=======
-    @Column({ length: 255, name: 'original_name' })
+    @Column({ length: 255 })
     originalName: string;
->>>>>>> 32dc73d01d2cb4e219acfc28d224170e1b513be8
 
     @Column()
     size: number;
@@ -37,61 +33,33 @@ export class Image {
     @Column({ length: 10, nullable: true })
     format: string;
 
-<<<<<<< HEAD
-  @Column({ length: 255, nullable: true })
-  altText: string;
-
-  @Column({ length: 50, nullable: true })
-  entityType: string;
-
-  @Column({ type: 'uuid', nullable: true })
-  entityId: string;
-
-  @Column({ default: false })
-  isPublic: boolean;
-
-  @Column({ nullable: true })
-  @Index()
-  userId: string;
-=======
-    @Column({ length: 255, nullable: true, name: 'alt_text' })
+    @Column({ length: 255, nullable: true })
     altText: string;
 
-    @Column({ length: 50, nullable: true, name: 'entity_type' })
+    @Column({ length: 50, nullable: true })
     entityType: string;
 
-    @Column({ type: 'uuid', nullable: true, name: 'entity_id' })
+    @Column({ type: 'uuid', nullable: true })
     entityId: string;
 
-    @Column({ default: false, name: 'is_public' })
+    @Column({ default: false })
     isPublic: boolean;
 
-    @Column({ name: 'user_id', nullable: true })
-    @Index('idx_images_user_id')
+    @Column({ nullable: true })
+    @Index()
     userId: string;
->>>>>>> 32dc73d01d2cb4e219acfc28d224170e1b513be8
 
     @Column({ type: 'text', default: '' })
     url: string;
 
-<<<<<<< HEAD
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.images)
-  @JoinColumn()
-  user: User;
-=======
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.images)
+    @JoinColumn()
     user: User;
->>>>>>> 32dc73d01d2cb4e219acfc28d224170e1b513be8
 }

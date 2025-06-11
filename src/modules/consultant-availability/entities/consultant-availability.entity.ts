@@ -64,7 +64,7 @@ export class ConsultantAvailability {
 
   // Relations
   @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
-  @JoinColumn({ name: 'consultant_id', referencedColumnName: 'userId' })
+  @JoinColumn({ name: 'consultant_id' })
   consultantProfile: ConsultantProfile;
 
   @OneToMany(() => Appointment, (appointment) => appointment.availability)

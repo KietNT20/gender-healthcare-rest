@@ -1,4 +1,5 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -7,7 +8,6 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
-  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -18,40 +18,19 @@ export class Feedback {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_feedbacks_user_id')
-  userId: string;
-
-  @Column({ name: 'service_id', nullable: true })
-  @Index('idx_feedbacks_service_id')
-  serviceId: string;
-
-  @Column({ name: 'appointment_id', nullable: true })
-  @Index('idx_feedbacks_appointment_id')
-  appointmentId: string;
-
   @Column({ name: 'consultant_id', nullable: true })
   @Index('idx_feedbacks_consultant_id')
-  consultantId: string;
+  consultantId?: string;
 
   @Column({ type: 'integer' })
   @Index('idx_feedbacks_rating')
   rating: number;
 
   @Column({ type: 'text', nullable: true })
-  comment: string;
+  comment?: string;
 
   @Column({ default: false, name: 'is_anonymous' })
   isAnonymous: boolean;
-
-  @Column({ default: true, name: 'is_public' })
-  isPublic: boolean;
-
-  @Column({ type: 'text', nullable: true, name: 'staff_response' })
-  staffResponse: string;
-
-  @Column({ type: 'text', array: true, nullable: true })
-  categories: string[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -61,22 +40,18 @@ export class Feedback {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   @Index('idx_feedbacks_deleted_at')
-  deletedAt: Date | null;
+  deletedAt?: Date;
 
   // Relations
   @ManyToOne(() => User, (user) => user.feedbacks)
-  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Service)
-  @JoinColumn({ name: 'service_id' })
   service: Service;
 
   @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-  @JoinColumn({ name: 'appointment_id' })
   appointment: Appointment;
 
-  @ManyToOne(() => User, (user) => user.consultantFeedbacks)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+  @ManyToOne(() => ConsultantProfile, (user) => user.consultantFeedbacks)
+  consultant: ConsultantProfile;
 }

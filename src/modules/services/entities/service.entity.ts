@@ -71,7 +71,6 @@ export class Service {
 
   // Relations
   @ManyToOne(() => Category, (category) => category.services)
-  @JoinColumn({ name: 'category_id' })
   category: Category;
 
   @OneToMany(

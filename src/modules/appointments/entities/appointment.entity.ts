@@ -1,6 +1,7 @@
 import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
 import { AppointmentService } from 'src/modules/appointment-services/entities/appointment-service.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
@@ -25,10 +26,6 @@ import {
 export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'user_id', nullable: true })
-  @Index('idx_appointments_user_id')
-  userId: string;
 
   @Column({ name: 'consultant_id', nullable: true })
   @Index('idx_appointments_consultant_id')
@@ -110,18 +107,15 @@ export class Appointment {
 
   // Relations
   @ManyToOne(() => User, (user) => user.appointments)
-  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, (user) => user.consultantAppointments)
-  @JoinColumn({ name: 'consultant_id' })
-  consultant: User;
+  @ManyToOne(() => ConsultantProfile, (consultant) => consultant.consultantAppointments)
+  consultant: ConsultantProfile;
 
   @ManyToOne(
     () => ConsultantAvailability,
     (availability) => availability.appointments,
   )
-  @JoinColumn({ name: 'availability_id' })
   availability: ConsultantAvailability;
 
   @OneToMany(

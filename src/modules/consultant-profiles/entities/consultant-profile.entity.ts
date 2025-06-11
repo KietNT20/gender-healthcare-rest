@@ -11,6 +11,7 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -110,19 +111,15 @@ export class ConsultantProfile {
   @Index('idx_consultant_profiles_deleted_at')
   deletedAt: Date | null;
 
-  // Relations
-  @OneToOne(() => User, (user) => user.id, {
-    eager: true,
-    cascade: true,
-  })
-  @JoinColumn({ name: 'user_id' })
+  // Quan hệ với User
+  @OneToOne(() => User, (user) => user.consultantProfile)
+  @JoinColumn()
   user: User;
 
-  @OneToOne(() => User, (user) => user.id, {
+  @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
     eager: true,
     cascade: true,
   })
-  @JoinColumn({ name: 'verified_by_user_id' })
   verifiedBy: User;
 
   @OneToMany(
@@ -141,3 +138,6 @@ export class ConsultantProfile {
   @OneToMany(() => Feedback, (feedback) => feedback.consultant)
   consultantFeedbacks: Feedback[];
 }
+
+
+

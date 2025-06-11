@@ -4,67 +4,56 @@ import { Category } from 'src/modules/categories/entities/category.entity';
 import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Question {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+    @Column({ name: 'user_id', nullable: true })
+    userId: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  slug: string;
+    @Column({ length: 255 })
+    title: string;
 
-  @Column({ type: 'text' })
-  content: string;
+    @Column({ length: 255, unique: true })
+    slug: string;
 
-  @Column({
-    type: 'enum',
-    enum: QuestionStatusType,
-  })
-  status: QuestionStatusType;
+    @Column({ type: 'text' })
+    content: string;
 
-  @Column({ default: false })
-  isPublic: boolean;
+    @Column({
+        type: 'enum',
+        enum: QuestionStatusType,
+    })
+    status: QuestionStatusType;
 
-  @Column({ default: 0 })
-  viewCount: number;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @Column({ default: false })
-  isAnonymous: boolean;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    deletedAt: Date | null;
+    @ManyToOne(() => User, (user) => user.questions)
+    user: User;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @ManyToOne(() => Category, (category) => category.questions)
+    category: Category;
 
-  @DeleteDateColumn({ nullable: true })
-  deletedAt?: Date;
+    @OneToMany(() => Answer, (answer) => answer.question)
+    answers: Answer[];
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.questions)
-  @JoinColumn()
-  user: User;
-
-  @ManyToOne(() => Category)
-  @JoinColumn()
-  category: Category;
-
-  @OneToMany(() => Answer, (answer) => answer.question)
-  answers: Answer[];
-
-  @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
-  questionTags: QuestionTag[];
+    @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
+    questionTags: QuestionTag[];
 }

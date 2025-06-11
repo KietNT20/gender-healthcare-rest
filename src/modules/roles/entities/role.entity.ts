@@ -1,41 +1,37 @@
 import { RolesNameEnum } from 'src/enums';
-import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Role {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({
-    type: 'enum',
-    enum: RolesNameEnum,
-    default: RolesNameEnum.CUSTOMER })
-  name: RolesNameEnum;
+    @Column({
+        type: 'enum',
+        enum: RolesNameEnum,
+        default: RolesNameEnum.CUSTOMER,
+        name: 'name',
+    })
+    name: RolesNameEnum;
 
-  @Column({ length: 60, nullable: true })
-  description: string;
+    @Column({ length: 60, nullable: true })
+    description: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date | null;
-
-  // Relations
-  @OneToMany(() => User, (user) => user.role)
-  users: User[];
+    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    deletedAt?: Date;
 }
 
 

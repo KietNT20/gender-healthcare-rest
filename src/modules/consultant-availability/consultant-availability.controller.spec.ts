@@ -3,18 +3,20 @@ import { ConsultantAvailabilityController } from './consultant-availability.cont
 import { ConsultantAvailabilityService } from './consultant-availability.service';
 
 describe('ConsultantAvailabilityController', () => {
-  let controller: ConsultantAvailabilityController;
+    let controller: ConsultantAvailabilityController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ConsultantAvailabilityController],
-      providers: [ConsultantAvailabilityService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [ConsultantAvailabilityController],
+            providers: [ConsultantAvailabilityService],
+        }).compile();
 
-    controller = module.get<ConsultantAvailabilityController>(ConsultantAvailabilityController);
-  });
+        controller = module.get<ConsultantAvailabilityController>(
+            ConsultantAvailabilityController,
+        );
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

@@ -3,18 +3,20 @@ import { BlogServiceRelationsController } from './blog-service-relations.control
 import { BlogServiceRelationsService } from './blog-service-relations.service';
 
 describe('BlogServiceRelationsController', () => {
-  let controller: BlogServiceRelationsController;
+    let controller: BlogServiceRelationsController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [BlogServiceRelationsController],
-      providers: [BlogServiceRelationsService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [BlogServiceRelationsController],
+            providers: [BlogServiceRelationsService],
+        }).compile();
 
-    controller = module.get<BlogServiceRelationsController>(BlogServiceRelationsController);
-  });
+        controller = module.get<BlogServiceRelationsController>(
+            BlogServiceRelationsController,
+        );
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

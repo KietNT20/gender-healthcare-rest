@@ -7,30 +7,32 @@ import { RefreshTokenDto } from '../dto/refresh-toekn.dto';
 
 @Injectable()
 export class RefreshJwtStrategy extends PassportStrategy(
-  Strategy,
-  'jwt-refresh',
+    Strategy,
+    'jwt-refresh',
 ) {
-  constructor(readonly configService: ConfigService) {
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('JWT_REFRESH_SECRET') as string,
-      passReqToCallback: true,
-    });
-  }
-
-  validate(req: Request, payload: RefreshTokenDto) {
-    const authHeader = req.get('authorization');
-
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header not found');
+    constructor(readonly configService: ConfigService) {
+        super({
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: configService.get<string>(
+                'JWT_REFRESH_SECRET',
+            ) as string,
+            passReqToCallback: true,
+        });
     }
 
-    const refreshToken = authHeader.replace('Bearer', '').trim();
+    validate(req: Request, payload: RefreshTokenDto) {
+        const authHeader = req.get('authorization');
 
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
+        if (!authHeader) {
+            throw new UnauthorizedException('Authorization header not found');
+        }
+
+        const refreshToken = authHeader.replace('Bearer', '').trim();
+
+        if (!refreshToken) {
+            throw new UnauthorizedException('Refresh token not found');
+        }
+
+        return { ...payload, refreshToken };
     }
-
-    return { ...payload, refreshToken };
-  }
 }

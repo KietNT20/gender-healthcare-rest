@@ -3,7 +3,7 @@ import { UserPackageSubscriptionsService } from './user-package-subscriptions.se
 import { UserPackageSubscriptionsController } from './user-package-subscriptions.controller';
 
 @Module({
-  controllers: [UserPackageSubscriptionsController],
-  providers: [UserPackageSubscriptionsService],
+    controllers: [UserPackageSubscriptionsController],
+    providers: [UserPackageSubscriptionsService],
 })
 export class UserPackageSubscriptionsModule {}

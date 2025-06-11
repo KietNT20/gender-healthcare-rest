@@ -5,7 +5,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AnswersModule } from './modules/answers/answers.module';
-import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -73,11 +72,11 @@ import { UsersModule } from './modules/users/users.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         autoLoadEntities: true,
+        dropSchema: false,
       }),
       inject: [ConfigService],
     }),
     AnswersModule,
-    AppointmentServicesModule,
     AppointmentsModule,
     BlogServiceRelationsModule,
     BlogsModule,

@@ -3,55 +3,63 @@ import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/cons
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  Index,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('feedbacks')
 export class Feedback {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_feedbacks_consultant_id')
-  consultantId?: string;
+    @Column({ type: 'integer' })
+    @Index('idx_feedbacks_rating')
+    rating: number;
 
-  @Column({ type: 'integer' })
-  @Index('idx_feedbacks_rating')
-  rating: number;
+    @Column({ type: 'text', nullable: true })
+    comment: string;
 
-  @Column({ type: 'text', nullable: true })
-  comment?: string;
+    @Column({ default: false, name: 'is_anonymous' })
+    isAnonymous: boolean;
 
-  @Column({ default: false, name: 'is_anonymous' })
-  isAnonymous: boolean;
+    @Column({ default: true, name: 'is_public' })
+    isPublic: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @Column({ type: 'text', nullable: true, name: 'staff_response' })
+    staffResponse: string;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    @Column({ type: 'text', array: true, nullable: true })
+    categories: string[];
 
-  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_feedbacks_deleted_at')
-  deletedAt?: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.feedbacks)
-  user: User;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @ManyToOne(() => Service)
-  service: Service;
+    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    @Index('idx_feedbacks_deleted_at')
+    deletedAt?: Date;
 
-  @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-  appointment: Appointment;
+    // Relations
+    @ManyToOne(() => User, (user) => user.feedbacks)
+    user: User;
 
-  @ManyToOne(() => ConsultantProfile, (user) => user.consultantFeedbacks)
-  consultant: ConsultantProfile;
+    @ManyToOne(() => Service, (service) => service.feedbacks)
+    service: Service;
+
+    @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
+    appointment: Appointment;
+
+    @ManyToOne(
+        () => ConsultantProfile,
+        (consultant) => consultant.consultantFeedbacks,
+    )
+    consultant: ConsultantProfile;
 }

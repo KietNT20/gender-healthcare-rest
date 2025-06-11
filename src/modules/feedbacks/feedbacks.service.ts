@@ -7,36 +7,23 @@ import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class FeedbacksService {
-  constructor(
-    @InjectRepository(Feedback)
-    private feedbackRepository: Repository<Feedback>,
-  ) {}
-
-  async create(createFeedbackDto: CreateFeedbackDto): Promise<Feedback> {
-    const feedback = this.feedbackRepository.create(createFeedbackDto);
-    return this.feedbackRepository.save(feedback);
-  }
-
-  async findAll(): Promise<Feedback[]> {
-    return this.feedbackRepository.find();
-  }
-
-  async findOne(id: string): Promise<Feedback> {
-    const feedback = await this.feedbackRepository.findOne({ where: { id } });
-    if (!feedback) {
-      throw new NotFoundException(`Feedback with ID ${id} not found`);
+    create(createFeedbackDto: CreateFeedbackDto) {
+        return 'This action adds a new feedback';
     }
-    return feedback;
-  }
-  
-  
 
-  async update(id: string, updateFeedbackDto: UpdateFeedbackDto): Promise<Feedback> {
-    await this.feedbackRepository.update(id, updateFeedbackDto);
-    return this.findOne(id);
-  }
+    findAll() {
+        return `This action returns all feedbacks`;
+    }
 
-  async remove(id: string): Promise<void> {
-    await this.feedbackRepository.softDelete(id);
-  }
+    findOne(id: number) {
+        return `This action returns a #${id} feedback`;
+    }
+
+    update(id: number, updateFeedbackDto: UpdateFeedbackDto) {
+        return `This action updates a #${id} feedback`;
+    }
+
+    remove(id: number) {
+        return `This action removes a #${id} feedback`;
+    }
 }

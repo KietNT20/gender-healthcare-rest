@@ -1,31 +1,31 @@
 import { Question } from 'src/modules/questions/entities/question.entity';
 import { Tag } from 'src/modules/tags/entities/tag.entity';
 import {
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryColumn,
-  UpdateDateColumn,
+    CreateDateColumn,
+    Entity,
+    ManyToOne,
+    PrimaryColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('question_tags')
 export class QuestionTag {
-  @PrimaryColumn({ name: 'question_id' })
-  questionId: string;
+    @PrimaryColumn({ name: 'question_id' })
+    questionId: string;
 
-  @PrimaryColumn({ name: 'tag_id' })
-  tagId: string;
+    @PrimaryColumn({ name: 'tag_id' })
+    tagId: string;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  // Relations
-  @ManyToOne(() => Question, (question) => question.questionTags)
-  question: Question;
+    // Relations
+    @ManyToOne(() => Question, (question) => question.questionTags)
+    question: Question;
 
-  @ManyToOne(() => Tag, (tag) => tag.questionTags)
-  tag: Tag;
+    @ManyToOne(() => Tag, (tag) => tag.questionTags)
+    tag: Tag;
 }

@@ -4,67 +4,67 @@ import { Category } from 'src/modules/categories/entities/category.entity';
 import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Question {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+    @Column({ type: 'varchar', length: 255 })
+    title: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  slug: string;
+    @Column({ type: 'varchar', length: 255, unique: true })
+    slug: string;
 
-  @Column({ type: 'text' })
-  content: string;
+    @Column({ type: 'text' })
+    content: string;
 
-  @Column({
-    type: 'enum',
-    enum: QuestionStatusType,
-  })
-  status: QuestionStatusType;
+    @Column({
+        type: 'enum',
+        enum: QuestionStatusType,
+    })
+    status: QuestionStatusType;
 
-  @Column({ default: false })
-  isPublic: boolean;
+    @Column({ default: false })
+    isPublic: boolean;
 
-  @Column({ default: 0 })
-  viewCount: number;
+    @Column({ default: 0 })
+    viewCount: number;
 
-  @Column({ default: false })
-  isAnonymous: boolean;
+    @Column({ default: false })
+    isAnonymous: boolean;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  deletedAt?: Date;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.questions)
-  @JoinColumn()
-  user: User;
+    // Relations
+    @ManyToOne(() => User, (user) => user.questions)
+    @JoinColumn()
+    user: User;
 
-  @ManyToOne(() => Category)
-  @JoinColumn()
-  category: Category;
+    @ManyToOne(() => Category)
+    @JoinColumn()
+    category: Category;
 
-  @OneToMany(() => Answer, (answer) => answer.question)
-  answers: Answer[];
+    @OneToMany(() => Answer, (answer) => answer.question)
+    answers: Answer[];
 
-  @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
-  questionTags: QuestionTag[];
+    @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
+    questionTags: QuestionTag[];
 }

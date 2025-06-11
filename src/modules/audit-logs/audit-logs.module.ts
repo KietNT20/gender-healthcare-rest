@@ -3,7 +3,7 @@ import { AuditLogsService } from './audit-logs.service';
 import { AuditLogsController } from './audit-logs.controller';
 
 @Module({
-  controllers: [AuditLogsController],
-  providers: [AuditLogsService],
+    controllers: [AuditLogsController],
+    providers: [AuditLogsService],
 })
 export class AuditLogsModule {}

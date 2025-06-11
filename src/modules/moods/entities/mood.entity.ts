@@ -1,35 +1,31 @@
 import { CycleMood } from 'src/modules/cycle-moods/entities/cycle-mood.entity';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Mood {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ length: 100 })
-  name: string;
+    @Column({ length: 100 })
+    name: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+    @Column({ type: 'text', nullable: true })
+    description: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  // Relations
-  @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood)
-  cycleMoods: CycleMood[];
+    // Relations
+    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood)
+    cycleMoods: CycleMood[];
 }
-
-
-
-

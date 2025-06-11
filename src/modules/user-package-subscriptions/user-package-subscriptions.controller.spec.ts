@@ -3,18 +3,20 @@ import { UserPackageSubscriptionsController } from './user-package-subscriptions
 import { UserPackageSubscriptionsService } from './user-package-subscriptions.service';
 
 describe('UserPackageSubscriptionsController', () => {
-  let controller: UserPackageSubscriptionsController;
+    let controller: UserPackageSubscriptionsController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UserPackageSubscriptionsController],
-      providers: [UserPackageSubscriptionsService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [UserPackageSubscriptionsController],
+            providers: [UserPackageSubscriptionsService],
+        }).compile();
 
-    controller = module.get<UserPackageSubscriptionsController>(UserPackageSubscriptionsController);
-  });
+        controller = module.get<UserPackageSubscriptionsController>(
+            UserPackageSubscriptionsController,
+        );
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

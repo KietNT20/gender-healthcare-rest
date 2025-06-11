@@ -1,85 +1,81 @@
 import { ContractFile } from 'src/modules/contract-files/entities/contract-file.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Document {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ length: 255 })
-  name: string;
+    @Column({ length: 255 })
+    name: string;
 
-  @Column({ length: 255 })
-  originalName: string;
+    @Column({ length: 255 })
+    originalName: string;
 
-  @Column({ length: 100 })
-  mimeType: string;
+    @Column({ length: 100 })
+    mimeType: string;
 
-  @Column()
-  size: number;
+    @Column()
+    size: number;
 
-  @Column({ type: 'text' })
-  path: string;
+    @Column({ type: 'text' })
+    path: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+    @Column({ type: 'text', nullable: true })
+    description: string;
 
-  @Column({ length: 50, nullable: true })
-  @Index()
-  documentType: string;
+    @Column({ length: 50, nullable: true })
+    @Index()
+    documentType: string;
 
-  @Column({ length: 50, nullable: true })
-  entityType: string;
+    @Column({ length: 50, nullable: true })
+    entityType: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  entityId: string;
+    @Column({ type: 'uuid', nullable: true })
+    entityId: string;
 
-  @Column({ default: false })
-  isPublic: boolean;
+    @Column({ default: false })
+    isPublic: boolean;
 
-  @Column({ default: false })
-  isSensitive: boolean;
+    @Column({ default: false })
+    isSensitive: boolean;
 
-  @Column({ nullable: true })
-  @Index()
-  userId: string;
+    @Column({ nullable: true })
+    @Index()
+    userId: string;
 
-  @Column({ length: 64, nullable: true })
-  hash: string;
+    @Column({ length: 64, nullable: true })
+    hash: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: any;
+    @Column({ type: 'jsonb', nullable: true })
+    metadata: any;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date | null;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt: Date | null;
 
-  // Relations
-  @ManyToOne(() => User, (user) => user.documents)
-  @JoinColumn()
-  user: User;
+    // Relations
+    @ManyToOne(() => User, (user) => user.documents)
+    @JoinColumn()
+    user: User;
 
-  @OneToMany(() => ContractFile, (contractFile) => contractFile.file)
-  contractFiles: ContractFile[];
+    @OneToMany(() => ContractFile, (contractFile) => contractFile.file)
+    contractFiles: ContractFile[];
 }
-
-
-
-

@@ -20,11 +20,11 @@ export class Feedback {
   id: string;
 
   @Column({ name: 'consultant_id', nullable: true })
-  @Index('idx_feedbacks_consultant_id')
+  @Index()
   consultantId: string;
 
   @Column({ type: 'integer' })
-  @Index('idx_feedbacks_rating')
+  @Index()
   rating: number;
 
   @Column({ type: 'text', nullable: true })
@@ -46,7 +46,7 @@ export class Feedback {
   updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  @Index('idx_feedbacks_deleted_at')
+  @Index()
   deletedAt?: Date;
 
   // Relations

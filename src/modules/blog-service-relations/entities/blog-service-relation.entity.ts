@@ -25,9 +25,9 @@ export class BlogServiceRelation {
 
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date; // Relations
-    @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations)
-    blog: Blog;
+    // @ManyToOne(() => Blog, (blog) => blog.blogServiceRelations)
+    // blog: Blog;
 
-    @ManyToOne(() => Service, (service) => service.blogServiceRelations)
-    service: Service;
+    // @ManyToOne(() => Service, (service) => service.blogServiceRelations)
+    // service: Service;
 }

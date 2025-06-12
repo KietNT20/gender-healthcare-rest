@@ -8,24 +8,22 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('questions')
+@Entity()
 export class Question {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'user_id', nullable: true })
-    userId: string;
-
-    @Column({ length: 255 })
+    @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ length: 255, unique: true })
+    @Column({ type: 'varchar', length: 255, unique: true })
     slug: string;
 
     @Column({ type: 'text' })
@@ -37,18 +35,31 @@ export class Question {
     })
     status: QuestionStatusType;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @Column({ default: false })
+    isPublic: boolean;
+
+    @Column({ default: 0 })
+    viewCount: number;
+
+    @Column({ default: false })
+    isAnonymous: boolean;
+
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.questions)
+    @JoinColumn()
     user: User;
 
-    @ManyToOne(() => Category, (category) => category.questions)
+    @ManyToOne(() => Category)
+    @JoinColumn()
     category: Category;
 
     @OneToMany(() => Answer, (answer) => answer.question)

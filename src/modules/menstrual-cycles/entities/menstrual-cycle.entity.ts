@@ -7,32 +7,33 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('menstrual_cycles')
+@Entity()
 export class MenstrualCycle {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'user_id', nullable: true })
-    @Index('idx_menstrual_cycles_user_id')
+    @Column({ nullable: true })
+    @Index()
     userId: string;
 
-    @Column({ type: 'date', name: 'cycle_start_date' })
-    @Index('idx_menstrual_cycles_start_date')
+    @Column({ type: 'date' })
+    @Index()
     cycleStartDate: Date;
 
-    @Column({ type: 'date', nullable: true, name: 'cycle_end_date' })
+    @Column({ type: 'date', nullable: true })
     cycleEndDate: Date;
 
-    @Column({ nullable: true, name: 'cycle_length' })
+    @Column({ nullable: true })
     cycleLength: number;
 
-    @Column({ nullable: true, name: 'period_length' })
+    @Column({ nullable: true })
     periodLength: number;
 
     @Column({ type: 'text', array: true, nullable: true })
@@ -41,20 +42,19 @@ export class MenstrualCycle {
     @Column({ type: 'text', nullable: true })
     notes: string;
 
-    @Column({ nullable: true, name: 'flow_intensity' })
+    @Column({ nullable: true })
     flowIntensity: number;
 
     @Column({ type: 'text', array: true, nullable: true })
     mood: string[];
 
-    @Column({ nullable: true, name: 'pain_level' })
+    @Column({ nullable: true })
     painLevel: number;
 
     @Column({
         type: 'text',
         array: true,
         nullable: true,
-        name: 'medication_taken',
     })
     medicationTaken: string[];
 
@@ -64,20 +64,21 @@ export class MenstrualCycle {
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     weight: number;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    @Index('idx_menstrual_cycles_deleted_at')
+    @DeleteDateColumn({ nullable: true })
+    @Index()
     deletedAt: Date | null;
 
     // Relations
     @ManyToOne(() => User, (user) => user.menstrualCycles, {
         onDelete: 'CASCADE',
     })
+    @JoinColumn()
     user: User;
 
     @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)

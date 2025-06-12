@@ -8,27 +8,28 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('user_package_subscriptions')
+@Entity()
 export class UserPackageSubscription {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'user_id' })
+    @Column()
     userId: string;
 
-    @Column({ name: 'package_id' })
+    @Column()
     packageId: string;
 
-    @Column({ type: 'date', name: 'start_date' })
+    @Column({ type: 'date' })
     startDate: Date;
 
-    @Column({ type: 'date', name: 'end_date' })
+    @Column({ type: 'date' })
     endDate: Date;
 
     @Column({
@@ -38,30 +39,35 @@ export class UserPackageSubscription {
     })
     status: SubscriptionStatusType;
 
-    @Column({ default: false, name: 'auto_renew' })
+    @Column({ default: false })
     autoRenew: boolean;
 
-    @Column({ name: 'payment_id', nullable: true })
+    @Column({ nullable: true })
     paymentId: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null; // Relations
+    @DeleteDateColumn({ nullable: true })
+    deletedAt: Date | null;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.packageSubscriptions)
+    @JoinColumn()
     user: User;
 
     @ManyToOne(
         () => ServicePackage,
         (servicePackage) => servicePackage.subscriptions,
     )
+    @JoinColumn()
     package: ServicePackage;
 
     @ManyToOne(() => Payment, (payment) => payment.packageSubscriptions)
+    @JoinColumn()
     payment: Payment;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.subscription)

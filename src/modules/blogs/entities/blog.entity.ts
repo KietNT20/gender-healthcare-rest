@@ -8,41 +8,38 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
+    JoinTable,
     ManyToMany,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('blogs')
-@Index('idx_blogs_not_deleted', ['id'], { where: 'deleted_at IS NULL' })
+@Entity()
 export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 255 })
+    @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ length: 255, unique: true })
-    @Index('idx_blogs_slug')
+    @Column({ type: 'varchar', length: 255, unique: true })
+    @Index()
     slug: string;
 
     @Column({ type: 'text' })
     content: string;
-
-    @Column({ name: 'author_id', nullable: true })
-    @Index('idx_blogs_author_id')
-    authorId?: string;
 
     @Column({
         type: 'enum',
         enum: ContentStatusType,
         default: ContentStatusType.DRAFT,
     })
-    @Index('idx_blogs_status')
+    @Index()
     status: ContentStatusType;
 
-    @Column({ length: 255, nullable: true, name: 'featured_image' })
+    @Column({ type: 'varchar', length: 1024, nullable: true })
     featuredImage?: string;
 
     @Column({ type: 'text', array: true, nullable: true })
@@ -51,73 +48,65 @@ export class Blog {
     @Column({ default: 0 })
     views: number;
 
-    @Column({ length: 255, nullable: true, name: 'seo_title' })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     seoTitle?: string;
 
-    @Column({ type: 'text', nullable: true, name: 'seo_description' })
+    @Column({ type: 'text', nullable: true })
     seoDescription?: string;
 
     @Column({ type: 'text', nullable: true })
     excerpt?: string;
 
-    @Column({ nullable: true, name: 'read_time' })
+    @Column({ type: 'int', nullable: true })
     readTime?: number;
-
-    @Column({ name: 'reviewed_by_id', nullable: true })
-    @Index('idx_blogs_reviewed_by')
-    reviewedById?: string;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
-        name: 'review_date',
     })
     reviewDate?: Date;
 
-    @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
+    @Column({ type: 'text', nullable: true })
     rejectionReason?: string;
 
-    @Column({ type: 'text', nullable: true, name: 'revision_notes' })
+    @Column({ type: 'text', nullable: true })
     revisionNotes?: string;
-
-    @Column({ name: 'published_by_id', nullable: true })
-    publishedById?: string;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
-        name: 'published_at',
     })
-    @Index('idx_blogs_published_at')
+    @Index()
     publishedAt?: Date;
 
-    @Column({ name: 'category_id', nullable: true })
-    categoryId?: string;
-
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    @Index('idx_blogs_deleted_at')
+    @DeleteDateColumn({ nullable: true })
+    @Index()
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.authoredBlogs, {
-        eager: true,
-    })
+    @ManyToOne(() => User, (user) => user.authoredBlogs)
+    @JoinColumn()
     author: User;
 
     @ManyToOne(() => Category)
+    @JoinColumn()
     category: Category;
+
     @ManyToOne(() => User, (user) => user.reviewedBlogs)
-    reviewedBy: User;
+    @JoinColumn()
+    reviewedByUser: User;
 
     @ManyToOne(() => User, (user) => user.publishedBlogs)
-    publishedBy: User;
+    @JoinColumn()
+    publishedByUser: User;
 
     @ManyToMany(() => Service, (service) => service.blogs)
+    @JoinTable()
     services: Service[];
 }

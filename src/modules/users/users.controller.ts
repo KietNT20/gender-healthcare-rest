@@ -168,7 +168,7 @@ export class UsersController {
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
     ): Promise<{ message: string }> {
-        await this.usersService.remove(id);
+        await this.usersService.remove(id, currentUser.id);
         return { message: 'User deleted successfully' };
     }
 }

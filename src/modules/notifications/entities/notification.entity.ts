@@ -4,17 +4,18 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('notifications')
+@Entity()
 export class Notification {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'user_id', nullable: true })
+    @Column({ nullable: true })
     userId: string;
 
     @Column({ length: 255 })
@@ -26,20 +27,16 @@ export class Notification {
     @Column({ length: 50 })
     type: string;
 
-    @Column({ type: 'uuid', nullable: true, name: 'reference_id' })
+    @Column({ type: 'uuid', nullable: true })
     referenceId: string;
 
-    @Column({ default: false, name: 'is_read' })
+    @Column({ default: false })
     isRead: boolean;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-        name: 'read_at',
-    })
+    @Column({ type: 'timestamp with time zone', nullable: true })
     readAt: Date;
 
-    @Column({ type: 'text', nullable: true, name: 'action_url' })
+    @Column({ type: 'text', nullable: true })
     actionUrl: string;
 
     @Column({
@@ -49,11 +46,14 @@ export class Notification {
     })
     priority: PriorityType;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.notifications)
+    @JoinColumn()
     user: User;
 }

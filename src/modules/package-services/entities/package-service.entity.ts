@@ -4,23 +4,24 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('package_services')
+@Entity()
 export class PackageService {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'package_id' })
+    @Column()
     packageId: string;
 
-    @Column({ name: 'service_id' })
+    @Column()
     serviceId: string;
 
-    @Column({ nullable: true, name: 'quantity_limit' })
+    @Column({ nullable: true })
     quantityLimit: number;
 
     @Column({
@@ -28,21 +29,24 @@ export class PackageService {
         precision: 5,
         scale: 2,
         default: 0,
-        name: 'discount_percentage',
     })
     discountPercentage: number;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(
         () => ServicePackage,
         (servicePackage) => servicePackage.packageServices,
     )
+    @JoinColumn()
     package: ServicePackage;
 
     @ManyToOne(() => Service, (service) => service.packageServices)
+    @JoinColumn()
     service: Service;
 }

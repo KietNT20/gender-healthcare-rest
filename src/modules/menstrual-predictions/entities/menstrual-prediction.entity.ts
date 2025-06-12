@@ -3,32 +3,33 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('menstrual_predictions')
+@Entity()
 export class MenstrualPrediction {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'user_id', nullable: true })
+    @Column({ nullable: true })
     userId: string;
 
-    @Column({ type: 'date', name: 'predicted_cycle_start' })
+    @Column({ type: 'date' })
     predictedCycleStart: Date;
 
-    @Column({ type: 'date', name: 'predicted_cycle_end' })
+    @Column({ type: 'date' })
     predictedCycleEnd: Date;
 
-    @Column({ type: 'date', name: 'predicted_fertile_start' })
+    @Column({ type: 'date' })
     predictedFertileStart: Date;
 
-    @Column({ type: 'date', name: 'predicted_fertile_end' })
+    @Column({ type: 'date' })
     predictedFertileEnd: Date;
 
-    @Column({ type: 'date', name: 'predicted_ovulation_date' })
+    @Column({ type: 'date' })
     predictedOvulationDate: Date;
 
     @Column({
@@ -36,28 +37,28 @@ export class MenstrualPrediction {
         precision: 4,
         scale: 2,
         nullable: true,
-        name: 'prediction_accuracy',
     })
     predictionAccuracy: number;
 
-    @Column({ default: false, name: 'notification_sent' })
+    @Column({ default: false })
     notificationSent: boolean;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
-        name: 'notification_sent_at',
     })
     notificationSentAt: Date;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
-    @UpdateDateColumn({ name: 'updated_at' })
+
+    @UpdateDateColumn()
     updatedAt: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.menstrualPredictions, {
         onDelete: 'CASCADE',
     })
+    @JoinColumn()
     user: User;
 }

@@ -8,7 +8,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('tags')
+@Entity()
 export class Tag {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -19,10 +19,10 @@ export class Tag {
     @Column({ length: 50, unique: true })
     slug: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     // Relations

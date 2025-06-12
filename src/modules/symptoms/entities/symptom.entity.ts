@@ -4,13 +4,14 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('symptoms')
+@Entity()
 export class Symptom {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -21,15 +22,18 @@ export class Symptom {
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @Column({ name: 'category_id', nullable: true })
+    @Column({ nullable: true })
     categoryId: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(() => Category, (category) => category.symptoms)
+    @JoinColumn()
     category: Category;
 
     @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.symptom)

@@ -1,4 +1,5 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {

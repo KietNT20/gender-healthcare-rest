@@ -16,6 +16,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 
 @Entity()
 export class ConsultantProfile {
@@ -128,6 +129,9 @@ export class ConsultantProfile {
 
     @OneToMany(() => Answer, (answer) => answer.consultant)
     answers: Answer[];
+
+    @OneToMany(() => Feedback, (feedback) => feedback.consultant)
+    consultantFeedbacks: Feedback[];
 }
 
 

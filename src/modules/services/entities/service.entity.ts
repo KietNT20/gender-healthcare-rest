@@ -1,5 +1,5 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
-import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
@@ -76,9 +76,6 @@ export class Service {
     @OneToMany(() => Feedback, (feedback) => feedback.service)
     feedbacks: Feedback[];
 
-    @OneToMany(() => BlogServiceRelation, (relation) => relation.service)
-    blogServiceRelations: BlogServiceRelation[];
-
     @OneToMany(() => PackageService, (packageService) => packageService.service)
     packageServices: PackageService[];
 
@@ -87,4 +84,7 @@ export class Service {
 
     @ManyToMany(() => Appointment, (appointment) => appointment.services)
     appointments: Appointment[];
+
+    @ManyToMany(() => Blog, (blog) => blog.services)
+    blogs: Blog[];
 }

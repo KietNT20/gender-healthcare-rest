@@ -1,6 +1,6 @@
 import { ContentStatusType } from 'src/enums';
-import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -8,8 +8,8 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    ManyToMany,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -32,7 +32,7 @@ export class Blog {
 
     @Column({ name: 'author_id', nullable: true })
     @Index('idx_blogs_author_id')
-    authorId: string;
+    authorId?: string;
 
     @Column({
         type: 'enum',
@@ -52,36 +52,36 @@ export class Blog {
     views: number;
 
     @Column({ length: 255, nullable: true, name: 'seo_title' })
-    seoTitle: string;
+    seoTitle?: string;
 
     @Column({ type: 'text', nullable: true, name: 'seo_description' })
-    seoDescription: string;
+    seoDescription?: string;
 
     @Column({ type: 'text', nullable: true })
-    excerpt: string;
+    excerpt?: string;
 
     @Column({ nullable: true, name: 'read_time' })
-    readTime: number;
+    readTime?: number;
 
     @Column({ name: 'reviewed_by_id', nullable: true })
     @Index('idx_blogs_reviewed_by')
-    reviewedById: string;
+    reviewedById?: string;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
         name: 'review_date',
     })
-    reviewDate: Date;
+    reviewDate?: Date;
 
     @Column({ type: 'text', nullable: true, name: 'rejection_reason' })
-    rejectionReason: string;
+    rejectionReason?: string;
 
     @Column({ type: 'text', nullable: true, name: 'revision_notes' })
-    revisionNotes: string;
+    revisionNotes?: string;
 
     @Column({ name: 'published_by_id', nullable: true })
-    publishedById: string;
+    publishedById?: string;
 
     @Column({
         type: 'timestamp with time zone',
@@ -89,10 +89,10 @@ export class Blog {
         name: 'published_at',
     })
     @Index('idx_blogs_published_at')
-    publishedAt: Date;
+    publishedAt?: Date;
 
     @Column({ name: 'category_id', nullable: true })
-    categoryId: string;
+    categoryId?: string;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
@@ -118,6 +118,6 @@ export class Blog {
     @ManyToOne(() => User, (user) => user.publishedBlogs)
     publishedBy: User;
 
-    @OneToMany(() => BlogServiceRelation, (relation) => relation.blog)
-    blogServiceRelations: BlogServiceRelation[];
+    @ManyToMany(() => Service, (service) => service.blogs)
+    services: Service[];
 }

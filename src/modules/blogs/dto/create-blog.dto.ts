@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsArray, IsInt, IsUUID } from 'class-validator';
-import { ContentStatusType } from '@enums/index';
+import { ContentStatusType } from 'src/enums';
+
 
 export class CreateBlogDto {
   @IsString()
@@ -14,6 +15,8 @@ export class CreateBlogDto {
   @IsOptional()
   @IsUUID()
   authorId?: string;
+
+  
 
   @IsEnum(ContentStatusType)
   status: ContentStatusType;

@@ -8,7 +8,6 @@ import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { BlogServiceRelationsModule } from './modules/blog-service-relations/blog-service-relations.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConsultantAvailabilityModule } from './modules/consultant-availability/consultant-availability.module';
@@ -41,83 +40,81 @@ import { UserPackageSubscriptionsModule } from './modules/user-package-subscript
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      envFilePath: '.env',
-      isGlobal: true,
-    }),
-    ThrottlerModule.forRoot({
-      throttlers: [
+    imports: [
+        ConfigModule.forRoot({
+            envFilePath: '.env',
+            isGlobal: true,
+        }),
+        ThrottlerModule.forRoot({
+            throttlers: [
+                {
+                    name: 'medium',
+                    ttl: 10000,
+                    limit: 20,
+                },
+                {
+                    name: 'long',
+                    ttl: 60000,
+                    limit: 100,
+                },
+            ],
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('DATABASE_HOST'),
+                port: +configService.get('DATABASE_PORT'),
+                username: configService.get('DATABASE_USER'),
+                password: configService.get('DATABASE_PASSWORD'),
+                database: configService.get('DATABASE_NAME'),
+                entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                synchronize: true,
+                autoLoadEntities: true,
+                dropSchema: false,
+            }),
+            inject: [ConfigService],
+        }),
+        AnswersModule,
+        AppointmentsModule,  
+        BlogsModule,
+        CategoriesModule, 
+        ConsultantAvailabilityModule,
+        ConsultantProfilesModule,
+        ContractFilesModule,
+        ContraceptiveRemindersModule,
+        CycleMoodsModule,
+        CycleSymptomsModule,
+        DocumentsModule,
+        EmploymentContractsModule,
+        FeedbacksModule,
+        ImagesModule,
+        MailModule,
+        MenstrualCyclesModule,
+        MenstrualPredictionsModule,
+        MoodsModule,
+        NotificationsModule,
+        PackageServiceUsageModule,
+        PackageServicesModule,
+        PaymentsModule,
+        QuestionsModule,
+        QuestionTagsModule,
+        RolesModule,
+        ServicePackagesModule,
+        ServicesModule,
+        SymptomsModule,
+        TagsModule,
+        TestResultsModule,
+        UserPackageSubscriptionsModule,
+        UsersModule,
+        AuthModule,
+        AuditLogsModule,
+    ],
+    providers: [
         {
-          name: 'medium',
-          ttl: 10000,
-          limit: 20,
+            provide: APP_INTERCEPTOR,
+            useClass: TransformInterceptor,
         },
-        {
-          name: 'long',
-          ttl: 60000,
-          limit: 100,
-        },
-      ],
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST'),
-        port: +configService.get('DATABASE_PORT'),
-        username: configService.get('DATABASE_USER'),
-        password: configService.get('DATABASE_PASSWORD'),
-        database: configService.get('DATABASE_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-        autoLoadEntities: true,
-        dropSchema: false,
-      }),
-      inject: [ConfigService],
-    }),
-    AnswersModule,
-    AppointmentServicesModule,
-    AppointmentsModule,
-    BlogServiceRelationsModule,
-    BlogsModule,
-    CategoriesModule,
-    ConsultantAvailabilityModule,
-    ConsultantProfilesModule,
-    ContractFilesModule,
-    ContraceptiveRemindersModule,
-    CycleMoodsModule,
-    CycleSymptomsModule,
-    DocumentsModule,
-    EmploymentContractsModule,
-    FeedbacksModule,
-    ImagesModule,
-    MailModule,
-    MenstrualCyclesModule,
-    MenstrualPredictionsModule,
-    MoodsModule,
-    NotificationsModule,
-    PackageServiceUsageModule,
-    PackageServicesModule,
-    PaymentsModule,
-    QuestionsModule,
-    QuestionTagsModule,
-    RolesModule,
-    ServicePackagesModule,
-    ServicesModule,
-    SymptomsModule,
-    TagsModule,
-    TestResultsModule,
-    UserPackageSubscriptionsModule,
-    UsersModule,
-    AuthModule,
-    AuditLogsModule,
-  ],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TransformInterceptor,
-    },
-  ],
+    ],
 })
 export class AppModule {}

@@ -61,6 +61,6 @@ export class CreateServiceDto {
   featured?: boolean;
 
   @IsUUID()
-  @IsOptional()
+  @IsNotEmpty()
   categoryId?: string;
 }

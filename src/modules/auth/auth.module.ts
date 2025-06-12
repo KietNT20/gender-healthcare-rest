@@ -7,17 +7,18 @@ import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import googleAuthConfig from './config/google-auth.config';
+import { GoogleAuthenticationController } from './google-authentication/google-authentication.controller';
+import { GoogleAuthenticationService } from './google-authentication/google-authentication.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { BcryptProvider } from './providers/bcrypt.provider';
 import { HashingProvider } from './providers/hashing.provider';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
-import { GoogleAuthenticationController } from './google-authentication/google-authentication.controller';
-import { GoogleAuthenticationService } from './google-authentication/google-authentication.service';
 
 @Module({
     imports: [
-        ConfigModule,
+        ConfigModule.forFeature(googleAuthConfig),
         PassportModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],

@@ -44,7 +44,10 @@ export class User {
     googleId?: string;
 
     @Column({ type: 'varchar', length: 255 })
-    fullName: string;
+    firstName: string;
+
+    @Column({ type: 'varchar', length: 255 })
+    lastName: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
     slug: string;
@@ -144,7 +147,7 @@ export class User {
     })
     refreshToken?: string;
 
-    @Column({nullable: true })
+    @Column({ nullable: true })
     deletedByUserId?: string;
 
     @Column({ default: 0 })

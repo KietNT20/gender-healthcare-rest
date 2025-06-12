@@ -268,7 +268,8 @@ export class UsersService {
                 'id',
                 'email',
                 'password',
-                'fullName',
+                'firstName',
+                'lastName',
                 'isActive',
                 'emailVerified',
                 'loginAttempts',
@@ -304,7 +305,14 @@ export class UsersService {
                 deletedAt: IsNull(),
             },
             relations: ['role'],
-            select: ['id', 'email', 'fullName', 'isActive', 'refreshToken'],
+            select: [
+                'id',
+                'email',
+                'firstName',
+                'lastName',
+                'isActive',
+                'refreshToken',
+            ],
         });
 
         if (!user || !user.refreshToken) {
@@ -322,6 +330,24 @@ export class UsersService {
 
     async findOneByGoogleId(googleId: string) {
         return this.userRepository.findOneBy({ googleId });
+    }
+
+    async updateGoogleProfile(
+        id: string,
+        googleId: string,
+        profilePicture?: string,
+    ): Promise<void> {
+        const updateData: Partial<User> = {
+            googleId,
+            emailVerified: true, // Google emails are verified
+            updatedAt: new Date(),
+        };
+
+        if (profilePicture) {
+            updateData.profilePicture = profilePicture;
+        }
+
+        await this.userRepository.update(id, updateData);
     }
 
     async getCustomerRoleId(): Promise<string> {
@@ -444,16 +470,28 @@ export class UsersService {
             }
         }
 
-        const { dateOfBirth, fullName, ...restOfDto } = updateUserDto;
+        const { dateOfBirth, firstName, lastName, ...restOfDto } =
+            updateUserDto;
         const payload: Partial<User> = { ...restOfDto };
 
         // Update slug if fullName is being updated
-        if (fullName && fullName !== user.fullName) {
+        if (
+            firstName &&
+            firstName !== user.firstName &&
+            lastName &&
+            lastName !== user.lastName
+        ) {
+            // Generate slug based on firstName and lastName
+            const fullName = `${firstName} ${lastName} ${user.email}`;
+            // Use slugify to create a base slug
             const baseSlug = slugify(fullName, { lower: true, strict: true });
             payload.slug = await this.generateUniqueSlug(baseSlug, id);
-            payload.fullName = fullName;
         }
 
+        if (lastName && lastName !== user.lastName) {
+            payload.lastName = lastName;
+        }
+        // Handle date conversion
         if (dateOfBirth) {
             payload.dateOfBirth = new Date(dateOfBirth);
         }
@@ -480,10 +518,13 @@ export class UsersService {
         // Update slug if fullName is being updated
         let slug = user.slug;
         if (
-            updateProfileDto.fullName &&
-            updateProfileDto.fullName !== user.fullName
+            updateProfileDto.firstName &&
+            updateProfileDto.firstName !== user.firstName &&
+            updateProfileDto.lastName &&
+            updateProfileDto.lastName !== user.lastName
         ) {
-            const baseSlug = slugify(updateProfileDto.fullName, {
+            const fullName = `${updateProfileDto.firstName} ${updateProfileDto.lastName} ${user.email}`;
+            const baseSlug = slugify(fullName, {
                 lower: true,
                 strict: true,
             });

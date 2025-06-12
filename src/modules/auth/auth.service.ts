@@ -45,8 +45,10 @@ export class AuthService {
             emailVerificationExpires.getHours() + 24,
         );
 
+        const userSlug = `${registerDto.firstName} ${registerDto.lastName} ${registerDto.email}`;
+
         // Generate slug for user
-        const baseSlug = slugify(registerDto.fullName, {
+        const baseSlug = slugify(userSlug, {
             lower: true,
             strict: true,
         });
@@ -145,7 +147,7 @@ export class AuthService {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: user.fullName,
+                fullName: user.firstName + ' ' + user.lastName,
                 role: user.role,
                 emailVerified: user.emailVerified,
             },
@@ -206,7 +208,7 @@ export class AuthService {
         await this.mailService.sendEmailVerification(
             user.email,
             emailVerificationToken,
-            user.fullName,
+            user.firstName + ' ' + user.lastName,
         );
 
         return {
@@ -241,7 +243,7 @@ export class AuthService {
             await this.mailService.sendPasswordReset(
                 user.email,
                 passwordResetToken,
-                user.fullName,
+                user.firstName + ' ' + user.lastName,
             );
         } catch (error) {
             console.error('Failed to send password reset email:', error);
@@ -329,7 +331,7 @@ export class AuthService {
                 id: user.id,
                 email: user.email,
                 role: user.role?.name || 'user',
-                fullName: user.fullName,
+                fullName: user.firstName + ' ' + user.lastName,
             };
         } catch (error) {
             throw new UnauthorizedException('Invalid token');

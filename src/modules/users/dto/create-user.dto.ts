@@ -1,6 +1,4 @@
-import { GenderType } from 'src/enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import {
     IsDateString,
     IsEmail,
@@ -11,18 +9,22 @@ import {
     IsUUID,
     MinLength,
 } from 'class-validator';
+import { GenderType } from 'src/enums';
 
 export class CreateUserDto {
     @ApiProperty()
-    @IsNotEmpty({ message: 'Full name is required' })
+    @IsNotEmpty({ message: 'First name is required' })
     @IsString()
-    @Transform(({ value }) => value?.trim())
-    fullName: string;
+    firstName: string;
+
+    @ApiProperty()
+    @IsNotEmpty({ message: 'Last name is required' })
+    @IsString()
+    lastName: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Email is required' })
     @IsEmail({}, { message: 'Please provide a valid email address' })
-    @Transform(({ value }) => value?.toLowerCase()?.trim())
     email: string;
 
     @ApiProperty()

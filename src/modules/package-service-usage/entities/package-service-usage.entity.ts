@@ -5,45 +5,51 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('package_service_usage')
+@Entity()
 export class PackageServiceUsage {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'subscription_id' })
+    @Column()
     subscriptionId: string;
 
-    @Column({ name: 'service_id' })
+    @Column()
     serviceId: string;
 
-    @Column({ name: 'appointment_id', nullable: true })
+    @Column({ nullable: true })
     appointmentId: string;
 
-    @Column({ type: 'date', default: () => 'CURRENT_DATE', name: 'usage_date' })
+    @Column({ type: 'date', default: () => 'CURRENT_DATE' })
     usageDate: Date;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(
         () => UserPackageSubscription,
         (subscription) => subscription.serviceUsages,
     )
+    @JoinColumn()
     subscription: UserPackageSubscription;
 
     @ManyToOne(() => Service, (service) => service.packageServiceUsages)
+    @JoinColumn()
     service: Service;
 
     @ManyToOne(
         () => Appointment,
         (appointment) => appointment.packageServiceUsages,
     )
+    @JoinColumn()
     appointment: Appointment;
 }

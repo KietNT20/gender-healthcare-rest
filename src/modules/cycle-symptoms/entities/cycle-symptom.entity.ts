@@ -5,20 +5,20 @@ import {
     CreateDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('cycle_symptoms')
-@Index('cycle_symptoms_pkey', ['cycleId', 'symptomId'])
+@Entity()
 export class CycleSymptom {
-    @PrimaryColumn({ name: 'cycle_id' })
-    @Index('idx_cycle_symptoms_cycle_id')
+    @PrimaryColumn({})
+    @Index()
     cycleId: string;
 
-    @PrimaryColumn({ name: 'symptom_id' })
-    @Index('idx_cycle_symptoms_symptom_id')
+    @PrimaryColumn({})
+    @Index()
     symptomId: string;
 
     @Column({ nullable: true })
@@ -27,14 +27,18 @@ export class CycleSymptom {
     @Column({ type: 'text', nullable: true })
     notes: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)
+    @JoinColumn()
     cycle: MenstrualCycle;
 
     @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms)
+    @JoinColumn()
     symptom: Symptom;
 }

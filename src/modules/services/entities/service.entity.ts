@@ -1,5 +1,5 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
-import { BlogServiceRelation } from 'src/modules/blog-service-relations/entities/blog-service-relation.entity';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
@@ -9,6 +9,8 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
+    JoinTable,
     ManyToMany,
     ManyToOne,
     OneToMany,
@@ -16,7 +18,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('services')
+@Entity()
 export class Service {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -36,20 +38,20 @@ export class Service {
     @Column()
     duration: number;
 
-    @Column({ default: true, name: 'is_active' })
+    @Column({ default: true })
     isActive: boolean;
 
     @Column({ type: 'text', array: true, nullable: true })
-    images: string[];
+    images?: string[];
 
-    @Column({ length: 255, nullable: true, name: 'short_description' })
-    shortDescription: string;
+    @Column({ length: 255, nullable: true })
+    shortDescription?: string;
 
     @Column({ type: 'text', nullable: true })
-    prerequisites: string;
+    prerequisites?: string;
 
-    @Column({ type: 'text', nullable: true, name: 'post_instructions' })
-    postInstructions: string;
+    @Column({ type: 'text', nullable: true })
+    postInstructions?: string;
 
     @Column({ default: false })
     featured: boolean;
@@ -57,27 +59,22 @@ export class Service {
     @Column({ default: 0 })
     version: number;
 
-    @Column({ name: 'category_id', nullable: true })
-    categoryId: string;
-
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    @DeleteDateColumn({ nullable: true })
     deletedAt: Date | null;
 
     // Relations
     @ManyToOne(() => Category, (category) => category.services)
+    @JoinColumn()
     category: Category;
 
     @OneToMany(() => Feedback, (feedback) => feedback.service)
     feedbacks: Feedback[];
-
-    @OneToMany(() => BlogServiceRelation, (relation) => relation.service)
-    blogServiceRelations: BlogServiceRelation[];
 
     @OneToMany(() => PackageService, (packageService) => packageService.service)
     packageServices: PackageService[];
@@ -86,5 +83,9 @@ export class Service {
     packageServiceUsages: PackageServiceUsage[];
 
     @ManyToMany(() => Appointment, (appointment) => appointment.services)
+    @JoinTable()
     appointments: Appointment[];
+
+    @ManyToMany(() => Blog, (blog) => blog.services)
+    blogs: Blog[];
 }

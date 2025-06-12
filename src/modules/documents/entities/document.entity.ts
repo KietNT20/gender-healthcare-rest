@@ -6,14 +6,14 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('documents')
-@Index('idx_documents_entity', ['entityId', 'entityType'])
+@Entity()
 export class Document {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -21,10 +21,10 @@ export class Document {
     @Column({ length: 255 })
     name: string;
 
-    @Column({ length: 255, name: 'original_name' })
+    @Column({ length: 255 })
     originalName: string;
 
-    @Column({ length: 100, name: 'mime_type' })
+    @Column({ length: 100 })
     mimeType: string;
 
     @Column()
@@ -36,24 +36,24 @@ export class Document {
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @Column({ length: 50, nullable: true, name: 'document_type' })
-    @Index('idx_documents_document_type')
+    @Column({ length: 50, nullable: true })
+    @Index()
     documentType: string;
 
-    @Column({ length: 50, nullable: true, name: 'entity_type' })
+    @Column({ length: 50, nullable: true })
     entityType: string;
 
-    @Column({ type: 'uuid', nullable: true, name: 'entity_id' })
+    @Column({ type: 'uuid', nullable: true })
     entityId: string;
 
-    @Column({ default: false, name: 'is_public' })
+    @Column({ default: false })
     isPublic: boolean;
 
-    @Column({ default: false, name: 'is_sensitive' })
+    @Column({ default: false })
     isSensitive: boolean;
 
-    @Column({ name: 'user_id', nullable: true })
-    @Index('idx_documents_user_id')
+    @Column({ nullable: true })
+    @Index()
     userId: string;
 
     @Column({ length: 64, nullable: true })
@@ -62,15 +62,18 @@ export class Document {
     @Column({ type: 'jsonb', nullable: true })
     metadata: any;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt: Date | null; // Relations
+    @DeleteDateColumn({ nullable: true })
+    deletedAt: Date | null;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.documents)
+    @JoinColumn()
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.file)

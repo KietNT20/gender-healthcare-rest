@@ -1,5 +1,4 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
-import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -8,12 +7,13 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('feedbacks')
+@Entity()
 export class Feedback {
     @PrimaryGeneratedColumn('uuid')
   id: string;

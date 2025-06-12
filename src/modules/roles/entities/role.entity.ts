@@ -1,14 +1,16 @@
 import { RolesNameEnum } from 'src/enums';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('roles')
+@Entity()
 export class Role {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -17,19 +19,22 @@ export class Role {
         type: 'enum',
         enum: RolesNameEnum,
         default: RolesNameEnum.CUSTOMER,
-        name: 'name',
     })
     name: RolesNameEnum;
 
     @Column({ length: 60, nullable: true })
     description: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt: Date | null;
+
+    // Relations
+    @OneToMany(() => User, (user) => user.role)
+    users: User[];
 }

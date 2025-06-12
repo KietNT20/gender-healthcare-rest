@@ -3,29 +3,32 @@ import { Tag } from 'src/modules/tags/entities/tag.entity';
 import {
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     PrimaryColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('question_tags')
+@Entity()
 export class QuestionTag {
-    @PrimaryColumn({ name: 'question_id' })
+    @PrimaryColumn({})
     questionId: string;
 
-    @PrimaryColumn({ name: 'tag_id' })
+    @PrimaryColumn({})
     tagId: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     // Relations
     @ManyToOne(() => Question, (question) => question.questionTags)
+    @JoinColumn()
     question: Question;
 
     @ManyToOne(() => Tag, (tag) => tag.questionTags)
+    @JoinColumn()
     tag: Tag;
 }

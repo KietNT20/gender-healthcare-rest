@@ -6,12 +6,13 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('answers')
+@Entity()
 export class Answer {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -42,17 +43,16 @@ export class Answer {
     @Index()
     deletedAt?: Date;
 
+    // Relations
     @ManyToOne(() => Question, (question) => question.answers, {
         onDelete: 'CASCADE',
     })
+    @JoinColumn()
     question: Question;
 
-    @ManyToOne(
-        () => ConsultantProfile,
-        (consultantProfile) => consultantProfile.answers,
-        {
-            onDelete: 'CASCADE',
-        },
-    )
-    consultantProfile: ConsultantProfile;
+    @ManyToOne(() => ConsultantProfile, (consultant) => consultant.answers, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn()
+    consultant: ConsultantProfile;
 }

@@ -7,32 +7,37 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('consultant_availability')
+@Entity()
 export class ConsultantAvailability {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ name: 'day_of_week' })
-    @Index('idx_consultant_avail_day')
+    @Column()
+    @Index()
+    consultantId: string;
+
+    @Column()
+    @Index()
     dayOfWeek: number;
 
-    @Column({ type: 'time', name: 'start_time' })
+    @Column({ type: 'time' })
     startTime: string;
 
-    @Column({ type: 'time', name: 'end_time' })
+    @Column({ type: 'time' })
     endTime: string;
 
-    @Column({ default: true, name: 'is_available' })
-    @Index('idx_consultant_avail_is_available')
+    @Column({ default: true })
+    @Index()
     isAvailable: boolean;
 
-    @Column({ default: 1, name: 'max_appointments' })
+    @Column({ default: 1 })
     maxAppointments: number;
 
     @Column({
@@ -45,22 +50,29 @@ export class ConsultantAvailability {
     @Column({ default: true })
     recurring: boolean;
 
-    @Column({ type: 'date', nullable: true, name: 'specific_date' })
+    @Column({ type: 'date', nullable: true })
     specificDate: Date;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
+    @UpdateDateColumn()
     updatedAt: Date;
-
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+    @DeleteDateColumn({ nullable: true })
     deletedAt: Date | null;
+
+    // Foreign Keys
+    @Column()
+    consultantProfileId: string;
 
     // Relations
     @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
+    @JoinColumn()
     consultantProfile: ConsultantProfile;
 
-    @OneToMany(() => Appointment, (appointment) => appointment.availability)
+    @OneToMany(
+        () => Appointment,
+        (appointment) => appointment.consultantAvailability,
+    )
     appointments: Appointment[];
 }

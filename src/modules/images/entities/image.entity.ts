@@ -4,13 +4,13 @@ import {
     CreateDateColumn,
     Entity,
     Index,
+    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('images')
-@Index('idx_images_entity', ['entityId', 'entityType'])
+@Entity()
 export class Image {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -18,7 +18,7 @@ export class Image {
     @Column({ length: 255 })
     name: string;
 
-    @Column({ length: 255, name: 'original_name' })
+    @Column({ length: 255 })
     originalName: string;
 
     @Column()
@@ -33,30 +33,33 @@ export class Image {
     @Column({ length: 10, nullable: true })
     format: string;
 
-    @Column({ length: 255, nullable: true, name: 'alt_text' })
+    @Column({ length: 255, nullable: true })
     altText: string;
 
-    @Column({ length: 50, nullable: true, name: 'entity_type' })
+    @Column({ length: 50, nullable: true })
     entityType: string;
 
-    @Column({ type: 'uuid', nullable: true, name: 'entity_id' })
+    @Column({ type: 'uuid', nullable: true })
     entityId: string;
 
-    @Column({ default: false, name: 'is_public' })
+    @Column({ default: false })
     isPublic: boolean;
 
-    @Column({ name: 'user_id', nullable: true })
-    @Index('idx_images_user_id')
+    @Column({ nullable: true })
+    @Index()
     userId: string;
 
     @Column({ type: 'text', default: '' })
     url: string;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date; // Relations
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    // Relations
     @ManyToOne(() => User, (user) => user.images)
+    @JoinColumn()
     user: User;
 }

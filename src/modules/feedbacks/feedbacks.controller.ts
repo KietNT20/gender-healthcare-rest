@@ -46,4 +46,5 @@ export class FeedbacksController {
         return this.feedbacksService.remove(id);
     }
     
+    
 }

@@ -8,7 +8,6 @@ import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { BlogServiceRelationsModule } from './modules/blog-service-relations/blog-service-relations.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConsultantAvailabilityModule } from './modules/consultant-availability/consultant-availability.module';
@@ -78,7 +77,6 @@ import { UsersModule } from './modules/users/users.module';
         }),
         AnswersModule,
         AppointmentsModule,
-        BlogServiceRelationsModule,
         BlogsModule,
         CategoriesModule,
         ConsultantAvailabilityModule,

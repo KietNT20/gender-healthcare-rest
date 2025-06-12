@@ -96,18 +96,6 @@ export class AnswersController {
         return this.answersService.acceptAnswer(id, req.user.id);
     }
 
-    @Post(':id/vote')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Vote on answer (upvote/downvote)' })
-    voteAnswer(
-        @Param('id') id: string,
-        @Body() body: { type: 'upvote' | 'downvote' },
-        @Request() req: any,
-    ) {
-        return this.answersService.voteAnswer(id, body.type, req.user.id);
-    }
-
     @Delete(':id')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()

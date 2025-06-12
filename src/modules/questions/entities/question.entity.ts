@@ -62,8 +62,7 @@ export class Question {
     @JoinColumn()
     category: Category;
 
-    @OneToMany(() => Answer, (answer) => answer.question)
-    answers: Answer[];
+    
 
     @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
     questionTags: QuestionTag[];

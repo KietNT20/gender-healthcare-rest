@@ -1,26 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { CreateBlogDto } from './dto/create-blog.dto';
-import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+  import { InjectRepository } from '@nestjs/typeorm';
+  import { Repository } from 'typeorm';
+  import { CreateBlogDto } from './dto/create-blog.dto';
+  import { UpdateBlogDto } from './dto/update-blog.dto';
+  import { Blog } from './entities/blog.entity';
+  import { Category } from 'src/modules/categories/entities/category.entity';
 
-@Injectable()
-export class BlogsService {
-    create(createBlogDto: CreateBlogDto) {
-        return 'This action adds a new blog';
-    }
+  @Injectable()
+  export class BlogsService {
+      constructor(
+          @InjectRepository(Blog) private blogRepository: Repository<Blog>,
+          @InjectRepository(Category) private categoryRepository: Repository<Category>,
+      ) {}
 
-    findAll() {
-        return `This action returns all blogs`;
-    }
+      async create(createBlogDto: CreateBlogDto) {
+          if (createBlogDto.categoryId) {
+              const category = await this.categoryRepository.findOne({ where: { id: createBlogDto.categoryId } });
+              if (!category) {
+                  throw new NotFoundException('Category not found');
+              }
+          }
+          const blog = this.blogRepository.create(createBlogDto);
+          return this.blogRepository.save(blog);
+      }
 
-    findOne(id: number) {
-        return `This action returns a #${id} blog`;
-    }
+      async findAll() {
+          return this.blogRepository.find({ relations: ['category'] });
+      }
 
-    update(id: number, updateBlogDto: UpdateBlogDto) {
-        return `This action updates a #${id} blog`;
-    }
+      async findOne(id: string) {
+          const blog = await this.blogRepository.findOne({ where: { id }, relations: ['category'] });
+          if (!blog) {
+              throw new NotFoundException(`Blog with ID ${id} not found`);
+          }
+          return blog;
+      }
 
-    remove(id: number) {
-        return `This action removes a #${id} blog`;
-    }
-}
+      async update(id: string, updateBlogDto: UpdateBlogDto) {
+          const blog = await this.blogRepository.findOne({ where: { id } });
+          if (!blog) {
+              throw new NotFoundException(`Blog with ID ${id} not found`);
+          }
+          if (updateBlogDto.categoryId) {
+              const category = await this.categoryRepository.findOne({ where: { id: updateBlogDto.categoryId } });
+              if (!category) {
+                  throw new NotFoundException('Category not found');
+              }
+          }
+          Object.assign(blog, updateBlogDto);
+          return this.blogRepository.save(blog);
+      }
+
+      async remove(id: string) {
+          const blog = await this.blogRepository.findOne({ where: { id } });
+          if (!blog) {
+              throw new NotFoundException(`Blog with ID ${id} not found`);
+          }
+          return this.blogRepository.remove(blog);
+      }
+  }

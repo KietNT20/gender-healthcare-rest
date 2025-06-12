@@ -25,10 +25,10 @@ export class Answer {
     isAccepted: boolean;
 
     @Column({ default: 0 })
-    upvotes: number;
+    upVotes: number;
 
     @Column({ default: 0 })
-    downvotes: number;
+    downVotes: number;
 
     @Column({ default: false })
     isPrivate: boolean;
@@ -44,15 +44,11 @@ export class Answer {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => Question, (question) => question.answers, {
-        onDelete: 'CASCADE',
-    })
+   
     @JoinColumn()
     question: Question;
 
-    @ManyToOne(() => ConsultantProfile, (consultant) => consultant.answers, {
-        onDelete: 'CASCADE',
-    })
+   
     @JoinColumn()
     consultant: ConsultantProfile;
 }

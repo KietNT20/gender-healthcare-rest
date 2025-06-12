@@ -6,11 +6,11 @@ import {
     RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { RolesNameEnum } from 'src/enums';
 import { DataSource, IsNull, Repository } from 'typeorm';
+import { HashingProvider } from '../auth/providers/hashing.provider';
 import { Role } from '../roles/entities/role.entity';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,6 +31,7 @@ export class UsersService {
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
         private readonly dataSource: DataSource,
+        private readonly hashingProvider: HashingProvider,
     ) {}
 
     async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -44,10 +45,8 @@ export class UsersService {
         }
 
         // Hash password
-        const saltRounds = 12;
-        const hashedPassword = await bcrypt.hash(
+        const hashedPassword = await this.hashingProvider.hashPassword(
             createUserDto.password,
-            saltRounds,
         );
 
         // Generate unique slug
@@ -73,47 +72,102 @@ export class UsersService {
         return this.toUserResponse(savedUser);
     }
 
-    async createMany(createManyUsersDto: CreateManyUsersDto) {
+    async createMany(
+        createManyUsersDto: CreateManyUsersDto,
+    ): Promise<UserResponseDto[]> {
         let newUsers: User[] = [];
-        // Create Query Runner Instance
         const queryRunner = this.dataSource.createQueryRunner();
 
         try {
-            // Connect the query ryunner to the datasource
             await queryRunner.connect();
-            // Start the transaction
             await queryRunner.startTransaction();
         } catch (error) {
+            await queryRunner.release();
             throw new RequestTimeoutException(
                 'Could not connect to the database',
             );
         }
 
         try {
-            for (let user of createManyUsersDto.users) {
-                let newUser = queryRunner.manager.create(User, user);
-                let result = await queryRunner.manager.save(newUser);
-                newUsers.push(result);
-            }
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            // since we have errors lets rollback the changes we made
-            await queryRunner.rollbackTransaction();
-            throw new ConflictException('Could not complete the transaction', {
-                description: String(error),
-            });
-        } finally {
-            try {
-                // you need to release a queryRunner which was manually instantiated
-                await queryRunner.release();
-            } catch (error) {
-                throw new RequestTimeoutException(
-                    'Could not release the query runner connection',
+            // Get customer role ID once
+            const customerRoleId = await this.getCustomerRoleId();
+
+            // Pre-validate all emails for duplicates
+            const emails = createManyUsersDto.users.map((user) =>
+                user.email.toLowerCase(),
+            );
+            const emailSet = new Set(emails);
+
+            if (emailSet.size !== emails.length) {
+                throw new ConflictException(
+                    'Duplicate emails found in the request',
                 );
             }
+
+            // Check existing emails in database
+            const existingUsers = await queryRunner.manager.find(User, {
+                where: emails.map((email) => ({ email })),
+                select: ['email'],
+            });
+
+            if (existingUsers.length > 0) {
+                const existingEmails = existingUsers
+                    .map((u) => u.email)
+                    .join(', ');
+                throw new ConflictException(
+                    `These emails already exist: ${existingEmails}`,
+                );
+            }
+
+            // Process each user
+            for (let userData of createManyUsersDto.users) {
+                // Hash password
+                const hashedPassword = await this.hashingProvider.hashPassword(
+                    userData.password,
+                );
+
+                // Generate unique slug
+                const baseSlug = slugify(userData.email, {
+                    lower: true,
+                    strict: true,
+                });
+                const slug = await this.generateUniqueSlugInTransaction(
+                    queryRunner,
+                    baseSlug,
+                );
+
+                // Prepare user data
+                const userToCreate = {
+                    ...userData,
+                    email: userData.email.toLowerCase(),
+                    password: hashedPassword,
+                    slug,
+                    roleId: userData.roleId || customerRoleId,
+                    dateOfBirth: userData.dateOfBirth
+                        ? new Date(userData.dateOfBirth)
+                        : undefined,
+                };
+
+                const newUser = queryRunner.manager.create(User, userToCreate);
+                const result = await queryRunner.manager.save(newUser);
+                newUsers.push(result);
+            }
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error instanceof ConflictException ||
+                error instanceof BadRequestException
+                ? error
+                : new ConflictException('Could not complete the transaction', {
+                      description: String(error),
+                  });
+        } finally {
+            await queryRunner.release();
         }
 
-        return newUsers;
+        // Return users without passwords
+        return newUsers.map((user) => this.toUserResponse(user));
     }
 
     async findAll(userQueryDto: UserQueryDto): Promise<{
@@ -200,9 +254,8 @@ export class UsersService {
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return this.userRepository.findOne({
-            where: { email: email.toLowerCase(), deletedAt: IsNull() },
-            relations: ['role'],
+        return this.userRepository.findOneBy({
+            email,
         });
     }
 
@@ -215,7 +268,8 @@ export class UsersService {
                 'id',
                 'email',
                 'password',
-                'fullName',
+                'firstName',
+                'lastName',
                 'isActive',
                 'emailVerified',
                 'loginAttempts',
@@ -251,7 +305,14 @@ export class UsersService {
                 deletedAt: IsNull(),
             },
             relations: ['role'],
-            select: ['id', 'email', 'fullName', 'isActive', 'refreshToken'],
+            select: [
+                'id',
+                'email',
+                'firstName',
+                'lastName',
+                'isActive',
+                'refreshToken',
+            ],
         });
 
         if (!user || !user.refreshToken) {
@@ -259,12 +320,34 @@ export class UsersService {
         }
 
         // Compare the provided refresh token with the hashed one in database
-        const isValidRefreshToken = await bcrypt.compare(
+        const isValidRefreshToken = await this.hashingProvider.comparePassword(
             refreshToken,
             user.refreshToken,
         );
 
         return isValidRefreshToken ? user : null;
+    }
+
+    async findOneByGoogleId(googleId: string) {
+        return this.userRepository.findOneBy({ googleId });
+    }
+
+    async updateGoogleProfile(
+        id: string,
+        googleId: string,
+        profilePicture?: string,
+    ): Promise<void> {
+        const updateData: Partial<User> = {
+            googleId,
+            emailVerified: true, // Google emails are verified
+            updatedAt: new Date(),
+        };
+
+        if (profilePicture) {
+            updateData.profilePicture = profilePicture;
+        }
+
+        await this.userRepository.update(id, updateData);
     }
 
     async getCustomerRoleId(): Promise<string> {
@@ -308,7 +391,8 @@ export class UsersService {
 
     async updateRefreshToken(id: string, refreshToken: string): Promise<void> {
         // Hash the refresh token before storing
-        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+        const hashedRefreshToken =
+            await this.hashingProvider.hashPassword(refreshToken);
 
         await this.userRepository.update(id, {
             refreshToken: hashedRefreshToken,
@@ -386,16 +470,28 @@ export class UsersService {
             }
         }
 
-        const { dateOfBirth, fullName, ...restOfDto } = updateUserDto;
+        const { dateOfBirth, firstName, lastName, ...restOfDto } =
+            updateUserDto;
         const payload: Partial<User> = { ...restOfDto };
 
         // Update slug if fullName is being updated
-        if (fullName && fullName !== user.fullName) {
+        if (
+            firstName &&
+            firstName !== user.firstName &&
+            lastName &&
+            lastName !== user.lastName
+        ) {
+            // Generate slug based on firstName and lastName
+            const fullName = `${firstName} ${lastName} ${user.email}`;
+            // Use slugify to create a base slug
             const baseSlug = slugify(fullName, { lower: true, strict: true });
             payload.slug = await this.generateUniqueSlug(baseSlug, id);
-            payload.fullName = fullName;
         }
 
+        if (lastName && lastName !== user.lastName) {
+            payload.lastName = lastName;
+        }
+        // Handle date conversion
         if (dateOfBirth) {
             payload.dateOfBirth = new Date(dateOfBirth);
         }
@@ -422,10 +518,13 @@ export class UsersService {
         // Update slug if fullName is being updated
         let slug = user.slug;
         if (
-            updateProfileDto.fullName &&
-            updateProfileDto.fullName !== user.fullName
+            updateProfileDto.firstName &&
+            updateProfileDto.firstName !== user.firstName &&
+            updateProfileDto.lastName &&
+            updateProfileDto.lastName !== user.lastName
         ) {
-            const baseSlug = slugify(updateProfileDto.fullName, {
+            const fullName = `${updateProfileDto.firstName} ${updateProfileDto.lastName} ${user.email}`;
+            const baseSlug = slugify(fullName, {
                 lower: true,
                 strict: true,
             });
@@ -460,7 +559,7 @@ export class UsersService {
         }
 
         // Verify current password
-        const isValidPassword = await bcrypt.compare(
+        const isValidPassword = await this.hashingProvider.comparePassword(
             changePasswordDto.currentPassword,
             user.password,
         );
@@ -470,10 +569,8 @@ export class UsersService {
         }
 
         // Hash new password
-        const saltRounds = 12;
-        const hashedPassword = await bcrypt.hash(
+        const hashedPassword = await this.hashingProvider.hashPassword(
             changePasswordDto.newPassword,
-            saltRounds,
         );
 
         // Update password
@@ -483,14 +580,14 @@ export class UsersService {
         });
     }
 
-    async remove(id: string, deletedById?: string): Promise<void> {
+    async remove(id: string, deletedByUserId?: string): Promise<void> {
         const user = await this.findOneById(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
         await this.userRepository.update(id, {
             deletedAt: new Date(),
-            deletedById: deletedById,
+            deletedByUserId: deletedByUserId,
             updatedAt: new Date(),
         });
     }
@@ -560,6 +657,35 @@ export class UsersService {
         }
 
         const count = await queryBuilder.getCount();
+        return count > 0;
+    }
+
+    // Helper method for generating unique slug in transaction
+    private async generateUniqueSlugInTransaction(
+        queryRunner: any,
+        baseSlug: string,
+    ): Promise<string> {
+        let slug = baseSlug;
+        let counter = 1;
+
+        while (await this.isSlugExistsInTransaction(queryRunner, slug)) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
+        return slug;
+    }
+
+    private async isSlugExistsInTransaction(
+        queryRunner: any,
+        slug: string,
+    ): Promise<boolean> {
+        const count = await queryRunner.manager.count(User, {
+            where: {
+                slug,
+                deletedAt: IsNull(),
+            },
+        });
         return count > 0;
     }
 

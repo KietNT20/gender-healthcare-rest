@@ -13,9 +13,14 @@ import { GenderType } from 'src/enums';
 
 export class RegisterDto {
     @ApiProperty()
-    @IsNotEmpty({ message: 'Full name is required' })
+    @IsNotEmpty({ message: 'First name is required' })
     @IsString()
-    fullName: string;
+    firstName: string;
+
+    @ApiProperty()
+    @IsNotEmpty({ message: 'Last name is required' })
+    @IsString()
+    lastName: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Email is required' })

@@ -22,7 +22,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     OneToOne,
@@ -41,8 +40,14 @@ export class User {
     @Column({ type: 'varchar', length: 60, select: false })
     password: string;
 
+    @Column({ type: 'varchar', nullable: true })
+    googleId?: string;
+
     @Column({ type: 'varchar', length: 255 })
-    fullName: string;
+    firstName: string;
+
+    @Column({ type: 'varchar', length: 255 })
+    lastName: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
     slug: string;
@@ -142,6 +147,9 @@ export class User {
     })
     refreshToken?: string;
 
+    @Column({ nullable: true })
+    deletedByUserId?: string;
+
     @Column({ default: 0 })
     version: number;
 
@@ -150,27 +158,15 @@ export class User {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    // Foreign Keys
-    @Column()
-    roleId: string;
-
-    @Column({ nullable: true })
-    deletedById?: string;
-
     // Relations
-    @ManyToOne(() => Role, (role) => role.users)
-    @JoinColumn()
+    @ManyToOne(() => Role, (role) => role.users, {
+        eager: true,
+    })
     role: Role;
-
-    @ManyToOne(() => User, { nullable: true })
-    @JoinColumn()
-    deletedBy?: User;
-
-    @OneToMany(() => User, (user) => user.deletedBy)
-    deletedUsers: User[];
 
     // Consultant Profile relation
     @OneToOne(() => ConsultantProfile, (profile) => profile.user, {

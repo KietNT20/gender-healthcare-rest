@@ -402,8 +402,8 @@ export class UsersService {
     }
 
     async getCustomerRoleId(): Promise<string> {
-        const customerRole = await this.roleRepository.findOne({
-            where: { name: RolesNameEnum.CUSTOMER },
+        const customerRole = await this.roleRepository.findOneBy({
+            name: RolesNameEnum.CUSTOMER,
         });
 
         if (!customerRole) {

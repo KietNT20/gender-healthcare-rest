@@ -3,18 +3,20 @@ import { ContraceptiveRemindersController } from './contraceptive-reminders.cont
 import { ContraceptiveRemindersService } from './contraceptive-reminders.service';
 
 describe('ContraceptiveRemindersController', () => {
-  let controller: ContraceptiveRemindersController;
+    let controller: ContraceptiveRemindersController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ContraceptiveRemindersController],
-      providers: [ContraceptiveRemindersService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [ContraceptiveRemindersController],
+            providers: [ContraceptiveRemindersService],
+        }).compile();
 
-    controller = module.get<ContraceptiveRemindersController>(ContraceptiveRemindersController);
-  });
+        controller = module.get<ContraceptiveRemindersController>(
+            ContraceptiveRemindersController,
+        );
+    });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(controller).toBeDefined();
+    });
 });

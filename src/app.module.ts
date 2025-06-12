@@ -5,7 +5,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AnswersModule } from './modules/answers/answers.module';
-import { AppointmentServicesModule } from './modules/appointment-services/appointment-services.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -45,7 +44,7 @@ import { UsersModule } from './modules/users/users.module';
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true, // Đảm bảo ConfigModule là global để các module khác có thể sử dụng
+      isGlobal: true,
     }),
     ThrottlerModule.forRoot({
       throttlers: [

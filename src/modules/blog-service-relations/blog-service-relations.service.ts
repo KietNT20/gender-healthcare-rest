@@ -4,23 +4,26 @@ import { UpdateBlogServiceRelationDto } from './dto/update-blog-service-relation
 
 @Injectable()
 export class BlogServiceRelationsService {
-  create(createBlogServiceRelationDto: CreateBlogServiceRelationDto) {
-    return 'This action adds a new blogServiceRelation';
-  }
+    create(createBlogServiceRelationDto: CreateBlogServiceRelationDto) {
+        return 'This action adds a new blogServiceRelation';
+    }
 
-  findAll() {
-    return `This action returns all blogServiceRelations`;
-  }
+    findAll() {
+        return `This action returns all blogServiceRelations`;
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} blogServiceRelation`;
-  }
+    findOne(id: number) {
+        return `This action returns a #${id} blogServiceRelation`;
+    }
 
-  update(id: number, updateBlogServiceRelationDto: UpdateBlogServiceRelationDto) {
-    return `This action updates a #${id} blogServiceRelation`;
-  }
+    update(
+        id: number,
+        updateBlogServiceRelationDto: UpdateBlogServiceRelationDto,
+    ) {
+        return `This action updates a #${id} blogServiceRelation`;
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} blogServiceRelation`;
-  }
+    remove(id: number) {
+        return `This action removes a #${id} blogServiceRelation`;
+    }
 }

@@ -23,7 +23,7 @@ export class Role {
     name: RolesNameEnum;
 
     @Column({ length: 60, nullable: true })
-    description: string;
+    description?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -32,7 +32,7 @@ export class Role {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @OneToMany(() => User, (user) => user.role)

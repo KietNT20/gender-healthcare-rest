@@ -4,6 +4,7 @@ import { BcryptProvider } from '../auth/providers/bcrypt.provider';
 import { HashingProvider } from '../auth/providers/hashing.provider';
 import { Role } from '../roles/entities/role.entity';
 import { User } from './entities/user.entity';
+import { CreateGoogleUserProvider } from './provider/create-google-user.provider';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -12,11 +13,12 @@ import { UsersService } from './users.service';
     controllers: [UsersController],
     providers: [
         UsersService,
+        CreateGoogleUserProvider,
         {
             provide: HashingProvider,
             useClass: BcryptProvider,
         },
     ],
-    exports: [UsersService],
+    exports: [UsersService, CreateGoogleUserProvider],
 })
 export class UsersModule {}

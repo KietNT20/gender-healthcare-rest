@@ -8,6 +8,8 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { BcryptProvider } from './providers/bcrypt.provider';
+import { HashingProvider } from './providers/hashing.provider';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 
@@ -37,8 +39,12 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
         RefreshJwtStrategy,
         JwtAuthGuard,
         RoleGuard,
+        {
+            provide: HashingProvider,
+            useClass: BcryptProvider,
+        },
     ],
     controllers: [AuthController],
-    exports: [AuthService, JwtAuthGuard, RoleGuard],
+    exports: [AuthService, JwtAuthGuard, RoleGuard, HashingProvider],
 })
 export class AuthModule {}

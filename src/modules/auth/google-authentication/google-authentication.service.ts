@@ -9,6 +9,7 @@ import { ConfigService, ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
 import slugify from 'slugify';
+import { User } from 'src/modules/users/entities/user.entity';
 import { UsersService } from 'src/modules/users/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import googleAuthConfig from '../config/google-auth.config';
@@ -111,12 +112,12 @@ export class GoogleAuthenticationService implements OnModuleInit {
             firstName: given_name || 'User',
             lastName: family_name || 'Google',
             email: email.toLowerCase(),
-            password: 'google_auth_' + uuidv4(), // Random password for Google users
+            password: 'google_auth_' + uuidv4(),
             googleId,
             slug,
             roleId: customerRoleId,
             profilePicture: picture,
-            emailVerified: true, // Google emails are verified
+            emailVerified: true,
             isActive: true,
             locale: 'vi',
         };
@@ -137,7 +138,7 @@ export class GoogleAuthenticationService implements OnModuleInit {
         return this.generateTokens(user);
     }
 
-    private async generateTokens(user: any) {
+    private async generateTokens(user: User) {
         const payload = { sub: user.id, email: user.email };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, {

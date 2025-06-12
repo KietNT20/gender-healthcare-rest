@@ -111,6 +111,10 @@ export class AuthService {
             throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
         }
 
+        if (!user.password) {
+            throw new BadRequestException('Password not found');
+        }
+
         // Verify password
         const isPasswordValid = await this.hashingProvider.comparePassword(
             loginDto.password,

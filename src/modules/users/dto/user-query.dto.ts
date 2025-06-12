@@ -1,39 +1,52 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { SortOrder } from 'src/enums';
 
-export class UserQueryDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    page: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsNumber()
-    limit: number;
-
-    @ApiPropertyOptional()
+export class GetUserQueryDto {
     @IsOptional()
     @IsString()
     fullName?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     email?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     phone?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     roleId?: string;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({
+        description: 'Filter by active status',
+        default: true,
+        type: 'boolean',
+    })
     @IsOptional()
     @IsBoolean()
     isActive?: boolean = true;
+
+    @ApiPropertyOptional({
+        enum: ['firstName', 'lastName', 'email', 'createdAt', 'updatedAt'],
+        default: 'createdAt',
+    })
+    @IsOptional()
+    @IsString()
+    sortBy?: string = 'createdAt';
+
+    @ApiPropertyOptional({
+        enum: SortOrder,
+        default: SortOrder.DESC,
+    })
+    @IsOptional()
+    @IsEnum(SortOrder)
+    sortOrder?: SortOrder = SortOrder.DESC;
 }
+
+export class UserQueryDto extends IntersectionType(
+    GetUserQueryDto,
+    PaginationDto,
+) {}

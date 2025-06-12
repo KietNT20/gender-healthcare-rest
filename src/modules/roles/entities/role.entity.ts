@@ -19,6 +19,7 @@ export class Role {
         type: 'enum',
         enum: RolesNameEnum,
         default: RolesNameEnum.CUSTOMER,
+        unique: true,
     })
     name: RolesNameEnum;
 

@@ -12,6 +12,8 @@ import { BcryptProvider } from './providers/bcrypt.provider';
 import { HashingProvider } from './providers/hashing.provider';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
+import { GoogleAuthenticationController } from './google-authentication/google-authentication.controller';
+import { GoogleAuthenticationService } from './google-authentication/google-authentication.service';
 
 @Module({
     imports: [
@@ -22,10 +24,7 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
             useFactory: async (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET'),
                 signOptions: {
-                    expiresIn: configService.get<string>(
-                        'JWT_EXPIRATION_TIME',
-                        '1h',
-                    ),
+                    expiresIn: configService.get<string>('JWT_EXPIRATION_TIME'),
                 },
             }),
             inject: [ConfigService],
@@ -43,8 +42,9 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
             provide: HashingProvider,
             useClass: BcryptProvider,
         },
+        GoogleAuthenticationService,
     ],
-    controllers: [AuthController],
+    controllers: [AuthController, GoogleAuthenticationController],
     exports: [AuthService, JwtAuthGuard, RoleGuard, HashingProvider],
 })
 export class AuthModule {}

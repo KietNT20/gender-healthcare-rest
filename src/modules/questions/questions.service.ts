@@ -134,7 +134,7 @@ export class QuestionsService {
         const { page, limit } = options;
 
         const [questions, total] = await this.questionRepository.findAndCount({
-            where: { userId },
+            where: { user: { id: userId } },
             relations: ['category', 'answers', 'answers.consultant'],
             order: { createdAt: 'DESC' },
             skip: (page - 1) * limit,
@@ -190,7 +190,7 @@ export class QuestionsService {
             throw new NotFoundException('Question not found');
         }
 
-        if (question.userId !== userId) {
+        if (question.user.id !== userId) {
             throw new ForbiddenException(
                 'You can only update your own questions',
             );
@@ -245,7 +245,7 @@ export class QuestionsService {
         }
 
         // Only question owner can delete
-        if (question.userId !== userId) {
+        if (question.user.id !== userId) {
             throw new ForbiddenException(
                 'You can only delete your own questions',
             );

@@ -20,6 +20,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
@@ -170,5 +171,15 @@ export class UsersController {
     ): Promise<{ message: string }> {
         await this.usersService.remove(id, currentUser.id);
         return { message: 'User deleted successfully' };
+    }
+
+    @Post('bulk')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiOperation({ summary: 'Create multiple users' })
+    @ApiResponse({ status: 201, description: 'Users created successfully' })
+    @ResponseMessage('Users created successfully')
+    createMany(@Body() createManyUsersDto: CreateManyUsersDto) {
+        return this.usersService.createMany(createManyUsersDto);
     }
 }

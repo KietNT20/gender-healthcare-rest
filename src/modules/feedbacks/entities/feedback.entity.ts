@@ -16,50 +16,48 @@ import {
 @Entity('feedbacks')
 export class Feedback {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+  id: string;
 
-    @Column({ type: 'integer' })
-    @Index('idx_feedbacks_rating')
-    rating: number;
+  @Column({ name: 'consultant_id', nullable: true })
+  @Index('idx_feedbacks_consultant_id')
+  consultantId: string;
 
-    @Column({ type: 'text', nullable: true })
-    comment: string;
+  @Column({ type: 'integer' })
+  @Index('idx_feedbacks_rating')
+  rating: number;
 
-    @Column({ default: false, name: 'is_anonymous' })
-    isAnonymous: boolean;
+  @Column({ type: 'text', nullable: true })
+  comment: string;
 
-    @Column({ default: true, name: 'is_public' })
-    isPublic: boolean;
+  @Column({ default: false, name: 'is_anonymous' })
+  isAnonymous: boolean;
 
-    @Column({ type: 'text', nullable: true, name: 'staff_response' })
-    staffResponse: string;
+  @Column({ type: 'text', nullable: true, name: 'staff_response' })
+  staffResponse: string;
 
-    @Column({ type: 'text', array: true, nullable: true })
-    categories: string[];
+  @Column({ type: 'text', array: true, nullable: true })
+  categories: string[];
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-    @Index('idx_feedbacks_deleted_at')
-    deletedAt?: Date;
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  @Index('idx_feedbacks_deleted_at')
+  deletedAt?: Date;
 
-    // Relations
-    @ManyToOne(() => User, (user) => user.feedbacks)
-    user: User;
+  // Relations
+  @ManyToOne(() => User, (user) => user.feedbacks)
+  user: User;
 
-    @ManyToOne(() => Service, (service) => service.feedbacks)
-    service: Service;
+  @ManyToOne(() => Service, (service) => service.feedbacks)
+  service: Service;
 
-    @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-    appointment: Appointment;
+  @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
+  appointment: Appointment;
 
-    @ManyToOne(
-        () => ConsultantProfile,
-        (consultant) => consultant.consultantFeedbacks,
-    )
-    consultant: ConsultantProfile;
+  @ManyToOne(() => ConsultantProfile, (consultant) => consultant.consultantFeedbacks)
+  consultant: ConsultantProfile;
 }

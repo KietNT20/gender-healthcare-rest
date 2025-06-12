@@ -41,10 +41,6 @@ import {
     isAnonymous?: boolean;
   
     @IsOptional()
-    @IsBoolean()
-    isPublic?: boolean;
-  
-    @IsOptional()
     @IsString()
     staffResponse?: string;
   

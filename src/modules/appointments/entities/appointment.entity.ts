@@ -119,6 +119,6 @@ export class Appointment {
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];
 
-    @ManyToMany(() => Service, (service) => service.appointments)
+    @ManyToMany(() => Service)
     services: Service[];
 }

@@ -9,8 +9,8 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-
-@Entity()
+    
+    @Entity()
 export class TestResult {
     @PrimaryGeneratedColumn('uuid')
     id: string;

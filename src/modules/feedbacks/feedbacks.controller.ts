@@ -6,10 +6,13 @@ import {
     Patch,
     Param,
     Delete,
+    UploadedFile,
+    UseInterceptors,
 } from '@nestjs/common';
 import { FeedbacksService } from './feedbacks.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('feedbacks')
 export class FeedbacksController {
@@ -42,4 +45,5 @@ export class FeedbacksController {
     async remove(@Param('id') id: string) {
         return this.feedbacksService.remove(id);
     }
+    
 }

@@ -106,7 +106,7 @@ export class Blog {
     @JoinColumn()
     publishedByUser: User;
 
-    @ManyToMany(() => Service, (service) => service.blogs)
+    @ManyToMany(() => Service)
     @JoinTable()
     services: Service[];
 }

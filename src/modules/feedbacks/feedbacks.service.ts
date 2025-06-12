@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { Feedback } from './entities/feedback.entity';
-import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class FeedbacksService {

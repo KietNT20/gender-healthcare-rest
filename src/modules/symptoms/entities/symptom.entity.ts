@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -33,7 +32,6 @@ export class Symptom {
 
     // Relations
     @ManyToOne(() => Category, (category) => category.symptoms)
-    @JoinColumn()
     category: Category;
 
     @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.symptom)

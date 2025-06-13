@@ -3,7 +3,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -13,9 +12,6 @@ import {
 export class MenstrualPrediction {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column({ nullable: true })
-    userId: string;
 
     @Column({ type: 'date' })
     predictedCycleStart: Date;
@@ -47,7 +43,7 @@ export class MenstrualPrediction {
         type: 'timestamp with time zone',
         nullable: true,
     })
-    notificationSentAt: Date;
+    notificationSentAt?: Date;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -59,6 +55,5 @@ export class MenstrualPrediction {
     @ManyToOne(() => User, (user) => user.menstrualPredictions, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     user: User;
 }

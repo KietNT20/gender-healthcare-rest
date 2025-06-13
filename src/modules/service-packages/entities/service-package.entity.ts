@@ -34,7 +34,7 @@ export class ServicePackage {
     isActive: boolean;
 
     @Column({ nullable: true })
-    maxServicesPerMonth: number;
+    maxServicesPerMonth?: number;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -43,7 +43,7 @@ export class ServicePackage {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @OneToMany(() => PackageService, (packageService) => packageService.package)

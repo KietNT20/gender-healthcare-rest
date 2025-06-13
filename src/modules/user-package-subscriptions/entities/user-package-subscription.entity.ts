@@ -8,7 +8,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -19,12 +18,6 @@ import {
 export class UserPackageSubscription {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column()
-    userId: string;
-
-    @Column()
-    packageId: string;
 
     @Column({ type: 'date' })
     startDate: Date;
@@ -42,9 +35,6 @@ export class UserPackageSubscription {
     @Column({ default: false })
     autoRenew: boolean;
 
-    @Column({ nullable: true })
-    paymentId: string;
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -52,22 +42,19 @@ export class UserPackageSubscription {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.packageSubscriptions)
-    @JoinColumn()
     user: User;
 
     @ManyToOne(
         () => ServicePackage,
         (servicePackage) => servicePackage.subscriptions,
     )
-    @JoinColumn()
     package: ServicePackage;
 
     @ManyToOne(() => Payment, (payment) => payment.packageSubscriptions)
-    @JoinColumn()
     payment: Payment;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.subscription)

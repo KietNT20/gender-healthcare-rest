@@ -21,6 +21,7 @@
     "doc": "npx @compodoc/compodoc -p tsconfig.json --serve --port 3334 --watch -d ./documentation"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.828.0",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

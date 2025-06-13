@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -19,50 +18,46 @@ export class MenstrualCycle {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ nullable: true })
-    @Index()
-    userId: string;
-
     @Column({ type: 'date' })
     @Index()
     cycleStartDate: Date;
 
     @Column({ type: 'date', nullable: true })
-    cycleEndDate: Date;
+    cycleEndDate?: Date;
 
     @Column({ nullable: true })
-    cycleLength: number;
+    cycleLength?: number;
 
     @Column({ nullable: true })
-    periodLength: number;
+    periodLength?: number;
 
     @Column({ type: 'text', array: true, nullable: true })
-    symptoms: string[];
+    symptoms?: string[];
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes?: string;
 
     @Column({ nullable: true })
-    flowIntensity: number;
+    flowIntensity?: number;
 
     @Column({ type: 'text', array: true, nullable: true })
-    mood: string[];
+    mood?: string[];
 
     @Column({ nullable: true })
-    painLevel: number;
+    painLevel?: number;
 
     @Column({
         type: 'text',
         array: true,
         nullable: true,
     })
-    medicationTaken: string[];
+    medicationTaken?: string[];
 
     @Column({ type: 'decimal', precision: 4, scale: 1, nullable: true })
-    temperature: number;
+    temperature?: number;
 
     @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    weight: number;
+    weight?: number;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -72,13 +67,12 @@ export class MenstrualCycle {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.menstrualCycles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     user: User;
 
     @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)

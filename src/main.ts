@@ -1,6 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { config } from 'aws-sdk';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
@@ -40,6 +42,20 @@ async function bootstrap() {
     const documentFactory = () =>
         SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api', app, documentFactory);
+
+    // Setup AWS S3
+    const configService = app.get(ConfigService);
+    config.update({
+        credentials: {
+            accessKeyId: configService.get<string>(
+                'appConfig.awsAccessKeyId',
+            ) as string,
+            secretAccessKey: configService.get<string>(
+                'appConfig.awsSecretAccessKey',
+            ) as string,
+        },
+        region: configService.get<string>('appConfig.awsRegion') as string,
+    });
 
     await app.listen(process.env.PORT ?? 3333);
 }

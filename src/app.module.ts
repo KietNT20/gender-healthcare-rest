@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import appConfig from './config/app.config';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
@@ -29,7 +30,6 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { QuestionTagsModule } from './modules/question-tags/question-tags.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
@@ -45,7 +45,7 @@ import { UsersModule } from './modules/users/users.module';
         ConfigModule.forRoot({
             envFilePath: '.env',
             isGlobal: true,
-            load: [googleAuthConfig],
+            load: [googleAuthConfig, appConfig],
         }),
         ThrottlerModule.forRoot({
             throttlers: [
@@ -100,7 +100,6 @@ import { UsersModule } from './modules/users/users.module';
         PackageServicesModule,
         PaymentsModule,
         QuestionsModule,
-        QuestionTagsModule,
         RolesModule,
         ServicePackagesModule,
         ServicesModule,

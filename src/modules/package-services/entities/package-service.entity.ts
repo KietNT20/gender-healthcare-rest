@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -14,12 +13,6 @@ import {
 export class PackageService {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column()
-    packageId: string;
-
-    @Column()
-    serviceId: string;
 
     @Column({ nullable: true })
     quantityLimit: number;
@@ -43,10 +36,8 @@ export class PackageService {
         () => ServicePackage,
         (servicePackage) => servicePackage.packageServices,
     )
-    @JoinColumn()
     package: ServicePackage;
 
     @ManyToOne(() => Service, (service) => service.packageServices)
-    @JoinColumn()
     service: Service;
 }

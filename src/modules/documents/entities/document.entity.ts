@@ -55,7 +55,13 @@ export class Document {
     hash?: string;
 
     @Column({ type: 'jsonb', nullable: true })
-    metadata?: any;
+    metadata?: {
+        s3Key?: string;
+        uploadedAt?: string;
+        lastAccessed?: string;
+        downloadCount?: number;
+        [key: string]: any;
+    };
 
     @CreateDateColumn()
     createdAt: Date;

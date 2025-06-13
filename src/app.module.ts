@@ -1,9 +1,9 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import appConfig from './config/app.config';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
@@ -21,6 +21,8 @@ import { CycleSymptomsModule } from './modules/cycle-symptoms/cycle-symptoms.mod
 import { DocumentsModule } from './modules/documents/documents.module';
 import { EmploymentContractsModule } from './modules/employment-contracts/employment-contracts.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
+import awsConfig from './modules/files/config/aws.config';
+import { FilesModule } from './modules/files/files.module';
 import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
@@ -45,7 +47,7 @@ import { UsersModule } from './modules/users/users.module';
         ConfigModule.forRoot({
             envFilePath: '.env',
             isGlobal: true,
-            load: [googleAuthConfig, appConfig],
+            load: [googleAuthConfig, awsConfig],
         }),
         ThrottlerModule.forRoot({
             throttlers: [
@@ -74,6 +76,22 @@ import { UsersModule } from './modules/users/users.module';
                 synchronize: true,
                 autoLoadEntities: true,
                 dropSchema: false,
+            }),
+            inject: [ConfigService],
+        }),
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                connection: {
+                    host: configService.get('REDIS_HOST', 'localhost'),
+                    port: configService.get('REDIS_PORT', 6379),
+                    password: configService.get('REDIS_PASSWORD'),
+                    db: configService.get('REDIS_DB', 0),
+                },
+                defaultJobOptions: {
+                    removeOnComplete: 10,
+                    removeOnFail: 50,
+                },
             }),
             inject: [ConfigService],
         }),
@@ -110,6 +128,7 @@ import { UsersModule } from './modules/users/users.module';
         UsersModule,
         AuthModule,
         AuditLogsModule,
+        FilesModule,
     ],
     providers: [
         {

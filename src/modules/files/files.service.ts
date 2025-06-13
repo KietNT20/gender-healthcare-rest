@@ -422,4 +422,8 @@ export class FilesService {
             return null;
         }
     }
+
+    public getAwsS3Service(): AwsS3Service {
+        return this.s3Service;
+    }
 }

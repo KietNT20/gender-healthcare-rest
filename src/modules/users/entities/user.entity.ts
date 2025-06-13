@@ -22,7 +22,7 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
+    Index,
     ManyToOne,
     OneToMany,
     OneToOne,
@@ -36,15 +36,26 @@ export class User {
     id: string;
 
     @Column({ type: 'varchar', length: 60, unique: true })
+    @Index()
     email: string;
 
-    @Column({ type: 'varchar', length: 60, select: false })
-    password: string;
+    @Column({ type: 'varchar', length: 60, nullable: true })
+    password?: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    @Index()
+    googleId?: string;
 
     @Column({ type: 'varchar', length: 255 })
-    fullName: string;
+    @Index()
+    firstName: string;
+
+    @Column({ type: 'varchar', length: 255 })
+    @Index()
+    lastName: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
+    @Index()
     slug: string;
 
     @Column({ type: 'date', nullable: true })
@@ -58,6 +69,7 @@ export class User {
     gender?: GenderType;
 
     @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+    @Index()
     phone?: string;
 
     @Column({ type: 'text', nullable: true })
@@ -142,6 +154,9 @@ export class User {
     })
     refreshToken?: string;
 
+    @Column({ nullable: true })
+    deletedByUserId?: string;
+
     @Column({ default: 0 })
     version: number;
 
@@ -150,27 +165,15 @@ export class User {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    // Foreign Keys
-    @Column()
-    roleId: string;
-
-    @Column({ nullable: true })
-    deletedById?: string;
-
     // Relations
-    @ManyToOne(() => Role, (role) => role.users)
-    @JoinColumn()
+    @ManyToOne(() => Role, (role) => role.users, {
+        eager: true,
+    })
     role: Role;
-
-    @ManyToOne(() => User, { nullable: true })
-    @JoinColumn()
-    deletedBy?: User;
-
-    @OneToMany(() => User, (user) => user.deletedBy)
-    deletedUsers: User[];
 
     // Consultant Profile relation
     @OneToOne(() => ConsultantProfile, (profile) => profile.user, {

@@ -12,7 +12,6 @@ import {
     PrimaryGeneratedColumn,
     Tree,
     TreeChildren,
-    TreeLevelColumn,
     TreeParent,
     UpdateDateColumn,
 } from 'typeorm';
@@ -45,10 +44,7 @@ export class Category {
     children: Category[];
 
     @TreeParent()
-    parent: Category | null;
-
-    // @TreeLevelColumn()
-    // level: number;
+    parent: Category;
 
     @CreateDateColumn()
     createdAt: Date;

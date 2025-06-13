@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +12,7 @@ import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { HashingProvider } from './providers/hashing.provider';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +21,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly mailService: MailService,
+        private readonly hashingProvider: HashingProvider,
     ) {}
 
     async register(registerDto: RegisterDto) {
@@ -33,7 +34,9 @@ export class AuthService {
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(registerDto.password, 12);
+        const hashedPassword = await this.hashingProvider.hashPassword(
+            registerDto.password,
+        );
 
         // Generate verification token
         const emailVerificationToken = randomBytes(32).toString('hex');
@@ -42,8 +45,10 @@ export class AuthService {
             emailVerificationExpires.getHours() + 24,
         );
 
+        const userSlug = `${registerDto.firstName} ${registerDto.lastName} ${registerDto.email}`;
+
         // Generate slug for user
-        const baseSlug = slugify(registerDto.fullName, {
+        const baseSlug = slugify(userSlug, {
             lower: true,
             strict: true,
         });
@@ -106,8 +111,12 @@ export class AuthService {
             throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
         }
 
+        if (!user.password) {
+            throw new BadRequestException('Password not found');
+        }
+
         // Verify password
-        const isPasswordValid = await bcrypt.compare(
+        const isPasswordValid = await this.hashingProvider.comparePassword(
             loginDto.password,
             user.password,
         );
@@ -142,7 +151,7 @@ export class AuthService {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: user.fullName,
+                fullName: user.firstName + ' ' + user.lastName,
                 role: user.role,
                 emailVerified: user.emailVerified,
             },
@@ -203,7 +212,7 @@ export class AuthService {
         await this.mailService.sendEmailVerification(
             user.email,
             emailVerificationToken,
-            user.fullName,
+            user.firstName + ' ' + user.lastName,
         );
 
         return {
@@ -238,7 +247,7 @@ export class AuthService {
             await this.mailService.sendPasswordReset(
                 user.email,
                 passwordResetToken,
-                user.fullName,
+                user.firstName + ' ' + user.lastName,
             );
         } catch (error) {
             console.error('Failed to send password reset email:', error);
@@ -266,7 +275,8 @@ export class AuthService {
         }
 
         // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        const hashedPassword =
+            await this.hashingProvider.hashPassword(newPassword);
 
         // Update password and clear reset token
         await this.usersService.updatePassword(user.id, hashedPassword);
@@ -325,7 +335,7 @@ export class AuthService {
                 id: user.id,
                 email: user.email,
                 role: user.role?.name || 'user',
-                fullName: user.fullName,
+                fullName: user.firstName + ' ' + user.lastName,
             };
         } catch (error) {
             throw new UnauthorizedException('Invalid token');

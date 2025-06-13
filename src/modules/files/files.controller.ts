@@ -39,40 +39,6 @@ export class FilesController {
     @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Upload an image' })
     @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                },
-                altText: {
-                    type: 'string',
-                    description: 'Alternative text for the image',
-                },
-                entityType: {
-                    type: 'string',
-                    description: 'Entity type this image belongs to',
-                },
-                entityId: {
-                    type: 'string',
-                    description: 'Entity ID this image belongs to',
-                },
-                generateThumbnails: {
-                    type: 'boolean',
-                    description: 'Whether to generate thumbnails',
-                    default: true,
-                },
-                isPublic: {
-                    type: 'boolean',
-                    description: 'Whether this image is public',
-                    default: true,
-                },
-            },
-            required: ['file'],
-        },
-    })
     @ApiResponse({
         status: 201,
         description: 'Image uploaded successfully',
@@ -91,49 +57,6 @@ export class FilesController {
     @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Upload a document' })
     @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                },
-                name: {
-                    type: 'string',
-                    description: 'Document name/title',
-                },
-                description: {
-                    type: 'string',
-                    description: 'Document description',
-                },
-                documentType: {
-                    type: 'string',
-                    description: 'Document type/category',
-                },
-                entityType: {
-                    type: 'string',
-                    description: 'Entity type this document belongs to',
-                },
-                entityId: {
-                    type: 'string',
-                    description: 'Entity ID this document belongs to',
-                },
-                isPublic: {
-                    type: 'boolean',
-                    description: 'Whether this document is public',
-                    default: false,
-                },
-                isSensitive: {
-                    type: 'boolean',
-                    description:
-                        'Whether this document contains sensitive information',
-                    default: false,
-                },
-            },
-            required: ['file'],
-        },
-    })
     @ApiResponse({
         status: 201,
         description: 'Document uploaded successfully',

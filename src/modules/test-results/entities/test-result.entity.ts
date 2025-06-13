@@ -1,10 +1,14 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -50,12 +54,19 @@ export class TestResult {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
+
     // Relations
-    @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
+    @OneToOne(() => Appointment, (appointment) => appointment.testResult, {
         onDelete: 'CASCADE',
     })
     appointment: Appointment;
 
+    @OneToOne(() => Service)
+    @JoinColumn()
+    service: Service;
+
     @ManyToOne(() => User, (user) => user.testResults)
-    staff: User;
+    user: User;
 }

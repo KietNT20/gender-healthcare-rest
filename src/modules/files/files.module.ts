@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Document } from '../documents/entities/document.entity';
 import { Image } from '../images/entities/image.entity';
 import { AwsS3Service } from './aws-s3.service';
-import awsConfig from './config/aws.config';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { ImageProcessor } from './processors/image.processor';
@@ -13,18 +12,9 @@ import { ImageProcessor } from './processors/image.processor';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Document, Image]),
-        ConfigModule.forFeature(awsConfig),
+        ConfigModule,
         BullModule.registerQueue({
             name: 'image-processing',
-            defaultJobOptions: {
-                removeOnComplete: 10,
-                removeOnFail: 50,
-                attempts: 3,
-                backoff: {
-                    type: 'exponential',
-                    delay: 2000,
-                },
-            },
         }),
     ],
     controllers: [FilesController],

@@ -1,16 +1,17 @@
 import { ContentStatusType } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
+import { Image } from 'src/modules/images/entities/image.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
-    DeleteDateColumn,
     Entity,
     Index,
     JoinTable,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -84,10 +85,6 @@ export class Blog {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    @Index()
-    deletedAt?: Date;
-
     // Relations
     @ManyToOne(() => User, (user) => user.authoredBlogs)
     author: User;
@@ -104,4 +101,7 @@ export class Blog {
     @ManyToMany(() => Service, (service) => service.blogs)
     @JoinTable()
     services: Service[];
+
+    @OneToMany(() => Image, (image) => image.blog)
+    images: Image[];
 }

@@ -1,119 +1,146 @@
 import {
+    BadRequestException,
     Body,
     Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
     Post,
+    Query,
+    Res,
     UploadedFile,
-    UploadedFiles,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
     ApiOperation,
-    ApiResponse,
-    ApiTags,
+    ApiQuery,
 } from '@nestjs/swagger';
-import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from '../users/entities/user.entity';
-import {
-    BulkUploadDto,
-    FileUploadResponseDto,
-    UploadDocumentDto,
-    UploadImageDto,
-} from './dto/upload-file.dto';
+import { UploadDocumentDto, UploadImageDto } from './dto/upload-file.dto';
 import { FilesService } from './files.service';
+import { UploadDocumentOptions, UploadImageOptions } from './interfaces';
 
-@ApiTags('Files')
 @ApiBearerAuth()
-@Controller('files')
 @UseGuards(JwtAuthGuard)
+@Controller('files')
 export class FilesController {
     constructor(private readonly filesService: FilesService) {}
 
-    @Post('upload-image')
+    @Post('image')
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Upload an image' })
+    @ApiOperation({ summary: 'Tải lên một file ảnh và đưa vào hàng đợi xử lý' })
     @ApiConsumes('multipart/form-data')
-    @ApiResponse({
-        status: 201,
-        description: 'Image uploaded successfully',
-        type: FileUploadResponseDto,
-    })
-    @ResponseMessage('Image uploaded successfully')
+    @ApiBody({ type: UploadImageDto })
     async uploadImage(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadDto: UploadImageDto,
-        @CurrentUser() user: User,
-    ): Promise<FileUploadResponseDto> {
-        return this.filesService.uploadImage(file, uploadDto, user.id);
+        @Body() body: UploadImageDto,
+    ) {
+        if (!body.entityId || !body.entityType) {
+            throw new BadRequestException(
+                'entityId and entityType are required fields.',
+            );
+        }
+        if (!file) {
+            throw new BadRequestException('File is required.');
+        }
+
+        const options: UploadImageOptions = {
+            file,
+            entityId: body.entityId,
+            entityType: body.entityType,
+            altText: body.altText,
+            isPublic: body.isPublic,
+            generateThumbnails: body.generateThumbnails,
+        };
+        return this.filesService.uploadImage(options);
     }
 
-    @Post('upload-document')
+    @Post('document')
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Upload a document' })
+    @ApiOperation({ summary: 'Tải lên một file tài liệu' })
     @ApiConsumes('multipart/form-data')
-    @ApiResponse({
-        status: 201,
-        description: 'Document uploaded successfully',
-        type: FileUploadResponseDto,
-    })
-    @ResponseMessage('Document uploaded successfully')
+    @ApiBody({ type: UploadDocumentDto })
     async uploadDocument(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadDto: UploadDocumentDto,
-        @CurrentUser() user: User,
-    ): Promise<FileUploadResponseDto> {
-        return this.filesService.uploadDocument(file, uploadDto, user.id);
+        @Body() body: UploadDocumentDto,
+    ) {
+        if (!body.entityId || !body.entityType) {
+            throw new BadRequestException(
+                'entityId and entityType are required fields.',
+            );
+        }
+        if (!file) {
+            throw new BadRequestException('File is required.');
+        }
+
+        const options: UploadDocumentOptions = {
+            file,
+            entityId: body.entityId,
+            entityType: body.entityType,
+            description: body.description,
+            isPublic: body.isPublic,
+            isSensitive: body.isSensitive,
+        };
+        return this.filesService.uploadDocument(options);
     }
 
-    @Post('upload-bulk')
-    @UseInterceptors(FilesInterceptor('files', 10)) // Max 10 files
-    @ApiOperation({ summary: 'Upload multiple files' })
-    @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                files: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                        format: 'binary',
-                    },
-                },
-                entityType: {
-                    type: 'string',
-                    description: 'Entity type for all files',
-                },
-                entityId: {
-                    type: 'string',
-                    description: 'Entity ID for all files',
-                },
-                isPublic: {
-                    type: 'boolean',
-                    description: 'Whether all files are public',
-                    default: false,
-                },
-            },
-            required: ['files'],
-        },
+    @Get('images/entity')
+    @ApiOperation({ summary: 'Lấy danh sách ảnh theo một đối tượng cụ thể' })
+    async getImagesByEntity(
+        @Query('entityType') entityType: string,
+        @Query('entityId', ParseUUIDPipe) entityId: string,
+    ) {
+        return this.filesService.getImagesByEntity(entityType, entityId);
+    }
+
+    @Get('documents/entity')
+    @ApiOperation({
+        summary: 'Lấy danh sách tài liệu theo một đối tượng cụ thể',
     })
-    @ApiResponse({
-        status: 201,
-        description: 'Files uploaded successfully',
-        type: [FileUploadResponseDto],
+    async getDocumentsByEntity(
+        @Query('entityType') entityType: string,
+        @Query('entityId', ParseUUIDPipe) entityId: string,
+    ) {
+        return this.filesService.getDocumentsByEntity(entityType, entityId);
+    }
+
+    @Delete('image/:id')
+    @ApiOperation({ summary: 'Xóa một ảnh (soft delete)' })
+    async deleteImage(@Param('id', ParseUUIDPipe) id: string) {
+        await this.filesService.deleteImage(id);
+        return { statusCode: 200, message: 'Image deleted successfully' };
+    }
+
+    @Delete('document/:id')
+    @ApiOperation({ summary: 'Xóa một tài liệu (soft delete)' })
+    async deleteDocument(@Param('id', ParseUUIDPipe) id: string) {
+        await this.filesService.deleteDocument(id);
+        return { statusCode: 200, message: 'Document deleted successfully' };
+    }
+
+    @Get('download/:id')
+    @ApiOperation({
+        summary: 'Tải về nội dung của một file (ảnh hoặc tài liệu)',
     })
-    @ResponseMessage('Files uploaded successfully')
-    async uploadMultipleFiles(
-        @UploadedFiles() files: Express.Multer.File[],
-        @Body() uploadDto: BulkUploadDto,
-        @CurrentUser() user: User,
-    ): Promise<FileUploadResponseDto[]> {
-        return this.filesService.uploadMultipleFiles(files, uploadDto, user.id);
+    @ApiQuery({ name: 'type', required: true, enum: ['image', 'document'] })
+    async downloadFile(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Query('type') type: 'image' | 'document',
+        @Res() res: Response,
+    ) {
+        const fileData = await this.filesService.downloadFile(id, type);
+        res.setHeader('Content-Type', fileData.mimeType);
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${fileData.filename}"`,
+        );
+        res.send(fileData.buffer);
     }
 }

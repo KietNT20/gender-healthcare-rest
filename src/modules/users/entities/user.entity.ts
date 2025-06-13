@@ -236,7 +236,7 @@ export class User {
     notifications: Notification[];
 
     // Test result relations
-    @OneToMany(() => TestResult, (testResult) => testResult.staff)
+    @OneToMany(() => TestResult, (testResult) => testResult.user)
     testResults: TestResult[];
 
     // Document & Image relations

@@ -93,7 +93,6 @@ export class AwsS3Service {
                 Body: file,
                 ContentType: contentType,
                 Metadata: options.metadata,
-                ACL: options.isPublic !== false ? 'public-read' : undefined,
                 Expires: options.expires
                     ? new Date(Date.now() + options.expires * 1000)
                     : undefined,

@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -18,28 +17,12 @@ export class Feedback {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ nullable: true })
-    @Index()
-    userId: string;
-
-    @Column({ nullable: true })
-    @Index()
-    serviceId: string;
-
-    @Column({ nullable: true })
-    @Index()
-    appointmentId: string;
-
-    @Column({ nullable: true })
-    @Index()
-    consultantId: string;
-
     @Column({ type: 'integer' })
     @Index()
     rating: number;
 
     @Column({ type: 'text', nullable: true })
-    comment: string;
+    comment?: string;
 
     @Column({ default: false })
     isAnonymous: boolean;
@@ -48,10 +31,7 @@ export class Feedback {
     isPublic: boolean;
 
     @Column({ type: 'text', nullable: true })
-    staffResponse: string;
-
-    @Column({ type: 'text', array: true, nullable: true })
-    categories: string[];
+    staffResponse?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -61,22 +41,18 @@ export class Feedback {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.feedbacks)
-    @JoinColumn()
     user: User;
 
-    @ManyToOne(() => Service)
-    @JoinColumn()
+    @ManyToOne(() => Service, (service) => service.feedbacks)
     service: Service;
 
     @ManyToOne(() => Appointment, (appointment) => appointment.feedbacks)
-    @JoinColumn()
     appointment: Appointment;
 
     @ManyToOne(() => User, (user) => user.consultantFeedbacks)
-    @JoinColumn()
     consultant: User;
 }

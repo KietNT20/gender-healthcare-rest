@@ -1,9 +1,9 @@
-import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
 import {
     Column,
     CreateDateColumn,
     Entity,
-    OneToMany,
+    ManyToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -26,6 +26,6 @@ export class Tag {
     updatedAt: Date;
 
     // Relations
-    @OneToMany(() => QuestionTag, (questionTag) => questionTag.tag)
-    questionTags: QuestionTag[];
+    @ManyToMany(() => Question, (question) => question.tags)
+    questions: Question[];
 }

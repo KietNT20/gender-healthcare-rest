@@ -1,7 +1,7 @@
 import { QuestionStatusType } from 'src/enums';
 import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
+import { Tag } from 'src/modules/tags/entities/tag.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -9,6 +9,8 @@ import {
     DeleteDateColumn,
     Entity,
     JoinColumn,
+    JoinTable,
+    ManyToMany,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -65,6 +67,7 @@ export class Question {
     @OneToMany(() => Answer, (answer) => answer.question)
     answers: Answer[];
 
-    @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
-    questionTags: QuestionTag[];
+    @ManyToMany(() => Tag, (tag) => tag.questions)
+    @JoinTable()
+    tags: Tag[];
 }

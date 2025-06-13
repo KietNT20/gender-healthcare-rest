@@ -46,7 +46,12 @@ export class RolesService {
             );
         }
 
-        return this.roleRepository.update(id, updateRoleDto);
+        await this.roleRepository.update(id, {
+            ...updateRoleDto,
+            updatedAt: new Date(),
+        });
+
+        return this.roleRepository.findOneBy({ id });
     }
 
     async remove(id: string) {

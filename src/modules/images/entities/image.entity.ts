@@ -3,8 +3,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -25,29 +23,25 @@ export class Image {
     size: number;
 
     @Column({ nullable: true })
-    width: number;
+    width?: number;
 
     @Column({ nullable: true })
-    height: number;
+    height?: number;
 
     @Column({ length: 10, nullable: true })
-    format: string;
+    format?: string;
 
     @Column({ length: 255, nullable: true })
-    altText: string;
+    altText?: string;
 
     @Column({ length: 50, nullable: true })
-    entityType: string;
+    entityType?: string;
 
     @Column({ type: 'uuid', nullable: true })
-    entityId: string;
+    entityId?: string;
 
     @Column({ default: false })
     isPublic: boolean;
-
-    @Column({ nullable: true })
-    @Index()
-    userId: string;
 
     @Column({ type: 'text', default: '' })
     url: string;
@@ -60,6 +54,5 @@ export class Image {
 
     // Relations
     @ManyToOne(() => User, (user) => user.images)
-    @JoinColumn()
     user: User;
 }

@@ -22,11 +22,7 @@ export class ConsultantProfile {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
-    @Index()
-    userId: string;
-
-    @Column({ length: 255 })
+    @Column({ length: 1024 })
     @Index()
     specialization: string;
 
@@ -37,10 +33,10 @@ export class ConsultantProfile {
     experience: string;
 
     @Column({ type: 'text', nullable: true })
-    bio: string;
+    bio?: string;
 
     @Column({ type: 'jsonb', nullable: true })
-    workingHours: WorkingHours;
+    workingHours?: WorkingHours;
 
     @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
     @Index()
@@ -58,13 +54,13 @@ export class ConsultantProfile {
     profileStatus: ProfileStatusType;
 
     @Column({ type: 'jsonb', nullable: true })
-    certificates: Certificates;
+    certificates?: Certificates;
 
     @Column({ type: 'text', array: true, nullable: true })
-    languages: string[];
+    languages?: string[];
 
     @Column({ type: 'text', nullable: true })
-    educationBackground: string;
+    educationBackground?: string;
 
     @Column({
         type: 'decimal',
@@ -82,14 +78,11 @@ export class ConsultantProfile {
     @Column({ default: false })
     isVerified: boolean;
 
-    @Column({ nullable: true })
-    verifiedById: string;
-
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
     })
-    verifiedAt: Date;
+    verifiedAt?: Date;
 
     @Column({
         type: 'enum',
@@ -107,7 +100,7 @@ export class ConsultantProfile {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @OneToOne(() => User, (user) => user.consultantProfile)
@@ -117,7 +110,6 @@ export class ConsultantProfile {
     @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
         nullable: true,
     })
-    @JoinColumn()
     verifiedBy: User;
 
     @OneToMany(

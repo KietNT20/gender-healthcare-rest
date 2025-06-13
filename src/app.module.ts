@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -20,6 +21,8 @@ import { CycleSymptomsModule } from './modules/cycle-symptoms/cycle-symptoms.mod
 import { DocumentsModule } from './modules/documents/documents.module';
 import { EmploymentContractsModule } from './modules/employment-contracts/employment-contracts.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
+import awsConfig from './modules/files/config/aws.config';
+import { FilesModule } from './modules/files/files.module';
 import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
@@ -29,7 +32,6 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { QuestionTagsModule } from './modules/question-tags/question-tags.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
@@ -45,7 +47,7 @@ import { UsersModule } from './modules/users/users.module';
         ConfigModule.forRoot({
             envFilePath: '.env',
             isGlobal: true,
-            load: [googleAuthConfig],
+            load: [googleAuthConfig, awsConfig],
         }),
         ThrottlerModule.forRoot({
             throttlers: [
@@ -77,6 +79,22 @@ import { UsersModule } from './modules/users/users.module';
             }),
             inject: [ConfigService],
         }),
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                connection: {
+                    host: configService.get('REDIS_HOST', 'localhost'),
+                    port: configService.get('REDIS_PORT', 6379),
+                    password: configService.get('REDIS_PASSWORD'),
+                    db: configService.get('REDIS_DB', 0),
+                },
+                defaultJobOptions: {
+                    removeOnComplete: 10,
+                    removeOnFail: 50,
+                },
+            }),
+            inject: [ConfigService],
+        }),
         AnswersModule,
         AppointmentsModule,
         BlogsModule,
@@ -100,7 +118,6 @@ import { UsersModule } from './modules/users/users.module';
         PackageServicesModule,
         PaymentsModule,
         QuestionsModule,
-        QuestionTagsModule,
         RolesModule,
         ServicePackagesModule,
         ServicesModule,
@@ -111,6 +128,7 @@ import { UsersModule } from './modules/users/users.module';
         UsersModule,
         AuthModule,
         AuditLogsModule,
+        FilesModule,
     ],
     providers: [
         {

@@ -9,7 +9,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -66,11 +65,10 @@ export class Service {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => Category, (category) => category.services)
-    @JoinColumn()
     category: Category;
 
     @OneToMany(() => Feedback, (feedback) => feedback.service)

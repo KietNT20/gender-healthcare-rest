@@ -6,7 +6,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -25,10 +24,10 @@ export class Answer {
     isAccepted: boolean;
 
     @Column({ default: 0 })
-    upvotes: number;
+    upVotes: number;
 
     @Column({ default: 0 })
-    downvotes: number;
+    downVotes: number;
 
     @Column({ default: false })
     isPrivate: boolean;
@@ -47,12 +46,10 @@ export class Answer {
     @ManyToOne(() => Question, (question) => question.answers, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     question: Question;
 
     @ManyToOne(() => ConsultantProfile, (consultant) => consultant.answers, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     consultant: ConsultantProfile;
 }

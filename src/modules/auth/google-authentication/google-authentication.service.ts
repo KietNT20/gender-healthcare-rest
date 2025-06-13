@@ -44,6 +44,7 @@ export class GoogleAuthenticationService implements OnModuleInit {
         });
 
         const payload = loginTicket.getPayload();
+        // Check if payload is valid
         if (!payload) {
             throw new UnauthorizedException('Invalid token payload');
         }
@@ -71,7 +72,7 @@ export class GoogleAuthenticationService implements OnModuleInit {
         }
 
         const googleUser: GoogleUser = {
-            email: email.toLowerCase(),
+            email: email.toLocaleLowerCase(),
             googleId,
             firstName: given_name,
             lastName: family_name,
@@ -128,7 +129,8 @@ export class GoogleAuthenticationService implements OnModuleInit {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: `${user.firstName} ${user.lastName}`,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 role: user.role,
                 emailVerified: user.emailVerified,
                 profilePicture: user.profilePicture,

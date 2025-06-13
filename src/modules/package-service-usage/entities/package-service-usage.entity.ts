@@ -5,7 +5,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -15,15 +14,6 @@ import {
 export class PackageServiceUsage {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column()
-    subscriptionId: string;
-
-    @Column()
-    serviceId: string;
-
-    @Column({ nullable: true })
-    appointmentId: string;
 
     @Column({ type: 'date', default: () => 'CURRENT_DATE' })
     usageDate: Date;
@@ -39,17 +29,14 @@ export class PackageServiceUsage {
         () => UserPackageSubscription,
         (subscription) => subscription.serviceUsages,
     )
-    @JoinColumn()
     subscription: UserPackageSubscription;
 
     @ManyToOne(() => Service, (service) => service.packageServiceUsages)
-    @JoinColumn()
     service: Service;
 
     @ManyToOne(
         () => Appointment,
         (appointment) => appointment.packageServiceUsages,
     )
-    @JoinColumn()
     appointment: Appointment;
 }

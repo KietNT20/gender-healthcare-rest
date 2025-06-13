@@ -4,28 +4,21 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    Index,
-    JoinColumn,
     ManyToOne,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class ContractFile {
-    @PrimaryColumn({})
-    @Index()
-    contractId: string;
-
-    @PrimaryColumn({})
-    @Index()
-    fileId: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({ length: 50, nullable: true })
-    fileType: string;
+    fileType?: string;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -37,12 +30,10 @@ export class ContractFile {
     @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     contract: EmploymentContract;
 
     @ManyToOne(() => Document, (document) => document.contractFiles, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     file: Document;
 }

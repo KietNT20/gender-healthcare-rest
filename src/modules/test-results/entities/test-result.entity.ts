@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -15,41 +14,35 @@ export class TestResult {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ nullable: true })
-    appointmentId: string;
-
-    @Column({ nullable: true })
-    staffId: string;
-
     @Column({ type: 'jsonb' })
     resultData: any;
 
     @Column({ type: 'text', nullable: true })
-    resultSummary: string;
+    resultSummary?: string;
 
     @Column({ default: false })
     isAbnormal: boolean;
 
     @Column({ type: 'text', nullable: true })
-    recommendation: string;
+    recommendation?: string;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
     })
-    viewedAt: Date;
+    viewedAt?: Date;
 
     @Column({ default: false })
     notificationSent: boolean;
 
     @Column({ type: 'text', array: true, nullable: true })
-    fileUploads: string[];
+    fileUploads?: string[];
 
     @Column({ default: false })
     followUpRequired: boolean;
 
     @Column({ type: 'text', nullable: true })
-    followUpNotes: string;
+    followUpNotes?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -61,10 +54,8 @@ export class TestResult {
     @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     appointment: Appointment;
 
     @ManyToOne(() => User, (user) => user.testResults)
-    @JoinColumn()
     staff: User;
 }

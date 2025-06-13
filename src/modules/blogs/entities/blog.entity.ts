@@ -8,7 +8,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -91,19 +90,15 @@ export class Blog {
 
     // Relations
     @ManyToOne(() => User, (user) => user.authoredBlogs)
-    @JoinColumn()
     author: User;
 
     @ManyToOne(() => Category)
-    @JoinColumn()
     category: Category;
 
     @ManyToOne(() => User, (user) => user.reviewedBlogs)
-    @JoinColumn()
     reviewedByUser: User;
 
     @ManyToOne(() => User, (user) => user.publishedBlogs)
-    @JoinColumn()
     publishedByUser: User;
 
     @ManyToMany(() => Service, (service) => service.blogs)

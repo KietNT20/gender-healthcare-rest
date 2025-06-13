@@ -1,3 +1,5 @@
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -55,4 +57,14 @@ export class Image {
     // Relations
     @ManyToOne(() => User, (user) => user.images)
     user: User;
+
+    @ManyToOne(() => Blog, (blog) => blog.images, {
+        onDelete: 'CASCADE',
+    })
+    blog: Blog;
+
+    @ManyToOne(() => Service, (service) => service.images, {
+        onDelete: 'CASCADE',
+    })
+    service: Service;
 }

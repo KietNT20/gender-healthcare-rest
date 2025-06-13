@@ -15,6 +15,7 @@ import {
     ManyToMany,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -109,8 +110,8 @@ export class Appointment {
     @OneToMany(() => Feedback, (feedback) => feedback.appointment)
     feedbacks: Feedback[];
 
-    @OneToMany(() => TestResult, (testResult) => testResult.appointment)
-    testResults: TestResult[];
+    @OneToOne(() => TestResult, (testResult) => testResult.appointment)
+    testResult: TestResult;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];

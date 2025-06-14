@@ -21,6 +21,11 @@ export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    
+
+    @Column({ type: 'uuid', nullable: true })
+    deletedByUserId?: string;
+
     @Column({ type: 'varchar', length: 255 })
     title: string;
 

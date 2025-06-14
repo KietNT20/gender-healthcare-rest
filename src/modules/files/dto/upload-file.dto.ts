@@ -10,6 +10,13 @@ import {
 
 export class UploadImageDto {
     @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        description: 'Image file to upload',
+    })
+    file: Express.Multer.File;
+
+    @ApiProperty({
         description: 'Type of entity (e.g., "user", "blog", "service")',
         example: 'user',
     })

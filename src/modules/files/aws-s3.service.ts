@@ -167,12 +167,23 @@ export class AwsS3Service {
     ): Promise<UploadResult> {
         const fileType = this.getFileTypeFromKey(key);
 
-        // Check if this should be private based on metadata
-        const isPublicRequest = options.metadata?.isPublic === 'true';
-        const shouldBePrivate =
-            !isPublicRequest || fileType === 'documents' || fileType === 'temp';
+        let shouldBePrivate: boolean;
 
-        // Set bucket options based on privacy requirement
+        if (
+            options.forcePublic !== undefined ||
+            options.forcePrivate !== undefined
+        ) {
+            // Respect explicit force flags
+            shouldBePrivate = options.forcePrivate || !options.forcePublic;
+        } else {
+            // Auto-detect based on metadata and file type
+            const isPublicRequest = options.metadata?.isPublic === 'true';
+            shouldBePrivate =
+                !isPublicRequest ||
+                fileType === 'documents' ||
+                fileType === 'temp';
+        }
+
         const bucketOptions: UploadOptions = {
             ...options,
             forcePublic: !shouldBePrivate,
@@ -191,8 +202,6 @@ export class AwsS3Service {
                 Body: file,
                 ContentType: contentType,
                 Metadata: options.metadata,
-                // Set ACL based on bucket type
-                ACL: bucketConfig.isPublic ? 'public-read' : 'private',
                 Expires: options.expires
                     ? new Date(Date.now() + options.expires * 1000)
                     : undefined,
@@ -239,7 +248,7 @@ export class AwsS3Service {
             forcePrivate: !isPublic,
             metadata: {
                 ...options.metadata,
-                isPublic: isPublic.toString(),
+                isPublic: isPublic ? 'true' : 'false',
             },
         });
     }

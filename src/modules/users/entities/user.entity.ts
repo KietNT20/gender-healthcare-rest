@@ -11,6 +11,7 @@ import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
 import { MenstrualPrediction } from 'src/modules/menstrual-predictions/entities/menstrual-prediction.entity';
+import { Message } from 'src/modules/messages/entities/message.entity';
 import { Notification } from 'src/modules/notifications/entities/notification.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Question } from 'src/modules/questions/entities/question.entity';
@@ -209,6 +210,9 @@ export class User {
     // Question & Answer relations
     @OneToMany(() => Question, (question) => question.user)
     questions: Question[];
+
+    @OneToMany(() => Message, (message) => message.sender)
+    messages: Message[];
 
     // Feedback relations
     @OneToMany(() => Feedback, (feedback) => feedback.user)

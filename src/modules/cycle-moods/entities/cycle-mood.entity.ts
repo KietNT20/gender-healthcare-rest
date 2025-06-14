@@ -4,28 +4,21 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    Index,
-    JoinColumn,
     ManyToOne,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class CycleMood {
-    @PrimaryColumn({})
-    @Index()
-    cycleId: string;
-
-    @PrimaryColumn({})
-    @Index()
-    moodId: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({ nullable: true })
-    intensity: number;
+    intensity?: number;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    notes?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -35,10 +28,8 @@ export class CycleMood {
 
     // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods)
-    @JoinColumn()
     cycle: MenstrualCycle;
 
     @ManyToOne(() => Mood, (mood) => mood.cycleMoods)
-    @JoinColumn()
     mood: Mood;
 }

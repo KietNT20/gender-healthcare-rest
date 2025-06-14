@@ -8,6 +8,7 @@ import {
     Post,
 } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
@@ -36,6 +37,7 @@ export class RolesController {
 
     @Patch(':id')
     @ApiOperation({ summary: 'Update a role by ID' })
+    @ResponseMessage('Role updated successfully')
     update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
         return this.rolesService.update(id, updateRoleDto);
     }

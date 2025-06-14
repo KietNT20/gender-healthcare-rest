@@ -1,10 +1,10 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -20,22 +20,23 @@ import { CycleSymptomsModule } from './modules/cycle-symptoms/cycle-symptoms.mod
 import { DocumentsModule } from './modules/documents/documents.module';
 import { EmploymentContractsModule } from './modules/employment-contracts/employment-contracts.module';
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
+import awsConfig from './modules/files/config/aws.config';
+import { FilesModule } from './modules/files/files.module';
 import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
+import { MessagesModule } from './modules/messages/messages.module';
 import { MoodsModule } from './modules/moods/moods.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { QuestionTagsModule } from './modules/question-tags/question-tags.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
 import { SymptomsModule } from './modules/symptoms/symptoms.module';
-import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
@@ -45,7 +46,7 @@ import { UsersModule } from './modules/users/users.module';
         ConfigModule.forRoot({
             envFilePath: '.env',
             isGlobal: true,
-            load: [googleAuthConfig],
+            load: [googleAuthConfig, awsConfig],
         }),
         ThrottlerModule.forRoot({
             throttlers: [
@@ -77,7 +78,22 @@ import { UsersModule } from './modules/users/users.module';
             }),
             inject: [ConfigService],
         }),
-        AnswersModule,
+        BullModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                connection: {
+                    host: configService.get('REDIS_HOST', 'localhost'),
+                    port: configService.get('REDIS_PORT', 6379),
+                    password: configService.get('REDIS_PASSWORD'),
+                    db: configService.get('REDIS_DB', 0),
+                },
+                defaultJobOptions: {
+                    removeOnComplete: 10,
+                    removeOnFail: 50,
+                },
+            }),
+            inject: [ConfigService],
+        }),
         AppointmentsModule,
         BlogsModule,
         CategoriesModule, 
@@ -100,17 +116,17 @@ import { UsersModule } from './modules/users/users.module';
         PackageServicesModule,
         PaymentsModule,
         QuestionsModule,
-        QuestionTagsModule,
         RolesModule,
         ServicePackagesModule,
         ServicesModule,
         SymptomsModule,
-        TagsModule,
         TestResultsModule,
         UserPackageSubscriptionsModule,
         UsersModule,
         AuthModule,
         AuditLogsModule,
+        FilesModule,
+        MessagesModule,
     ],
     providers: [
         {

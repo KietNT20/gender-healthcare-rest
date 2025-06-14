@@ -4,18 +4,27 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { SortOrder } from 'src/enums';
 
 export class GetUserQueryDto {
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    fullName?: string;
+    firstName?: string;
 
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    lastName?: string;
+
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     email?: string;
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     phone?: string;
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     roleId?: string;

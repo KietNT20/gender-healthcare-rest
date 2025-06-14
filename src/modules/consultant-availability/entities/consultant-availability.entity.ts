@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -21,13 +20,10 @@ export class ConsultantAvailability {
 
     @Column()
     @Index()
-    consultantId: string;
-
-    @Column()
-    @Index()
     dayOfWeek: number;
 
     @Column({ type: 'time' })
+    @Index()
     startTime: string;
 
     @Column({ type: 'time' })
@@ -45,29 +41,25 @@ export class ConsultantAvailability {
         enum: LocationTypeEnum,
         nullable: true,
     })
-    location: LocationTypeEnum;
+    location?: LocationTypeEnum;
 
     @Column({ default: true })
     recurring: boolean;
 
     @Column({ type: 'date', nullable: true })
-    specificDate: Date;
+    specificDate?: Date;
 
     @CreateDateColumn()
     createdAt: Date;
 
     @UpdateDateColumn()
     updatedAt: Date;
-    @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
 
-    // Foreign Keys
-    @Column()
-    consultantProfileId: string;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
-    @JoinColumn()
     consultantProfile: ConsultantProfile;
 
     @OneToMany(

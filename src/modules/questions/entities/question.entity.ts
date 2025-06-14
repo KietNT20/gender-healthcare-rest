@@ -1,7 +1,7 @@
 import { QuestionStatusType } from 'src/enums';
-import { Answer } from 'src/modules/answers/entities/answer.entity';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { QuestionTag } from 'src/modules/question-tags/entities/question-tag.entity';
+import { Message } from 'src/modules/messages/entities/message.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -11,6 +11,7 @@ import {
     JoinColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -23,9 +24,6 @@ export class Question {
     @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
-
     @Column({ type: 'text' })
     content: string;
 
@@ -34,12 +32,6 @@ export class Question {
         enum: QuestionStatusType,
     })
     status: QuestionStatusType;
-
-    @Column({ default: false })
-    isPublic: boolean;
-
-    @Column({ default: 0 })
-    viewCount: number;
 
     @Column({ default: false })
     isAnonymous: boolean;
@@ -62,8 +54,11 @@ export class Question {
     @JoinColumn()
     category: Category;
 
-    
+    @OneToMany(() => Message, (message) => message.question)
+    messages: Message[];
 
-    @OneToMany(() => QuestionTag, (questionTag) => questionTag.question)
-    questionTags: QuestionTag[];
+    @OneToOne(() => Appointment, (appointment) => appointment.question, {
+        nullable: true,
+    })
+    appointment?: Appointment;
 }

@@ -5,11 +5,9 @@ import { CreateUserDto } from './create-user.dto';
 
 export class CreateManyUsersDto {
     @ApiProperty({
-        type: 'array',
+        type: [CreateUserDto],
         required: true,
-        items: {
-            type: 'User',
-        },
+        description: 'Array of user objects to be created',
     })
     @IsNotEmpty()
     @IsArray()

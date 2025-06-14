@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOAuth2, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GoogleTokenDto } from './dto/google-token.dto';
 import { GoogleAuthenticationService } from './google-authentication.service';
 
@@ -11,6 +11,7 @@ export class GoogleAuthenticationController {
     ) {}
 
     @Post('authenticate')
+    @ApiOAuth2(['google'])
     @ApiOperation({ summary: 'Authenticate with Google token' })
     @ApiResponse({ status: 200, description: 'Authentication successful' })
     @ApiResponse({ status: 401, description: 'Authentication failed' })

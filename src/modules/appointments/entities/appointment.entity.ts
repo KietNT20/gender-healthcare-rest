@@ -3,6 +3,7 @@ import { ConsultantAvailability } from 'src/modules/consultant-availability/enti
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { Question } from 'src/modules/questions/entities/question.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -16,6 +17,7 @@ import {
     ManyToMany,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -93,18 +95,15 @@ export class Appointment {
 
     // Relations
     @ManyToOne(() => User, (user) => user.appointments)
-    @JoinColumn()
     user: User;
 
     @ManyToOne(() => User, (user) => user.consultantAppointments)
-    @JoinColumn()
     consultant: User;
 
     @ManyToOne(
         () => ConsultantAvailability,
         (consultantAvailability) => consultantAvailability.appointments,
     )
-    @JoinColumn()
     consultantAvailability: ConsultantAvailability;
 
     @OneToMany(() => Payment, (payment) => payment.appointment)
@@ -113,12 +112,19 @@ export class Appointment {
     @OneToMany(() => Feedback, (feedback) => feedback.appointment)
     feedbacks: Feedback[];
 
-    @OneToMany(() => TestResult, (testResult) => testResult.appointment)
-    testResults: TestResult[];
+    @OneToOne(() => TestResult, (testResult) => testResult.appointment)
+    testResult: TestResult;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];
 
     @ManyToMany(() => Service)
     services: Service[];
+
+    @OneToOne(() => Question, (question) => question.appointment, {
+        nullable: true,
+        cascade: true,
+    })
+    @JoinColumn()
+    question?: Question;
 }

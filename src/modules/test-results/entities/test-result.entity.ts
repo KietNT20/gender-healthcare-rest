@@ -1,11 +1,14 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -15,41 +18,35 @@ export class TestResult {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ nullable: true })
-    appointmentId: string;
-
-    @Column({ nullable: true })
-    staffId: string;
-
     @Column({ type: 'jsonb' })
     resultData: any;
 
     @Column({ type: 'text', nullable: true })
-    resultSummary: string;
+    resultSummary?: string;
 
     @Column({ default: false })
     isAbnormal: boolean;
 
     @Column({ type: 'text', nullable: true })
-    recommendation: string;
+    recommendation?: string;
 
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
     })
-    viewedAt: Date;
+    viewedAt?: Date;
 
     @Column({ default: false })
     notificationSent: boolean;
 
     @Column({ type: 'text', array: true, nullable: true })
-    fileUploads: string[];
+    fileUploads?: string[];
 
     @Column({ default: false })
     followUpRequired: boolean;
 
     @Column({ type: 'text', nullable: true })
-    followUpNotes: string;
+    followUpNotes?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -57,14 +54,19 @@ export class TestResult {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
+
     // Relations
-    @ManyToOne(() => Appointment, (appointment) => appointment.testResults, {
+    @OneToOne(() => Appointment, (appointment) => appointment.testResult, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     appointment: Appointment;
 
-    @ManyToOne(() => User, (user) => user.testResults)
+    @OneToOne(() => Service)
     @JoinColumn()
-    staff: User;
+    service: Service;
+
+    @ManyToOne(() => User, (user) => user.testResults)
+    user: User;
 }

@@ -7,7 +7,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -18,12 +17,6 @@ import {
 export class Payment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column({ nullable: true })
-    userId: string;
-
-    @Column({ nullable: true })
-    appointmentId: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
@@ -37,9 +30,6 @@ export class Payment {
         default: PaymentStatusType.PENDING,
     })
     status: PaymentStatusType;
-
-    @Column({ length: 255, nullable: true })
-    transactionId: string;
 
     @Column({
         type: 'timestamp with time zone',
@@ -74,15 +64,13 @@ export class Payment {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.payments)
-    @JoinColumn()
     user: User;
 
     @ManyToOne(() => Appointment, (appointment) => appointment.payments)
-    @JoinColumn()
     appointment: Appointment;
 
     @OneToMany(

@@ -46,14 +46,6 @@ export class FilesService {
             generateThumbnails = true,
         } = options;
 
-        if (!entityId) {
-            throw new BadRequestException('entityId is required');
-        }
-
-        if (!entityType) {
-            throw new BadRequestException('entityType is required');
-        }
-
         this.validateImageFile(file);
 
         try {
@@ -70,8 +62,8 @@ export class FilesService {
                 {
                     metadata: {
                         originalName: file.originalname,
-                        entityType,
-                        entityId,
+                        entityType: entityType || '',
+                        entityId: entityId || '',
                     },
                     isPublic: false, // Temp files are private
                 },
@@ -361,7 +353,6 @@ export class FilesService {
             'image/jpeg',
             'image/jpg',
             'image/png',
-            'image/gif',
             'image/webp',
         ];
 

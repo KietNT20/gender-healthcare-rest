@@ -3,7 +3,6 @@ import {
     Controller,
     Delete,
     Get,
-    Logger,
     Param,
     ParseUUIDPipe,
     Post,
@@ -33,14 +32,13 @@ import { FilesService } from './files.service';
 
 @Controller('files')
 export class FilesController {
-    private readonly logger = new Logger(FilesController.name);
     constructor(private readonly filesService: FilesService) {}
 
     @Post('image')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Tải lên một file ảnh và đưa vào hàng đợi xử lý' })
+    @ApiOperation({ summary: 'Upload an image file' })
     @ApiConsumes('multipart/form-data')
     @ApiBody({ type: UploadImageDto })
     async uploadImage(
@@ -57,7 +55,7 @@ export class FilesController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Tải lên một file tài liệu' })
+    @ApiOperation({ summary: 'Upload a document file' })
     @ApiConsumes('multipart/form-data')
     @ApiBody({ type: UploadDocumentDto })
     async uploadDocument(
@@ -73,7 +71,7 @@ export class FilesController {
     @Get('images/entity')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Lấy danh sách ảnh theo một đối tượng cụ thể' })
+    @ApiOperation({ summary: 'Get a list of images by a specific entity' })
     @ApiQuery({
         name: 'includePrivate',
         required: false,
@@ -96,7 +94,7 @@ export class FilesController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Lấy danh sách tài liệu theo một đối tượng cụ thể',
+        summary: 'Get a list of documents by a specific entity',
     })
     async getDocumentsByEntity(
         @Query('entityType') entityType: string,
@@ -109,15 +107,15 @@ export class FilesController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Lấy URL truy cập cho ảnh (public URL hoặc signed URL)',
+        summary: 'Get an access URL for an image (public URL or signed URL)',
         description:
-            'Trả về public URL cho ảnh công khai, signed URL cho ảnh riêng tư',
+            'Returns a public URL for public images, signed URL for private images',
     })
     @ApiQuery({
         name: 'expiresIn',
         required: false,
         type: Number,
-        description: 'Thời gian hết hạn cho signed URL (giây), mặc định 3600',
+        description: 'Expiration time for signed URL (seconds), default 3600',
     })
     async getImageAccessUrl(
         @Param('id', ParseUUIDPipe) id: string,
@@ -130,15 +128,15 @@ export class FilesController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Lấy URL truy cập cho tài liệu (signed URL)',
+        summary: 'Get an access URL for a document (signed URL)',
         description:
-            'Trả về signed URL với thời gian hết hạn để truy cập tài liệu',
+            'Returns a signed URL with expiration time to access the document',
     })
     @ApiQuery({
         name: 'expiresIn',
         required: false,
         type: Number,
-        description: 'Thời gian hết hạn cho signed URL (giây), mặc định 3600',
+        description: 'Expiration time for signed URL (seconds), default 3600',
     })
     async getDocumentAccessUrl(
         @Param('id', ParseUUIDPipe) id: string,
@@ -150,7 +148,7 @@ export class FilesController {
     @Delete('image/:id')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Xóa một ảnh (soft delete)' })
+    @ApiOperation({ summary: 'Delete an image (soft delete)' })
     async deleteImage(@Param('id', ParseUUIDPipe) id: string) {
         await this.filesService.deleteImage(id);
         return { statusCode: 200, message: 'Image deleted successfully' };
@@ -159,7 +157,7 @@ export class FilesController {
     @Delete('document/:id')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Xóa một tài liệu (soft delete)' })
+    @ApiOperation({ summary: 'Delete a document (soft delete)' })
     async deleteDocument(@Param('id', ParseUUIDPipe) id: string) {
         await this.filesService.deleteDocument(id);
         return { statusCode: 200, message: 'Document deleted successfully' };
@@ -169,7 +167,7 @@ export class FilesController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Tải về nội dung của một file (ảnh hoặc tài liệu)',
+        summary: 'Download the content of a file (image or document)',
     })
     @ApiQuery({ name: 'type', required: true, enum: ['image', 'document'] })
     async downloadFile(

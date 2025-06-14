@@ -1,7 +1,6 @@
 import { QuestionStatusType } from 'src/enums';
-import { Answer } from 'src/modules/answers/entities/answer.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { Tag } from 'src/modules/tags/entities/tag.entity';
+import { Message } from 'src/modules/messages/entities/message.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -9,8 +8,6 @@ import {
     DeleteDateColumn,
     Entity,
     JoinColumn,
-    JoinTable,
-    ManyToMany,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -25,9 +22,6 @@ export class Question {
     @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
-
     @Column({ type: 'text' })
     content: string;
 
@@ -36,12 +30,6 @@ export class Question {
         enum: QuestionStatusType,
     })
     status: QuestionStatusType;
-
-    @Column({ default: false })
-    isPublic: boolean;
-
-    @Column({ default: 0 })
-    viewCount: number;
 
     @Column({ default: false })
     isAnonymous: boolean;
@@ -64,10 +52,6 @@ export class Question {
     @JoinColumn()
     category: Category;
 
-    @OneToMany(() => Answer, (answer) => answer.question)
-    answers: Answer[];
-
-    @ManyToMany(() => Tag, (tag) => tag.questions)
-    @JoinTable()
-    tags: Tag[];
+    @OneToMany(() => Message, (message) => message.question)
+    messages: Message[];
 }

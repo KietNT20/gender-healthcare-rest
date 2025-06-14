@@ -1,36 +1,33 @@
-import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
+import { MessageType } from 'src/enums';
 import { Question } from 'src/modules/questions/entities/question.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    Index,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class Answer {
+export class Message {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ type: 'text' })
     content: string;
 
-    @Column({ default: false })
-    @Index()
-    isAccepted: boolean;
-
-    @Column({ default: 0 })
-    upVotes: number;
-
-    @Column({ default: 0 })
-    downVotes: number;
+    @Column({
+        type: 'enum',
+        enum: MessageType,
+        default: MessageType.TEXT,
+    })
+    type: MessageType;
 
     @Column({ default: false })
-    isPrivate: boolean;
+    isRead: boolean;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -39,17 +36,16 @@ export class Answer {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    @Index()
     deletedAt?: Date;
 
-    // Relations
-    @ManyToOne(() => Question, (question) => question.answers, {
+    @ManyToOne(() => Question, (question) => question.messages, {
         onDelete: 'CASCADE',
     })
     question: Question;
 
-    @ManyToOne(() => ConsultantProfile, (consultant) => consultant.answers, {
-        onDelete: 'CASCADE',
+    @ManyToOne(() => User, (user) => user.messages, {
+        onDelete: 'SET NULL',
+        nullable: true,
     })
-    consultant: ConsultantProfile;
+    sender: User;
 }

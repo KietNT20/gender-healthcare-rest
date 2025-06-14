@@ -5,7 +5,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { AnswersModule } from './modules/answers/answers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -27,6 +26,7 @@ import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
+import { MessagesModule } from './modules/messages/messages.module';
 import { MoodsModule } from './modules/moods/moods.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
@@ -37,7 +37,6 @@ import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
 import { SymptomsModule } from './modules/symptoms/symptoms.module';
-import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
@@ -95,7 +94,6 @@ import { UsersModule } from './modules/users/users.module';
             }),
             inject: [ConfigService],
         }),
-        AnswersModule,
         AppointmentsModule,
         BlogsModule,
         CategoriesModule,
@@ -122,13 +120,13 @@ import { UsersModule } from './modules/users/users.module';
         ServicePackagesModule,
         ServicesModule,
         SymptomsModule,
-        TagsModule,
         TestResultsModule,
         UserPackageSubscriptionsModule,
         UsersModule,
         AuthModule,
         AuditLogsModule,
         FilesModule,
+        MessagesModule,
     ],
     providers: [
         {

@@ -19,10 +19,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
-import { Category } from 'src/modules/categories/entities/category.entity';
-import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
-import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
-import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
+
 import { Image } from 'src/modules/images/entities/image.entity';
 
 @Entity()
@@ -49,8 +46,6 @@ export class Service {
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ type: 'text', array: true, nullable: true })
-    images?: string[];
 
   @Column({ length: 255, nullable: true })
   shortDescription?: string;

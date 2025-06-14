@@ -114,7 +114,23 @@ export class UploadDocumentDto {
     isSensitive?: boolean = false;
 }
 
-// DTO for testing uploads without entity requirements
+export class BulkUploadDto {
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    entityType?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsUUID()
+    entityId?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsBoolean()
+    isPublic?: boolean = false;
+}
+
 export class TestUploadDto {
     @ApiPropertyOptional({
         description: 'Test description',
@@ -132,21 +148,4 @@ export class TestUploadDto {
     @IsOptional()
     @IsBooleanString()
     isPublic?: string = 'true';
-}
-
-export class BulkUploadDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    entityType?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsUUID()
-    entityId?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
-    isPublic?: boolean = false;
 }

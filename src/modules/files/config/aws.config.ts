@@ -12,7 +12,7 @@ export default registerAs('awsConfig', () => ({
         avatars: 'uploads/avatars',
         temp: 'uploads/temp',
     },
-    allowedImageTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedImageTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
     allowedDocumentTypes: [
         'application/pdf',
         'application/msword',

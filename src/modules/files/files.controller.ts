@@ -195,7 +195,7 @@ export class FilesController {
         @UploadedFile() file: Express.Multer.File,
         @Body() testUploadDto: TestUploadDto,
     ) {
-        const isPublic = testUploadDto.isPublic;
+        const isPublic = testUploadDto.isPublic === true;
         const cleanName = sanitizeFilename(file.originalname);
         const testKey = `test-uploads/${Date.now()}-${cleanName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 

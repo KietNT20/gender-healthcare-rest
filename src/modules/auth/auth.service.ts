@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Injectable,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -66,12 +67,18 @@ export class AuthService {
 
         const user = await this.usersService.create(userData);
 
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const fullName = `${user.firstName} ${user.lastName}`;
+
         // Send verification email
         try {
             await this.mailService.sendEmailVerification(
                 user.email,
                 emailVerificationToken,
-                user.fullName,
+                fullName,
             );
         } catch (error) {
             // Log error but don't fail registration
@@ -80,7 +87,7 @@ export class AuthService {
 
         // Send welcome email
         try {
-            await this.mailService.sendWelcomeEmail(user.email, user.fullName);
+            await this.mailService.sendWelcomeEmail(user.email, fullName);
         } catch (error) {
             console.error('Failed to send welcome email:', error);
         }
@@ -91,7 +98,7 @@ export class AuthService {
             user: {
                 id: user.id,
                 email: user.email,
-                fullName: user.fullName,
+                fullName: fullName,
                 emailVerified: user.emailVerified,
             },
         };

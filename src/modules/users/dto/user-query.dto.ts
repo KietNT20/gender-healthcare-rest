@@ -7,7 +7,12 @@ export class GetUserQueryDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    fullName?: string;
+    firstName?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    lastName?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

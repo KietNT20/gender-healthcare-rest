@@ -46,6 +46,14 @@ export class FilesService {
             generateThumbnails = true,
         } = options;
 
+        if (!entityId) {
+            throw new BadRequestException('entityId is required');
+        }
+
+        if (!entityType) {
+            throw new BadRequestException('entityType is required');
+        }
+
         this.validateImageFile(file);
 
         try {

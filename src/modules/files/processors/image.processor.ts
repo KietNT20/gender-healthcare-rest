@@ -8,7 +8,7 @@ import { FilesService } from '../files.service';
 export interface ImageProcessingJob {
     originalKey: string;
     userId?: string;
-    type: 'avatar' | 'general';
+    type: 'avatar' | 'blog' | 'service' | 'news' | 'general';
     generateThumbnails: boolean;
     metadata?: {
         imageId?: string;
@@ -55,11 +55,35 @@ export class ImageProcessor extends WorkerHost {
         webpQuality: 85,
         webpEffort: 6,
         thumbnailQuality: 80,
-        allowedFormats: ['jpeg', 'jpg', 'png', 'webp', 'gif'],
-        thumbnailSizes: {
-            small: { width: 150, height: 150 },
-            medium: { width: 400, height: 400 },
-            large: { width: 800, height: 800 },
+        allowedFormats: ['jpeg', 'jpg', 'png', 'webp'],
+
+        // Content-specific dimensions with consistent aspect ratios
+        contentDimensions: {
+            avatar: {
+                small: { width: 150, height: 150 }, // 1:1
+                medium: { width: 300, height: 300 }, // 1:1
+                large: { width: 500, height: 500 }, // 1:1
+            },
+            blog: {
+                small: { width: 300, height: 200 }, // 3:2
+                medium: { width: 600, height: 400 }, // 3:2
+                large: { width: 1200, height: 800 }, // 3:2
+            },
+            service: {
+                small: { width: 280, height: 280 }, // 1:1
+                medium: { width: 400, height: 400 }, // 1:1
+                large: { width: 600, height: 600 }, // 1:1
+            },
+            news: {
+                small: { width: 320, height: 180 }, // 16:9
+                medium: { width: 640, height: 360 }, // 16:9
+                large: { width: 1280, height: 720 }, // 16:9
+            },
+            general: {
+                small: { width: 300, height: 200 }, // 3:2
+                medium: { width: 600, height: 400 }, // 3:2
+                large: { width: 1200, height: 800 }, // 3:2
+            },
         },
     };
 
@@ -237,15 +261,16 @@ export class ImageProcessor extends WorkerHost {
     private async generateThumbnails(
         originalBuffer: Buffer,
         originalKey: string,
-        type: 'avatar' | 'general',
+        type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
         jobId?: string,
     ): Promise<ProcessedImageResult['thumbnails']> {
         const thumbnails: Record<string, ThumbnailResult> = {};
         const uploadPromises: Promise<ThumbnailResult>[] = [];
 
-        for (const [size, dimensions] of Object.entries(
-            this.imageConfig.thumbnailSizes,
-        )) {
+        // Get dimensions for specific content type
+        const sizesForType = this.imageConfig.contentDimensions[type];
+
+        for (const [size, dimensions] of Object.entries(sizesForType)) {
             const promise = this.generateSingleThumbnail(
                 originalBuffer,
                 originalKey,
@@ -262,7 +287,7 @@ export class ImageProcessor extends WorkerHost {
 
         // Map results back to thumbnail object
         results.forEach((result, index) => {
-            const size = Object.keys(this.imageConfig.thumbnailSizes)[index];
+            const size = Object.keys(sizesForType)[index];
             thumbnails[size] = result;
         });
 
@@ -274,13 +299,28 @@ export class ImageProcessor extends WorkerHost {
         originalKey: string,
         size: string,
         dimensions: { width: number; height: number },
-        type: 'avatar' | 'general',
+        type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
         jobId?: string,
     ): Promise<ThumbnailResult> {
+        // Crop strategy for different content types
+        let cropPosition: string;
+        switch (type) {
+            case 'avatar':
+            case 'service':
+                cropPosition = 'centre';
+                break;
+            case 'blog':
+            case 'news':
+                cropPosition = 'attention'; // Smart crop for content
+                break;
+            default:
+                cropPosition = 'centre';
+        }
+
         const thumbnailBuffer = await sharp(originalBuffer)
             .resize(dimensions.width, dimensions.height, {
-                fit: type === 'avatar' ? 'cover' : 'inside',
-                position: 'center',
+                fit: 'cover', // Always ensure exact dimensions
+                position: cropPosition,
                 withoutEnlargement: false,
             })
             .webp({
@@ -311,15 +351,15 @@ export class ImageProcessor extends WorkerHost {
             key: thumbnailKey,
             url: uploadResult.url,
             cloudFrontUrl: uploadResult.cloudFrontUrl,
-            width: dimensions.width,
-            height: dimensions.height,
+            width: dimensions.width, // Guaranteed exact width
+            height: dimensions.height, // Guaranteed exact height
             size: thumbnailBuffer.length,
         };
     }
 
     private generateOptimizedKey(
         originalKey: string,
-        type: 'avatar' | 'general',
+        type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
     ): string {
         const pathParts = originalKey.split('/');
         const filename = pathParts.pop() || '';
@@ -327,7 +367,23 @@ export class ImageProcessor extends WorkerHost {
         const timestamp = Date.now();
 
         // Use different path based on type
-        const basePath = type === 'avatar' ? 'avatars' : 'images';
+        let basePath: string;
+        switch (type) {
+            case 'avatar':
+                basePath = 'avatars';
+                break;
+            case 'blog':
+                basePath = 'blogs';
+                break;
+            case 'service':
+                basePath = 'services';
+                break;
+            case 'news':
+                basePath = 'news';
+                break;
+            default:
+                basePath = 'images';
+        }
 
         return `${basePath}/${timestamp}-${nameWithoutExt}-optimized.webp`;
     }
@@ -335,7 +391,7 @@ export class ImageProcessor extends WorkerHost {
     private generateThumbnailKey(
         originalKey: string,
         size: string,
-        type: 'avatar' | 'general',
+        type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
     ): string {
         const pathParts = originalKey.split('/');
         const filename = pathParts.pop() || '';
@@ -343,7 +399,23 @@ export class ImageProcessor extends WorkerHost {
         const timestamp = Date.now();
 
         // Use different path based on type
-        const basePath = type === 'avatar' ? 'avatars' : 'images';
+        let basePath: string;
+        switch (type) {
+            case 'avatar':
+                basePath = 'avatars';
+                break;
+            case 'blog':
+                basePath = 'blogs';
+                break;
+            case 'service':
+                basePath = 'services';
+                break;
+            case 'news':
+                basePath = 'news';
+                break;
+            default:
+                basePath = 'images';
+        }
 
         return `${basePath}/thumbnails/${timestamp}-${nameWithoutExt}-${size}.webp`;
     }

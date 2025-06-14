@@ -1,4 +1,5 @@
 import { QuestionStatusType } from 'src/enums';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Message } from 'src/modules/messages/entities/message.entity';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -10,6 +11,7 @@ import {
     JoinColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -54,4 +56,9 @@ export class Question {
 
     @OneToMany(() => Message, (message) => message.question)
     messages: Message[];
+
+    @OneToOne(() => Appointment, (appointment) => appointment.question, {
+        nullable: true,
+    })
+    appointment?: Appointment;
 }

@@ -9,7 +9,7 @@ export interface ImageProcessingJob {
     originalKey: string;
     userId?: string;
     type: 'avatar' | 'blog' | 'service' | 'news' | 'general';
-    isPublic: boolean; // New field to determine bucket choice
+    isPublic: boolean;
     generateThumbnails: boolean;
     metadata?: {
         imageId?: string;

@@ -9,6 +9,7 @@ export interface ImageProcessingJob {
     originalKey: string;
     userId?: string;
     type: 'avatar' | 'blog' | 'service' | 'news' | 'general';
+    isPublic: boolean; // New field to determine bucket choice
     generateThumbnails: boolean;
     metadata?: {
         imageId?: string;
@@ -97,12 +98,18 @@ export class ImageProcessor extends WorkerHost {
 
     async process(job: Job<ImageProcessingJob>): Promise<ProcessedImageResult> {
         const startTime = Date.now();
-        const { originalKey, userId, type, generateThumbnails, metadata } =
-            job.data;
+        const {
+            originalKey,
+            userId,
+            type,
+            isPublic,
+            generateThumbnails,
+            metadata,
+        } = job.data;
 
         try {
             this.logger.log(
-                `Processing image: ${originalKey} (Job ID: ${job.id})`,
+                `Processing image: ${originalKey} (Job ID: ${job.id}, ${isPublic ? 'public' : 'private'})`,
             );
 
             // Check if original file exists
@@ -133,11 +140,12 @@ export class ImageProcessor extends WorkerHost {
             // Generate new key for optimized image
             const optimizedKey = this.generateOptimizedKey(originalKey, type);
 
-            // Upload optimized image with proper metadata
-            const optimizedResult = await this.s3Service.uploadFile(
+            // Upload optimized image with explicit privacy choice
+            const optimizedResult = await this.s3Service.uploadFileWithPrivacy(
                 optimizedBuffer,
                 optimizedKey,
                 'image/webp',
+                isPublic, // Use the isPublic flag from job data
                 {
                     metadata: {
                         originalFormat: imageInfo.format || 'unknown',
@@ -146,9 +154,9 @@ export class ImageProcessor extends WorkerHost {
                         processingJobId: job.id?.toString() || '',
                         userId: userId || '',
                         imageType: type,
+                        isPublic: isPublic.toString(),
                         ...metadata,
                     },
-                    isPublic: true,
                 },
             );
 
@@ -171,14 +179,24 @@ export class ImageProcessor extends WorkerHost {
                     originalBuffer,
                     originalKey,
                     type,
+                    isPublic, // Pass privacy setting to thumbnails
                     job.id?.toString(),
                 );
             }
 
-            // Delete original temporary file only if it's in temp folder
-            if (originalKey.includes('/temp/')) {
-                await this.s3Service.deleteFile(originalKey);
-                this.logger.log(`Cleaned up temporary file: ${originalKey}`);
+            // Delete original temporary file (should be in temp/ folder = private bucket)
+            if (originalKey.includes('temp/')) {
+                try {
+                    await this.s3Service.deleteFile(originalKey);
+                    this.logger.log(
+                        `Cleaned up temporary file: ${originalKey}`,
+                    );
+                } catch (cleanupError) {
+                    this.logger.warn(
+                        `Failed to cleanup temp file ${originalKey}:`,
+                        cleanupError,
+                    );
+                }
             }
 
             // Update image record in database if imageId is provided
@@ -201,7 +219,7 @@ export class ImageProcessor extends WorkerHost {
 
             this.logger.log(
                 `Image processing completed: ${originalKey} -> ${optimizedKey} ` +
-                    `(${processingTime}ms, ${this.formatBytes(originalBuffer.length)} -> ${this.formatBytes(optimizedBuffer.length)})`,
+                    `(${processingTime}ms, ${this.formatBytes(originalBuffer.length)} -> ${this.formatBytes(optimizedBuffer.length)}, ${isPublic ? 'public' : 'private'})`,
             );
 
             return result;
@@ -213,7 +231,7 @@ export class ImageProcessor extends WorkerHost {
 
             // Clean up on error if needed
             try {
-                if (originalKey.includes('/temp/')) {
+                if (originalKey.includes('temp/')) {
                     await this.s3Service.deleteFile(originalKey);
                 }
             } catch (cleanupError) {
@@ -262,6 +280,7 @@ export class ImageProcessor extends WorkerHost {
         originalBuffer: Buffer,
         originalKey: string,
         type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
+        isPublic: boolean, // Add privacy setting for thumbnails
         jobId?: string,
     ): Promise<ProcessedImageResult['thumbnails']> {
         const thumbnails: Record<string, ThumbnailResult> = {};
@@ -277,6 +296,7 @@ export class ImageProcessor extends WorkerHost {
                 size,
                 dimensions,
                 type,
+                isPublic, // Pass privacy setting
                 jobId,
             );
             uploadPromises.push(promise);
@@ -300,6 +320,7 @@ export class ImageProcessor extends WorkerHost {
         size: string,
         dimensions: { width: number; height: number },
         type: 'avatar' | 'blog' | 'service' | 'news' | 'general',
+        isPublic: boolean, // Add privacy setting
         jobId?: string,
     ): Promise<ThumbnailResult> {
         // Crop strategy for different content types
@@ -331,10 +352,12 @@ export class ImageProcessor extends WorkerHost {
 
         const thumbnailKey = this.generateThumbnailKey(originalKey, size, type);
 
-        const uploadResult = await this.s3Service.uploadFile(
+        // Upload thumbnail with explicit privacy choice
+        const uploadResult = await this.s3Service.uploadFileWithPrivacy(
             thumbnailBuffer,
             thumbnailKey,
             'image/webp',
+            isPublic, // Use same privacy setting as main image
             {
                 metadata: {
                     thumbnail: size,
@@ -342,8 +365,8 @@ export class ImageProcessor extends WorkerHost {
                     imageType: type,
                     processedAt: new Date().toISOString(),
                     processingJobId: jobId || '',
+                    isPublic: isPublic.toString(),
                 },
-                isPublic: true,
             },
         );
 
@@ -373,13 +396,13 @@ export class ImageProcessor extends WorkerHost {
                 basePath = 'avatars';
                 break;
             case 'blog':
-                basePath = 'blogs';
+                basePath = 'images'; // Blog images go to general images folder
                 break;
             case 'service':
-                basePath = 'services';
+                basePath = 'images'; // Service images go to general images folder
                 break;
             case 'news':
-                basePath = 'news';
+                basePath = 'images'; // News images go to general images folder
                 break;
             default:
                 basePath = 'images';
@@ -405,13 +428,13 @@ export class ImageProcessor extends WorkerHost {
                 basePath = 'avatars';
                 break;
             case 'blog':
-                basePath = 'blogs';
+                basePath = 'images'; // Blog thumbnails go to general images folder
                 break;
             case 'service':
-                basePath = 'services';
+                basePath = 'images'; // Service thumbnails go to general images folder
                 break;
             case 'news':
-                basePath = 'news';
+                basePath = 'images'; // News thumbnails go to general images folder
                 break;
             default:
                 basePath = 'images';

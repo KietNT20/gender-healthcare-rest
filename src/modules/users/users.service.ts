@@ -223,10 +223,19 @@ export class UsersService {
         queryBuilder: any,
         userQueryDto: UserQueryDto,
     ): void {
-        const { fullName, email, phone, roleId, isActive } = userQueryDto;
+        const { firstName, lastName, email, phone, roleId, isActive } =
+            userQueryDto;
 
-        if (fullName) {
-            this.applyOptimalFullNameFilter(queryBuilder, fullName);
+        if (firstName) {
+            queryBuilder.andWhere('user.firstName ILIKE :firstName', {
+                firstName: `%${firstName}%`,
+            });
+        }
+
+        if (lastName) {
+            queryBuilder.andWhere('user.lastName ILIKE :lastName', {
+                lastName: `%${lastName}%`,
+            });
         }
 
         if (email) {
@@ -247,40 +256,6 @@ export class UsersService {
 
         if (isActive !== undefined) {
             queryBuilder.andWhere('user.isActive = :isActive', { isActive });
-        }
-    }
-
-    private applyOptimalFullNameFilter(
-        queryBuilder: any,
-        fullName: string,
-    ): void {
-        const trimmedName = fullName.trim();
-
-        // Handle empty string
-        if (!trimmedName) return;
-
-        const nameParts = trimmedName
-            .split(/\s+/)
-            .filter((part) => part.length > 0);
-
-        if (nameParts.length === 1) {
-            // Single word: search in firstName OR lastName
-            queryBuilder.andWhere(
-                '(user.firstName ILIKE :name OR user.lastName ILIKE :name)',
-                { name: `%${nameParts[0]}%` },
-            );
-        } else {
-            // Multiple words: assume first word = firstName, last word = lastName
-            const firstName = nameParts[0];
-            const lastName = nameParts[nameParts.length - 1];
-
-            queryBuilder.andWhere(
-                '(user.firstName ILIKE :firstName AND user.lastName ILIKE :lastName)',
-                {
-                    firstName: `%${firstName}%`,
-                    lastName: `%${lastName}%`,
-                },
-            );
         }
     }
 
@@ -525,7 +500,7 @@ export class UsersService {
             updateUserDto;
         const payload: Partial<User> = { ...restOfDto };
 
-        // Update slug if fullName is being updated
+        // Update slug if firstName or lastName is being updated
         if (
             firstName &&
             firstName !== user.firstName &&
@@ -533,9 +508,9 @@ export class UsersService {
             lastName !== user.lastName
         ) {
             // Generate slug based on firstName and lastName
-            const fullName = `${firstName} ${lastName} ${user.email}`;
+            const genSlug = `${firstName} ${lastName} ${user.email}`;
             // Use slugify to create a base slug
-            const baseSlug = slugify(fullName, { lower: true, strict: true });
+            const baseSlug = slugify(genSlug, { lower: true, strict: true });
             payload.slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
@@ -566,7 +541,7 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        // Update slug if fullName is being updated
+        // Update slug if firstName or lastName is being updated
         let slug = user.slug;
         if (
             updateProfileDto.firstName &&
@@ -574,8 +549,8 @@ export class UsersService {
             updateProfileDto.lastName &&
             updateProfileDto.lastName !== user.lastName
         ) {
-            const fullName = `${updateProfileDto.firstName} ${updateProfileDto.lastName} ${user.email}`;
-            const baseSlug = slugify(fullName, {
+            const genSlug = `${updateProfileDto.firstName} ${updateProfileDto.lastName} ${user.email}`;
+            const baseSlug = slugify(genSlug, {
                 lower: true,
                 strict: true,
             });

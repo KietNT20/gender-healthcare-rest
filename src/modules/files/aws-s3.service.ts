@@ -24,6 +24,7 @@ export interface UploadResult {
     size: number;
     contentType: string;
     etag?: string;
+    isPublic: boolean;
 }
 
 export interface FileMetadata {
@@ -32,12 +33,23 @@ export interface FileMetadata {
     lastModified: Date;
     etag: string;
     metadata?: Record<string, string>;
+    bucket: string;
+    isPublic: boolean;
 }
 
 export interface UploadOptions {
     metadata?: Record<string, string>;
-    isPublic?: boolean;
     expires?: number;
+    forcePublic?: boolean; // Override to force public bucket
+    forcePrivate?: boolean; // Override to force private bucket
+}
+
+type FileType = 'images' | 'documents' | 'avatars' | 'temp';
+
+interface BucketConfig {
+    name: string;
+    cloudfrontUrl?: string;
+    isPublic: boolean;
 }
 
 @Injectable()
@@ -54,11 +66,9 @@ export class AwsS3Service {
         'application/pdf',
         'text/plain',
         'application/json',
-        // Add more as needed
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
-
-    // Max file size (10MB)
-    private readonly maxFileSize = 10 * 1024 * 1024;
 
     constructor(
         @Inject(awsConfig.KEY)
@@ -67,15 +77,87 @@ export class AwsS3Service {
         this.s3Client = new S3Client({
             region: this.awsConfiguration.awsRegion,
             credentials: {
-                accessKeyId: this.awsConfiguration.awsAccessKeyId as string,
-                secretAccessKey: this.awsConfiguration
-                    .awsSecretAccessKey as string,
+                accessKeyId: this.awsConfiguration.credentials
+                    .accessKeyId as string,
+                secretAccessKey: this.awsConfiguration.credentials
+                    .secretAccessKey as string,
             },
         });
     }
 
     /**
-     * Upload file to S3 with validation
+     * Get bucket configuration based on file type and options
+     */
+    private getBucketConfig(
+        key: string,
+        options: UploadOptions = {},
+    ): BucketConfig {
+        const fileType = this.getFileTypeFromKey(key);
+
+        // Force public bucket (override)
+        if (options.forcePublic) {
+            return {
+                name: this.awsConfiguration.publicBucket.name as string,
+                cloudfrontUrl: this.awsConfiguration.publicBucket.cloudfrontUrl,
+                isPublic: true,
+            };
+        }
+
+        // Force private bucket (override) OR documents are always private
+        if (
+            options.forcePrivate ||
+            fileType === 'documents' ||
+            fileType === 'temp'
+        ) {
+            return {
+                name: this.awsConfiguration.privateBucket.name as string,
+                cloudfrontUrl:
+                    this.awsConfiguration.privateBucket.cloudfrontUrl,
+                isPublic: false,
+            };
+        }
+
+        // Default: public bucket for images and avatars
+        return {
+            name: this.awsConfiguration.publicBucket.name as string,
+            cloudfrontUrl: this.awsConfiguration.publicBucket.cloudfrontUrl,
+            isPublic: true,
+        };
+    }
+
+    /**
+     * Determine file type from key
+     */
+    private getFileTypeFromKey(key: string): FileType {
+        if (key.startsWith('images/')) return 'images';
+        if (key.startsWith('avatars/')) return 'avatars';
+        if (key.startsWith('documents/')) return 'documents';
+        if (key.startsWith('temp/')) return 'temp';
+
+        // Default to temp for unknown paths
+        return 'temp';
+    }
+
+    /**
+     * Get max file size based on file type
+     */
+    private getMaxFileSize(fileType: FileType): number {
+        switch (fileType) {
+            case 'images':
+            case 'avatars':
+                return this.awsConfiguration.maxFileSize.image;
+            case 'documents':
+                return this.awsConfiguration.maxFileSize.document;
+            case 'temp':
+                return this.awsConfiguration.maxFileSize.temp;
+            default:
+                return this.awsConfiguration.maxFileSize.temp;
+        }
+    }
+
+    /**
+     * Upload file to appropriate S3 bucket with validation
+     * isPublic parameter in metadata will determine bucket choice
      */
     async uploadFile(
         file: Buffer,
@@ -83,16 +165,34 @@ export class AwsS3Service {
         contentType: string,
         options: UploadOptions = {},
     ): Promise<UploadResult> {
+        const fileType = this.getFileTypeFromKey(key);
+
+        // Check if this should be private based on metadata
+        const isPublicRequest = options.metadata?.isPublic === 'true';
+        const shouldBePrivate =
+            !isPublicRequest || fileType === 'documents' || fileType === 'temp';
+
+        // Set bucket options based on privacy requirement
+        const bucketOptions: UploadOptions = {
+            ...options,
+            forcePublic: !shouldBePrivate,
+            forcePrivate: shouldBePrivate,
+        };
+
+        const bucketConfig = this.getBucketConfig(key, bucketOptions);
+
         // Validate file
-        this.validateFile(file, contentType);
+        this.validateFile(file, contentType, fileType);
 
         try {
             const command = new PutObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
+                Bucket: bucketConfig.name,
                 Key: key,
                 Body: file,
                 ContentType: contentType,
                 Metadata: options.metadata,
+                // Set ACL based on bucket type
+                ACL: bucketConfig.isPublic ? 'public-read' : 'private',
                 Expires: options.expires
                     ? new Date(Date.now() + options.expires * 1000)
                     : undefined,
@@ -100,21 +200,22 @@ export class AwsS3Service {
 
             const response = await this.s3Client.send(command);
 
-            const url = this.generateS3Url(key);
-            const cloudFrontUrl = this.getCloudFrontUrl(key);
+            const url = this.generateS3Url(key, bucketConfig);
+            const cloudFrontUrl = this.getCloudFrontUrl(key, bucketConfig);
 
             this.logger.log(
-                `File uploaded successfully: ${key} (${file.length} bytes)`,
+                `File uploaded successfully to ${bucketConfig.isPublic ? 'public' : 'private'} bucket: ${key} (${file.length} bytes)`,
             );
 
             return {
                 key,
                 url,
                 cloudFrontUrl,
-                bucket: this.awsConfiguration.awsBucketName as string,
+                bucket: bucketConfig.name,
                 size: file.length,
                 contentType,
                 etag: response.ETag,
+                isPublic: bucketConfig.isPublic,
             };
         } catch (error) {
             this.logger.error(`Failed to upload file ${key}:`, error);
@@ -123,55 +224,107 @@ export class AwsS3Service {
     }
 
     /**
-     * Download file from S3
+     * Upload file with explicit public/private choice
      */
-    async downloadFile(key: string): Promise<Buffer> {
-        try {
-            const command = new GetObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
-                Key: key,
-            });
-
-            const response = await this.s3Client.send(command);
-
-            if (!response.Body) {
-                throw new Error('File body is empty');
-            }
-
-            const chunks: Uint8Array[] = [];
-            const stream = response.Body as any;
-
-            for await (const chunk of stream) {
-                chunks.push(chunk);
-            }
-
-            const buffer = Buffer.concat(chunks);
-            this.logger.log(
-                `File downloaded successfully: ${key} (${buffer.length} bytes)`,
-            );
-
-            return buffer;
-        } catch (error) {
-            this.logger.error(`Failed to download file ${key}:`, error);
-            throw error;
-        }
+    async uploadFileWithPrivacy(
+        file: Buffer,
+        key: string,
+        contentType: string,
+        isPublic: boolean,
+        options: UploadOptions = {},
+    ): Promise<UploadResult> {
+        return this.uploadFile(file, key, contentType, {
+            ...options,
+            forcePublic: isPublic,
+            forcePrivate: !isPublic,
+            metadata: {
+                ...options.metadata,
+                isPublic: isPublic.toString(),
+            },
+        });
     }
 
     /**
-     * Delete file from S3
+     * Download file from appropriate S3 bucket
+     */
+    async downloadFile(key: string): Promise<Buffer> {
+        // Try both buckets to find the file
+        const buckets = [
+            this.getBucketConfig(key, { forcePublic: true }),
+            this.getBucketConfig(key, { forcePrivate: true }),
+        ];
+
+        for (const bucketConfig of buckets) {
+            try {
+                const command = new GetObjectCommand({
+                    Bucket: bucketConfig.name,
+                    Key: key,
+                });
+
+                const response = await this.s3Client.send(command);
+
+                if (!response.Body) {
+                    continue; // Try next bucket
+                }
+
+                const chunks: Uint8Array[] = [];
+                const stream = response.Body as any;
+
+                for await (const chunk of stream) {
+                    chunks.push(chunk);
+                }
+
+                const buffer = Buffer.concat(chunks);
+                this.logger.log(
+                    `File downloaded successfully from ${bucketConfig.isPublic ? 'public' : 'private'} bucket: ${key} (${buffer.length} bytes)`,
+                );
+
+                return buffer;
+            } catch (error) {
+                // Continue to next bucket if file not found
+                continue;
+            }
+        }
+
+        // If not found in any bucket
+        this.logger.error(`File not found in any bucket: ${key}`);
+        throw new Error(`File not found: ${key}`);
+    }
+
+    /**
+     * Delete file from appropriate S3 bucket
      */
     async deleteFile(key: string): Promise<void> {
-        try {
-            const command = new DeleteObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
-                Key: key,
-            });
+        // Try both buckets to delete the file
+        const buckets = [
+            this.getBucketConfig(key, { forcePublic: true }),
+            this.getBucketConfig(key, { forcePrivate: true }),
+        ];
 
-            await this.s3Client.send(command);
-            this.logger.log(`File deleted successfully: ${key}`);
-        } catch (error) {
-            this.logger.error(`Failed to delete file ${key}:`, error);
-            throw error;
+        let deleted = false;
+
+        for (const bucketConfig of buckets) {
+            try {
+                const command = new DeleteObjectCommand({
+                    Bucket: bucketConfig.name,
+                    Key: key,
+                });
+
+                await this.s3Client.send(command);
+                this.logger.log(
+                    `File deleted successfully from ${bucketConfig.isPublic ? 'public' : 'private'} bucket: ${key}`,
+                );
+                deleted = true;
+                break; // Stop after successful deletion
+            } catch (error) {
+                // Continue to next bucket
+                continue;
+            }
+        }
+
+        if (!deleted) {
+            this.logger.error(`Failed to delete file from any bucket: ${key}`);
+            throw new Error(`File not found for deletion: ${key}`);
         }
     }
 
@@ -193,34 +346,71 @@ export class AwsS3Service {
      * Get file metadata without downloading the file
      */
     async getFileMetadata(key: string): Promise<FileMetadata> {
-        try {
-            const command = new HeadObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
-                Key: key,
-            });
+        // Try both buckets to find the file metadata
+        const buckets = [
+            this.getBucketConfig(key, { forcePublic: true }),
+            this.getBucketConfig(key, { forcePrivate: true }),
+        ];
 
-            const response = await this.s3Client.send(command);
+        for (const bucketConfig of buckets) {
+            try {
+                const command = new HeadObjectCommand({
+                    Bucket: bucketConfig.name,
+                    Key: key,
+                });
 
-            return {
-                size: response.ContentLength || 0,
-                contentType: response.ContentType || 'application/octet-stream',
-                lastModified: response.LastModified || new Date(),
-                etag: response.ETag || '',
-                metadata: response.Metadata,
-            };
-        } catch (error) {
-            this.logger.error(`Failed to get file metadata ${key}:`, error);
-            throw error;
+                const response = await this.s3Client.send(command);
+
+                return {
+                    size: response.ContentLength || 0,
+                    contentType:
+                        response.ContentType || 'application/octet-stream',
+                    lastModified: response.LastModified || new Date(),
+                    etag: response.ETag || '',
+                    metadata: response.Metadata,
+                    bucket: bucketConfig.name,
+                    isPublic: bucketConfig.isPublic,
+                };
+            } catch (error) {
+                // Continue to next bucket
+                continue;
+            }
         }
+
+        // If not found in any bucket
+        this.logger.error(`File metadata not found in any bucket: ${key}`);
+        throw new Error(`File not found: ${key}`);
     }
 
     /**
-     * Generate signed URL for temporary access
+     * Generate signed URL for temporary access (mainly for private files)
      */
     async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+        // First check if file is in public bucket
         try {
+            const publicBucket = this.getBucketConfig(key, {
+                forcePublic: true,
+            });
+            const command = new HeadObjectCommand({
+                Bucket: publicBucket.name,
+                Key: key,
+            });
+
+            await this.s3Client.send(command);
+
+            // File exists in public bucket, return direct URL
+            this.logger.log(`Returning public URL for ${key}`);
+            return this.getCloudFrontUrl(key, publicBucket);
+        } catch (error) {
+            // File not in public bucket, try private bucket with signed URL
+        }
+
+        try {
+            const privateBucket = this.getBucketConfig(key, {
+                forcePrivate: true,
+            });
             const command = new GetObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
+                Bucket: privateBucket.name,
                 Key: key,
             });
 
@@ -256,10 +446,7 @@ export class AwsS3Service {
     /**
      * Generate unique key for file
      */
-    generateKey(
-        type: 'images' | 'documents' | 'avatars' | 'temp',
-        filename: string,
-    ): string {
+    generateKey(type: FileType, filename: string): string {
         const timestamp = Date.now();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const basePath = this.awsConfiguration.uploadPath[type];
@@ -271,29 +458,40 @@ export class AwsS3Service {
     }
 
     /**
-     * Get CloudFront URL
+     * Get CloudFront URL for a file
      */
-    getCloudFrontUrl(key: string): string {
-        return this.awsConfiguration.awsCloudfrontUrl
-            ? `${this.awsConfiguration.awsCloudfrontUrl}/${key}`
-            : this.generateS3Url(key);
+    getCloudFrontUrl(key: string, bucketConfig?: BucketConfig): string {
+        if (!bucketConfig) {
+            // Default to public bucket if not specified
+            bucketConfig = this.getBucketConfig(key, { forcePublic: true });
+        }
+
+        return bucketConfig.cloudfrontUrl
+            ? `${bucketConfig.cloudfrontUrl}/${key}`
+            : this.generateS3Url(key, bucketConfig);
     }
 
     /**
      * Generate direct S3 URL
      */
-    private generateS3Url(key: string): string {
-        return `https://${this.awsConfiguration.awsBucketName}.s3.${this.awsConfiguration.awsRegion}.amazonaws.com/${key}`;
+    private generateS3Url(key: string, bucketConfig: BucketConfig): string {
+        return `https://${bucketConfig.name}.s3.${this.awsConfiguration.awsRegion}.amazonaws.com/${key}`;
     }
 
     /**
      * Validate file before upload
      */
-    private validateFile(file: Buffer, contentType: string): void {
+    private validateFile(
+        file: Buffer,
+        contentType: string,
+        fileType: FileType,
+    ): void {
+        const maxSize = this.getMaxFileSize(fileType);
+
         // Check file size
-        if (file.length > this.maxFileSize) {
+        if (file.length > maxSize) {
             throw new BadRequestException(
-                `File size exceeds maximum allowed size of ${this.maxFileSize / 1024 / 1024}MB`,
+                `File size exceeds maximum allowed size of ${maxSize / 1024 / 1024}MB for ${fileType}`,
             );
         }
 
@@ -301,6 +499,25 @@ export class AwsS3Service {
         if (!this.allowedMimeTypes.includes(contentType)) {
             throw new BadRequestException(
                 `File type ${contentType} is not allowed. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
+            );
+        }
+
+        // Additional validation for file types
+        if (
+            (fileType === 'images' || fileType === 'avatars') &&
+            !this.awsConfiguration.allowedImageTypes.includes(contentType)
+        ) {
+            throw new BadRequestException(
+                `Invalid image type ${contentType}. Allowed: ${this.awsConfiguration.allowedImageTypes.join(', ')}`,
+            );
+        }
+
+        if (
+            fileType === 'documents' &&
+            !this.awsConfiguration.allowedDocumentTypes.includes(contentType)
+        ) {
+            throw new BadRequestException(
+                `Invalid document type ${contentType}. Allowed: ${this.awsConfiguration.allowedDocumentTypes.join(', ')}`,
             );
         }
 
@@ -319,21 +536,38 @@ export class AwsS3Service {
     }
 
     /**
-     * Copy file within the same bucket
+     * Copy file within the same bucket or across buckets
      */
-    async copyFile(sourceKey: string, destinationKey: string): Promise<void> {
+    async copyFile(
+        sourceKey: string,
+        destinationKey: string,
+        isPublic?: boolean,
+    ): Promise<void> {
         try {
-            const copySource = `${this.awsConfiguration.awsBucketName}/${sourceKey}`;
+            // Get source file metadata to determine which bucket it's in
+            const sourceMetadata = await this.getFileMetadata(sourceKey);
+            const sourceBucket = sourceMetadata.bucket;
+
+            // Determine destination bucket
+            const destBucketConfig =
+                isPublic !== undefined
+                    ? this.getBucketConfig(destinationKey, {
+                          forcePublic: isPublic,
+                          forcePrivate: !isPublic,
+                      })
+                    : this.getBucketConfig(destinationKey);
+
+            const copySource = `${sourceBucket}/${sourceKey}`;
 
             const command = new CopyObjectCommand({
-                Bucket: this.awsConfiguration.awsBucketName,
+                Bucket: destBucketConfig.name,
                 Key: destinationKey,
                 CopySource: copySource,
             });
 
             await this.s3Client.send(command);
             this.logger.log(
-                `File copied successfully: ${sourceKey} -> ${destinationKey}`,
+                `File copied successfully: ${sourceKey} -> ${destinationKey} (${sourceBucket} -> ${destBucketConfig.name})`,
             );
         } catch (error) {
             this.logger.error(
@@ -342,5 +576,12 @@ export class AwsS3Service {
             );
             throw error;
         }
+    }
+
+    /**
+     * Get public URL for public files, signed URL for private files
+     */
+    async getAccessUrl(key: string, expiresIn: number = 3600): Promise<string> {
+        return this.getSignedUrl(key, expiresIn);
     }
 }

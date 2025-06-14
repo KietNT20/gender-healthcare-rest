@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
+    Allow,
     IsBoolean,
-    IsBooleanString,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -42,21 +43,19 @@ export class UploadImageDto {
 
     @ApiPropertyOptional({
         description: 'Generate thumbnails for this image',
-        default: 'true',
-        enum: ['true', 'false'],
+        default: true,
     })
     @IsOptional()
-    @IsBooleanString()
-    generateThumbnails?: boolean = true;
+    @IsBoolean()
+    generateThumbnails: boolean = true;
 
     @ApiPropertyOptional({
         description: 'Make image publicly accessible',
-        default: 'true',
-        enum: ['true', 'false'],
+        default: true,
     })
     @IsOptional()
-    @IsBooleanString()
-    isPublic?: boolean = true;
+    @IsBoolean()
+    isPublic: boolean = true;
 }
 
 export class UploadDocumentDto {
@@ -105,20 +104,12 @@ export class UploadDocumentDto {
     documentType?: string;
 
     @ApiPropertyOptional({
-        description: 'Make document publicly accessible',
-        default: false,
-    })
-    @IsOptional()
-    @IsBooleanString()
-    isPublic?: boolean = false;
-
-    @ApiPropertyOptional({
         description: 'Mark document as containing sensitive information',
         default: false,
     })
     @IsOptional()
-    @IsBooleanString()
-    isSensitive?: boolean = false;
+    @IsBoolean()
+    isSensitive: boolean = false;
 }
 
 export class BulkUploadDto {
@@ -132,27 +123,37 @@ export class BulkUploadDto {
     @IsUUID()
     entityId?: string;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({
+        default: false,
+    })
     @IsOptional()
     @IsBoolean()
-    isPublic?: boolean = false;
+    isPublic: boolean = false;
 }
 
 export class TestUploadDto {
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+    })
+    @Allow()
+    file: Express.Multer.File;
+
     @ApiPropertyOptional({
         description: 'Test description',
         example: 'Test upload to AWS S3',
+        default: 'Test upload to AWS S3',
     })
     @IsOptional()
     @IsString()
-    description?: string;
+    @Transform(({ value }) => value || 'Test upload to AWS S3')
+    description: string = 'Test upload to AWS S3';
 
     @ApiPropertyOptional({
         description: 'Make file publicly accessible',
-        default: 'true',
-        enum: ['true', 'false'],
+        default: true,
     })
     @IsOptional()
-    @IsBooleanString()
-    isPublic?: string = 'true';
+    @IsBoolean()
+    isPublic: boolean = true;
 }

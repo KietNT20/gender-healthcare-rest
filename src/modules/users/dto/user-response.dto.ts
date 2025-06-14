@@ -22,7 +22,10 @@ export class UserResponseDto {
     password: string;
 
     @Expose()
-    fullName: string;
+    firstName: string;
+
+    @Expose()
+    lastName: string;
 
     @Expose()
     slug: string;

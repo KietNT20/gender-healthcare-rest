@@ -220,10 +220,9 @@ export interface UploadDocumentOptions {
     entityType: string;
     entityId: string;
     description?: string;
-    isPublic?: boolean;
     isSensitive?: boolean;
-    tags?: string[]; // Added support for tagging
-    category?: string; // Added document categorization
+    tags?: string[];
+    category?: string;
 }
 
 export interface FileResult {

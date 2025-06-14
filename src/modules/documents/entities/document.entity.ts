@@ -46,9 +46,6 @@ export class Document {
     entityId?: string;
 
     @Column({ default: false })
-    isPublic: boolean;
-
-    @Column({ default: false })
     isSensitive: boolean;
 
     @Column({ length: 64, nullable: true })

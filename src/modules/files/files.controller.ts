@@ -1,5 +1,4 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -23,6 +22,7 @@ import {
     ApiQuery,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { sanitizeFilename } from 'src/utils/sanitize-name.util';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
     TestUploadDto,
@@ -30,7 +30,6 @@ import {
     UploadImageDto,
 } from './dto/upload-file.dto';
 import { FilesService } from './files.service';
-import { UploadDocumentOptions, UploadImageOptions } from './interfaces';
 
 @Controller('files')
 export class FilesController {
@@ -46,26 +45,12 @@ export class FilesController {
     @ApiBody({ type: UploadImageDto })
     async uploadImage(
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: UploadImageDto,
+        @Body() uploadImageDto: UploadImageDto,
     ) {
-        if (!body.entityId || !body.entityType) {
-            throw new BadRequestException(
-                'entityId and entityType are required fields.',
-            );
-        }
-        if (!file) {
-            throw new BadRequestException('File is required.');
-        }
-
-        const options: UploadImageOptions = {
+        return this.filesService.uploadImage({
+            ...uploadImageDto,
             file,
-            entityId: body.entityId,
-            entityType: body.entityType,
-            altText: body.altText,
-            isPublic: body.isPublic,
-            generateThumbnails: body.generateThumbnails,
-        };
-        return this.filesService.uploadImage(options);
+        });
     }
 
     @Post('document')
@@ -77,37 +62,34 @@ export class FilesController {
     @ApiBody({ type: UploadDocumentDto })
     async uploadDocument(
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: UploadDocumentDto,
+        @Body() uploadDocumentDto: UploadDocumentDto,
     ) {
-        if (!body.entityId || !body.entityType) {
-            throw new BadRequestException(
-                'entityId and entityType are required fields.',
-            );
-        }
-        if (!file) {
-            throw new BadRequestException('File is required.');
-        }
-
-        const options: UploadDocumentOptions = {
+        return this.filesService.uploadDocument({
+            ...uploadDocumentDto,
             file,
-            entityId: body.entityId,
-            entityType: body.entityType,
-            description: body.description,
-            isPublic: body.isPublic,
-            isSensitive: body.isSensitive,
-        };
-        return this.filesService.uploadDocument(options);
+        });
     }
 
     @Get('images/entity')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Lấy danh sách ảnh theo một đối tượng cụ thể' })
+    @ApiQuery({
+        name: 'includePrivate',
+        required: false,
+        type: Boolean,
+        description: 'Include private images (admin only)',
+    })
     async getImagesByEntity(
         @Query('entityType') entityType: string,
         @Query('entityId', ParseUUIDPipe) entityId: string,
+        @Query('includePrivate') includePrivate: boolean = false,
     ) {
-        return this.filesService.getImagesByEntity(entityType, entityId);
+        return this.filesService.getImagesByEntity(
+            entityType,
+            entityId,
+            includePrivate,
+        );
     }
 
     @Get('documents/entity')
@@ -121,6 +103,48 @@ export class FilesController {
         @Query('entityId', ParseUUIDPipe) entityId: string,
     ) {
         return this.filesService.getDocumentsByEntity(entityType, entityId);
+    }
+
+    @Get('image/:id/access')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Lấy URL truy cập cho ảnh (public URL hoặc signed URL)',
+        description:
+            'Trả về public URL cho ảnh công khai, signed URL cho ảnh riêng tư',
+    })
+    @ApiQuery({
+        name: 'expiresIn',
+        required: false,
+        type: Number,
+        description: 'Thời gian hết hạn cho signed URL (giây), mặc định 3600',
+    })
+    async getImageAccessUrl(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Query('expiresIn') expiresIn: number = 3600,
+    ) {
+        return this.filesService.getImageWithAccessUrl(id, expiresIn);
+    }
+
+    @Get('document/:id/access')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Lấy URL truy cập cho tài liệu (signed URL)',
+        description:
+            'Trả về signed URL với thời gian hết hạn để truy cập tài liệu',
+    })
+    @ApiQuery({
+        name: 'expiresIn',
+        required: false,
+        type: Number,
+        description: 'Thời gian hết hạn cho signed URL (giây), mặc định 3600',
+    })
+    async getDocumentAccessUrl(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Query('expiresIn') expiresIn: number = 3600,
+    ) {
+        return this.filesService.getDocumentWithAccessUrl(id, expiresIn);
     }
 
     @Delete('image/:id')
@@ -164,86 +188,41 @@ export class FilesController {
 
     @Post('test/upload')
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({
-        summary: 'Test upload file to AWS S3',
-        description:
-            'Simple endpoint to test AWS S3 connection without entity requirements',
-    })
+    @ApiOperation({ summary: 'Test upload file to AWS S3' })
     @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description: 'File to upload for testing',
-                },
-                description: {
-                    type: 'string',
-                    description: 'Test description',
-                    example: 'Test upload to AWS S3',
-                },
-                isPublic: {
-                    type: 'string',
-                    enum: ['true', 'false'],
-                    default: 'true',
-                    description: 'Make file publicly accessible',
-                },
-            },
-            required: ['file'],
-        },
-    })
+    @ApiBody({ type: TestUploadDto })
     async testUpload(
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: TestUploadDto,
+        @Body() testUploadDto: TestUploadDto,
     ) {
-        if (!file) {
-            throw new BadRequestException('File is required.');
-        }
+        const isPublic = testUploadDto.isPublic;
+        const cleanName = sanitizeFilename(file.originalname);
+        const testKey = `test-uploads/${Date.now()}-${cleanName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-        try {
-            // Convert string to boolean
-            const isPublic = body.isPublic === 'true';
-
-            // Generate test key
-            const timestamp = Date.now();
-            const sanitizedFileName = file.originalname.replace(
-                /[^a-zA-Z0-9.-]/g,
-                '_',
-            );
-            const testKey = `test-uploads/${timestamp}-${sanitizedFileName}`;
-
-            // Upload directly to S3 for testing
-            const uploadResult = await this.filesService
-                .getAwsS3Service()
-                .uploadFile(file.buffer, testKey, file.mimetype, {
-                    isPublic,
+        const uploadResult = await this.filesService
+            .getAwsS3Service()
+            .uploadFileWithPrivacy(
+                file.buffer,
+                testKey,
+                file.mimetype,
+                isPublic,
+                {
                     metadata: {
-                        originalName: file.originalname,
-                        description: body.description || 'Test upload',
+                        originalName: cleanName,
+                        description: testUploadDto.description || '',
                         uploadedAt: new Date().toISOString(),
                     },
-                });
-
-            this.logger.log(`Test upload successful: ${uploadResult.key}`);
-
-            return {
-                success: true,
-                message: 'File uploaded successfully to AWS S3',
-                data: {
-                    key: uploadResult.key,
-                    url: uploadResult.url,
-                    cloudFrontUrl: uploadResult.cloudFrontUrl,
-                    size: uploadResult.size,
-                    contentType: uploadResult.contentType,
-                    originalName: file.originalname,
-                    uploadedAt: new Date().toISOString(),
                 },
-            };
-        } catch (error) {
-            this.logger.error('Test upload failed:', error);
-            throw new BadRequestException(`Upload failed: ${error.message}`);
-        }
+            );
+
+        return {
+            success: true,
+            message: 'File uploaded successfully to AWS S3',
+            data: {
+                ...uploadResult,
+                originalName: file.originalname,
+                uploadedAt: new Date().toISOString(),
+            },
+        };
     }
 }

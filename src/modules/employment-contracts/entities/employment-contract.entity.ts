@@ -7,7 +7,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -19,9 +18,6 @@ export class EmploymentContract {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
-    userId: string;
-
     @Column({ length: 50 })
     contractNumber: string;
 
@@ -32,7 +28,7 @@ export class EmploymentContract {
     startDate: Date;
 
     @Column({ type: 'date', nullable: true })
-    endDate: Date;
+    endDate?: Date;
 
     @Column({
         type: 'enum',
@@ -43,7 +39,7 @@ export class EmploymentContract {
     status: ContractStatusType;
 
     @Column({ type: 'text', nullable: true })
-    description: string;
+    description?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -53,11 +49,10 @@ export class EmploymentContract {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.employmentContracts)
-    @JoinColumn()
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.contract)

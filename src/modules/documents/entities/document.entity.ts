@@ -6,7 +6,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
@@ -34,33 +33,32 @@ export class Document {
     path: string;
 
     @Column({ type: 'text', nullable: true })
-    description: string;
+    description?: string;
 
     @Column({ length: 50, nullable: true })
     @Index()
-    documentType: string;
+    documentType?: string;
 
     @Column({ length: 50, nullable: true })
-    entityType: string;
+    entityType?: string;
 
     @Column({ type: 'uuid', nullable: true })
-    entityId: string;
-
-    @Column({ default: false })
-    isPublic: boolean;
+    entityId?: string;
 
     @Column({ default: false })
     isSensitive: boolean;
 
-    @Column({ nullable: true })
-    @Index()
-    userId: string;
-
     @Column({ length: 64, nullable: true })
-    hash: string;
+    hash?: string;
 
     @Column({ type: 'jsonb', nullable: true })
-    metadata: any;
+    metadata?: {
+        s3Key?: string;
+        uploadedAt?: string;
+        lastAccessed?: string;
+        downloadCount?: number;
+        [key: string]: any;
+    };
 
     @CreateDateColumn()
     createdAt: Date;
@@ -69,11 +67,10 @@ export class Document {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.documents)
-    @JoinColumn()
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.file)

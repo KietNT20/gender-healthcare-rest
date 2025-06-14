@@ -11,6 +11,7 @@ import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
 import { MenstrualPrediction } from 'src/modules/menstrual-predictions/entities/menstrual-prediction.entity';
+import { Message } from 'src/modules/messages/entities/message.entity';
 import { Notification } from 'src/modules/notifications/entities/notification.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Question } from 'src/modules/questions/entities/question.entity';
@@ -22,7 +23,7 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
+    Index,
     ManyToOne,
     OneToMany,
     OneToOne,
@@ -36,15 +37,26 @@ export class User {
     id: string;
 
     @Column({ type: 'varchar', length: 60, unique: true })
+    @Index()
     email: string;
 
-    @Column({ type: 'varchar', length: 60, select: false })
-    password: string;
+    @Column({ type: 'varchar', length: 60, nullable: true })
+    password?: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    @Index()
+    googleId?: string;
 
     @Column({ type: 'varchar', length: 255 })
-    fullName: string;
+    @Index()
+    firstName: string;
+
+    @Column({ type: 'varchar', length: 255 })
+    @Index()
+    lastName: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
+    @Index()
     slug: string;
 
     @Column({ type: 'date', nullable: true })
@@ -58,6 +70,7 @@ export class User {
     gender?: GenderType;
 
     @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+    @Index()
     phone?: string;
 
     @Column({ type: 'text', nullable: true })
@@ -142,6 +155,9 @@ export class User {
     })
     refreshToken?: string;
 
+    @Column({ nullable: true })
+    deletedByUserId?: string;
+
     @Column({ default: 0 })
     version: number;
 
@@ -150,27 +166,15 @@ export class User {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    // Foreign Keys
-    @Column()
-    roleId: string;
-
-    @Column({ nullable: true })
-    deletedById?: string;
-
     // Relations
-    @ManyToOne(() => Role, (role) => role.users)
-    @JoinColumn()
+    @ManyToOne(() => Role, (role) => role.users, {
+        eager: true,
+    })
     role: Role;
-
-    @ManyToOne(() => User, { nullable: true })
-    @JoinColumn()
-    deletedBy?: User;
-
-    @OneToMany(() => User, (user) => user.deletedBy)
-    deletedUsers: User[];
 
     // Consultant Profile relation
     @OneToOne(() => ConsultantProfile, (profile) => profile.user, {
@@ -207,6 +211,9 @@ export class User {
     @OneToMany(() => Question, (question) => question.user)
     questions: Question[];
 
+    @OneToMany(() => Message, (message) => message.sender)
+    messages: Message[];
+
     // Feedback relations
     @OneToMany(() => Feedback, (feedback) => feedback.user)
     feedbacks: Feedback[];
@@ -233,7 +240,7 @@ export class User {
     notifications: Notification[];
 
     // Test result relations
-    @OneToMany(() => TestResult, (testResult) => testResult.staff)
+    @OneToMany(() => TestResult, (testResult) => testResult.user)
     testResults: TestResult[];
 
     // Document & Image relations

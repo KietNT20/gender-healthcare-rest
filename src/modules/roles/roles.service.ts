@@ -1,26 +1,60 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { Role } from './entities/role.entity';
 
 @Injectable()
 export class RolesService {
-    create(createRoleDto: CreateRoleDto) {
-        return 'This action adds a new role';
+    constructor(
+        @InjectRepository(Role)
+        private readonly roleRepository: Repository<Role>,
+    ) {}
+
+    async create(createRoleDto: CreateRoleDto) {
+        const existingRole = await this.roleRepository.findOneBy({
+            name: createRoleDto.name,
+        });
+
+        if (existingRole) {
+            throw new ConflictException(
+                `Role with name ${createRoleDto.name} already exists`,
+            );
+        }
+
+        const role = this.roleRepository.create(createRoleDto);
+        return this.roleRepository.save(role);
     }
 
-    findAll() {
-        return `This action returns all roles`;
+    async findAll() {
+        return this.roleRepository.find();
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} role`;
+    async findOne(id: string) {
+        return this.roleRepository.findOneBy({ id });
     }
 
-    update(id: number, updateRoleDto: UpdateRoleDto) {
-        return `This action updates a #${id} role`;
+    async update(id: string, updateRoleDto: UpdateRoleDto) {
+        const existingRole = await this.roleRepository.findOneBy({
+            name: updateRoleDto.name,
+        });
+
+        if (existingRole && existingRole.id !== id) {
+            throw new ConflictException(
+                `Role with name ${updateRoleDto.name} already exists`,
+            );
+        }
+
+        await this.roleRepository.update(id, {
+            ...updateRoleDto,
+            updatedAt: new Date(),
+        });
+
+        return this.roleRepository.findOneBy({ id });
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} role`;
+    async remove(id: string) {
+        return this.roleRepository.softDelete(id);
     }
 }

@@ -97,3 +97,14 @@ export enum SubscriptionStatusType {
     CANCELLED = 'cancelled',
     SUSPENDED = 'suspended',
 }
+
+export enum SortOrder {
+    ASC = 'ASC',
+    DESC = 'DESC',
+}
+
+export enum MessageType {
+    TEXT = 'text',
+    IMAGE = 'image',
+    FILE = 'file',
+}

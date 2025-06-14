@@ -19,11 +19,12 @@ export class Role {
         type: 'enum',
         enum: RolesNameEnum,
         default: RolesNameEnum.CUSTOMER,
+        unique: true,
     })
     name: RolesNameEnum;
 
     @Column({ length: 60, nullable: true })
-    description: string;
+    description?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -32,7 +33,7 @@ export class Role {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @OneToMany(() => User, (user) => user.role)

@@ -4,7 +4,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -15,9 +14,6 @@ export class Notification {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ nullable: true })
-    userId: string;
-
     @Column({ length: 255 })
     title: string;
 
@@ -26,9 +22,6 @@ export class Notification {
 
     @Column({ length: 50 })
     type: string;
-
-    @Column({ type: 'uuid', nullable: true })
-    referenceId: string;
 
     @Column({ default: false })
     isRead: boolean;
@@ -54,6 +47,5 @@ export class Notification {
 
     // Relations
     @ManyToOne(() => User, (user) => user.notifications)
-    @JoinColumn()
     user: User;
 }

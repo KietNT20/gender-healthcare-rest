@@ -6,7 +6,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -16,10 +15,6 @@ import {
 export class ContraceptiveReminder {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @Column({ nullable: true })
-    @Index()
-    userId: string;
 
     @Column({ length: 100 })
     contraceptiveType: string;
@@ -32,7 +27,7 @@ export class ContraceptiveReminder {
     startDate: Date;
 
     @Column({ type: 'date', nullable: true })
-    endDate: Date;
+    endDate?: Date;
 
     @Column({
         type: 'enum',
@@ -50,10 +45,10 @@ export class ContraceptiveReminder {
     status: ReminderStatusType;
 
     @Column({ type: 'int', array: true, nullable: true })
-    daysOfWeek: number[];
+    daysOfWeek?: number[];
 
     @Column({ type: 'text', nullable: true })
-    reminderMessage: string;
+    reminderMessage?: string;
 
     @Column({ default: 0 })
     snoozeCount: number;
@@ -66,12 +61,11 @@ export class ContraceptiveReminder {
 
     @DeleteDateColumn({ nullable: true })
     @Index()
-    deletedAt: Date | null;
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.contraceptiveReminders, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn()
     user: User;
 }

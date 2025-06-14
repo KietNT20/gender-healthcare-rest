@@ -2,7 +2,6 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateProfileDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -10,7 +9,8 @@ import { UsersService } from './users.service';
 const mockUser = {
     id: '1',
     email: 'test@example.com',
-    fullName: 'Test User',
+    firstName: 'Test',
+    lastName: 'User',
 } as User;
 const mockUsersArray = [mockUser];
 
@@ -52,7 +52,8 @@ describe('UsersController', () => {
             const createUserDto: CreateUserDto = {
                 email: 'test@example.com',
                 password: 'password',
-                fullName: 'Test User',
+                firstName: 'Test',
+                lastName: 'User',
                 roleId: '1',
             };
             const result = await controller.create(createUserDto);
@@ -99,7 +100,10 @@ describe('UsersController', () => {
     describe('update()', () => {
         it('should call service.update with correct id and DTO', async () => {
             const id = '1';
-            const updateUserDto: UpdateUserDto = { fullName: 'Updated Name' };
+            const updateUserDto: UpdateUserDto = {
+                firstName: 'Updated',
+                lastName: 'Name',
+            };
 
             await controller.update(id, updateUserDto);
 

@@ -1,4 +1,4 @@
-import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
     IsBoolean,
     IsDateString,
@@ -22,7 +22,10 @@ export class UserResponseDto {
     password: string;
 
     @Expose()
-    fullName: string;
+    firstName: string;
+
+    @Expose()
+    lastName: string;
 
     @Expose()
     slug: string;
@@ -98,8 +101,11 @@ export class ChangePasswordDto {
 export class UpdateProfileDto {
     @IsOptional()
     @IsString()
-    @Transform(({ value }) => value?.trim())
-    fullName?: string;
+    firstName?: string;
+
+    @IsOptional()
+    @IsString()
+    lastName?: string;
 
     @IsOptional()
     @IsDateString({}, { message: 'Date of birth must be a valid date' })

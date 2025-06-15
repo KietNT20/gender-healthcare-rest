@@ -18,6 +18,7 @@ import {
     UploadDocumentOptions,
     UploadImageOptions,
 } from './interfaces';
+import { ProcessedImageResult } from './processors/image.processor';
 
 @Injectable()
 export class FilesService {
@@ -467,7 +468,7 @@ export class FilesService {
      */
     async updateImageAfterProcessing(
         imageId: string,
-        processedResult: any,
+        processedResult: ProcessedImageResult,
     ): Promise<void> {
         await this.imageRepository.update(imageId, {
             url: processedResult.original.cloudFrontUrl,
@@ -524,7 +525,7 @@ export class FilesService {
     }
 
     private validateDocumentFile(file: Express.Multer.File): void {
-        const maxSize = 50 * 1024 * 1024; // 50MB
+        const maxSize = 100 * 1024 * 1024; // 100MB
         const allowedTypes = [
             'application/pdf',
             'application/msword',
@@ -534,7 +535,7 @@ export class FilesService {
         ];
 
         if (file.size > maxSize) {
-            throw new BadRequestException(`Document size exceeds 50MB limit`);
+            throw new BadRequestException(`Document size exceeds 100MB limit`);
         }
 
         if (!allowedTypes.includes(file.mimetype)) {

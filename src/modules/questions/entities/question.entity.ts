@@ -27,6 +27,9 @@ export class Question {
     @Column({ type: 'text' })
     content: string;
 
+    @Column({ type: 'varchar', length: 255, unique: true })
+    slug: string;
+
     @Column({
         type: 'enum',
         enum: QuestionStatusType,

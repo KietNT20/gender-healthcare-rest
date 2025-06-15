@@ -117,11 +117,6 @@ export class ConsultantProfile {
         (availability) => availability.consultantProfile,
     )
     availabilities: ConsultantAvailability[];
-
-
-
-    @OneToMany(() => Feedback, (feedback) => feedback.consultant)
-    consultantFeedbacks: Feedback[];
 }
 
 

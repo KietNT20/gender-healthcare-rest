@@ -49,40 +49,20 @@ export class TestResult {
   @Column({ default: false })
   isAbnormal: boolean;
 
-  // Khuyến nghị của bác sĩ dựa trên kết quả (ví dụ: "Tái xét nghiệm sau 1 tháng")
-  // Ứng dụng: Hướng dẫn chăm sóc bệnh nhân, được cập nhật trong giai đoạn tư vấn
-  @Column({ type: 'text', nullable: true })
-  recommendation?: string;
+    @Column({ type: 'text', nullable: true })
+    recommendation?: string;
 
-  // Thời điểm kết quả được xem bởi bệnh nhân hoặc bác sĩ
-  // Ứng dụng: Theo dõi hành vi người dùng, dùng để kiểm tra hoặc nhắc nhở theo dõi
-  @Column({ type: 'timestamp with time zone', nullable: true })
-  viewedAt?: Date;
+    @Column({ default: false })
+    notificationSent: boolean;
 
-  // Cờ đánh dấu liệu thông báo đã được gửi cho bệnh nhân/bác sĩ
-  // Ứng dụng: Đảm bảo người dùng được thông báo về kết quả, ngăn gửi thông báo trùng lặp
-  @Column({ default: false })
-  notificationSent: boolean;
+    @Column({ default: false })
+    followUpRequired: boolean;
 
-  // Ngày thực hiện xét nghiệm
-  // Ứng dụng: Theo dõi thời điểm xét nghiệm được tiến hành, dùng để báo cáo theo thời gian
-  @Column({ type: 'timestamp with time zone' })
-  testDate: Date;
+    @Column({ type: 'text', nullable: true })
+    followUpNotes?: string;
 
-  // Ngày hoàn thành kết quả xét nghiệm
-  // Ứng dụng: Đánh dấu thời điểm phòng thí nghiệm hoàn tất phân tích, dùng để theo dõi thời gian xử lý
-  @Column({ type: 'timestamp with time zone', nullable: true })
-  resultDate?: Date;
-
-  // Trạng thái của kết quả xét nghiệm, được định nghĩa trong enum TestStatus
-  // Ứng dụng: Quản lý vòng đời kết quả xét nghiệm (ví dụ: đang chờ xử lý, hoàn thành, hủy)
-  @Column({ type: 'enum', enum: TestStatus, default: TestStatus.PENDING })
-  status: TestStatus;
-
-  // Thời điểm tạo bản ghi
-  // Ứng dụng: Dùng để theo dõi lịch sử tạo và kiểm tra dữ liệu
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
   // Thời điểm cập nhật bản ghi
   // Ứng dụng: Theo dõi các thay đổi để đảm bảo tính toàn vẹn dữ liệu

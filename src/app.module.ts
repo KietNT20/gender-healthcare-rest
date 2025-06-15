@@ -93,6 +93,7 @@ import { UsersModule } from './modules/users/users.module';
                     port: configService.get<number>('REDIS_PORT'),
                     password: configService.get<string>('REDIS_PASSWORD'),
                     db: configService.get<number>('REDIS_DB'),
+                    tls: {},
                 },
                 defaultJobOptions: {
                     removeOnComplete: 10,

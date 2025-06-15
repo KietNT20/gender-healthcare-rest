@@ -9,6 +9,22 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
+
+/*
+📌 Entity này là gì?
+Là bảng trung gian xác định dịch vụ nào nằm trong gói nào, và kèm theo các cấu hình riêng như giới hạn lượt dùng hoặc giảm giá cho dịch vụ đó trong gói.
+
+📄 Mô tả các trường:
+Trường	Mô tả
+id	UUID
+quantityLimit	Số lượt sử dụng tối đa cho dịch vụ trong gói
+discountPercentage	Giảm giá riêng (nếu có)
+createdAt, updatedAt	Metadata thời gian
+
+🔗 Quan hệ:
+@ManyToOne → ServicePackage: thuộc về gói nào.
+
+@ManyToOne → Service: là dịch vụ nào.*/
 @Entity()
 export class PackageService {
     @PrimaryGeneratedColumn('uuid')

@@ -43,10 +43,5 @@ import {
     @IsOptional()
     @IsString()
     staffResponse?: string;
-  
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    categories?: string[];
   }
   

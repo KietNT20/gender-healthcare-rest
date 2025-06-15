@@ -38,8 +38,6 @@ export class CreateServiceDto {
   @IsOptional()
   isActive?: boolean;
 
- 
-
   @IsString()
   @IsOptional()
   @MaxLength(255)

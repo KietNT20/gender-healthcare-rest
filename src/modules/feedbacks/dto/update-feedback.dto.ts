@@ -16,15 +16,6 @@ export class UpdateFeedbackDto extends PartialType(CreateFeedbackDto) {
     isAnonymous?: boolean;
   
     @IsOptional()
-    @IsBoolean()
-    isPublic?: boolean;
-  
-    @IsOptional()
     @IsString()
     staffResponse?: string;
-  
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    categories?: string[];
   }

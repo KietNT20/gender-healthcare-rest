@@ -6,40 +6,45 @@ import {
     Patch,
     Param,
     Delete,
+    UploadedFile,
+    UseInterceptors,
 } from '@nestjs/common';
 import { FeedbacksService } from './feedbacks.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('feedbacks')
 export class FeedbacksController {
     constructor(private readonly feedbacksService: FeedbacksService) {}
 
     @Post()
-    create(@Body() createFeedbackDto: CreateFeedbackDto) {
+    async create(@Body() createFeedbackDto: CreateFeedbackDto) {
         return this.feedbacksService.create(createFeedbackDto);
     }
 
     @Get()
-    findAll() {
+    async findAll() {
         return this.feedbacksService.findAll();
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.feedbacksService.findOne(+id);
+    async findOne(@Param('id') id: string) {
+        return this.feedbacksService.findOne(id);
     }
 
     @Patch(':id')
-    update(
+    async update(
         @Param('id') id: string,
         @Body() updateFeedbackDto: UpdateFeedbackDto,
     ) {
-        return this.feedbacksService.update(+id, updateFeedbackDto);
+        return this.feedbacksService.update(id, updateFeedbackDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.feedbacksService.remove(+id);
+    async remove(@Param('id') id: string) {
+        return this.feedbacksService.remove(id);
     }
+    
+    
 }

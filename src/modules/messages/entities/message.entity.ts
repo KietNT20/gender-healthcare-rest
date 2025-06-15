@@ -29,6 +29,29 @@ export class Message {
     @Column({ default: false })
     isRead: boolean;
 
+    @Column({
+        type: 'timestamp with time zone',
+        nullable: true,
+    })
+    readAt?: Date;
+
+    @Column({ type: 'jsonb', nullable: true })
+    metadata?: {
+        fileId?: string;
+        fileName?: string;
+        fileSize?: number;
+        mimeType?: string;
+        thumbnailUrl?: string;
+        editedAt?: string;
+        editCount?: number;
+        replyTo?: string;
+        mentions?: string[];
+        [key: string]: any;
+    };
+
+    @Column({ default: false })
+    isEdited: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

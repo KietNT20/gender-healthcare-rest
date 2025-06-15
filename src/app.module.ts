@@ -40,6 +40,7 @@ import { SymptomsModule } from './modules/symptoms/symptoms.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
     imports: [
@@ -96,7 +97,7 @@ import { UsersModule } from './modules/users/users.module';
         }),
         AppointmentsModule,
         BlogsModule,
-        CategoriesModule,
+        CategoriesModule, 
         ConsultantAvailabilityModule,
         ConsultantProfilesModule,
         ContractFilesModule,
@@ -127,6 +128,7 @@ import { UsersModule } from './modules/users/users.module';
         AuditLogsModule,
         FilesModule,
         MessagesModule,
+        ChatModule,
     ],
     providers: [
         {

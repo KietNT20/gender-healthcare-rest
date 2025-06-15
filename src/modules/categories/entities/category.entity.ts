@@ -22,7 +22,7 @@ export class Category {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 100 })
+    @Column({ type: 'varchar', length: 100 ,unique :true})
     @Index()
     name: string;
 
@@ -44,7 +44,7 @@ export class Category {
     children: Category[];
 
     @TreeParent()
-    parent: Category;
+    parent: Category | null;
 
     @CreateDateColumn()
     createdAt: Date;

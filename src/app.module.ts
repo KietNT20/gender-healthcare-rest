@@ -89,10 +89,10 @@ import { UsersModule } from './modules/users/users.module';
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
                 connection: {
-                    host: configService.get('REDIS_HOST', 'localhost'),
-                    port: configService.get('REDIS_PORT', 6379),
-                    password: configService.get('REDIS_PASSWORD'),
-                    db: configService.get('REDIS_DB', 0),
+                    host: configService.get<string>('REDIS_HOST'),
+                    port: configService.get<number>('REDIS_PORT'),
+                    password: configService.get<string>('REDIS_PASSWORD'),
+                    db: configService.get<number>('REDIS_DB'),
                 },
                 defaultJobOptions: {
                     removeOnComplete: 10,

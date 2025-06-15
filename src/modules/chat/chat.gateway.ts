@@ -12,8 +12,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageType } from 'src/enums';
 import { AuthService } from '../auth/auth.service';
-import { CreateMessageDto } from '../messages/dto/create-message.dto';
 import { ChatService } from './chat.service';
+import { CreateChatDto } from './dto/create-chat.dto';
 
 interface AuthenticatedSocket extends Socket {
     user?: {
@@ -221,7 +221,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage('send_message')
     async handleSendMessage(
-        @MessageBody() data: CreateMessageDto & { questionId: string },
+        @MessageBody() data: CreateChatDto & { questionId: string },
         @ConnectedSocket() client: AuthenticatedSocket,
     ) {
         if (!client.user) {

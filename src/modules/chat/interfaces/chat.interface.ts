@@ -1,5 +1,5 @@
 import { MessageType } from 'src/enums';
-import { Message } from 'src/modules/messages/entities/message.entity';
+import { Message } from 'src/modules/chat/entities/message.entity';
 
 export interface CreateMessageData {
     content: string;

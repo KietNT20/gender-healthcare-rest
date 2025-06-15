@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import googleAuthConfig from './modules/auth/config/google-auth.config';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { ConsultantAvailabilityModule } from './modules/consultant-availability/consultant-availability.module';
 import { ConsultantProfilesModule } from './modules/consultant-profiles/consultant-profiles.module';
 import { ContraceptiveRemindersModule } from './modules/contraceptive-reminders/contraceptive-reminders.module';
@@ -26,13 +27,11 @@ import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
-import { MessagesModule } from './modules/messages/messages.module';
 import { MoodsModule } from './modules/moods/moods.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { QuestionsModule } from './modules/questions/questions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
@@ -40,7 +39,6 @@ import { SymptomsModule } from './modules/symptoms/symptoms.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
     imports: [
@@ -97,7 +95,7 @@ import { ChatModule } from './modules/chat/chat.module';
         }),
         AppointmentsModule,
         BlogsModule,
-        CategoriesModule, 
+        CategoriesModule,
         ConsultantAvailabilityModule,
         ConsultantProfilesModule,
         ContractFilesModule,
@@ -116,7 +114,6 @@ import { ChatModule } from './modules/chat/chat.module';
         PackageServiceUsageModule,
         PackageServicesModule,
         PaymentsModule,
-        QuestionsModule,
         RolesModule,
         ServicePackagesModule,
         ServicesModule,
@@ -127,7 +124,6 @@ import { ChatModule } from './modules/chat/chat.module';
         AuthModule,
         AuditLogsModule,
         FilesModule,
-        MessagesModule,
         ChatModule,
     ],
     providers: [

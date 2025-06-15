@@ -4,11 +4,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
-import { Message } from '../messages/entities/message.entity';
-import { Question } from '../questions/entities/question.entity';
 import { User } from '../users/entities/user.entity';
+import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { Message } from './entities/message.entity';
+import { Question } from './entities/question.entity';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { ChatService } from './chat.service';
         forwardRef(() => AuthModule),
         FilesModule,
     ],
+    controllers: [ChatController],
     providers: [ChatGateway, ChatService],
     exports: [ChatGateway, ChatService],
 })

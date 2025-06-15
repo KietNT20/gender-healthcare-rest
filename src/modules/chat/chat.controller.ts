@@ -9,6 +9,7 @@ import {
     Query,
     Req,
     UploadedFile,
+    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,15 +21,39 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { MessageType } from 'src/enums';
+import { Roles } from 'src/decorators/roles.decorator';
+import { MessageType, RolesNameEnum } from 'src/enums';
+import { RoleGuard } from 'src/guards/role.guard';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { CreateQuestionDto } from './dto/create-question.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
 
 @ApiTags('Chat')
 @Controller('chat')
 export class ChatController {
     constructor(private readonly chatService: ChatService) {}
+
+    @Post('questions')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    @ApiOperation({ summary: 'Create a new question' })
+    @ApiResponse({ status: 201, description: 'Question created successfully.' })
+    async createQuestion(
+        @Body() createQuestionDto: CreateQuestionDto,
+        @Req() req: Request,
+    ) {
+        const userId = (req as any).user.id;
+        const question = await this.chatService.createQuestion(
+            createQuestionDto,
+            userId,
+        );
+        return {
+            success: true,
+            data: question,
+            message: 'Question created successfully',
+        };
+    }
 
     @Post('questions/:questionId/messages')
     @ApiOperation({ summary: 'Send a text message to a question chat' })

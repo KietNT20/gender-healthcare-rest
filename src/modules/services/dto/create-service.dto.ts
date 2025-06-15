@@ -38,10 +38,7 @@ export class CreateServiceDto {
   @IsOptional()
   isActive?: boolean;
 
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  images?: string[];
+ 
 
   @IsString()
   @IsOptional()

@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { ContentStatusType } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
@@ -89,6 +90,9 @@ export class Blog {
 
     @UpdateDateColumn()
     updatedAt: Date;
+    @Column({ type: 'timestamp with time zone', nullable: true })
+    @Exclude()
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.authoredBlogs)

@@ -44,9 +44,6 @@ export class ServicesService {
 
   async remove(id: string): Promise<void> {
     const service = await this.findOne(id);
-    await this.serviceRepo.save({
-      ...service,
-      deletedAt: new Date(),
-    });
+    await this.serviceRepo.softRemove(service);
   }
 }

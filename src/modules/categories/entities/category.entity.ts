@@ -44,7 +44,7 @@ export class Category {
     children: Category[];
 
     @TreeParent()
-    parent: Category;
+    parent: Category | null;
 
     @CreateDateColumn()
     createdAt: Date;

@@ -9,7 +9,25 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+/*
+Đại diện cho một gói sản phẩm có trả phí, được bán cho người dùng. Mỗi gói có nhiều dịch vụ con (ví dụ: Tư vấn dinh dưỡng, khám tâm lý...) và tồn tại trong một khoảng thời gian nhất định.
 
+📄 Mô tả các trường:
+Trường	Mô tả
+id	UUID định danh duy nhất
+name	Tên gói dịch vụ
+slug	Mã định danh URL-friendly, dùng cho routing
+description	Mô tả chi tiết nội dung gói
+price	Giá bán gói (decimal)
+durationMonths	Số tháng hiệu lực
+isActive	Gói có còn khả dụng không
+maxServicesPerMonth	Giới hạn lượt dùng dịch vụ mỗi tháng
+createdAt, updatedAt, deletedAt	Metadata thời gian
+
+🔗 Quan hệ:
+@OneToMany → PackageService: gồm các dịch vụ nào.
+
+@OneToMany → UserPackageSubscription: người dùng nào đã mua gói này.*/
 @Entity()
 export class ServicePackage {
     @PrimaryGeneratedColumn('uuid')

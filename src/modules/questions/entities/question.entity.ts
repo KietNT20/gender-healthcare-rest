@@ -24,11 +24,11 @@ export class Question {
     @Column({ type: 'varchar', length: 255 })
     title: string;
 
-    @Column({ type: 'text' })
-    content: string;
-
     @Column({ type: 'varchar', length: 255, unique: true })
     slug: string;
+
+    @Column({ type: 'text' })
+    content: string;
 
     @Column({
         type: 'enum',
@@ -38,9 +38,6 @@ export class Question {
 
     @Column({ default: false })
     isAnonymous: boolean;
-
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
 
     @CreateDateColumn()
     createdAt: Date;

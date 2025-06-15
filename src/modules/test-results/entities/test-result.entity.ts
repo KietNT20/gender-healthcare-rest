@@ -30,17 +30,8 @@ export class TestResult {
     @Column({ type: 'text', nullable: true })
     recommendation?: string;
 
-    @Column({
-        type: 'timestamp with time zone',
-        nullable: true,
-    })
-    viewedAt?: Date;
-
     @Column({ default: false })
     notificationSent: boolean;
-
-    @Column({ type: 'text', array: true, nullable: true })
-    fileUploads?: string[];
 
     @Column({ default: false })
     followUpRequired: boolean;

@@ -18,6 +18,7 @@ import {
     UploadDocumentOptions,
     UploadImageOptions,
 } from './interfaces';
+import { ProcessedImageResult } from './processors/image.processor';
 
 @Injectable()
 export class FilesService {
@@ -467,7 +468,7 @@ export class FilesService {
      */
     async updateImageAfterProcessing(
         imageId: string,
-        processedResult: any,
+        processedResult: ProcessedImageResult,
     ): Promise<void> {
         await this.imageRepository.update(imageId, {
             url: processedResult.original.cloudFrontUrl,

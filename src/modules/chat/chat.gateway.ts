@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
     ConnectedSocket,
     MessageBody,
@@ -14,6 +14,9 @@ import { MessageType } from 'src/enums';
 import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
+import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
+import { WsThrottleGuard } from './guards/ws-throttle.guard';
 
 interface AuthenticatedSocket extends Socket {
     user?: {
@@ -34,6 +37,7 @@ interface JoinRoomData {
     questionId: string;
 }
 
+@UseGuards(WsJwtGuard)
 @WebSocketGateway({
     namespace: 'chat',
 })
@@ -51,90 +55,53 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         private readonly chatService: ChatService,
     ) {}
 
-    async handleConnection(client: AuthenticatedSocket) {
-        try {
-            this.logger.log(`Client attempting to connect: ${client.id}`);
+    handleConnection(client: AuthenticatedSocket) {
+        const user = client.user;
 
-            // Extract token from query or handshake
-            const token =
-                client.handshake.auth?.token || client.handshake.query?.token;
-
-            if (!token) {
-                throw new WsException('No authentication token provided');
-            }
-
-            // Verify and get user info
-            const user = await this.authService.verifyTokenForWebSocket(
-                token as string,
-            );
-
-            if (!user) {
-                throw new WsException('Invalid authentication token');
-            }
-
-            // Attach user to socket
-            client.user = user;
-            this.connectedUsers.set(user.id, client);
-
-            // Send connection success
-            client.emit('connected', {
-                success: true,
-                user: {
-                    id: user.id,
-                    fullName: user.fullName,
-                    role: user.role,
-                },
-                timestamp: new Date().toISOString(),
-            });
-
-            this.logger.log(`User connected: ${user.id} (${user.fullName})`);
-        } catch (error) {
-            this.logger.error(
-                `Connection failed for ${client.id}:`,
-                error.message,
-            );
-            client.emit('connection_error', {
-                message: 'Authentication failed',
-                timestamp: new Date().toISOString(),
-            });
-            client.disconnect();
+        if (!user) {
+            throw new WsException('User not authenticated');
         }
+
+        this.connectedUsers.set(user.id, client);
+
+        this.logger.log(
+            `Client connected: ${client.id}, User: ${user.fullName}`,
+        );
+
+        client.emit('connected', {
+            success: true,
+            user: {
+                id: user.id,
+                fullName: user.fullName,
+                role: user.role,
+            },
+            timestamp: new Date().toISOString(),
+        });
     }
 
     handleDisconnect(client: AuthenticatedSocket) {
-        if (client.user) {
-            // Remove from connected users
-            this.connectedUsers.delete(client.user.id);
+        const user = client.user;
 
-            // Remove from all question rooms
-            if (client.questionId) {
-                this.leaveQuestionRoom(client, client.questionId);
-            }
+        if (user) {
+            this.connectedUsers.delete(user.id);
+            this.logger.log(
+                `Client disconnected: ${client.id}, User: ${user.fullName}`,
+            );
 
-            // Remove from typing indicators
-            this.typingUsers.forEach((typingSet, questionId) => {
-                if (typingSet.has(client.user!.id)) {
-                    typingSet.delete(client.user!.id);
-                    // Notify others that user stopped typing
-                    this.broadcastToRoom(
-                        questionId,
-                        'user_stopped_typing',
-                        {
-                            userId: client.user!.id,
-                            userName: client.user!.fullName,
-                            questionId,
-                        },
-                        client.user!.id,
-                    );
+            this.typingUsers.forEach((typingUserIds, questionId) => {
+                if (typingUserIds.has(user.id)) {
+                    typingUserIds.delete(user.id);
+                    this.broadcastTypingUsers(questionId);
                 }
             });
-
+        } else {
             this.logger.log(
-                `User disconnected: ${client.user.id} (${client.user.fullName})`,
+                `Client disconnected: ${client.id} (unauthenticated)`,
             );
         }
     }
 
+    @UseGuards(WsRoomAccessGuard, WsThrottleGuard)
     @SubscribeMessage('join_question')
     async handleJoinQuestion(
         @MessageBody() data: JoinRoomData,
@@ -219,6 +186,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.leaveQuestionRoom(client, questionId);
     }
 
+    @UseGuards(WsRoomAccessGuard, WsThrottleGuard)
     @SubscribeMessage('send_message')
     async handleSendMessage(
         @MessageBody() data: CreateChatDto & { questionId: string },
@@ -275,6 +243,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    @UseGuards(WsThrottleGuard)
     @SubscribeMessage('typing')
     async handleTyping(
         @MessageBody() data: TypingData,
@@ -422,5 +391,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     public isUserOnline(userId: string): boolean {
         return this.connectedUsers.has(userId);
+    }
+
+    /**
+     * Helper method để gửi trạng thái typing cho một phòng cụ thể.
+     * @param questionId ID của câu hỏi (phòng chat)
+     */
+    private broadcastTypingUsers(questionId: string) {
+        const roomName = `question_${questionId}`;
+        const typingUsersInRoom = this.typingUsers.get(questionId) || new Set();
+
+        this.server.to(roomName).emit('typing_status', {
+            questionId,
+            typingUserIds: Array.from(typingUsersInRoom),
+        });
     }
 }

@@ -1,4 +1,5 @@
 import { ContractFile } from 'src/modules/contract-files/entities/contract-file.entity';
+import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -70,6 +71,10 @@ export class Document {
     deletedAt?: Date;
 
     // Relations
+    @ManyToOne(() => TestResult, (testResult) => testResult.documents, {
+        onDelete: 'CASCADE',
+    })
+    testResult: TestResult;
     @ManyToOne(() => User, (user) => user.documents)
     user: User;
 

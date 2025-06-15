@@ -1,5 +1,6 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
@@ -7,9 +8,9 @@ import { PackageService } from 'src/modules/package-services/entities/package-se
 import {
     Column,
     CreateDateColumn,
+    Index,
     DeleteDateColumn,
     Entity,
-    Index,
     JoinColumn,
     JoinTable,
     ManyToMany,
@@ -83,6 +84,7 @@ export class Service {
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.service)
     packageServiceUsages: PackageServiceUsage[];
+
 
     @ManyToMany(() => Appointment, (appointment) => appointment.services)
     @JoinTable()

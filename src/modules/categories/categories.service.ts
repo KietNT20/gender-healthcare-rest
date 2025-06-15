@@ -64,6 +64,16 @@ export class CategoriesService {
         if (!category) {
             throw new NotFoundException(`Category with ID ${id} not found`);
         }
+
+        //kiem tra va cap nhat slug neu update name
+        if (updateCategoryDto.name) {
+            const slug = slugify(updateCategoryDto.name, {
+                lower: true,
+                strict: true,
+            });
+            category.slug = slug; //update slug moi
+        }
+
         if (updateCategoryDto.parentId) {
             const parent = await this.categoryRepository.findOne({
                 where: { id: updateCategoryDto.parentId },
@@ -75,6 +85,7 @@ export class CategoriesService {
         } else {
             category.parent = null;
         }
+
         Object.assign(category, updateCategoryDto);
         return this.categoryRepository.save(category);
     }

@@ -1,4 +1,4 @@
-import { Logger, UseGuards } from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
 import {
     ConnectedSocket,
     MessageBody,
@@ -9,13 +9,14 @@ import {
     WebSocketServer,
     WsException,
 } from '@nestjs/websockets';
+import { RedisClientType } from 'redis';
 import { Server, Socket } from 'socket.io';
 import { MessageType } from 'src/enums';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
-import { WsThrottleGuard } from './guards/ws-throttle.guard';
+import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
 
 interface AuthenticatedSocket extends Socket {
     user?: {
@@ -36,6 +37,14 @@ interface JoinRoomData {
     questionId: string;
 }
 
+interface UserPresence {
+    userId: string;
+    socketId: string;
+    fullName: string;
+    role: string;
+    lastSeen: number;
+}
+
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
     namespace: 'chat',
@@ -45,51 +54,108 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     private readonly logger = new Logger(ChatGateway.name);
-    private connectedUsers = new Map<string, AuthenticatedSocket>(); // userId -> socket
-    private questionRooms = new Map<string, Set<string>>(); // questionId -> Set of userIds
-    private typingUsers = new Map<string, Set<string>>(); // questionId -> Set of typing userIds
 
-    constructor(private readonly chatService: ChatService) {}
+    // Redis key patterns
+    private readonly REDIS_KEYS = {
+        USER_PRESENCE: 'chat:user:presence:',
+        QUESTION_USERS: 'chat:question:users:',
+        TYPING_USERS: 'chat:question:typing:',
+        USER_ROOMS: 'chat:user:rooms:',
+    };
 
-    handleConnection(client: AuthenticatedSocket) {
+    constructor(
+        private readonly chatService: ChatService,
+        @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
+    ) {}
+
+    async handleConnection(client: AuthenticatedSocket) {
         const user = client.user;
 
         if (!user) {
             throw new WsException('User not authenticated');
         }
 
-        this.connectedUsers.set(user.id, client);
-
-        this.logger.log(
-            `Client connected: ${client.id}, User: ${user.fullName}`,
-        );
-
-        client.emit('connected', {
-            success: true,
-            user: {
-                id: user.id,
+        try {
+            // Store user presence in Redis with TTL
+            const presence: UserPresence = {
+                userId: user.id,
+                socketId: client.id,
                 fullName: user.fullName,
                 role: user.role,
-            },
-            timestamp: new Date().toISOString(),
-        });
+                lastSeen: Date.now(),
+            };
+
+            await this.redisClient.setEx(
+                `${this.REDIS_KEYS.USER_PRESENCE}${user.id}`,
+                300, // 5 minutes TTL
+                JSON.stringify(presence),
+            );
+
+            this.logger.log(
+                `Client connected: ${client.id}, User: ${user.fullName}`,
+            );
+
+            client.emit('connected', {
+                success: true,
+                user: {
+                    id: user.id,
+                    fullName: user.fullName,
+                    role: user.role,
+                },
+                timestamp: new Date().toISOString(),
+            });
+        } catch (error) {
+            this.logger.error('Error handling connection:', error);
+            throw new WsException('Connection failed');
+        }
     }
 
-    handleDisconnect(client: AuthenticatedSocket) {
+    async handleDisconnect(client: AuthenticatedSocket) {
         const user = client.user;
 
         if (user) {
-            this.connectedUsers.delete(user.id);
-            this.logger.log(
-                `Client disconnected: ${client.id}, User: ${user.fullName}`,
-            );
+            try {
+                // Get user's rooms before cleanup
+                const userRoomsKey = `${this.REDIS_KEYS.USER_ROOMS}${user.id}`;
+                const userRooms = await this.redisClient.sMembers(userRoomsKey);
 
-            this.typingUsers.forEach((typingUserIds, questionId) => {
-                if (typingUserIds.has(user.id)) {
-                    typingUserIds.delete(user.id);
-                    this.broadcastTypingUsers(questionId);
+                // Clean up user from all rooms and typing status
+                const multi = this.redisClient.multi();
+
+                for (const questionId of userRooms) {
+                    // Remove from question users
+                    multi.sRem(
+                        `${this.REDIS_KEYS.QUESTION_USERS}${questionId}`,
+                        user.id,
+                    );
+
+                    // Remove from typing users
+                    multi.sRem(
+                        `${this.REDIS_KEYS.TYPING_USERS}${questionId}`,
+                        user.id,
+                    );
+
+                    // Notify room about user leaving
+                    this.server.to(`question_${questionId}`).emit('user_left', {
+                        userId: user.id,
+                        userName: user.fullName,
+                        questionId,
+                        timestamp: new Date().toISOString(),
+                    });
                 }
-            });
+
+                // Remove user presence and rooms
+                multi.del(`${this.REDIS_KEYS.USER_PRESENCE}${user.id}`);
+                multi.del(userRoomsKey);
+
+                await multi.exec();
+
+                this.logger.log(
+                    `Client disconnected: ${client.id}, User: ${user.fullName}`,
+                );
+            } catch (error) {
+                this.logger.error('Error handling disconnect:', error);
+            }
         } else {
             this.logger.log(
                 `Client disconnected: ${client.id} (unauthenticated)`,
@@ -97,7 +163,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(WsRoomAccessGuard, WsThrottleGuard)
+    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard)
     @SubscribeMessage('join_question')
     async handleJoinQuestion(
         @MessageBody() data: JoinRoomData,
@@ -122,18 +188,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             // Leave previous room if any
             if (client.questionId && client.questionId !== questionId) {
-                this.leaveQuestionRoom(client, client.questionId);
+                await this.leaveQuestionRoom(client, client.questionId);
             }
 
             // Join new room
             client.join(`question_${questionId}`);
             client.questionId = questionId;
 
-            // Add to room tracking
-            if (!this.questionRooms.has(questionId)) {
-                this.questionRooms.set(questionId, new Set());
-            }
-            this.questionRooms.get(questionId)!.add(client.user.id);
+            // Update Redis: Add user to question and track user's rooms
+            const multi = this.redisClient.multi();
+            multi.sAdd(
+                `${this.REDIS_KEYS.QUESTION_USERS}${questionId}`,
+                client.user.id,
+            );
+            multi.sAdd(
+                `${this.REDIS_KEYS.USER_ROOMS}${client.user.id}`,
+                questionId,
+            );
+            multi.expire(
+                `${this.REDIS_KEYS.QUESTION_USERS}${questionId}`,
+                3600,
+            ); // 1 hour TTL
+            multi.expire(
+                `${this.REDIS_KEYS.USER_ROOMS}${client.user.id}`,
+                3600,
+            );
+            await multi.exec();
 
             // Get message history
             const messages =
@@ -179,10 +259,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (!client.user) return;
 
         const { questionId } = data;
-        this.leaveQuestionRoom(client, questionId);
+        await this.leaveQuestionRoom(client, questionId);
     }
 
-    @UseGuards(WsRoomAccessGuard, WsThrottleGuard)
+    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard)
     @SubscribeMessage('send_message')
     async handleSendMessage(
         @MessageBody() data: CreateChatDto & { questionId: string },
@@ -214,7 +294,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
 
             // Broadcast message to room
-            this.broadcastToRoom(`question_${questionId}`, 'new_message', {
+            this.server.to(`question_${questionId}`).emit('new_message', {
                 ...message,
                 sender: {
                     id: client.user.id,
@@ -239,7 +319,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(WsThrottleGuard)
+    @UseGuards(RedisWsThrottleGuard)
     @SubscribeMessage('typing')
     async handleTyping(
         @MessageBody() data: TypingData,
@@ -248,33 +328,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (!client.user) return;
 
         const { questionId, isTyping } = data;
+        const userId = client.user.id;
 
-        // Update typing status
-        if (!this.typingUsers.has(questionId)) {
-            this.typingUsers.set(questionId, new Set());
-        }
+        try {
+            const typingKey = `${this.REDIS_KEYS.TYPING_USERS}${questionId}`;
 
-        const typingSet = this.typingUsers.get(questionId)!;
+            if (isTyping) {
+                await this.redisClient.sAdd(typingKey, userId);
+                await this.redisClient.expire(typingKey, 10);
+                await this.redisClient.setEx(`${typingKey}:${userId}`, 5, '1');
+            } else {
+                await this.redisClient.sRem(typingKey, userId);
+                await this.redisClient.del(`${typingKey}:${userId}`);
+            }
 
-        if (isTyping) {
-            typingSet.add(client.user.id);
-        } else {
-            typingSet.delete(client.user.id);
-        }
+            const typingUsers = await this.redisClient.sMembers(typingKey);
 
-        // Broadcast typing status to room (exclude sender)
-        const eventName = isTyping ? 'user_typing' : 'user_stopped_typing';
-        this.broadcastToRoom(
-            questionId,
-            eventName,
-            {
-                userId: client.user.id,
-                userName: client.user.fullName,
+            this.server.to(`question_${questionId}`).emit('typing_status', {
                 questionId,
+                typingUserIds: typingUsers.filter((id) => id !== userId),
                 timestamp: new Date().toISOString(),
-            },
-            client.user.id,
-        );
+            });
+        } catch (error) {
+            this.logger.error('Error handling typing status:', error);
+        }
     }
 
     @SubscribeMessage('mark_as_read')
@@ -290,77 +367,63 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             await this.chatService.markMessageAsRead(messageId, client.user.id);
 
             // Notify sender that message was read
-            this.broadcastToRoom(
-                questionId,
-                'message_read',
-                {
-                    messageId,
-                    readBy: {
-                        id: client.user.id,
-                        fullName: client.user.fullName,
-                    },
-                    timestamp: new Date().toISOString(),
+            this.server.to(`question_${questionId}`).emit('message_read', {
+                messageId,
+                readBy: {
+                    id: client.user.id,
+                    fullName: client.user.fullName,
                 },
-                client.user.id,
-            );
+                timestamp: new Date().toISOString(),
+            });
         } catch (error) {
             this.logger.error(`Failed to mark message as read:`, error.message);
         }
     }
 
     // Helper methods
-    private leaveQuestionRoom(client: AuthenticatedSocket, questionId: string) {
+    private async leaveQuestionRoom(
+        client: AuthenticatedSocket,
+        questionId: string,
+    ) {
         if (!client.user) return;
 
-        client.leave(`question_${questionId}`);
+        try {
+            client.leave(`question_${questionId}`);
 
-        // Remove from room tracking
-        if (this.questionRooms.has(questionId)) {
-            this.questionRooms.get(questionId)!.delete(client.user.id);
-            if (this.questionRooms.get(questionId)!.size === 0) {
-                this.questionRooms.delete(questionId);
+            // Remove from Redis tracking
+            const multi = this.redisClient.multi();
+            multi.sRem(
+                `${this.REDIS_KEYS.QUESTION_USERS}${questionId}`,
+                client.user.id,
+            );
+            multi.sRem(
+                `${this.REDIS_KEYS.USER_ROOMS}${client.user.id}`,
+                questionId,
+            );
+            multi.sRem(
+                `${this.REDIS_KEYS.TYPING_USERS}${questionId}`,
+                client.user.id,
+            );
+            await multi.exec();
+
+            // Notify others in room
+            client.to(`question_${questionId}`).emit('user_left', {
+                userId: client.user.id,
+                userName: client.user.fullName,
+                questionId,
+                timestamp: new Date().toISOString(),
+            });
+
+            // Clear questionId from client
+            if (client.questionId === questionId) {
+                client.questionId = undefined;
             }
-        }
 
-        // Remove from typing
-        if (this.typingUsers.has(questionId)) {
-            this.typingUsers.get(questionId)!.delete(client.user.id);
-        }
-
-        // Notify others in room
-        client.to(`question_${questionId}`).emit('user_left', {
-            userId: client.user.id,
-            userName: client.user.fullName,
-            questionId,
-            timestamp: new Date().toISOString(),
-        });
-
-        // Clear questionId from client
-        if (client.questionId === questionId) {
-            client.questionId = undefined;
-        }
-
-        this.logger.log(
-            `User ${client.user.id} left question room: ${questionId}`,
-        );
-    }
-
-    private broadcastToRoom(
-        questionId: string,
-        event: string,
-        data: any,
-        excludeUserId?: string,
-    ) {
-        if (excludeUserId) {
-            // Broadcast to all in room except excluded user
-            const excludedSocket = this.connectedUsers.get(excludeUserId);
-            if (excludedSocket) {
-                excludedSocket.to(`question_${questionId}`).emit(event, data);
-            } else {
-                this.server.to(`question_${questionId}`).emit(event, data);
-            }
-        } else {
-            this.server.to(`question_${questionId}`).emit(event, data);
+            this.logger.log(
+                `User ${client.user.id} left question room: ${questionId}`,
+            );
+        } catch (error) {
+            this.logger.error('Error leaving question room:', error);
         }
     }
 
@@ -381,25 +444,73 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
     }
 
-    public getOnlineUsersInQuestion(questionId: string): string[] {
-        return Array.from(this.questionRooms.get(questionId) || new Set());
+    public async getOnlineUsersInQuestion(
+        questionId: string,
+    ): Promise<string[]> {
+        try {
+            return await this.redisClient.sMembers(
+                `${this.REDIS_KEYS.QUESTION_USERS}${questionId}`,
+            );
+        } catch (error) {
+            this.logger.error('Error getting online users:', error);
+            return [];
+        }
     }
 
-    public isUserOnline(userId: string): boolean {
-        return this.connectedUsers.has(userId);
+    public async isUserOnline(userId: string): Promise<boolean> {
+        try {
+            const presence = await this.redisClient.get(
+                `${this.REDIS_KEYS.USER_PRESENCE}${userId}`,
+            );
+            return !!presence;
+        } catch (error) {
+            this.logger.error('Error checking user online status:', error);
+            return false;
+        }
     }
 
-    /**
-     * Helper method để gửi trạng thái typing cho một phòng cụ thể.
-     * @param questionId ID của câu hỏi (phòng chat)
-     */
-    private broadcastTypingUsers(questionId: string) {
-        const roomName = `question_${questionId}`;
-        const typingUsersInRoom = this.typingUsers.get(questionId) || new Set();
+    public async getTypingUsers(questionId: string): Promise<string[]> {
+        try {
+            return await this.redisClient.sMembers(
+                `${this.REDIS_KEYS.TYPING_USERS}${questionId}`,
+            );
+        } catch (error) {
+            this.logger.error('Error getting typing users:', error);
+            return [];
+        }
+    }
 
-        this.server.to(roomName).emit('typing_status', {
-            questionId,
-            typingUserIds: Array.from(typingUsersInRoom),
-        });
+    // Cleanup method - call this periodically via cron
+    public async cleanupExpiredData() {
+        try {
+            const pattern = `${this.REDIS_KEYS.TYPING_USERS}*`;
+            const keys = await this.redisClient.keys(pattern);
+
+            const multi = this.redisClient.multi();
+
+            for (const key of keys) {
+                if (key.includes(':')) continue; // Skip individual typing keys
+
+                const members = await this.redisClient.sMembers(key);
+                const questionId = key.replace(
+                    this.REDIS_KEYS.TYPING_USERS,
+                    '',
+                );
+
+                // Check each typing user
+                for (const userId of members) {
+                    const individualKey = `${key}:${userId}`;
+                    const exists = await this.redisClient.exists(individualKey);
+
+                    if (!exists) {
+                        multi.sRem(key, userId);
+                    }
+                }
+            }
+
+            await multi.exec();
+        } catch (error) {
+            this.logger.error('Error cleaning up expired data:', error);
+        }
     }
 }

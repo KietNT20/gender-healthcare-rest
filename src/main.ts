@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { RedisIoAdapter } from './adapters/redis-io.adapter';
+import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';

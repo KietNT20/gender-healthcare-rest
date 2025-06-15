@@ -1,8 +1,8 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
-import { Image } from 'src/modules/images/entities/image.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
 import {
@@ -11,6 +11,7 @@ import {
     Index,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -18,6 +19,9 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+
+
+import { Image } from 'src/modules/images/entities/image.entity';
 
 @Entity()
 export class Service {
@@ -28,7 +32,7 @@ export class Service {
   name: string;
 
   @Index({ unique: true })
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true })
   slug: string;
 
   @Column({ type: 'text' })
@@ -43,8 +47,9 @@ export class Service {
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ length: 255, nullable: true })
-    shortDescription?: string;
+
+  @Column({ length: 255, nullable: true })
+  shortDescription?: string;
 
   @Column({ type: 'text', nullable: true })
   prerequisites?: string;
@@ -79,6 +84,7 @@ export class Service {
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.service)
     packageServiceUsages: PackageServiceUsage[];
+
 
     @ManyToMany(() => Appointment, (appointment) => appointment.services)
     @JoinTable()

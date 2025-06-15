@@ -1,5 +1,5 @@
 import { MessageType } from 'src/enums';
-import { Question } from 'src/modules/questions/entities/question.entity';
+import { Question } from 'src/modules/chat/entities/question.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,

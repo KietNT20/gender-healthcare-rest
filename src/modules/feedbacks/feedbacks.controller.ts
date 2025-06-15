@@ -45,6 +45,4 @@ export class FeedbacksController {
     async remove(@Param('id') id: string) {
         return this.feedbacksService.remove(id);
     }
-    
-    
 }

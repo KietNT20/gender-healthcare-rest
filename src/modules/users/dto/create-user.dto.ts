@@ -9,7 +9,6 @@ import {
     IsUUID,
     Max,
     MinLength,
-    
 } from 'class-validator';
 import { GenderType } from 'src/enums';
 

@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { ContentStatusType } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
@@ -20,6 +21,11 @@ import {
 export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    
+
+    @Column({ type: 'uuid', nullable: true })
+    deletedByUserId?: string;
 
     @Column({ type: 'varchar', length: 255 })
     title: string;
@@ -84,6 +90,9 @@ export class Blog {
 
     @UpdateDateColumn()
     updatedAt: Date;
+    @Column({ type: 'timestamp with time zone', nullable: true })
+    @Exclude()
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.authoredBlogs)
@@ -98,7 +107,7 @@ export class Blog {
     @ManyToOne(() => User, (user) => user.publishedBlogs)
     publishedByUser: User;
 
-    @ManyToMany(() => Service, (service) => service.blogs)
+    @ManyToMany(() => Service)
     @JoinTable()
     services: Service[];
 

@@ -1,4 +1,5 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -17,15 +18,15 @@ export class Feedback {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'integer' })
-    @Index()
-    rating: number;
+  @Column({ type: 'integer' })
+  @Index()
+  rating: number;
 
     @Column({ type: 'text', nullable: true })
     comment?: string;
 
-    @Column({ default: false })
-    isAnonymous: boolean;
+  @Column({ default: false, name: 'is_anonymous' })
+  isAnonymous: boolean;
 
     @Column({ default: true })
     isPublic: boolean;
@@ -33,11 +34,11 @@ export class Feedback {
     @Column({ type: 'text', nullable: true })
     staffResponse?: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
     @Index()

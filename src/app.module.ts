@@ -97,7 +97,7 @@ import { ChatModule } from './modules/chat/chat.module';
         }),
         AppointmentsModule,
         BlogsModule,
-        CategoriesModule,
+        CategoriesModule, 
         ConsultantAvailabilityModule,
         ConsultantProfilesModule,
         ContractFilesModule,

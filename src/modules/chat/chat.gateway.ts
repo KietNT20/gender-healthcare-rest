@@ -34,7 +34,7 @@ interface JoinRoomData {
     questionId: string;
 }
 
-@WebSocketGateway(80, {
+@WebSocketGateway({
     namespace: 'chat',
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {

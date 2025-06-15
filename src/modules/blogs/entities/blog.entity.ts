@@ -22,8 +22,6 @@ export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    
-
     @Column({ type: 'uuid', nullable: true })
     deletedByUserId?: string;
 

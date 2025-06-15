@@ -118,6 +118,3 @@ export class ConsultantProfile {
     )
     availabilities: ConsultantAvailability[];
 }
-
-
-

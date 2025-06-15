@@ -11,7 +11,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MessageType } from 'src/enums';
-import { AuthService } from '../auth/auth.service';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -50,10 +49,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private questionRooms = new Map<string, Set<string>>(); // questionId -> Set of userIds
     private typingUsers = new Map<string, Set<string>>(); // questionId -> Set of typing userIds
 
-    constructor(
-        private readonly authService: AuthService,
-        private readonly chatService: ChatService,
-    ) {}
+    constructor(private readonly chatService: ChatService) {}
 
     handleConnection(client: AuthenticatedSocket) {
         const user = client.user;

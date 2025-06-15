@@ -1,21 +1,27 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateFeedbackDto } from './create-feedback.dto';
-import { IsInt, IsOptional, IsString, IsArray, IsBoolean } from 'class-validator';
+import {
+    IsInt,
+    IsOptional,
+    IsString,
+    IsArray,
+    IsBoolean,
+} from 'class-validator';
 
 export class UpdateFeedbackDto extends PartialType(CreateFeedbackDto) {
     @IsOptional()
     @IsInt()
     rating?: number;
-  
+
     @IsOptional()
     @IsString()
     comment?: string;
-  
+
     @IsOptional()
     @IsBoolean()
     isAnonymous?: boolean;
-  
+
     @IsOptional()
     @IsString()
     staffResponse?: string;
-  }
+}

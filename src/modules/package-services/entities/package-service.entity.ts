@@ -9,7 +9,6 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
-
 /*
 📌 Entity này là gì?
 Là bảng trung gian xác định dịch vụ nào nằm trong gói nào, và kèm theo các cấu hình riêng như giới hạn lượt dùng hoặc giảm giá cho dịch vụ đó trong gói.

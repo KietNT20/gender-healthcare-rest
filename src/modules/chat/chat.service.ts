@@ -9,9 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MessageType, RolesNameEnum } from 'src/enums';
 import { Repository } from 'typeorm';
 import { FilesService } from '../files/files.service';
-import { Message } from '../messages/entities/message.entity';
-import { Question } from '../questions/entities/question.entity';
 import { User } from '../users/entities/user.entity';
+import { Message } from './entities/message.entity';
+import { Question } from './entities/question.entity';
 import {
     CreateMessageData,
     MessageWithSender,

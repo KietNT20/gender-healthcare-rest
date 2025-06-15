@@ -1,9 +1,9 @@
 import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
+import { Question } from 'src/modules/chat/entities/question.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
-import { Question } from 'src/modules/questions/entities/question.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';

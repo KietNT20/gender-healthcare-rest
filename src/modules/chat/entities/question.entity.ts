@@ -1,7 +1,7 @@
 import { QuestionStatusType } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { Message } from 'src/modules/messages/entities/message.entity';
+import { Message } from 'src/modules/chat/entities/message.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -38,9 +38,6 @@ export class Question {
 
     @Column({ default: false })
     isAnonymous: boolean;
-
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
 
     @CreateDateColumn()
     createdAt: Date;

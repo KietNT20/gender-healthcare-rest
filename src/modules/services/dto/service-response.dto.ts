@@ -1,7 +1,6 @@
-import { Exclude, Expose, Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min, MaxLength, IsNotEmpty, IsPositive } from 'class-validator';
+import { Exclude, Expose } from 'class-transformer';
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUUID, Min, MaxLength, IsPositive } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Category } from 'src/modules/categories/entities/category.entity';
 
 export class ServiceResponseDto {
   @Expose()
@@ -49,9 +48,8 @@ export class ServiceResponseDto {
   featured: boolean;
 
   @Expose()
-  @Type(() => Category)
-  @ApiProperty({ description: 'Danh mục dịch vụ' })
-  category?: Category;
+  @ApiProperty({ description: 'ID danh mục dịch vụ' })
+  categoryId: string;
 
   @Expose()
   @ApiProperty({ description: 'Ngày tạo' })

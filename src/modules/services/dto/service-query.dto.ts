@@ -15,7 +15,7 @@ export class ServiceQueryDto {
   @Type(() => Number)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ description: 'Trường sắp xếp (name, price, duration, createdAt, updatedAt)', default: 'createdAt' })
+  @ApiPropertyOptional({ description: 'Trường sắp xếp (name, price, duration, createdAt, updatedAt)'})
   @IsOptional()
   @IsString()
   sortBy?: string = 'createdAt';

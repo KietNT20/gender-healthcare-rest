@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
@@ -11,6 +11,8 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()
 export class ServicesService {
+  private readonly logger = new Logger(ServicesService.name);
+
   constructor(
     @InjectRepository(Service)
     private readonly serviceRepo: Repository<Service>,
@@ -39,6 +41,7 @@ export class ServicesService {
     });
 
     const savedService = await this.serviceRepo.save(newService);
+    this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
     return this.toServiceResponse(savedService);
   }
 
@@ -68,6 +71,11 @@ export class ServicesService {
     queryBuilder.orderBy(`service.${sortField}`, serviceQueryDto.sortOrder);
 
     const [services, totalItems] = await queryBuilder.getManyAndCount();
+
+    // Debug categoryId
+    services.forEach((service) => {
+      this.logger.debug(`Service ID: ${service.id}, Category ID: ${service.category?.id}`);
+    });
 
     return {
       data: services.map((service) => this.toServiceResponse(service)),
@@ -130,6 +138,9 @@ export class ServicesService {
       throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
     }
 
+    // Debug categoryId
+    this.logger.debug(`Service ID: ${service.id}, Category ID: ${service.category?.id}`);
+
     return this.toServiceResponse(service);
   }
 
@@ -185,8 +196,16 @@ export class ServicesService {
   }
 
   private toServiceResponse(service: Service): ServiceResponseDto {
-    return plainToClass(ServiceResponseDto, service, {
-      excludeExtraneousValues: true,
-    });
+    const response = plainToClass(
+      ServiceResponseDto,
+      {
+        ...service,
+        categoryId: service.category?.id || null,
+      },
+      { excludeExtraneousValues: true },
+    );
+    // Debug response
+    this.logger.debug(`ServiceResponseDto: ${JSON.stringify(response)}`);
+    return response;
   }
 }

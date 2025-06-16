@@ -1,18 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    MaxLength,
-    MinLength,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateMoodDto {
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    @MinLength(1)
-    @MaxLength(100)
+    @MaxLength(255)
     name: string;
 
     @ApiPropertyOptional()

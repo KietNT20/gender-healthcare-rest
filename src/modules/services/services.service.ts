@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { plainToClass } from 'class-transformer';
+import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
 import { Service } from './entities/service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { FilterServiceDto } from './dto/filter-service.dto';
-import { SortServiceDto } from './dto/sort-service.dto';
+import { UpdateServiceProfileDto, ServiceResponseDto } from './dto/service-response.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()
@@ -21,74 +21,98 @@ export class ServicesService {
    * @param createServiceDto Dữ liệu đầu vào để tạo dịch vụ
    * @returns Dịch vụ đã được tạo
    */
-  async create(createServiceDto: CreateServiceDto): Promise<Service> {
+  async create(createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
+    // Check if slug already exists
+    const existingService = await this.serviceRepo.findOne({
+      where: { slug: createServiceDto.slug, deletedAt: IsNull() },
+    });
+
+    if (existingService) {
+      throw new ConflictException('Slug already exists');
+    }
+
     const newService = this.serviceRepo.create({
       ...createServiceDto,
       category: { id: createServiceDto.categoryId },
+      isActive: createServiceDto.isActive ?? true,
+      featured: createServiceDto.featured ?? false,
     });
-    return this.serviceRepo.save(newService);
+
+    const savedService = await this.serviceRepo.save(newService);
+    return this.toServiceResponse(savedService);
   }
 
   /**
    * Lấy danh sách dịch vụ với phân trang, lọc và sắp xếp
-   * @param pagination Tham số phân trang
-   * @param filter Tham số lọc
-   * @param sort Tham số sắp xếp
+   * @param serviceQueryDto Tham số truy vấn bao gồm phân trang, lọc và sắp xếp
    * @returns Danh sách dịch vụ và thông tin phân trang
    */
-  async findAll(
-    pagination: PaginationDto,
-    filter: FilterServiceDto,
-    sort: SortServiceDto,
-  ): Promise<Paginated<Service>> {
-    const { page = 1, limit = 10 } = pagination;
-    const { search, categoryId, minPrice, maxPrice, isActive, featured } = filter;
-    const { sortBy = 'createdAt', sortOrder = 'DESC' } = sort;
+  async findAll(serviceQueryDto: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
+    const queryBuilder = this.serviceRepo
+      .createQueryBuilder('service')
+      .leftJoinAndSelect('service.category', 'category')
+      .where('service.deletedAt IS NULL');
 
-    const query = this.serviceRepo.createQueryBuilder('service')
-      .where({ deletedAt: IsNull() })
-      .leftJoinAndSelect('service.category', 'category');
+    this.applyServiceFilters(queryBuilder, serviceQueryDto);
 
-    // Áp dụng bộ lọc
-    if (search) {
-      query.andWhere('service.name ILIKE :search OR service.description ILIKE :search', { search: `%${search}%` });
-    }
-    if (categoryId) {
-      query.andWhere('service.categoryId = :categoryId', { categoryId });
-    }
-    if (minPrice !== undefined) {
-      query.andWhere('service.price >= :minPrice', { minPrice });
-    }
-    if (maxPrice !== undefined) {
-      query.andWhere('service.price <= :maxPrice', { maxPrice });
-    }
-    if (isActive !== undefined) {
-      query.andWhere('service.isActive = :isActive', { isActive });
-    }
-    if (featured !== undefined) {
-      query.andWhere('service.featured = :featured', { featured });
-    }
+    const offset = (serviceQueryDto.page! - 1) * serviceQueryDto.limit!;
+    queryBuilder.skip(offset).take(serviceQueryDto.limit!);
 
-    // Áp dụng sắp xếp
     const allowedSortFields = ['name', 'price', 'duration', 'createdAt', 'updatedAt'];
-    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
-    query.orderBy(`service.${sortField}`, sortOrder);
+    if (!serviceQueryDto.sortBy) {
+      serviceQueryDto.sortBy = 'createdAt';
+    }
+    const sortField = allowedSortFields.includes(serviceQueryDto.sortBy)
+      ? serviceQueryDto.sortBy
+      : 'createdAt';
+    queryBuilder.orderBy(`service.${sortField}`, serviceQueryDto.sortOrder);
 
-    // Áp dụng phân trang
-    const skip = (page - 1) * limit;
-    query.skip(skip).take(limit);
-
-    const [data, totalItems] = await query.getManyAndCount();
+    const [services, totalItems] = await queryBuilder.getManyAndCount();
 
     return {
-      data,
+      data: services.map((service) => this.toServiceResponse(service)),
       meta: {
-        itemsPerPage: limit,
+        itemsPerPage: serviceQueryDto.limit!,
         totalItems,
-        currentPage: page,
-        totalPages: Math.ceil(totalItems / limit),
+        currentPage: serviceQueryDto.page!,
+        totalPages: Math.ceil(totalItems / serviceQueryDto.limit!),
       },
     };
+  }
+
+  /**
+   * Áp dụng các bộ lọc cho truy vấn dịch vụ
+   * @param queryBuilder QueryBuilder để áp dụng bộ lọc
+   * @param serviceQueryDto DTO chứa các tiêu chí lọc
+   */
+  private applyServiceFilters(queryBuilder: any, serviceQueryDto: ServiceQueryDto): void {
+    const { search, categoryId, minPrice, maxPrice, isActive, featured } = serviceQueryDto;
+
+    if (search) {
+      queryBuilder.andWhere('service.name ILIKE :search OR service.description ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    if (categoryId) {
+      queryBuilder.andWhere('service.categoryId = :categoryId', { categoryId });
+    }
+
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
+    }
+
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
+    }
+
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('service.isActive = :isActive', { isActive });
+    }
+
+    if (featured !== undefined) {
+      queryBuilder.andWhere('service.featured = :featured', { featured });
+    }
   }
 
   /**
@@ -96,7 +120,7 @@ export class ServicesService {
    * @param id ID của dịch vụ
    * @returns Dịch vụ được tìm thấy
    */
-  async findOne(id: string): Promise<Service> {
+  async findOne(id: string): Promise<ServiceResponseDto> {
     const service = await this.serviceRepo.findOne({
       where: { id, deletedAt: IsNull() },
       relations: ['category'],
@@ -106,7 +130,7 @@ export class ServicesService {
       throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
     }
 
-    return service;
+    return this.toServiceResponse(service);
   }
 
   /**
@@ -115,13 +139,33 @@ export class ServicesService {
    * @param updateDto Dữ liệu cập nhật
    * @returns Dịch vụ đã được cập nhật
    */
-  async update(id: string, updateDto: UpdateServiceDto): Promise<Service> {
-    const service = await this.findOne(id);
+  async update(id: string, updateDto: UpdateServiceProfileDto): Promise<ServiceResponseDto> {
+    const service = await this.serviceRepo.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: ['category'],
+    });
+
+    if (!service) {
+      throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+    }
+
+    // Check slug uniqueness if slug is being updated
+    if (updateDto.slug && updateDto.slug !== service.slug) {
+      const existingService = await this.serviceRepo.findOne({
+        where: { slug: updateDto.slug, deletedAt: IsNull() },
+      });
+      if (existingService && existingService.id !== id) {
+        throw new ConflictException('Slug already exists');
+      }
+    }
+
     Object.assign(service, {
       ...updateDto,
       category: updateDto.categoryId ? { id: updateDto.categoryId } : service.category,
     });
-    return this.serviceRepo.save(service);
+
+    const updatedService = await this.serviceRepo.save(service);
+    return this.toServiceResponse(updatedService);
   }
 
   /**
@@ -129,7 +173,20 @@ export class ServicesService {
    * @param id ID của dịch vụ
    */
   async remove(id: string): Promise<void> {
-    const service = await this.findOne(id);
+    const service = await this.serviceRepo.findOne({
+      where: { id, deletedAt: IsNull() },
+    });
+
+    if (!service) {
+      throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+    }
+
     await this.serviceRepo.softRemove(service);
+  }
+
+  private toServiceResponse(service: Service): ServiceResponseDto {
+    return plainToClass(ServiceResponseDto, service, {
+      excludeExtraneousValues: true,
+    });
   }
 }

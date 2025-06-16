@@ -6,6 +6,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
@@ -46,7 +47,7 @@ import { UsersModule } from './modules/users/users.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: '.env',
+            envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig],
         }),
@@ -91,10 +92,12 @@ import { UsersModule } from './modules/users/users.module';
             useFactory: async (configService: ConfigService) => ({
                 connection: {
                     host: configService.get<string>('REDIS_HOST'),
-                    port: configService.get<number>('REDIS_PORT'),
+                    port: configService.get<number>('REDIS_PORT') || 6379,
                     password: configService.get<string>('REDIS_PASSWORD'),
-                    db: configService.get<number>('REDIS_DB'),
-                    tls: {},
+                    tls:
+                        configService.get<string>('NODE_ENV') === 'production'
+                            ? {}
+                            : undefined,
                 },
                 defaultJobOptions: {
                     removeOnComplete: 10,
@@ -143,5 +146,6 @@ import { UsersModule } from './modules/users/users.module';
             useClass: TransformInterceptor,
         },
     ],
+    controllers: [AppController],
 })
 export class AppModule {}

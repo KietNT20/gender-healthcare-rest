@@ -28,24 +28,30 @@ import { RedisHelperService } from './redis-helper.service';
         {
             provide: 'REDIS_CLIENT',
             useFactory: async (configService: ConfigService) => {
-                const redisUrl =
-                    configService.get<string>('REDIS_URL') ||
-                    `redis://${configService.get<string>('REDIS_HOST')}:${configService.get<number>('REDIS_PORT')}`;
+                const host = configService.get<string>('REDIS_HOST');
+                const port = configService.get<number>('REDIS_PORT');
+                const password = configService.get<string>('REDIS_PASSWORD');
 
                 const client = createClient({
-                    url: redisUrl,
                     socket: {
-                        connectTimeout: 10000,
-                        commandTimeout: 5000,
-                        reconnectStrategy: (retries) =>
-                            Math.min(retries * 50, 1000),
+                        host,
+                        port,
+                        connectTimeout: 30000,
+                        reconnectStrategy: (retries) => {
+                            const delay = Math.min(retries * 200, 5000);
+                            console.log(
+                                `Redis reconnect attempt ${retries}, delay: ${delay}ms`,
+                            );
+                            return delay;
+                        },
+                        tls:
+                            process.env.NODE_ENV === 'production'
+                                ? true
+                                : false,
                     },
-                    ...(configService.get('REDIS_PASSWORD') && {
-                        password: configService.get('REDIS_PASSWORD'),
-                    }),
-                    ...(configService.get('REDIS_DB') && {
-                        database: configService.get('REDIS_DB', 0),
-                    }),
+                    username: 'default',
+                    password: password,
+                    database: 0,
                 });
 
                 client.on('error', (err) => {
@@ -53,19 +59,31 @@ import { RedisHelperService } from './redis-helper.service';
                 });
 
                 client.on('connect', () => {
-                    console.log('Redis Client Connected');
+                    console.log('Redis Client Connected to AWS ElastiCache');
                 });
 
                 client.on('ready', () => {
                     console.log('Redis Client Ready');
                 });
 
-                client.on('end', () => {
-                    console.log('Redis Client Disconnected');
+                client.on('reconnecting', () => {
+                    console.log('Redis Client Reconnecting...');
                 });
 
-                await client.connect();
-                return client;
+                client.on('end', () => {
+                    console.log('Redis Client Connection Ended');
+                });
+
+                try {
+                    await client.connect();
+                    console.log(
+                        '✅ Successfully connected to AWS ElastiCache Redis',
+                    );
+                    return client;
+                } catch (error) {
+                    console.error('❌ Failed to connect to Redis:', error);
+                    throw error;
+                }
             },
             inject: [ConfigService],
         },
@@ -78,12 +96,6 @@ import { RedisHelperService } from './redis-helper.service';
         WsJwtGuard,
         WsRoomAccessGuard,
     ],
-    exports: [
-        ChatGateway,
-        ChatService,
-        RedisHelperService,
-        RedisHealthService,
-        'REDIS_CLIENT',
-    ],
+    exports: [ChatGateway, ChatService],
 })
 export class ChatModule {}

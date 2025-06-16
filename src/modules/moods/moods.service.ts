@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { Repository } from 'typeorm';
 import { CreateMoodDto } from './dto/create-mood.dto';
+import { MoodQueryDto } from './dto/mood-query.dto';
 import { UpdateMoodDto } from './dto/update-mood.dto';
+import { Mood } from './entities/mood.entity';
 
 @Injectable()
 export class MoodsService {
-    create(createMoodDto: CreateMoodDto) {
-        return 'This action adds a new mood';
+    constructor(
+        @InjectRepository(Mood)
+        private readonly moodRepository: Repository<Mood>,
+    ) {}
+
+    async create(createMoodDto: CreateMoodDto): Promise<Mood> {
+        const mood = this.moodRepository.create(createMoodDto);
+        await this.moodRepository.save(mood);
+
+        const data = await this.moodRepository.findOneBy({ id: mood.id });
+
+        if (!data) {
+            throw new InternalServerErrorException(
+                'Đã xảy ra lỗi khi tạo tâm trạng',
+            );
+        }
+
+        return data;
     }
 
-    findAll() {
-        return `This action returns all moods`;
+    async findAll(moodQueryDto: MoodQueryDto): Promise<Paginated<Mood>> {
+        const { name, sortBy, sortOrder, page, limit } = moodQueryDto;
+
+        let pageNumber = page || 1;
+        let limitNumber = limit || 10;
+
+        const query = this.moodRepository.createQueryBuilder('mood');
+
+        if (name) {
+            query.andWhere('mood.name ILIKE :name', { name: `%${name}%` });
+        }
+
+        if (sortBy) {
+            query.orderBy(`mood.${sortBy}`, sortOrder);
+        }
+
+        const skip = (pageNumber - 1) * limitNumber;
+        query.skip(skip).take(limitNumber);
+
+        const [result, totalItems] = await query.getManyAndCount();
+        const totalPages = Math.ceil(totalItems / limitNumber);
+
+        return {
+            data: result,
+            meta: {
+                itemsPerPage: limitNumber,
+                totalItems,
+                currentPage: pageNumber,
+                totalPages: totalPages,
+            },
+        };
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} mood`;
+    findOne(id: string): Promise<Mood | null> {
+        const data = this.moodRepository.findOneBy({ id });
+
+        if (!data) {
+            throw new NotFoundException('Không tìm thấy ID');
+        }
+
+        return data;
     }
 
-    update(id: number, updateMoodDto: UpdateMoodDto) {
-        return `This action updates a #${id} mood`;
+    async update(
+        id: string,
+        updateMoodDto: UpdateMoodDto,
+    ): Promise<{ data: Promise<Mood | null> }> {
+        if (!id) {
+            throw new BadRequestException('ID không được để trống');
+        }
+
+        await this.moodRepository.update(id, updateMoodDto);
+
+        const data = this.moodRepository.findOneBy({ id });
+
+        return {
+            data: data,
+        };
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} mood`;
+    async remove(id: string): Promise<void> {
+        await this.moodRepository.delete(id);
     }
 }

@@ -204,8 +204,6 @@ export class ServicesService {
       },
       { excludeExtraneousValues: true },
     );
-    // Debug response
-    this.logger.debug(`ServiceResponseDto: ${JSON.stringify(response)}`);
     return response;
   }
 }

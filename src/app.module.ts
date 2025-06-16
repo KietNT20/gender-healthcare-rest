@@ -6,6 +6,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -136,6 +137,7 @@ import { UsersModule } from './modules/users/users.module';
         ChatModule,
     ],
     providers: [
+        AppService,
         {
             provide: APP_INTERCEPTOR,
             useClass: TransformInterceptor,

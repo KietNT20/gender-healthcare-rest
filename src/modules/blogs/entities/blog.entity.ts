@@ -22,7 +22,8 @@ export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean;
 
     @Column({ type: 'uuid', nullable: true })
     deletedByUserId?: string;

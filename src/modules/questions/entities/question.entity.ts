@@ -39,9 +39,6 @@ export class Question {
     @Column({ default: false })
     isAnonymous: boolean;
 
-    @Column({ type: 'varchar', length: 255, unique: true })
-    slug: string;
-
     @CreateDateColumn()
     createdAt: Date;
 

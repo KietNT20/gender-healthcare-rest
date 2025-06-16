@@ -2,6 +2,7 @@ import {
     ConflictException,
     Injectable,
     NotFoundException,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
@@ -14,6 +15,7 @@ import { BlogQueryDto } from './dto/blog-query.dto';
 import { BlogResponseDto } from './dto/blog-response.dto';
 import { Blog } from './entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
+import { SortOrder } from 'src/enums'; // Thêm import này
 
 @Injectable()
 export class BlogsService {
@@ -46,6 +48,7 @@ export class BlogsService {
         const blog = this.blogRepository.create({
             ...createBlogDto,
             slug,
+            isActive: createBlogDto.isActive ?? true,
         });
 
         const savedBlog = await this.blogRepository.save(blog);
@@ -62,9 +65,11 @@ export class BlogsService {
 
         this.applyBlogFilters(queryBuilder, blogQueryDto);
 
+        // Đặt offset và limit tương tự UsersService
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
         queryBuilder.skip(offset).take(blogQueryDto.limit!);
 
+        // Xử lý sortBy và sortOrder giống UsersService
         const allowedSortFields = ['createdAt', 'updatedAt', 'views', 'title'];
         if (!blogQueryDto.sortBy) {
             blogQueryDto.sortBy = 'createdAt';
@@ -74,6 +79,7 @@ export class BlogsService {
             : 'createdAt';
         queryBuilder.orderBy(`blog.${sortField}`, blogQueryDto.sortOrder);
 
+        // Thực thi và định dạng response
         const [blogs, totalItems] = await queryBuilder.getManyAndCount();
 
         return {

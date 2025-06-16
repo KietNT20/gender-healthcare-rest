@@ -1,77 +1,86 @@
-import { IsString, IsOptional, IsEnum, IsArray, IsInt, IsUUID } from 'class-validator';
+import {
+    IsString,
+    IsOptional,
+    IsEnum,
+    IsArray,
+    IsInt,
+    IsUUID,
+    IsBoolean,
+} from 'class-validator';
 import { ContentStatusType } from 'src/enums';
 
-
 export class CreateBlogDto {
-  @IsString()
-  title: string;
+    @IsString()
+    title: string;
 
-  @IsString()
-  slug: string;
+    @IsString()
+    slug: string;
 
-  @IsString()
-  content: string;
+    @IsString()
+    content: string;
 
-  @IsOptional()
-  @IsUUID()
-  authorId?: string;
+    @IsOptional()
+    @IsUUID()
+    authorId?: string;
 
-  
+    @IsEnum(ContentStatusType)
+    status: ContentStatusType;
 
-  @IsEnum(ContentStatusType)
-  status: ContentStatusType;
+    @IsOptional()
+    @IsString()
+    featuredImage?: string;
 
-  @IsOptional()
-  @IsString()
-  featuredImage?: string;
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    tags?: string[];
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  tags?: string[];
+    @IsOptional()
+    @IsInt()
+    views?: number;
 
-  @IsOptional()
-  @IsInt()
-  views?: number;
+    @IsOptional()
+    @IsString()
+    seoTitle?: string;
 
-  @IsOptional()
-  @IsString()
-  seoTitle?: string;
+    @IsOptional()
+    @IsString()
+    seoDescription?: string;
 
-  @IsOptional()
-  @IsString()
-  seoDescription?: string;
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
 
-  @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  relatedServicesIds?: string[];
+    @IsOptional()
+    @IsArray()
+    @IsUUID('all', { each: true })
+    relatedServicesIds?: string[];
 
-  @IsOptional()
-  @IsString()
-  excerpt?: string;
+    @IsOptional()
+    @IsString()
+    excerpt?: string;
 
-  @IsOptional()
-  @IsInt()
-  readTime?: number;
+    @IsOptional()
+    @IsInt()
+    readTime?: number;
 
-  @IsOptional()
-  @IsUUID()
-  reviewedById?: string;
+    @IsOptional()
+    @IsUUID()
+    reviewedById?: string;
 
-  @IsOptional()
-  @IsString()
-  rejectionReason?: string;
+    @IsOptional()
+    @IsString()
+    rejectionReason?: string;
 
-  @IsOptional()
-  @IsString()
-  revisionNotes?: string;
+    @IsOptional()
+    @IsString()
+    revisionNotes?: string;
 
-  @IsOptional()
-  @IsUUID()
-  publishedById?: string;
+    @IsOptional()
+    @IsUUID()
+    publishedById?: string;
 
-  @IsOptional()
-  @IsUUID()
-  categoryId?: string;
+    @IsOptional()
+    @IsUUID()
+    categoryId?: string;
 }

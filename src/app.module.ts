@@ -4,8 +4,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -76,12 +74,6 @@ import { UsersModule } from './modules/users/users.module';
                 synchronize: true,
                 autoLoadEntities: true,
                 dropSchema: false,
-                ssl: {
-                    rejectUnauthorized: true,
-                    ca: readFileSync(
-                        join(process.cwd(), 'certs', 'global-bundle.pem'),
-                    ).toString(),
-                },
             }),
             inject: [ConfigService],
         }),

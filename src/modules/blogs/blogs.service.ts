@@ -1,4 +1,3 @@
-
 import {
     ConflictException,
     Injectable,
@@ -44,15 +43,14 @@ export class BlogsService {
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
-        // Create blog
+        // Create blog with proper type handling
+        const { tags, relatedServicesIds, ...blogData } = createBlogDto;
         const blog = this.blogRepository.create({
-            ...createBlogDto,
+            ...blogData,
             slug,
-            isActive: createBlogDto.isActive ?? true,
         });
 
-        const savedBlog = await this.blogRepository.save(blog);
-        return this.blogRepository.save(blog);;
+        return this.blogRepository.save(blog);
     }
 
     async findAll(
@@ -146,9 +144,10 @@ export class BlogsService {
             slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
-        // Update blog
+        // Update blog with proper type handling
+        const { tags, relatedServicesIds, ...updateData } = updateBlogDto;
         await this.blogRepository.update(id, {
-            ...updateBlogDto,
+            ...updateData,
             slug,
             updatedAt: new Date(),
         });
@@ -207,7 +206,7 @@ export class BlogsService {
         queryBuilder: any,
         blogQueryDto: BlogQueryDto,
     ): void {
-        const { title, status, categoryId, isActive } = blogQueryDto;
+        const { title, status, categoryId } = blogQueryDto;
 
         if (title) {
             queryBuilder.andWhere('blog.title ILIKE :title', {
@@ -225,14 +224,8 @@ export class BlogsService {
             });
         }
 
-        if (isActive !== undefined) {
-            queryBuilder.andWhere('blog.isActive = :isActive', { isActive });
-        }
+        
     }
 
-    private toBlogResponse(blog: Blog): BlogResponseDto {
-        return plainToClass(BlogResponseDto, blog, {
-            excludeExtraneousValues: true,
-        });
-    }
+    
 }

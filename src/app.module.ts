@@ -48,7 +48,7 @@ import { TagsModule } from './modules/tags/tags.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: ['.env.development.local'],
+            envFilePath: ['.env'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig],
         }),

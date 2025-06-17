@@ -32,9 +32,7 @@ export class GetBlogQueryDto {
         default: true,
         type: 'boolean',
     })
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean = true;
+   
 
     @ApiPropertyOptional({
         enum: ['createdAt', 'updatedAt', 'views', 'title'],
@@ -60,3 +58,4 @@ export class BlogQueryDto extends IntersectionType(
     GetBlogQueryDto,
     PaginationDto,
 ) {}
+

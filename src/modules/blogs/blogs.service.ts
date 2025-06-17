@@ -1,3 +1,4 @@
+
 import {
     ConflictException,
     Injectable,
@@ -12,7 +13,6 @@ import { IsNull, Repository } from 'typeorm';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { BlogQueryDto } from './dto/blog-query.dto';
-import { BlogResponseDto } from './dto/blog-response.dto';
 import { Blog } from './entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { SortOrder } from 'src/enums'; // Thêm import này
@@ -26,7 +26,7 @@ export class BlogsService {
         private readonly categoryRepository: Repository<Category>,
     ) {}
 
-    async create(createBlogDto: CreateBlogDto): Promise<BlogResponseDto> {
+    async create(createBlogDto: CreateBlogDto){
         // Validate category if provided
         if (createBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
@@ -52,12 +52,12 @@ export class BlogsService {
         });
 
         const savedBlog = await this.blogRepository.save(blog);
-        return this.toBlogResponse(savedBlog);
+        return this.blogRepository.save(blog);;
     }
 
     async findAll(
         blogQueryDto: BlogQueryDto,
-    ): Promise<Paginated<BlogResponseDto>> {
+    ){
         const queryBuilder = this.blogRepository
             .createQueryBuilder('blog')
             .leftJoinAndSelect('blog.category', 'category')
@@ -83,7 +83,7 @@ export class BlogsService {
         const [blogs, totalItems] = await queryBuilder.getManyAndCount();
 
         return {
-            data: blogs.map((blog) => this.toBlogResponse(blog)),
+            data: blogs,
             meta: {
                 itemsPerPage: blogQueryDto.limit!,
                 totalItems,
@@ -93,7 +93,7 @@ export class BlogsService {
         };
     }
 
-    async findOne(id: string): Promise<BlogResponseDto> {
+    async findOne(id: string){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: ['category'],
@@ -101,10 +101,10 @@ export class BlogsService {
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
-        return this.toBlogResponse(blog);
+        return blog;
     }
 
-    async findBySlug(slug: string): Promise<BlogResponseDto> {
+    async findBySlug(slug: string){
         const blog = await this.blogRepository.findOne({
             where: { slug, deletedAt: IsNull() },
             relations: ['category'],
@@ -112,13 +112,13 @@ export class BlogsService {
         if (!blog) {
             throw new NotFoundException(`Blog with slug ${slug} not found`);
         }
-        return this.toBlogResponse(blog);
+        return blog;
     }
 
     async update(
         id: string,
         updateBlogDto: UpdateBlogDto,
-    ): Promise<BlogResponseDto> {
+    ){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -157,7 +157,7 @@ export class BlogsService {
         return updatedBlog;
     }
 
-    async remove(id: string, deletedByUserId?: string): Promise<void> {
+    async remove(id: string, deletedByUserId?: string){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -174,7 +174,7 @@ export class BlogsService {
     private async generateUniqueSlug(
         baseSlug: string,
         excludeId?: string,
-    ): Promise<string> {
+    ){
         let slug = baseSlug;
         let counter = 1;
 
@@ -189,7 +189,7 @@ export class BlogsService {
     private async isSlugExists(
         slug: string,
         excludeId?: string,
-    ): Promise<boolean> {
+    ){
         const queryBuilder = this.blogRepository
             .createQueryBuilder('blog')
             .where('blog.slug = :slug', { slug })
@@ -227,9 +227,5 @@ export class BlogsService {
         }
     }
 
-    private toBlogResponse(blog: Blog): BlogResponseDto {
-        return plainToClass(BlogResponseDto, blog, {
-            excludeExtraneousValues: true,
-        });
-    }
+    
 }

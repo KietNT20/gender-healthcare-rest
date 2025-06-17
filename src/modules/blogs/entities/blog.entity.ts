@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { ContentStatusType } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
@@ -7,6 +6,7 @@ import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     Index,
     JoinTable,
@@ -91,26 +91,26 @@ export class Blog {
 
     @UpdateDateColumn()
     updatedAt: Date;
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    @Exclude()
+
+    @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.authoredBlogs)
     author: User;
 
-    @ManyToOne(() => Category)
+    @ManyToOne(() => Category, (category) => category.blogs, { nullable: true })
     category: Category;
 
-    @ManyToOne(() => User, (user) => user.reviewedBlogs)
+    @ManyToOne(() => User, (user) => user.reviewedBlogs, { nullable: true })
     reviewedByUser: User;
 
-    @ManyToOne(() => User, (user) => user.publishedBlogs)
-    publishedByUser: User;
+    @ManyToOne(() => User, (user) => user.publishedBlogs, { nullable: true })
+    publishedByUser: User; 
 
-    @ManyToMany(() => Service)
+    @ManyToMany(() => Service, (service) => service.blogs)
     @JoinTable()
-    services: Service[];
+    services: Service[]; 
 
     @OneToMany(() => Image, (image) => image.blog)
     images: Image[];

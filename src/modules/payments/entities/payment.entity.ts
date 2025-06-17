@@ -55,7 +55,7 @@ export class Payment {
     refundReason: string;
 
     @Column({ length: 50, nullable: true })
-    invoiceNumber: string;
+    invoiceNumber?: string;
 
     @CreateDateColumn()
     createdAt: Date;

@@ -1,4 +1,3 @@
-// blog-query.dto.ts
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsOptional, IsString, IsIn, IsUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';

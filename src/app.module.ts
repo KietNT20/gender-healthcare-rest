@@ -43,6 +43,7 @@ import { SymptomsModule } from './modules/symptoms/symptoms.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
     imports: [
@@ -138,6 +139,7 @@ import { UsersModule } from './modules/users/users.module';
         AuditLogsModule,
         FilesModule,
         ChatModule,
+        TagsModule,
     ],
     providers: [
         AppService,

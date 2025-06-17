@@ -71,30 +71,39 @@ export class MoodsService {
         const data = this.moodRepository.findOneBy({ id });
 
         if (!data) {
-            throw new NotFoundException('Không tìm thấy ID');
+            throw new NotFoundException('Không tìm thấy ID là ' + id);
         }
 
         return data;
     }
 
-    async update(
-        id: string,
-        updateMoodDto: UpdateMoodDto,
-    ): Promise<{ data: Promise<Mood | null> }> {
+    async update(id: string, updateMoodDto: UpdateMoodDto): Promise<Mood> {
         if (!id) {
             throw new BadRequestException('ID không được để trống');
         }
 
-        await this.moodRepository.update(id, updateMoodDto);
+        await this.moodRepository.update(id, {
+            ...updateMoodDto,
+            updatedAt: new Date(),
+        });
 
-        const data = this.moodRepository.findOneBy({ id });
+        const updatedData = await this.moodRepository.findOneBy({ id });
 
-        return {
-            data: data,
-        };
+        if (!updatedData) {
+            throw new NotFoundException(
+                'Không tìm thấy tâm trạng với ID là ' + id,
+            );
+        }
+
+        return updatedData;
     }
 
     async remove(id: string): Promise<void> {
-        await this.moodRepository.delete(id);
+        const res = await this.moodRepository.delete(id);
+        if (!res.affected) {
+            throw new NotFoundException(
+                'Không tìm thấy tâm trạng với ID là ' + id,
+            );
+        }
     }
 }

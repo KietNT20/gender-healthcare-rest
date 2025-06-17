@@ -2,6 +2,7 @@ import {
     BadRequestException,
     ConflictException,
     Injectable,
+    InternalServerErrorException,
     NotFoundException,
     RequestTimeoutException,
 } from '@nestjs/common';
@@ -50,8 +51,10 @@ export class UsersService {
             createUserDto.password,
         );
 
+        const genSlug = `${createUserDto.firstName} ${createUserDto.email}`;
+
         // Generate unique slug
-        const baseSlug = slugify(createUserDto.email, {
+        const baseSlug = slugify(genSlug, {
             lower: true,
             strict: true,
         });
@@ -176,7 +179,6 @@ export class UsersService {
     ): Promise<Paginated<UserResponseDto>> {
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
-            .leftJoinAndSelect('user.role', 'role')
             .where('user.deletedAt IS NULL');
 
         this.applyUserFilters(queryBuilder, userQueryDto);
@@ -206,10 +208,10 @@ export class UsersService {
         return {
             data: users.map((user) => this.toUserResponse(user)),
             meta: {
-                itemsPerPage: userQueryDto.limit!,
+                itemsPerPage: userQueryDto.limit || 10,
                 totalItems,
-                currentPage: userQueryDto.page!,
-                totalPages: Math.ceil(totalItems / userQueryDto.limit!),
+                currentPage: userQueryDto.page || 1,
+                totalPages: Math.ceil(totalItems / (userQueryDto.limit || 10)),
             },
         };
     }
@@ -270,13 +272,6 @@ export class UsersService {
         }
 
         return this.toUserResponse(user);
-    }
-
-    async findOneById(id: string): Promise<User | null> {
-        return this.userRepository.findOne({
-            where: { id, deletedAt: IsNull() },
-            relations: ['role'],
-        });
     }
 
     async findByEmail(email: string): Promise<User | null> {
@@ -389,7 +384,7 @@ export class UsersService {
     }
 
     async incrementLoginAttempts(id: string): Promise<void> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) return;
 
         const newAttempts = user.loginAttempts + 1;
@@ -483,7 +478,7 @@ export class UsersService {
         id: string,
         updateUserDto: UpdateUserDto,
     ): Promise<UserResponseDto> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
@@ -528,15 +523,24 @@ export class UsersService {
             updatedAt: new Date(),
         });
 
-        const updatedUser = await this.findOneById(id);
-        return this.toUserResponse(updatedUser!);
+        const updatedUser = await this.userRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+        });
+
+        if (!updatedUser) {
+            throw new InternalServerErrorException(
+                'Failed to update user, user not found after update',
+            );
+        }
+
+        return this.toUserResponse(updatedUser);
     }
 
     async updateProfile(
         id: string,
         updateProfileDto: UpdateProfileDto,
     ): Promise<UserResponseDto> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
@@ -571,15 +575,25 @@ export class UsersService {
             updatedAt: new Date(),
         });
 
-        const updatedUser = await this.findOneById(id);
-        return this.toUserResponse(updatedUser!);
+        const updatedUser = await this.userRepository.findOneBy({
+            id,
+            deletedAt: IsNull(),
+        });
+
+        if (!updatedUser) {
+            throw new InternalServerErrorException(
+                'Failed to update user, user not found after update',
+            );
+        }
+
+        return this.toUserResponse(updatedUser);
     }
 
     async changePassword(
         id: string,
         changePasswordDto: ChangePasswordDto,
     ): Promise<void> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
 
         if (!user) {
             throw new NotFoundException('User not found');
@@ -612,7 +626,7 @@ export class UsersService {
     }
 
     async remove(id: string, deletedByUserId?: string): Promise<void> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
@@ -624,7 +638,7 @@ export class UsersService {
     }
 
     async toggleActive(id: string): Promise<UserResponseDto> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
@@ -634,12 +648,22 @@ export class UsersService {
             updatedAt: new Date(),
         });
 
-        const updatedUser = await this.findOneById(id);
-        return this.toUserResponse(updatedUser!);
+        const updatedUser = await this.userRepository.findOneBy({
+            id,
+            deletedAt: IsNull(),
+        });
+
+        if (!updatedUser) {
+            throw new InternalServerErrorException(
+                'Failed to update user, user not found after update',
+            );
+        }
+
+        return this.toUserResponse(updatedUser);
     }
 
     async verifyEmail(id: string): Promise<void> {
-        const user = await this.findOneById(id);
+        const user = await this.findOne(id);
         if (!user) {
             throw new NotFoundException('User not found');
         }

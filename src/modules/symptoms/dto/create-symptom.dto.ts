@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsUUID,
+    MaxLength,
+} from 'class-validator';
 
 export class CreateSymptomDto {
     @ApiProperty()
@@ -15,5 +21,7 @@ export class CreateSymptomDto {
 
     @ApiProperty()
     @IsString()
+    @IsUUID('4')
+    @IsNotEmpty()
     categoryId: string;
 }

@@ -17,7 +17,6 @@ import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
 import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
-import { BlogResponseDto } from './dto/blog-response.dto';
 
 @ApiBearerAuth()
 @Controller('blogs')

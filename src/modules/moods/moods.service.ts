@@ -62,7 +62,7 @@ export class MoodsService {
                 itemsPerPage: limitNumber,
                 totalItems,
                 currentPage: pageNumber,
-                totalPages: totalPages,
+                totalPages,
             },
         };
     }

@@ -9,7 +9,7 @@ import { MailService } from './mail.service';
     imports: [
         MailerModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
+            useFactory: (configService: ConfigService) => ({
                 transport: {
                     host: configService.get<string>('MAIL_HOST'),
                     port: configService.get<number>('MAIL_PORT'),
@@ -20,10 +20,7 @@ import { MailService } from './mail.service';
                     },
                 },
                 defaults: {
-                    from: {
-                        name: configService.get<string>('MAIL_FROM_NAME'),
-                        address: configService.get<string>('MAIL_FROM'),
-                    },
+                    from: `${configService.get<string>('MAIL_FROM_NAME')} <${configService.get<string>('MAIL_FROM_EMAIL')}>`,
                 },
                 template: {
                     dir: join(__dirname, 'templates'),

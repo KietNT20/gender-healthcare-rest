@@ -8,6 +8,7 @@ import {
     IsString,
     IsUUID,
     Max,
+    MaxLength,
     MinLength,
     
 } from 'class-validator';
@@ -33,7 +34,7 @@ export class CreateUserDto {
     @IsNotEmpty({ message: 'Password is required' })
     @IsString()
     @MinLength(8, { message: 'Password must be at least 8 characters long' })
-    @Max(32, { message: 'Password must not exceed 32 characters' })
+    @MaxLength(32, { message: 'Password must not exceed 32 characters' })
     password: string;
 
     @ApiPropertyOptional()

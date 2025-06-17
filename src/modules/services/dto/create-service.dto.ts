@@ -19,11 +19,6 @@ export class CreateServiceDto {
 
     @IsString()
     @IsNotEmpty()
-    @MaxLength(255)
-    slug: string;
-
-    @IsString()
-    @IsNotEmpty()
     description: string;
 
     @IsNumber({ maxDecimalPlaces: 2 })

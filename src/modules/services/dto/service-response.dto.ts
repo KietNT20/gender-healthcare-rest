@@ -71,12 +71,6 @@ export class UpdateServiceProfileDto {
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Slug của dịch vụ', maxLength: 255 })
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  slug?: string;
-
   @ApiPropertyOptional({ description: 'Mô tả dịch vụ' })
   @IsOptional()
   @IsString()

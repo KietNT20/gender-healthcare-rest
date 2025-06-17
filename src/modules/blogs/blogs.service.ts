@@ -2,6 +2,7 @@ import {
     ConflictException,
     Injectable,
     NotFoundException,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
@@ -11,9 +12,9 @@ import { IsNull, Repository } from 'typeorm';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { BlogQueryDto } from './dto/blog-query.dto';
-import { BlogResponseDto } from './dto/blog-response.dto';
 import { Blog } from './entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
+import { SortOrder } from 'src/enums'; // Thêm import này
 
 @Injectable()
 export class BlogsService {
@@ -24,7 +25,7 @@ export class BlogsService {
         private readonly categoryRepository: Repository<Category>,
     ) {}
 
-    async create(createBlogDto: CreateBlogDto): Promise<BlogResponseDto> {
+    async create(createBlogDto: CreateBlogDto){
         // Validate category if provided
         if (createBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
@@ -42,19 +43,19 @@ export class BlogsService {
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
-        // Create blog
+        // Create blog with proper type handling
+        const { tags, relatedServicesIds, ...blogData } = createBlogDto;
         const blog = this.blogRepository.create({
-            ...createBlogDto,
+            ...blogData,
             slug,
         });
 
-        const savedBlog = await this.blogRepository.save(blog);
-        return this.toBlogResponse(savedBlog);
+        return this.blogRepository.save(blog);
     }
 
     async findAll(
         blogQueryDto: BlogQueryDto,
-    ): Promise<Paginated<BlogResponseDto>> {
+    ){
         const queryBuilder = this.blogRepository
             .createQueryBuilder('blog')
             .leftJoinAndSelect('blog.category', 'category')
@@ -62,9 +63,11 @@ export class BlogsService {
 
         this.applyBlogFilters(queryBuilder, blogQueryDto);
 
+        // Đặt offset và limit tương tự UsersService
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
         queryBuilder.skip(offset).take(blogQueryDto.limit!);
 
+        // Xử lý sortBy và sortOrder giống UsersService
         const allowedSortFields = ['createdAt', 'updatedAt', 'views', 'title'];
         if (!blogQueryDto.sortBy) {
             blogQueryDto.sortBy = 'createdAt';
@@ -74,11 +77,12 @@ export class BlogsService {
             : 'createdAt';
         queryBuilder.orderBy(`blog.${sortField}`, blogQueryDto.sortOrder);
 
+        // Thực thi và định dạng response
         const [blogs, totalItems] = await queryBuilder.getManyAndCount();
 
         return {
-            data: blogs.map((blog) => this.toBlogResponse(blog)),
-            meta: {
+            data: blogs,
+meta: {
                 itemsPerPage: blogQueryDto.limit!,
                 totalItems,
                 currentPage: blogQueryDto.page!,
@@ -87,7 +91,7 @@ export class BlogsService {
         };
     }
 
-    async findOne(id: string): Promise<BlogResponseDto> {
+    async findOne(id: string){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: ['category'],
@@ -95,10 +99,10 @@ export class BlogsService {
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
-        return this.toBlogResponse(blog);
+        return blog;
     }
 
-    async findBySlug(slug: string): Promise<BlogResponseDto> {
+    async findBySlug(slug: string){
         const blog = await this.blogRepository.findOne({
             where: { slug, deletedAt: IsNull() },
             relations: ['category'],
@@ -106,13 +110,13 @@ export class BlogsService {
         if (!blog) {
             throw new NotFoundException(`Blog with slug ${slug} not found`);
         }
-        return this.toBlogResponse(blog);
+        return blog;
     }
 
     async update(
         id: string,
         updateBlogDto: UpdateBlogDto,
-    ): Promise<BlogResponseDto> {
+    ){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -140,9 +144,10 @@ export class BlogsService {
             slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
-        // Update blog
+        // Update blog with proper type handling
+        const { tags, relatedServicesIds, ...updateData } = updateBlogDto;
         await this.blogRepository.update(id, {
-            ...updateBlogDto,
+            ...updateData,
             slug,
             updatedAt: new Date(),
         });
@@ -151,7 +156,7 @@ export class BlogsService {
         return updatedBlog;
     }
 
-    async remove(id: string, deletedByUserId?: string): Promise<void> {
+    async remove(id: string, deletedByUserId?: string){
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -168,7 +173,7 @@ export class BlogsService {
     private async generateUniqueSlug(
         baseSlug: string,
         excludeId?: string,
-    ): Promise<string> {
+    ){
         let slug = baseSlug;
         let counter = 1;
 
@@ -178,12 +183,12 @@ export class BlogsService {
         }
 
         return slug;
-    }
+}
 
     private async isSlugExists(
         slug: string,
         excludeId?: string,
-    ): Promise<boolean> {
+    ){
         const queryBuilder = this.blogRepository
             .createQueryBuilder('blog')
             .where('blog.slug = :slug', { slug })
@@ -201,7 +206,7 @@ export class BlogsService {
         queryBuilder: any,
         blogQueryDto: BlogQueryDto,
     ): void {
-        const { title, status, categoryId, isActive } = blogQueryDto;
+        const { title, status, categoryId } = blogQueryDto;
 
         if (title) {
             queryBuilder.andWhere('blog.title ILIKE :title', {
@@ -219,14 +224,8 @@ export class BlogsService {
             });
         }
 
-        if (isActive !== undefined) {
-            queryBuilder.andWhere('blog.isActive = :isActive', { isActive });
-        }
+        
     }
 
-    private toBlogResponse(blog: Blog): BlogResponseDto {
-        return plainToClass(BlogResponseDto, blog, {
-            excludeExtraneousValues: true,
-        });
-    }
+    
 }

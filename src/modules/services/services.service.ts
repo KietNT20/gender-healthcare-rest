@@ -34,43 +34,62 @@ export class ServicesService {
      * @param createServiceDto Dữ liệu đầu vào để tạo dịch vụ
      * @returns Dịch vụ đã được tạo
      */
-    async create(
-        createServiceDto: CreateServiceDto,
-    ): Promise<ServiceResponseDto> {
-        // Check if slug already exists
-        const existingService = await this.serviceRepo.findOne({
-            where: { slug: createServiceDto.slug, deletedAt: IsNull() },
-        });
+    private async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
 
-        if (existingService) {
-            throw new ConflictException('Slug already exists');
-        }
-
-        // Check if categoryId exists
-        if (createServiceDto.categoryId) {
-            const category = await this.categoryRepo.findOne({
-                where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
-            });
-
-            if (!category) {
-                throw new NotFoundException(
-                    `Danh mục với ID '${createServiceDto.categoryId}' không tồn tại`,
-                );
-            }
-        }
-
-        const newService = this.serviceRepo.create({
-            ...createServiceDto,
-            category: { id: createServiceDto.categoryId },
-            isActive: createServiceDto.isActive ?? true,
-            featured: createServiceDto.featured ?? false,
-        });
-
-        const savedService = await this.serviceRepo.save(newService);
-        this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
-        return this.toServiceResponse(savedService);
+    while (await this.isSlugExists(slug, excludeId)) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
     }
 
+    return slug;
+}
+
+private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
+    const queryBuilder = this.serviceRepo
+        .createQueryBuilder('service')
+        .where('service.slug = :slug', { slug })
+        .andWhere('service.deletedAt IS NULL');
+
+    if (excludeId) {
+        queryBuilder.andWhere('service.id != :excludeId', { excludeId });
+    }
+
+    const count = await queryBuilder.getCount();
+    return count > 0;
+}
+    async create(createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
+    // Tạo slug từ name
+    
+    const baseSlug = slugify(createServiceDto.name, { lower: true, strict: true });
+    const slug = await this.generateUniqueSlug(baseSlug);
+
+    // Kiểm tra categoryId
+    if (createServiceDto.categoryId) {
+        const category = await this.categoryRepo.findOne({
+            where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
+        });
+
+        if (!category) {
+            throw new NotFoundException(
+                `Danh mục với ID '${createServiceDto.categoryId}' không tồn tại`,
+            );
+        }
+    }
+
+    const newService = this.serviceRepo.create({
+        ...createServiceDto,
+        slug, // Gán slug tự động
+        category: { id: createServiceDto.categoryId },
+        isActive: createServiceDto.isActive ?? true,
+        featured: createServiceDto.featured ?? false,
+    });
+
+    const savedService = await this.serviceRepo.save(newService);
+    this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
+    return this.toServiceResponse(savedService);
+}
     /**
      * Lấy danh sách dịch vụ với phân trang, lọc và sắp xếp
      * @param serviceQueryDto Tham số truy vấn bao gồm phân trang, lọc và sắp xếp
@@ -200,52 +219,45 @@ export class ServicesService {
      * @param updateDto Dữ liệu cập nhật
      * @returns Dịch vụ đã được cập nhật
      */
-    async update(
-        id: string,
-        updateDto: UpdateServiceProfileDto,
-    ): Promise<ServiceResponseDto> {
-        const service = await this.serviceRepo.findOne({
-            where: { id, deletedAt: IsNull() },
-            relations: ['category'],
-        });
+    async update(id: string, updateDto: UpdateServiceProfileDto): Promise<ServiceResponseDto> {
+    const service = await this.serviceRepo.findOne({
+        where: { id, deletedAt: IsNull() },
+        relations: ['category'],
+    });
 
-        if (!service) {
-            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
-        }
-
-        // Check slug uniqueness if slug is being updated
-        if (updateDto.slug && updateDto.slug !== service.slug) {
-            const existingService = await this.serviceRepo.findOne({
-                where: { slug: updateDto.slug, deletedAt: IsNull() },
-            });
-            if (existingService && existingService.id !== id) {
-                throw new ConflictException('Slug already exists');
-            }
-        }
-
-        // Check if categoryId exists if provided
-        if (updateDto.categoryId) {
-            const category = await this.categoryRepo.findOne({
-                where: { id: updateDto.categoryId, deletedAt: IsNull() },
-            });
-
-            if (!category) {
-                throw new NotFoundException(
-                    `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
-                );
-            }
-        }
-
-        Object.assign(service, {
-            ...updateDto,
-            category: updateDto.categoryId
-                ? { id: updateDto.categoryId }
-                : service.category,
-        });
-
-        const updatedService = await this.serviceRepo.save(service);
-        return this.toServiceResponse(updatedService);
+    if (!service) {
+        throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
     }
+
+    // Tạo slug mới nếu name được cập nhật, nếu không giữ slug cũ
+    let slug = service.slug;
+    if (updateDto.name && updateDto.name !== service.name) {
+        const baseSlug = slugify(updateDto.name, { lower: true, strict: true });
+        slug = await this.generateUniqueSlug(baseSlug, id);
+    }
+
+    // Kiểm tra categoryId nếu được cung cấp
+    if (updateDto.categoryId) {
+        const category = await this.categoryRepo.findOne({
+            where: { id: updateDto.categoryId, deletedAt: IsNull() },
+        });
+
+        if (!category) {
+            throw new NotFoundException(
+                `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
+            );
+        }
+    }
+
+    Object.assign(service, {
+        ...updateDto,
+        slug, // Cập nhật slug
+        category: updateDto.categoryId ? { id: updateDto.categoryId } : service.category,
+    });
+
+    const updatedService = await this.serviceRepo.save(service);
+    return this.toServiceResponse(updatedService);
+}
 
     /**
      * Xóa mềm một dịch vụ

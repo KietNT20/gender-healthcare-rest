@@ -3,6 +3,7 @@ import { ContentStatusType } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Image } from 'src/modules/images/entities/image.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
+import { Tag } from 'src/modules/tags/entities/tag.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -21,8 +22,6 @@ import {
 export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    
 
     @Column({ type: 'uuid', nullable: true })
     deletedByUserId?: string;
@@ -47,9 +46,6 @@ export class Blog {
 
     @Column({ type: 'varchar', length: 1024, nullable: true })
     featuredImage?: string;
-
-    @Column({ type: 'text', array: true, nullable: true })
-    tags: string[];
 
     @Column({ default: 0 })
     views: number;
@@ -113,4 +109,8 @@ export class Blog {
 
     @OneToMany(() => Image, (image) => image.blog)
     images: Image[];
+
+    @ManyToMany(() => Tag, (tag) => tag.blogs)
+    @JoinTable()
+    tags: Tag[];
 }

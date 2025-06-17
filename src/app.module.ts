@@ -4,6 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -11,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import googleAuthConfig from './modules/auth/config/google-auth.config';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { ConsultantAvailabilityModule } from './modules/consultant-availability/consultant-availability.module';
 import { ConsultantProfilesModule } from './modules/consultant-profiles/consultant-profiles.module';
 import { ContraceptiveRemindersModule } from './modules/contraceptive-reminders/contraceptive-reminders.module';
@@ -26,13 +31,11 @@ import { ImagesModule } from './modules/images/images.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
-import { MessagesModule } from './modules/messages/messages.module';
 import { MoodsModule } from './modules/moods/moods.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { QuestionsModule } from './modules/questions/questions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
@@ -40,12 +43,12 @@ import { SymptomsModule } from './modules/symptoms/symptoms.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { ChatModule } from './modules/chat/chat.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: '.env',
+            envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig],
         }),
@@ -76,6 +79,12 @@ import { ChatModule } from './modules/chat/chat.module';
                 synchronize: true,
                 autoLoadEntities: true,
                 dropSchema: false,
+                ssl: {
+                    rejectUnauthorized: true,
+                    ca: readFileSync(
+                        join(process.cwd(), 'certs', 'global-bundle.pem'),
+                    ).toString(),
+                },
             }),
             inject: [ConfigService],
         }),
@@ -83,10 +92,13 @@ import { ChatModule } from './modules/chat/chat.module';
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
                 connection: {
-                    host: configService.get('REDIS_HOST', 'localhost'),
-                    port: configService.get('REDIS_PORT', 6379),
-                    password: configService.get('REDIS_PASSWORD'),
-                    db: configService.get('REDIS_DB', 0),
+                    host: configService.get<string>('REDIS_HOST'),
+                    port: configService.get<number>('REDIS_PORT') || 6379,
+                    password: configService.get<string>('REDIS_PASSWORD'),
+                    tls:
+                        configService.get<string>('NODE_ENV') === 'production'
+                            ? {}
+                            : undefined,
                 },
                 defaultJobOptions: {
                     removeOnComplete: 10,
@@ -97,7 +109,7 @@ import { ChatModule } from './modules/chat/chat.module';
         }),
         AppointmentsModule,
         BlogsModule,
-        CategoriesModule, 
+        CategoriesModule,
         ConsultantAvailabilityModule,
         ConsultantProfilesModule,
         ContractFilesModule,
@@ -116,7 +128,6 @@ import { ChatModule } from './modules/chat/chat.module';
         PackageServiceUsageModule,
         PackageServicesModule,
         PaymentsModule,
-        QuestionsModule,
         RolesModule,
         ServicePackagesModule,
         ServicesModule,
@@ -127,14 +138,16 @@ import { ChatModule } from './modules/chat/chat.module';
         AuthModule,
         AuditLogsModule,
         FilesModule,
-        MessagesModule,
         ChatModule,
+        TagsModule,
     ],
     providers: [
+        AppService,
         {
             provide: APP_INTERCEPTOR,
             useClass: TransformInterceptor,
         },
     ],
+    controllers: [AppController],
 })
 export class AppModule {}

@@ -22,6 +22,9 @@ export class UserResponseDto {
     password: string;
 
     @Expose()
+    googleId?: string;
+
+    @Expose()
     firstName: string;
 
     @Expose()
@@ -69,6 +72,9 @@ export class UserResponseDto {
 
     @Expose()
     lastLogin?: Date;
+
+    @Expose()
+    loginAttempts: number;
 
     @Expose()
     @Type(() => Role)

@@ -1,36 +1,39 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    Logger,
+} from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { AuthService } from 'src/modules/auth/auth.service';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-    constructor(private readonly jwtService: JwtService) {}
+    private readonly logger = new Logger(WsJwtGuard.name);
 
-    canActivate(context: ExecutionContext): boolean {
-        const client: Socket = context.switchToWs().getClient<Socket>();
-        const token = this.extractTokenFromSocket(client);
+    constructor(private readonly authService: AuthService) {}
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const client = context.switchToWs().getClient();
+        const token =
+            client.handshake.auth?.token || client.handshake.query?.token;
 
         if (!token) {
-            throw new WsException('No token provided');
+            throw new WsException('No authentication token provided');
         }
 
         try {
-            const payload = this.jwtService.verify(token);
-            // Attach user to socket
-            (client as any).user = payload;
+            const user = await this.authService.verifyTokenForWebSocket(token);
+            if (!user) {
+                throw new WsException('Invalid authentication token');
+            }
+            client.user = user;
             return true;
         } catch (error) {
-            throw new WsException('Invalid token');
+            this.logger.error(
+                `WebSocket Authentication Error: ${error.message}`,
+            );
+            throw new WsException(error.message);
         }
-    }
-
-    private extractTokenFromSocket(client: Socket): string | null {
-        // Extract from auth or query params
-        return (
-            client.handshake.auth?.token ||
-            client.handshake.query?.token ||
-            null
-        );
     }
 }

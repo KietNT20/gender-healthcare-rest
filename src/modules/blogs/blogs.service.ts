@@ -197,7 +197,10 @@ export class BlogsService {
         return count > 0;
     }
 
-    private applyBlogFilters(queryBuilder: any, blogQueryDto: BlogQueryDto): void {
+    private applyBlogFilters(
+        queryBuilder: any,
+        blogQueryDto: BlogQueryDto,
+    ): void {
         const { title, status, categoryId, isActive } = blogQueryDto;
 
         if (title) {

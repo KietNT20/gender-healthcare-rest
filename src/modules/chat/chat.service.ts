@@ -6,12 +6,15 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageType, RolesNameEnum } from 'src/enums';
+import slugify from 'slugify';
+import { MessageType, QuestionStatusType, RolesNameEnum } from 'src/enums';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { FilesService } from '../files/files.service';
-import { Message } from '../messages/entities/message.entity';
-import { Question } from '../questions/entities/question.entity';
 import { User } from '../users/entities/user.entity';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { Message } from './entities/message.entity';
+import { Question } from './entities/question.entity';
 import {
     CreateMessageData,
     MessageWithSender,
@@ -457,6 +460,35 @@ export class ChatService {
                 : undefined,
             unreadCount,
         };
+    }
+
+    /**
+     * Create a new question
+     */
+    async createQuestion(
+        createQuestionDto: CreateQuestionDto,
+        userId: string,
+    ): Promise<Question> {
+        const user = await this.userRepository.findOneBy({ id: userId });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Generate unique slug
+        const baseSlug = slugify(createQuestionDto.title, {
+            lower: true,
+            strict: true,
+        });
+        const slug = `${baseSlug}-${uuidv4().substring(0, 8)}`;
+
+        const question = this.questionRepository.create({
+            ...createQuestionDto,
+            user,
+            slug,
+            status: QuestionStatusType.PENDING,
+        });
+
+        return this.questionRepository.save(question);
     }
 
     /**

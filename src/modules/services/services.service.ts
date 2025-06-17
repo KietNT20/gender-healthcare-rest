@@ -182,6 +182,9 @@ export class ServicesService {
         if (!service) {
             throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
         }
+        if (!service) {
+            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+        }
 
         // Debug categoryId
         this.logger.debug(

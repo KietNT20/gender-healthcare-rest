@@ -3,17 +3,17 @@ import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 
 describe('ChatGateway', () => {
-  let gateway: ChatGateway;
+    let gateway: ChatGateway;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ChatGateway, ChatService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [ChatGateway, ChatService],
+        }).compile();
 
-    gateway = module.get<ChatGateway>(ChatGateway);
-  });
+        gateway = module.get<ChatGateway>(ChatGateway);
+    });
 
-  it('should be defined', () => {
-    expect(gateway).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(gateway).toBeDefined();
+    });
 });

@@ -22,7 +22,7 @@ export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Tạo mới một dịch vụ' })
+  @ApiOperation({ summary: 'Create new service' })
   @ApiResponse({ status: 201, description: 'Dịch vụ được tạo thành công', type: ServiceResponseDto })
   @ResponseMessage('Dịch vụ được tạo thành công')
   create(@Body() createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
@@ -30,7 +30,7 @@ export class ServicesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Lấy danh sách dịch vụ với phân trang, lọc và sắp xếp' })
+  @ApiOperation({ summary: 'Get service list with pagination, filtering and sorting' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Số trang, mặc định là 1' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Số bản ghi mỗi trang, mặc định là 10' })
   @ApiQuery({ name: 'sortBy', required: false, type: String, description: 'Trường sắp xếp (name, price, duration, createdAt, updatedAt), mặc định là createdAt' })
@@ -51,7 +51,7 @@ export class ServicesController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin một dịch vụ theo ID' })
+  @ApiOperation({ summary: 'Find services by ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'ID của dịch vụ' })
   @ApiResponse({ status: 200, description: 'Dịch vụ được lấy thành công', type: ServiceResponseDto })
   @ResponseMessage('Dịch vụ được lấy thành công')
@@ -60,7 +60,7 @@ export class ServicesController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Cập nhật thông tin dịch vụ' })
+  @ApiOperation({ summary: 'Update services' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'ID của dịch vụ' })
   @ApiResponse({ status: 200, description: 'Dịch vụ được cập nhật thành công', type: ServiceResponseDto })
   @ResponseMessage('Dịch vụ được cập nhật thành công')
@@ -72,7 +72,7 @@ export class ServicesController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Xóa mềm một dịch vụ' })
+  @ApiOperation({ summary: 'Soft delete a service' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'ID của dịch vụ' })
   @ApiResponse({ status: 200, description: 'Dịch vụ được xóa thành công' })
   @ResponseMessage('Dịch vụ được xóa thành công')

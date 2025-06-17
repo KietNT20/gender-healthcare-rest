@@ -51,8 +51,10 @@ export class UsersService {
             createUserDto.password,
         );
 
+        const genSlug = `${createUserDto.firstName} ${createUserDto.email}`;
+
         // Generate unique slug
-        const baseSlug = slugify(createUserDto.email, {
+        const baseSlug = slugify(genSlug, {
             lower: true,
             strict: true,
         });

@@ -18,15 +18,15 @@ export class Feedback {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-  @Column({ type: 'integer' })
-  @Index()
-  rating: number;
+    @Column({ type: 'integer' })
+    @Index()
+    rating: number;
 
     @Column({ type: 'text', nullable: true })
     comment?: string;
 
-  @Column({ default: false, name: 'is_anonymous' })
-  isAnonymous: boolean;
+    @Column({ default: false, name: 'is_anonymous' })
+    isAnonymous: boolean;
 
     @Column({ default: true })
     isPublic: boolean;
@@ -34,11 +34,11 @@ export class Feedback {
     @Column({ type: 'text', nullable: true })
     staffResponse?: string;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
     @Index()

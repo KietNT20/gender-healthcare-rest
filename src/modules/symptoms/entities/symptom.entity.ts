@@ -15,14 +15,11 @@ export class Symptom {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 100 })
+    @Column({ length: 255 })
     name: string;
 
     @Column({ type: 'text', nullable: true })
-    description: string;
-
-    @Column({ nullable: true })
-    categoryId: string;
+    description?: string;
 
     @CreateDateColumn()
     createdAt: Date;

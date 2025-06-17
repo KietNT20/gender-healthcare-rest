@@ -332,7 +332,7 @@ export class AuthService {
     async verifyToken(token: string) {
         try {
             const payload = this.jwtService.verify(token);
-            const user = await this.usersService.findOneById(payload.sub);
+            const user = await this.usersService.findOne(payload.sub);
 
             if (!user) {
                 throw new UnauthorizedException('User not found');

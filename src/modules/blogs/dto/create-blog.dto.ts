@@ -1,34 +1,28 @@
 import {
     IsString,
+    IsOptional,
     IsEnum,
     IsArray,
     IsInt,
     IsUUID,
-    IsBoolean,
-    IsNotEmpty,
-    IsOptional,
 } from 'class-validator';
 import { ContentStatusType } from 'src/enums';
 
 export class CreateBlogDto {
     @IsString()
-    @IsNotEmpty()
     title: string;
 
     @IsString()
-    @IsNotEmpty()
     slug: string;
 
     @IsString()
-    @IsNotEmpty()
     content: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsUUID()
-    authorId: string; 
+    authorId?: string;
 
     @IsEnum(ContentStatusType)
-    @IsNotEmpty()
     status: ContentStatusType;
 
     @IsOptional()
@@ -51,10 +45,6 @@ export class CreateBlogDto {
     @IsOptional()
     @IsString()
     seoDescription?: string;
-
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean;
 
     @IsOptional()
     @IsArray()

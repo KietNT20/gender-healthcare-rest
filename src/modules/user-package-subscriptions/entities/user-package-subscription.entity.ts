@@ -14,6 +14,27 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
+/*
+📌 Entity này là gì?
+Thể hiện việc người dùng đã mua gói dịch vụ nào, thời gian hiệu lực, trạng thái đăng ký, và lịch sử sử dụng liên quan.
+
+📄 Mô tả các trường:
+Trường	Mô tả
+id	UUID
+startDate, endDate	Thời gian hiệu lực
+status	Trạng thái: ACTIVE, EXPIRED, CANCELED...
+autoRenew	Có tự động gia hạn không
+createdAt, updatedAt, deletedAt	Metadata thời gian
+
+🔗 Quan hệ:
+@ManyToOne → User: ai mua gói.
+
+@ManyToOne → ServicePackage: mua gói nào.
+
+@ManyToOne → Payment: thanh toán tương ứng.
+
+@OneToMany → PackageServiceUsage: các lượt sử dụng trong gói.
+*/
 @Entity()
 export class UserPackageSubscription {
     @PrimaryGeneratedColumn('uuid')

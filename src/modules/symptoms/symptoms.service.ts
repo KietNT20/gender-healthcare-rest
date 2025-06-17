@@ -1,11 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Category } from '../categories/entities/category.entity';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
+import { Symptom } from './entities/symptom.entity';
 
 @Injectable()
 export class SymptomsService {
-    create(createSymptomDto: CreateSymptomDto) {
-        return 'This action adds a new symptom';
+    constructor(
+        @InjectRepository(Symptom)
+        private readonly symptomRepository: Repository<Symptom>,
+        @InjectRepository(Category)
+        private readonly categoryRepository: Repository<Category>,
+    ) {}
+    async create(createSymptomDto: CreateSymptomDto): Promise<Symptom> {
+        if (createSymptomDto.categoryId) {
+            const category = await this.categoryRepository.findOneBy({
+                id: createSymptomDto.categoryId,
+            });
+
+            if (!category) {
+                throw new NotFoundException(
+                    `Category with ID ${createSymptomDto.categoryId} not found`,
+                );
+            }
+        }
+
+        const symptom = this.symptomRepository.create(createSymptomDto);
+
+        return this.symptomRepository.save(symptom);
     }
 
     findAll() {

@@ -1,5 +1,5 @@
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { Question } from 'src/modules/questions/entities/question.entity';
+import { Question } from 'src/modules/chat/entities/question.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { Symptom } from 'src/modules/symptoms/entities/symptom.entity';
 import {
@@ -22,7 +22,7 @@ export class Category {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 100 ,unique :true})
+    @Column({ type: 'varchar', length: 100, unique: true })
     @Index()
     name: string;
 

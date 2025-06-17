@@ -7,10 +7,8 @@ import {
     IsOptional,
     IsString,
     IsUUID,
-    Max,
     MaxLength,
     MinLength,
-    
 } from 'class-validator';
 import { GenderType } from 'src/enums';
 

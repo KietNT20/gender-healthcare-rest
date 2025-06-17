@@ -1,8 +1,8 @@
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
-import { Image } from 'src/modules/images/entities/image.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
 import {
@@ -11,6 +11,7 @@ import {
     Index,
     DeleteDateColumn,
     Entity,
+    JoinColumn,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -19,26 +20,28 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 
+import { Image } from 'src/modules/images/entities/image.entity';
+
 @Entity()
 export class Service {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ length: 255 })
-  name: string;
+    @Column({ length: 255 })
+    name: string;
 
-  @Index({ unique: true })
-  @Column({ length: 255 })
-  slug: string;
+    @Index({ unique: true })
+    @Column({ length: 255, unique: true })
+    slug: string;
 
-  @Column({ type: 'text' })
-  description: string;
+    @Column({ type: 'text' })
+    description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    price: number;
 
-  @Column()
-  duration: number;
+    @Column()
+    duration: number;
 
     @Column({ default: true })
     isActive: boolean;
@@ -46,23 +49,23 @@ export class Service {
     @Column({ length: 255, nullable: true })
     shortDescription?: string;
 
-  @Column({ type: 'text', nullable: true })
-  prerequisites?: string;
+    @Column({ type: 'text', nullable: true })
+    prerequisites?: string;
 
-  @Column({ type: 'text', nullable: true })
-  postInstructions?: string;
+    @Column({ type: 'text', nullable: true })
+    postInstructions?: string;
 
-  @Column({ default: false })
-  featured: boolean;
+    @Column({ default: false })
+    featured: boolean;
 
-  @Column({ default: 0 })
-  version: number;
+    @Column({ default: 0 })
+    version: number;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
@@ -71,11 +74,11 @@ export class Service {
     @ManyToOne(() => Category, (category) => category.services)
     category: Category;
 
-  @OneToMany(() => Feedback, (feedback) => feedback.service)
-  feedbacks: Feedback[];
+    @OneToMany(() => Feedback, (feedback) => feedback.service)
+    feedbacks: Feedback[];
 
-  @OneToMany(() => PackageService, (packageService) => packageService.service)
-  packageServices: PackageService[];
+    @OneToMany(() => PackageService, (packageService) => packageService.service)
+    packageServices: PackageService[];
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.service)
     packageServiceUsages: PackageServiceUsage[];

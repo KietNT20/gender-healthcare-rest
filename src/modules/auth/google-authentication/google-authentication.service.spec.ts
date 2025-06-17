@@ -2,17 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GoogleAuthenticationService } from './google-authentication.service';
 
 describe('GoogleAuthenticationService', () => {
-  let service: GoogleAuthenticationService;
+    let service: GoogleAuthenticationService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GoogleAuthenticationService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [GoogleAuthenticationService],
+        }).compile();
 
-    service = module.get<GoogleAuthenticationService>(GoogleAuthenticationService);
-  });
+        service = module.get<GoogleAuthenticationService>(
+            GoogleAuthenticationService,
+        );
+    });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(service).toBeDefined();
+    });
 });

@@ -239,7 +239,7 @@ export class MailService {
                 context: {
                     userName,
                     appName: 'Dịch vụ Y tế Giới tính',
-                    loginUrl: `${this.configService.get('APP_URL')}/login`,
+                    loginUrl: `${this.configService.get('FRONTEND_URL')}/login`,
                     supportEmail: this.configService.get('MAIL_FROM'),
                 },
             });

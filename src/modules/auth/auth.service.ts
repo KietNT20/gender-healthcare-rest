@@ -26,18 +26,14 @@ export class AuthService {
     ) {}
 
     async register(registerDto: RegisterDto) {
-        // Check if user already exists
-        const existingUser = await this.usersService.findByEmail(
+        // Check if email user already exists
+        const existingUserEmail = await this.usersService.findByEmail(
             registerDto.email,
         );
-        if (existingUser) {
+
+        if (existingUserEmail) {
             throw new BadRequestException('Email đã được sử dụng');
         }
-
-        // Hash password
-        const hashedPassword = await this.hashingProvider.hashPassword(
-            registerDto.password,
-        );
 
         // Generate verification token
         const emailVerificationToken = randomBytes(32).toString('hex');
@@ -58,7 +54,6 @@ export class AuthService {
         // Create user
         const userData = {
             ...registerDto,
-            password: hashedPassword,
             slug,
             emailVerificationToken,
             emailVerificationExpires,

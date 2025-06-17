@@ -1,6 +1,7 @@
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { Column, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 
+@Entity()
 export class Tag {
     @PrimaryGeneratedColumn('uuid')
     id: string;

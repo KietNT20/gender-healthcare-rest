@@ -8,7 +8,6 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
     OneToOne,
@@ -50,11 +49,9 @@ export class Question {
 
     // Relations
     @ManyToOne(() => User, (user) => user.questions)
-    @JoinColumn()
     user: User;
 
-    @ManyToOne(() => Category)
-    @JoinColumn()
+    @ManyToOne(() => Category, (category) => category.questions)
     category: Category;
 
     @OneToMany(() => Message, (message) => message.question)

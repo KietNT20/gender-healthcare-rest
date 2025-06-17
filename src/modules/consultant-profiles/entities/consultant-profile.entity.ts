@@ -15,7 +15,6 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { Certificates, WorkingHours } from './consultant-profile-data.entity';
-import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 
 @Entity()
 export class ConsultantProfile {
@@ -103,7 +102,9 @@ export class ConsultantProfile {
     deletedAt?: Date;
 
     // Relations
-    @OneToOne(() => User, (user) => user.consultantProfile)
+    @OneToOne(() => User, (user) => user.consultantProfile, {
+        eager: true,
+    })
     @JoinColumn()
     user: User;
 

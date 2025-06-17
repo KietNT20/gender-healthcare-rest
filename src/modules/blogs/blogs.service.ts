@@ -7,12 +7,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { Category } from 'src/modules/categories/entities/category.entity';
 import { IsNull, Repository } from 'typeorm';
 import { BlogQueryDto } from './dto/blog-query.dto';
 import { Blog } from './entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { SortOrder } from 'src/enums'; // Thêm import này
+import { SortOrder } from 'src/enums';
+import { CreateBlogDto } from './dto/create-blog.dto';
+import slugify from 'slugify';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Injectable()
 export class BlogsService {
@@ -34,12 +36,12 @@ export class BlogsService {
             }
         }
 
-    //     // Generate unique slug
-    //     const baseSlug = slugify(createBlogDto.title, {
-    //         lower: true,
-    //         strict: true,
-    //     });
-    //     const slug = await this.generateUniqueSlug(baseSlug);
+        // Generate unique slug
+        const baseSlug = slugify(createBlogDto.title, {
+            lower: true,
+            strict: true,
+        });
+        const slug = await this.generateUniqueSlug(baseSlug);
 
         // Create blog with proper type handling
         const { tags, relatedServicesIds, ...blogData } = createBlogDto;
@@ -123,24 +125,24 @@ export class BlogsService {
         }
 
     //     // Validate category if provided
-    //     if (updateBlogDto.categoryId) {
-    //         const category = await this.categoryRepository.findOne({
-    //             where: { id: updateBlogDto.categoryId },
-    //         });
-    //         if (!category) {
-    //             throw new NotFoundException('Category not found');
-    //         }
-    //     }
+        if (updateBlogDto.categoryId) {
+            const category = await this.categoryRepository.findOne({
+                where: { id: updateBlogDto.categoryId },
+            });
+            if (!category) {
+                throw new NotFoundException('Category not found');
+            }
+        }
 
-    //     // Update slug if title is changed
-    //     let slug = blog.slug;
-    //     if (updateBlogDto.title && updateBlogDto.title !== blog.title) {
-    //         const baseSlug = slugify(updateBlogDto.title, {
-    //             lower: true,
-    //             strict: true,
-    //         });
-    //         slug = await this.generateUniqueSlug(baseSlug, id);
-    //     }
+        // Update slug if title is changed
+        let slug = blog.slug;
+        if (updateBlogDto.title && updateBlogDto.title !== blog.title) {
+            const baseSlug = slugify(updateBlogDto.title, {
+                lower: true,
+                strict: true,
+            });
+            slug = await this.generateUniqueSlug(baseSlug, id);
+        }
 
         // Update blog with proper type handling
         const { tags, relatedServicesIds, ...updateData } = updateBlogDto;
@@ -150,9 +152,9 @@ export class BlogsService {
             updatedAt: new Date(),
         });
 
-    //     const updatedBlog = await this.findOne(id);
-    //     return updatedBlog;
-    // }
+        const updatedBlog = await this.findOne(id);
+        return updatedBlog;
+    }
 
     async remove(id: string, deletedByUserId?: string){
         const blog = await this.blogRepository.findOne({

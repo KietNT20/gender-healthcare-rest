@@ -1,3 +1,4 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import {
     Controller,
     Get,
@@ -16,6 +17,7 @@ import {
   import { Roles } from 'src/decorators/roles.decorator';
   import { RolesNameEnum } from 'src/enums';
   
+  @ApiBearerAuth()
   @Controller('appointments')
   export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}

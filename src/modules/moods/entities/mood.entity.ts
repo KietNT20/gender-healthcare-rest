@@ -28,7 +28,6 @@ export class Mood {
     // Relations
     @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood, {
         cascade: true,
-        onDelete: 'CASCADE',
     })
     cycleMoods: CycleMood[];
 }

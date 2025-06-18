@@ -38,6 +38,12 @@ export class RolesService {
     }
 
     async update(id: string, updateRoleDto: UpdateRoleDto) {
+        const roleId = await this.roleRepository.findOneBy({ id });
+
+        if (!roleId) {
+            throw new ConflictException(`Role with id ${id} does not exist`);
+        }
+
         const existingRole = await this.roleRepository.findOneBy({
             name: updateRoleDto.name,
         });
@@ -48,12 +54,10 @@ export class RolesService {
             );
         }
 
-        await this.roleRepository.update(id, {
+        return this.roleRepository.save({
             ...updateRoleDto,
             updatedAt: new Date(),
         });
-
-        return this.roleRepository.findOneBy({ id });
     }
 
     async remove(id: string) {

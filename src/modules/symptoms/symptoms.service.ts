@@ -18,19 +18,20 @@ export class SymptomsService {
     ) {}
 
     async create(createSymptomDto: CreateSymptomDto): Promise<Symptom> {
-        if (createSymptomDto.categoryId) {
-            const category = await this.categoryRepository.findOneBy({
-                id: createSymptomDto.categoryId,
-            });
+        const category = await this.categoryRepository.findOneBy({
+            id: createSymptomDto.categoryId,
+        });
 
-            if (!category) {
-                throw new NotFoundException(
-                    `Category with ID ${createSymptomDto.categoryId} not found`,
-                );
-            }
+        if (!category) {
+            throw new NotFoundException(
+                `Category with ID ${createSymptomDto.categoryId} not found`,
+            );
         }
 
-        const symptom = this.symptomRepository.create(createSymptomDto);
+        const symptom = this.symptomRepository.create({
+            ...createSymptomDto,
+            category,
+        });
 
         return this.symptomRepository.save(symptom);
     }
@@ -66,9 +67,9 @@ export class SymptomsService {
         return {
             data: result,
             meta: {
+                currentPage: pageNumber,
                 itemsPerPage: limitNumber,
                 totalItems,
-                currentPage: pageNumber,
                 totalPages,
             },
         };
@@ -89,7 +90,15 @@ export class SymptomsService {
     async update(
         id: string,
         updateSymptomDto: UpdateSymptomDto,
-    ): Promise<Symptom> {
+    ): Promise<Symptom | null> {
+        const checkSymptom = await this.symptomRepository.findOneBy({ id });
+
+        if (!checkSymptom) {
+            throw new NotFoundException(
+                'Không tìm thấy triệu chứng với ID là ' + id,
+            );
+        }
+
         await this.symptomRepository.update(id, {
             ...updateSymptomDto,
             updatedAt: new Date(),

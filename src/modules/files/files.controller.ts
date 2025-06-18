@@ -27,6 +27,7 @@ import {
     TestUploadDto,
     UploadDocumentDto,
     UploadImageDto,
+    UploadImageMetadataDto,
 } from './dto/upload-file.dto';
 import { FilesService } from './files.service';
 
@@ -43,7 +44,7 @@ export class FilesController {
     @ApiBody({ type: UploadImageDto })
     async uploadImage(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadImageDto: UploadImageDto,
+        @Body() uploadImageDto: UploadImageMetadataDto,
     ) {
         return this.filesService.uploadImage({
             ...uploadImageDto,

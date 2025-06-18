@@ -17,21 +17,21 @@ import {
   import { RolesNameEnum } from 'src/enums';
 import { ApiBearerAuth } from '@nestjs/swagger';
   
-  // @ApiBearerAuth()
+  @ApiBearerAuth()
   @Controller('appointments')
   export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
   
     @Post()
-    // @UseGuards(JwtAuthGuard, RoleGuard)
-    // @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     async create(@Body() createAppointmentDto: CreateAppointmentDto) {
       return this.appointmentsService.create(createAppointmentDto);
     }
   
     @Get()
-    // @UseGuards(JwtAuthGuard, RoleGuard)
-    // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     findAll() {
       return this.appointmentsService.findAll();
     }

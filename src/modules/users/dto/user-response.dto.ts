@@ -1,4 +1,4 @@
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 import {
     IsBoolean,
     IsDateString,
@@ -9,86 +9,11 @@ import {
     MinLength,
 } from 'class-validator';
 import { GenderType } from 'src/enums';
-import { Role } from 'src/modules/roles/entities/role.entity';
+import { User } from '../entities/user.entity';
 
-export class UserResponseDto {
-    @Expose()
-    id: string;
-
-    @Expose()
-    email: string;
-
+export class UserResponseDto extends User {
     @Exclude()
-    password: string;
-
-    @Expose()
-    googleId?: string;
-
-    @Expose()
-    firstName: string;
-
-    @Expose()
-    lastName: string;
-
-    @Expose()
-    slug: string;
-
-    @Expose()
-    dateOfBirth?: Date;
-
-    @Expose()
-    gender?: GenderType;
-
-    @Expose()
-    phone?: string;
-
-    @Expose()
-    address?: string;
-
-    @Expose()
-    profilePicture?: string;
-
-    @Expose()
-    isActive: boolean;
-
-    @Expose()
-    emailVerified: boolean;
-
-    @Expose()
-    phoneVerified: boolean;
-
-    @Expose()
-    locale: string;
-
-    @Expose()
-    notificationPreferences: {
-        sms: boolean;
-        push: boolean;
-        email: boolean;
-    };
-
-    @Expose()
-    healthDataConsent: boolean;
-
-    @Expose()
-    lastLogin?: Date;
-
-    @Expose()
-    loginAttempts: number;
-
-    @Expose()
-    @Type(() => Role)
-    role?: Role;
-
-    @Expose()
-    createdAt: Date;
-
-    @Expose()
-    updatedAt: Date;
-
-    constructor(partial: Partial<UserResponseDto>) {
-        Object.assign(this, partial);
-    }
+    declare password: string;
 }
 
 export class ChangePasswordDto {

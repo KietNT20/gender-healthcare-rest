@@ -172,7 +172,7 @@ export class User {
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {
-        eager: true,
+        cascade: true,
     })
     role: Role;
 

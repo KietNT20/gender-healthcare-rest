@@ -31,10 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         // Cập nhật last login
         await this.usersService.updateLastLogin(user.id);
 
-        return {
-            id: user.id,
-            email: user.email,
-            role: user.role, // Trả về đối tượng Role
-        };
+        return user;
     }
 }

@@ -6,19 +6,24 @@ import { UpdateServiceProfileDto } from './dto/service-response.dto';
 import { ServiceResponseDto } from './dto/service-response.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { RolesNameEnum } from 'src/enums';
 
-// @ApiBearerAuth()
-@ApiTags('Services')
+@ApiBearerAuth()
+@ApiTags('services')
 @Controller('services')
-// @UseGuards(JwtAuthGuard)
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
+  @UseGuards(RoleGuard,JwtAuthGuard)
+  @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
   @ApiOperation({ summary: 'Create a new service' })
   @ApiResponse({ status: 201, description: 'Service created successfully', type: ServiceResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can perform this action' })
   @ApiBody({ type: CreateServiceDto })
   @ResponseMessage('Service created successfully')
   async create(@Body() createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
@@ -53,9 +58,12 @@ export class ServicesController {
   }
 
   @Patch(':id')
+  @UseGuards(RoleGuard,JwtAuthGuard)
+  @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
   @ApiOperation({ summary: 'Update a service by ID' })
   @ApiResponse({ status: 200, description: 'Service updated successfully', type: ServiceResponseDto })
   @ApiResponse({ status: 404, description: 'Service not found' })
+  @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can perform this action' })
   @ApiBody({ type: UpdateServiceProfileDto })
   @ResponseMessage('Service updated successfully')
   async update(
@@ -66,9 +74,12 @@ export class ServicesController {
   }
 
   @Delete(':id')
+  @UseGuards(RoleGuard,JwtAuthGuard)
+  @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
   @ApiOperation({ summary: 'Soft delete a service by ID' })
   @ApiResponse({ status: 200, description: 'Service deleted successfully' })
   @ApiResponse({ status: 404, description: 'Service not found' })
+  @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can perform this action' })
   @ResponseMessage('Service deleted successfully')
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
     await this.servicesService.remove(id);

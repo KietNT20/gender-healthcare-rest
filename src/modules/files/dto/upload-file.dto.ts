@@ -60,14 +60,7 @@ export class UploadImageDto extends UploadImageMetadataDto {
     file: Express.Multer.File;
 }
 
-export class UploadDocumentDto {
-    @ApiProperty({
-        type: 'string',
-        format: 'binary',
-        description: 'Document file to upload',
-    })
-    file: Express.Multer.File;
-
+export class UploadDocumentMetadataDto {
     @ApiProperty({
         description: 'Type of entity (e.g., "contract", "user", "service")',
         example: 'contract',
@@ -112,6 +105,15 @@ export class UploadDocumentDto {
     @IsOptional()
     @IsBoolean()
     isSensitive: boolean = false;
+}
+
+export class UploadDocumentDto extends UploadDocumentMetadataDto {
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        description: 'Document file to upload',
+    })
+    file: Express.Multer.File;
 }
 
 export class BulkUploadDto {

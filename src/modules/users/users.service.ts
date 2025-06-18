@@ -77,6 +77,8 @@ export class UsersService {
                 ? new Date(createUserDto.dateOfBirth)
                 : undefined,
             role: userRole,
+            emailVerified: true,
+            phoneVerified: true,
         });
 
         const savedUser = await this.userRepository.save(user);
@@ -102,9 +104,6 @@ export class UsersService {
         }
 
         try {
-            // Get customer role ID once
-            const customerRoleId = await this.getCustomerRoleId();
-
             // Pre-validate all emails for duplicates
             const emails = createManyUsersDto.users.map((user) =>
                 user.email.toLowerCase(),
@@ -155,10 +154,12 @@ export class UsersService {
                     email: userData.email.toLowerCase(),
                     password: hashedPassword,
                     slug,
-                    roleId: userData.roleId || customerRoleId,
+                    roleId: userData.roleId,
                     dateOfBirth: userData.dateOfBirth
                         ? new Date(userData.dateOfBirth)
                         : undefined,
+                    emailVerified: true,
+                    phoneVerified: true,
                 };
 
                 const newUser = queryRunner.manager.create(User, userToCreate);

@@ -62,6 +62,14 @@ export class UsersService {
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
+        const userRole = await this.roleRepository.findOneBy({
+            id: createUserDto.roleId,
+        });
+
+        if (!userRole) {
+            throw new BadRequestException('Invalid role ID');
+        }
+
         // Create user
         const user = this.userRepository.create({
             ...createUserDto,
@@ -70,6 +78,7 @@ export class UsersService {
             dateOfBirth: createUserDto.dateOfBirth
                 ? new Date(createUserDto.dateOfBirth)
                 : undefined,
+            role: userRole,
         });
 
         const savedUser = await this.userRepository.save(user);
@@ -747,8 +756,6 @@ export class UsersService {
     }
 
     private toUserResponse(user: User): UserResponseDto {
-        return plainToClass(UserResponseDto, user, {
-            excludeExtraneousValues: true,
-        });
+        return plainToClass(UserResponseDto, user);
     }
 }

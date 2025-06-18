@@ -174,12 +174,9 @@ export class User {
     roleId?: string;
 
     // Relations
-    // @ManyToOne(() => Role, (role) => role.users, {
-    //     eager: true,
-    // })
-    // role: Role;
-
-    @ManyToOne(() => Role, (role) => role.users, { nullable: true })
+    @ManyToOne(() => Role, (role) => role.users, {
+        cascade: true,
+    })
     role: Role;
 
     // Consultant Profile relation

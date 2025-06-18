@@ -1,4 +1,3 @@
-import { ApiBearerAuth } from '@nestjs/swagger';
 import {
     Controller,
     Get,
@@ -16,8 +15,9 @@ import {
   import { RoleGuard } from 'src/guards/role.guard';
   import { Roles } from 'src/decorators/roles.decorator';
   import { RolesNameEnum } from 'src/enums';
+import { ApiBearerAuth } from '@nestjs/swagger';
   
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @Controller('appointments')
   export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
@@ -30,12 +30,12 @@ import {
     }
   
     @Get()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     findAll() {
       return this.appointmentsService.findAll();
     }
-  
+
     @Get(':id')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])

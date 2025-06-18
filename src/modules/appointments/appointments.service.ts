@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -34,11 +34,22 @@ export class AppointmentsService {
 
     // Kiểm tra dịch vụ
     let serviceEntities: Service[] = [];
+    let fixedPrice = 0;
     if (services && services.length > 0) {
       serviceEntities = await this.serviceRepository.findBy({ id: In(services), deletedAt: IsNull(), isActive: true });
       if (serviceEntities.length !== services.length) {
         throw new NotFoundException('One or more services not found or inactive');
       }
+      // Tính tổng fixedPrice từ các dịch vụ
+      fixedPrice = serviceEntities.reduce((total, service) => {
+        const price = Number(service.price);
+        if (isNaN(price)) {
+          throw new BadRequestException(`Invalid price for service ${service.id}`);
+        }
+        return total + price;
+      }, 0);
+      // Chuẩn hóa fixedPrice, làm tròn đến 2 chữ số thập phân
+      fixedPrice = Number(fixedPrice.toFixed(2));
     }
 
     const appointment = this.appointmentRepository.create({
@@ -46,6 +57,7 @@ export class AppointmentsService {
       user: { id: userId },
       consultant: { id: consultantId },
       services: serviceEntities,
+      fixedPrice, // Gán fixedPrice đã tính
     });
 
     return await this.appointmentRepository.save(appointment);
@@ -85,6 +97,6 @@ export class AppointmentsService {
     if (!appointment.services || appointment.services.length === 0) {
       return appointment.fixedPrice || 0;
     }
-    return appointment.services.reduce((total, service) => total + service.price, 0) || appointment.fixedPrice || 0;
+    return appointment.fixedPrice || 0; // Trả về fixedPrice đã lưu
   }
 }

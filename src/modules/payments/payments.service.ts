@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import PayOS = require("@payos/node"); // Sử dụng named export
+import { IsNull, Repository } from 'typeorm';
+import PayOS = require('@payos/node');
 import * as crypto from 'crypto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './entities/payment.entity';
 import { PaymentStatusType } from 'src/enums';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { AppointmentsService } from '../appointments/appointments.service';
 
 @Injectable()
 export class PaymentsService {
@@ -15,6 +17,9 @@ export class PaymentsService {
   constructor(
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
+    @InjectRepository(Appointment)
+    private appointmentRepository: Repository<Appointment>,
+    private appointmentsService: AppointmentsService,
   ) {
     const clientId = process.env.PAYOS_CLIENT_ID;
     const apiKey = process.env.PAYOS_API_KEY;
@@ -30,21 +35,37 @@ export class PaymentsService {
   async create(createPaymentDto: CreatePaymentDto) {
     const { amount, description, userId, appointmentId } = createPaymentDto;
 
+    // Kiểm tra và đảm bảo appointmentId là string
+    if (!appointmentId) {
+      throw new NotFoundException('appointmentId is required');
+    }
+
+    // Lấy thông tin Appointment
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId, deletedAt: IsNull() },
+    });
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID '${appointmentId}' not found`);
+    }
+
+    // Tính tổng giá dựa trên services hoặc sử dụng fixedPrice
+    const finalAmount = amount || (await this.appointmentsService.calculateTotalPrice(appointmentId));
+
     // Tạo mã đơn hàng duy nhất
     const orderCode = Math.floor(Math.random() * 1000000);
 
     // Tạo dữ liệu thanh toán theo tài liệu PayOS
     const paymentData = {
       orderCode,
-      amount,
-      description: description || 'Thanh toán đơn hàng',
+      amount: finalAmount,
+      description: description || `Thanh toán cuộc hẹn: ${appointment.notes || 'Cuộc hẹn'}`,
       returnUrl: process.env.RETURN_URL || 'http://localhost:3333/payments/success',
       cancelUrl: process.env.CANCEL_URL || 'http://localhost:3333/payments/cancel',
       items: [
         {
-          name: description || 'Sản phẩm',
+          name: appointment.notes || 'Cuộc hẹn',
           quantity: 1,
-          price: amount,
+          price: finalAmount,
         },
       ],
     };
@@ -55,12 +76,12 @@ export class PaymentsService {
 
       // Lưu thông tin thanh toán vào database
       const payment = this.paymentRepository.create({
-        amount,
+        amount: finalAmount,
         paymentMethod: 'PayOS',
         status: PaymentStatusType.PENDING,
         invoiceNumber: orderCode.toString(),
         user: { id: userId } as any,
-        appointment: appointmentId ? { id: appointmentId } as any : null,
+        appointment: { id: appointmentId } as any,
         gatewayResponse: paymentLink,
       });
 

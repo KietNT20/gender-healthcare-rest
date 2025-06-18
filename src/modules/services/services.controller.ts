@@ -12,7 +12,7 @@ import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { RolesNameEnum } from 'src/enums';
 
 @ApiBearerAuth()
-@ApiTags('services')
+@ApiTags('Services')
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}

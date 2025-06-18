@@ -170,10 +170,16 @@ export class User {
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
+    @Column({ type: 'uuid', nullable: true })
+    roleId?: string;
+
     // Relations
-    @ManyToOne(() => Role, (role) => role.users, {
-        eager: true,
-    })
+    // @ManyToOne(() => Role, (role) => role.users, {
+    //     eager: true,
+    // })
+    // role: Role;
+
+    @ManyToOne(() => Role, (role) => role.users, { nullable: true })
     role: Role;
 
     // Consultant Profile relation

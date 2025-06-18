@@ -32,13 +32,13 @@ import { UsersService } from './users.service';
 
 @ApiBearerAuth()
 @Controller('users')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Post()
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Create a new user' })
     @ApiResponse({ status: 201, description: 'User created successfully' })
     @ResponseMessage('User created successfully')

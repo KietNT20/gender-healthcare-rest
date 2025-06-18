@@ -56,6 +56,11 @@ export class SymptomsService {
         query.skip(skip).take(limitNumber);
 
         const [result, totalItems] = await query.getManyAndCount();
+
+        if (result.length === 0 && totalItems === 0) {
+            throw new NotFoundException('Không tìm thấy triệu chứng nào');
+        }
+
         const totalPages = Math.ceil(totalItems / limitNumber);
 
         return {
@@ -85,8 +90,13 @@ export class SymptomsService {
         id: string,
         updateSymptomDto: UpdateSymptomDto,
     ): Promise<Symptom> {
-        await this.symptomRepository.update(id, updateSymptomDto);
+        await this.symptomRepository.update(id, {
+            ...updateSymptomDto,
+            updatedAt: new Date(),
+        });
+
         const updatedSymptom = await this.symptomRepository.findOneBy({ id });
+
         if (!updatedSymptom) {
             throw new NotFoundException(
                 'Không tìm thấy triệu chứng với ID là ' + id,

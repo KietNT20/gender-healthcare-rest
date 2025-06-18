@@ -26,6 +26,9 @@ export class Mood {
     updatedAt: Date;
 
     // Relations
-    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood)
+    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.mood, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
     cycleMoods: CycleMood[];
 }

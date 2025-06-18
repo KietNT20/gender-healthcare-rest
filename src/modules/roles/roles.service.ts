@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { Role } from './entities/role.entity';
@@ -28,11 +28,13 @@ export class RolesService {
     }
 
     async findAll() {
-        return this.roleRepository.find();
+        return this.roleRepository.find({
+            where: { deletedAt: IsNull() },
+        });
     }
 
     async findOne(id: string) {
-        return this.roleRepository.findOneBy({ id });
+        return this.roleRepository.findOneBy({ id, deletedAt: IsNull() });
     }
 
     async update(id: string, updateRoleDto: UpdateRoleDto) {

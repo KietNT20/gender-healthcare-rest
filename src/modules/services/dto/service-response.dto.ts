@@ -4,59 +4,59 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ServiceResponseDto {
   @Expose()
-  @ApiProperty({ description: 'ID dịch vụ' })
+  @ApiProperty({ description: 'Service ID' })
   id: string;
 
   @Expose()
-  @ApiProperty({ description: 'Tên dịch vụ' })
+  @ApiProperty({ description: 'Service name' })
   name: string;
 
   @Expose()
-  @ApiProperty({ description: 'Slug của dịch vụ' })
+  @ApiProperty({ description: 'Service slug' })
   slug: string;
 
   @Expose()
-  @ApiProperty({ description: 'Mô tả dịch vụ' })
+  @ApiProperty({ description: 'Service description' })
   description: string;
 
   @Expose()
-  @ApiProperty({ description: 'Giá dịch vụ' })
+  @ApiProperty({ description: 'Service price' })
   price: number;
 
   @Expose()
-  @ApiProperty({ description: 'Thời lượng dịch vụ (phút)' })
+  @ApiProperty({ description: 'Service duration (minutes)' })
   duration: number;
 
   @Expose()
-  @ApiProperty({ description: 'Trạng thái hoạt động' })
+  @ApiProperty({ description: 'Active status' })
   isActive: boolean;
 
   @Expose()
-  @ApiPropertyOptional({ description: 'Mô tả ngắn' })
+  @ApiPropertyOptional({ description: 'Short description' })
   shortDescription?: string;
 
   @Expose()
-  @ApiPropertyOptional({ description: 'Yêu cầu trước khi sử dụng dịch vụ' })
+  @ApiPropertyOptional({ description: 'Prerequisites for using the service' })
   prerequisites?: string;
 
   @Expose()
-  @ApiPropertyOptional({ description: 'Hướng dẫn sau khi sử dụng dịch vụ' })
+  @ApiPropertyOptional({ description: 'Post-service instructions' })
   postInstructions?: string;
 
   @Expose()
-  @ApiProperty({ description: 'Dịch vụ nổi bật' })
+  @ApiProperty({ description: 'Featured service' })
   featured: boolean;
 
   @Expose()
-  @ApiProperty({ description: 'ID danh mục dịch vụ' })
+  @ApiProperty({ description: 'Category ID' })
   categoryId: string;
 
   @Expose()
-  @ApiProperty({ description: 'Ngày tạo' })
+  @ApiProperty({ description: 'Creation date' })
   createdAt: Date;
 
   @Expose()
-  @ApiProperty({ description: 'Ngày cập nhật' })
+  @ApiProperty({ description: 'Update date' })
   updatedAt: Date;
 
   constructor(partial: Partial<ServiceResponseDto>) {
@@ -64,58 +64,59 @@ export class ServiceResponseDto {
   }
 }
 
+// Giữ nguyên UpdateServiceProfileDto như bạn đã cung cấp
 export class UpdateServiceProfileDto {
-  @ApiPropertyOptional({ description: 'Tên dịch vụ', maxLength: 255 })
+  @ApiPropertyOptional({ description: 'Service name', type: String })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Mô tả dịch vụ' })
+  @ApiPropertyOptional({ description: 'Detailed description of the service', type: String })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Giá dịch vụ' })
+  @ApiPropertyOptional({ description: 'Service price (VND)', type: Number })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   price?: number;
 
-  @ApiPropertyOptional({ description: 'Thời lượng dịch vụ (phút)' })
+  @ApiPropertyOptional({ description: 'Service duration (minutes)', type: Number })
   @IsOptional()
   @IsNumber()
   @Min(1)
   duration?: number;
 
-  @ApiPropertyOptional({ description: 'Trạng thái hoạt động' })
+  @ApiPropertyOptional({ description: 'Active status', type: Boolean })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'Mô tả ngắn', maxLength: 255 })
+  @ApiPropertyOptional({ description: 'Short description', type: String })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   shortDescription?: string;
 
-  @ApiPropertyOptional({ description: 'Yêu cầu trước khi sử dụng dịch vụ' })
+  @ApiPropertyOptional({ description: 'Prerequisites for using the service', type: String })
   @IsOptional()
   @IsString()
   prerequisites?: string;
 
-  @ApiPropertyOptional({ description: 'Hướng dẫn sau khi sử dụng dịch vụ' })
+  @ApiPropertyOptional({ description: 'Post-service instructions', type: String })
   @IsOptional()
   @IsString()
   postInstructions?: string;
 
-  @ApiPropertyOptional({ description: 'Dịch vụ nổi bật' })
+  @ApiPropertyOptional({ description: 'Featured service', type: Boolean })
   @IsOptional()
   @IsBoolean()
   featured?: boolean;
 
-  @ApiPropertyOptional({ description: 'ID danh mục dịch vụ' })
+  @ApiPropertyOptional({ description: 'Category ID', type: String })
   @IsOptional()
-  @IsUUID('4', { message: 'ID danh mục phải là UUID hợp lệ' })
+  @IsUUID('4', { message: 'Category ID must be a valid UUID' })
   categoryId?: string;
 }

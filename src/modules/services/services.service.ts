@@ -286,4 +286,18 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
         );
         return response;
     }
+
+    // Thêm phương thức findBySlug
+  async findBySlug(slug: string): Promise<ServiceResponseDto> {
+    const service = await this.serviceRepo.findOne({
+      where: { slug, deletedAt: IsNull() },
+      relations: ['category'],
+    });
+
+    if (!service) {
+      throw new NotFoundException(`Dịch vụ với slug '${slug}' không tồn tại`);
+    }
+
+    return this.toServiceResponse(service);
+  }
 }

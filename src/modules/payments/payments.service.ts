@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import PayOS = require('@payos/node');
@@ -33,7 +33,7 @@ export class PaymentsService {
   }
 
   async create(createPaymentDto: CreatePaymentDto) {
-    const { amount, description, userId, appointmentId } = createPaymentDto;
+    const { description, userId, appointmentId } = createPaymentDto;
 
     // Kiểm tra và đảm bảo appointmentId là string
     if (!appointmentId) {
@@ -48,8 +48,26 @@ export class PaymentsService {
       throw new NotFoundException(`Appointment with ID '${appointmentId}' not found`);
     }
 
-    // Tính tổng giá dựa trên services hoặc sử dụng fixedPrice
-    const finalAmount = amount || (await this.appointmentsService.calculateTotalPrice(appointmentId));
+    // Lấy fixedPrice từ Appointment
+    let finalAmount = appointment.fixedPrice || (await this.appointmentsService.calculateTotalPrice(appointmentId));
+
+    // Chuyển đổi finalAmount thành số và chuẩn hóa
+    finalAmount = parseFloat(finalAmount.toString());
+    if (isNaN(finalAmount)) {
+      throw new BadRequestException('Invalid amount: Unable to parse amount as a number.');
+    }
+    finalAmount = Number(finalAmount.toFixed(2)); // Làm tròn đến 2 chữ số thập phân
+
+    // Kiểm tra giới hạn của PayOS
+    if (finalAmount < 0.01 || finalAmount > 10000000000) {
+      throw new BadRequestException(
+        `Invalid amount: ${finalAmount}. Amount must be between 0.01 and 10,000,000,000 VND.`,
+      );
+    }
+
+    // Rút ngắn description (tối đa 25 ký tự)
+    const shortDescription =
+      (description || `Thanh toán cuộc hẹn: ${appointment.notes || 'Cuộc hẹn'}`).slice(0, 25);
 
     // Tạo mã đơn hàng duy nhất
     const orderCode = Math.floor(Math.random() * 1000000);
@@ -58,14 +76,14 @@ export class PaymentsService {
     const paymentData = {
       orderCode,
       amount: finalAmount,
-      description: description || `Thanh toán cuộc hẹn: ${appointment.notes || 'Cuộc hẹn'}`,
+      description: shortDescription,
       returnUrl: process.env.RETURN_URL || 'http://localhost:3333/payments/success',
       cancelUrl: process.env.CANCEL_URL || 'http://localhost:3333/payments/cancel',
       items: [
         {
-          name: appointment.notes || 'Cuộc hẹn',
+          name: (appointment.notes || 'Cuộc hẹn').slice(0, 25), // Rút ngắn tên item
           quantity: 1,
-          price: finalAmount,
+          price: finalAmount, // Đảm bảo price khớp với amount
         },
       ],
     };
@@ -92,7 +110,7 @@ export class PaymentsService {
         checkoutUrl: paymentLink.checkoutUrl,
       };
     } catch (error) {
-      throw new Error(`Failed to create payment link: ${error.message}`);
+      throw new BadRequestException(`Failed to create payment link: ${error.message}`);
     }
   }
 

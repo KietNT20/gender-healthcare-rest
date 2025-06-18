@@ -20,6 +20,7 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
+    JoinTable,
 } from 'typeorm';
 
 @Entity()
@@ -118,7 +119,18 @@ export class Appointment {
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];
 
-    @ManyToMany(() => Service)
+    @ManyToMany(() => Service, (service) => service.appointments)
+    @JoinTable({
+        name: 'appointment_services_service',
+        joinColumn: {
+            name: 'appointmentId',
+            referencedColumnName: 'id',
+        },
+        inverseJoinColumn: {
+            name: 'serviceId',
+            referencedColumnName: 'id',
+        },
+    })
     services: Service[];
 
     @OneToOne(() => Question, (question) => question.appointment, {

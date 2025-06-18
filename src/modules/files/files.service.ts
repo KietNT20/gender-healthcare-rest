@@ -38,7 +38,6 @@ export class FilesService {
      * Upload image - can be public or private based on isPublic flag
      */
     async uploadImage(options: UploadImageOptions): Promise<FileResult> {
-        console.log('Uploading image:', options);
         this.validateUploadImageOptions(options);
 
         const {
@@ -57,7 +56,7 @@ export class FilesService {
                 file.originalname,
             );
 
-            await this.s3Service.uploadFile(
+            const uploadResult = await this.s3Service.uploadFile(
                 file.buffer,
                 tempKey,
                 file.mimetype,
@@ -105,7 +104,7 @@ export class FilesService {
 
             return {
                 id: savedImage.id,
-                url: savedImage.url || '', // Will be empty until processed
+                url: uploadResult.url,
                 originalName: file.originalname,
                 size: file.size,
             };
@@ -512,6 +511,7 @@ export class FilesService {
             'image/jpg',
             'image/png',
             'image/webp',
+            'application/pdf',
         ];
 
         if (file.size > maxSize) {

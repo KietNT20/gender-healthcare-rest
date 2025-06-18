@@ -30,7 +30,13 @@ export default registerAs('awsConfig', () => ({
     },
 
     // File type configurations
-    allowedImageTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    allowedImageTypes: [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'application/pdf',
+    ],
     allowedDocumentTypes: [
         'application/pdf',
         'application/msword',

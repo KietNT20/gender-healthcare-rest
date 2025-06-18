@@ -593,33 +593,4 @@ export class AwsS3Service {
     async getAccessUrl(key: string, expiresIn: number = 3600): Promise<string> {
         return this.getSignedUrl(key, expiresIn);
     }
-
-    /**
-     * Get mimetype from file extension
-     * @param filename.
-     * @returns MimeType string or undefined.
-     */
-    private getMimeTypeFromFileName(filename: string): string | undefined {
-        const extension = filename.split('.').pop()?.toLowerCase();
-        if (!extension) {
-            return undefined;
-        }
-
-        switch (extension) {
-            case 'jpeg':
-            case 'jpg':
-                return 'image/jpeg';
-            case 'png':
-                return 'image/png';
-            case 'webp':
-                return 'image/webp';
-            case 'gif':
-                return 'image/gif';
-            case 'pdf':
-                return 'application/pdf';
-            // Add other cases as needed
-            default:
-                return 'application/octet-stream'; // Default for binary files
-        }
-    }
 }

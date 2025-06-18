@@ -60,7 +60,7 @@ export class ServicesController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update services' })
+  @ApiOperation({ summary: 'Update service' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'ID của dịch vụ' })
   @ApiResponse({ status: 200, description: 'Dịch vụ được cập nhật thành công', type: ServiceResponseDto })
   @ResponseMessage('Dịch vụ được cập nhật thành công')

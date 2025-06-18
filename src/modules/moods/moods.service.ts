@@ -48,6 +48,8 @@ export class MoodsService {
 
         if (sortBy) {
             query.orderBy(`mood.${sortBy}`, sortOrder);
+        } else {
+            query.orderBy('mood.createdAt', 'DESC');
         }
 
         const skip = (pageNumber - 1) * limitNumber;

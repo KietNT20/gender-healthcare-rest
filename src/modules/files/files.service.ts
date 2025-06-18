@@ -38,6 +38,7 @@ export class FilesService {
      * Upload image - can be public or private based on isPublic flag
      */
     async uploadImage(options: UploadImageOptions): Promise<FileResult> {
+        console.log('Uploading image:', options);
         this.validateUploadImageOptions(options);
 
         const {

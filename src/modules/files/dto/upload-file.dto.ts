@@ -9,14 +9,7 @@ import {
     IsUUID,
 } from 'class-validator';
 
-export class UploadImageDto {
-    @ApiProperty({
-        type: 'string',
-        format: 'binary',
-        description: 'Image file to upload',
-    })
-    file: Express.Multer.File;
-
+export class UploadImageMetadataDto {
     @ApiProperty({
         description: 'Type of entity (e.g., "user", "blog", "service")',
         example: 'user',
@@ -56,6 +49,15 @@ export class UploadImageDto {
     @IsOptional()
     @IsBoolean()
     isPublic: boolean = true;
+}
+
+export class UploadImageDto extends UploadImageMetadataDto {
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        description: 'Image file to upload',
+    })
+    file: Express.Multer.File;
 }
 
 export class UploadDocumentDto {

@@ -6,40 +6,56 @@ import {
     Patch,
     Param,
     Delete,
-} from '@nestjs/common';
-import { AppointmentsService } from './appointments.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-
-@Controller('appointments')
-export class AppointmentsController {
+    UseGuards,
+  } from '@nestjs/common';
+  import { AppointmentsService } from './appointments.service';
+  import { CreateAppointmentDto } from './dto/create-appointment.dto';
+  import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+  import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+  import { RoleGuard } from 'src/guards/role.guard';
+  import { Roles } from 'src/decorators/roles.decorator';
+  import { RolesNameEnum } from 'src/enums';
+  
+  @Controller('appointments')
+  export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
-
+  
     @Post()
-    create(@Body() createAppointmentDto: CreateAppointmentDto) {
-        return this.appointmentsService.create(createAppointmentDto);
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    async create(@Body() createAppointmentDto: CreateAppointmentDto) {
+      return this.appointmentsService.create(createAppointmentDto);
     }
-
+  
     @Get()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     findAll() {
-        return this.appointmentsService.findAll();
+      return this.appointmentsService.findAll();
     }
-
+  
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.appointmentsService.findOne(+id);
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    async findOne(@Param('id') id: string) {
+      return this.appointmentsService.findOne(id);
     }
-
+  
     @Patch(':id')
-    update(
-        @Param('id') id: string,
-        @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    async update(
+      @Param('id') id: string,
+      @Body() updateAppointmentDto: UpdateAppointmentDto,
     ) {
-        return this.appointmentsService.update(+id, updateAppointmentDto);
+      return this.appointmentsService.update(id, updateAppointmentDto);
     }
-
+  
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.appointmentsService.remove(+id);
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
+    async remove(@Param('id') id: string) {
+      await this.appointmentsService.remove(id);
+      return { message: 'Appointment deleted successfully' };
     }
-}
+  }

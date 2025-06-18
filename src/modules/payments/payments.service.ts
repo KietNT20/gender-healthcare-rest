@@ -9,6 +9,7 @@ import { Payment } from './entities/payment.entity';
 import { PaymentStatusType } from 'src/enums';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { AppointmentsService } from '../appointments/appointments.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -19,6 +20,8 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private appointmentsService: AppointmentsService,
   ) {
     const clientId = process.env.PAYOS_CLIENT_ID;
@@ -34,6 +37,12 @@ export class PaymentsService {
 
   async create(createPaymentDto: CreatePaymentDto) {
     const { description, userId, appointmentId } = createPaymentDto;
+
+    // Kiểm tra userId
+    const user = await this.userRepository.findOne({ where: { id: userId, deletedAt: IsNull() } });
+    if (!user) {
+      throw new NotFoundException(`User with ID '${userId}' not found`);
+    }
 
     // Kiểm tra và đảm bảo appointmentId là string
     if (!appointmentId) {

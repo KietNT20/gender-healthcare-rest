@@ -11,7 +11,7 @@ import {
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { SortOrder } from 'src/enums';
 
-export class GetCycleMoodQueryDto {
+export class GetCycleSymptomQueryDto {
     @ApiPropertyOptional({
         description: 'Filter by cycle ID',
         type: String,
@@ -22,13 +22,13 @@ export class GetCycleMoodQueryDto {
     cycleId?: string;
 
     @ApiPropertyOptional({
-        description: 'Filter by mood ID',
+        description: 'Filter by symptom ID',
         type: String,
         format: 'uuid',
     })
     @IsUUID('4')
     @IsOptional()
-    moodId?: string;
+    symptomId?: string;
 
     @ApiPropertyOptional({
         description: 'Filter by intensity level',
@@ -50,7 +50,7 @@ export class GetCycleMoodQueryDto {
 
     @ApiPropertyOptional({
         description: 'Sort by field',
-        enum: ['createdAt', 'updatedAt', 'intensity', 'moodId', 'cycleId'],
+        enum: ['createdAt', 'updatedAt', 'intensity', 'symptomId', 'cycleId'],
         default: 'createdAt',
     })
     @IsOptional()
@@ -58,7 +58,7 @@ export class GetCycleMoodQueryDto {
     sortBy?: string = 'createdAt';
 }
 
-export class CycleMoodQueryDto extends IntersectionType(
-    GetCycleMoodQueryDto,
+export class CycleSymptomQueryDto extends IntersectionType(
     PaginationDto,
+    GetCycleSymptomQueryDto,
 ) {}

@@ -22,11 +22,7 @@ import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
-import {
-    ChangePasswordDto,
-    UpdateProfileDto,
-    UserResponseDto,
-} from './dto/user-response.dto';
+import { ChangePasswordDto, UpdateProfileDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -42,7 +38,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Create a new user' })
     @ApiResponse({ status: 201, description: 'User created successfully' })
     @ResponseMessage('User created successfully')
-    create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    create(@Body() createUserDto: CreateUserDto) {
         return this.usersService.create(createUserDto);
     }
 
@@ -71,7 +67,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Get user by slug' })
     @ApiResponse({ status: 200, description: 'User retrieved successfully' })
     @ResponseMessage('User retrieved successfully')
-    findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
+    findBySlug(@Param('slug') slug: string) {
         return this.usersService.findBySlug(slug);
     }
 
@@ -81,7 +77,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Get user by ID' })
     @ApiResponse({ status: 200, description: 'User retrieved successfully' })
     @ResponseMessage('User retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.usersService.findOne(id);
     }
 
@@ -92,7 +88,7 @@ export class UsersController {
     updateProfile(
         @CurrentUser() user: User,
         @Body() updateProfileDto: UpdateProfileDto,
-    ): Promise<UserResponseDto> {
+    ) {
         return this.usersService.updateProfile(user.id, updateProfileDto);
     }
 
@@ -117,7 +113,7 @@ export class UsersController {
     update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateUserDto: UpdateUserDto,
-    ): Promise<UserResponseDto> {
+    ) {
         return this.usersService.update(id, updateUserDto);
     }
 
@@ -130,9 +126,7 @@ export class UsersController {
         description: 'User status updated successfully',
     })
     @ResponseMessage('User status updated successfully')
-    toggleActive(
-        @Param('id', ParseUUIDPipe) id: string,
-    ): Promise<UserResponseDto> {
+    toggleActive(@Param('id', ParseUUIDPipe) id: string) {
         return this.usersService.toggleActive(id);
     }
 

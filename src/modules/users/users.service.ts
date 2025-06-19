@@ -817,11 +817,6 @@ export class UsersService {
     }
 
     private toUserResponse(user: User): UserResponseDto {
-        return plainToClass(UserResponseDto, user, {
-            // This ensures only exposed properties are included.
-            // You need to add @Expose() decorator to fields in UserResponseDto
-            // that you want to be part of the final output.
-            excludeExtraneousValues: true,
-        });
+        return plainToClass(UserResponseDto, user);
     }
 }

@@ -3,7 +3,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { MenstrualPrediction } from './entities/menstrual-prediction.entity';
 
@@ -35,7 +35,7 @@ export class MenstrualPredictionsService {
         }
 
         const cycles = await this.cycleRepository.find({
-            where: { user: { id: userId } },
+            where: { user: { id: userId }, deletedAt: IsNull() },
             order: { cycleStartDate: 'ASC' },
         });
 
@@ -62,16 +62,24 @@ export class MenstrualPredictionsService {
         const lastCycle = cycles[cycles.length - 1];
         const lastCycleStartDate = new Date(lastCycle.cycleStartDate);
 
+        // Bắt đầu tính toán các ngày dự đoán
         const predictedNextPeriodStart = this.addDays(
             lastCycleStartDate,
             avgCycleLength,
         );
+
+        const predictedNextPeriodEnd = this.addDays(
+            predictedNextPeriodStart,
+            avgPeriodLength - 1,
+        );
+
         const predictedOvulationDate = this.addDays(
             predictedNextPeriodStart,
             -14,
         );
         const predictedFertileStart = this.addDays(predictedOvulationDate, -5);
         const predictedFertileEnd = this.addDays(predictedOvulationDate, 1);
+        // Kết thúc tính toán
 
         let prediction = await this.predictionRepository.findOne({
             where: { user: { id: userId } },
@@ -83,18 +91,20 @@ export class MenstrualPredictionsService {
             });
         }
 
-        Object.assign(prediction, {
+        const updatedPredictionData = {
             predictedCycleStart: predictedNextPeriodStart,
+            predictedCycleEnd: predictedNextPeriodEnd,
             predictedOvulationDate,
             predictedFertileStart,
             predictedFertileEnd,
-        });
+        };
+
+        this.predictionRepository.merge(prediction, updatedPredictionData);
 
         const savedPrediction =
             await this.predictionRepository.save(prediction);
         this.logger.log(`Đã cập nhật dự đoán cho người dùng ${userId}`);
 
-        // Lên lịch thông báo mới
         await this.schedulePredictionNotifications(user, savedPrediction);
 
         return savedPrediction;
@@ -124,7 +134,6 @@ export class MenstrualPredictionsService {
         const userName = `${user.firstName} ${user.lastName}`;
         const userId = user.id;
 
-        // Xóa các jobs cũ của user này để tránh thông báo trùng lặp
         await this.removeOldPredictionJobs(userId);
 
         const notifications = [
@@ -150,8 +159,8 @@ export class MenstrualPredictionsService {
 
         for (const notif of notifications) {
             const notificationDate = new Date(notif.date);
-            notificationDate.setDate(notificationDate.getDate() - 1); // Gửi thông báo trước 1 ngày
-            notificationDate.setHours(9, 0, 0, 0); // Vào 9h sáng
+            notificationDate.setDate(notificationDate.getDate() - 1);
+            notificationDate.setHours(9, 0, 0, 0);
 
             const delay = notificationDate.getTime() - Date.now();
 
@@ -169,7 +178,7 @@ export class MenstrualPredictionsService {
                     },
                     {
                         delay,
-                        jobId: `prediction-${notif.type}-${userId}`, // Tạo Job ID duy nhất
+                        jobId: `prediction-${notif.type}-${userId}`,
                         removeOnComplete: true,
                         removeOnFail: true,
                     },
@@ -185,19 +194,17 @@ export class MenstrualPredictionsService {
         const jobTypes = ['period_start', 'fertile_window', 'ovulation'];
         for (const type of jobTypes) {
             const jobId = `prediction-${type}-${userId}`;
-            const job = await this.notificationQueue.getJob(jobId);
-            if (job) {
-                await job.remove();
-                this.logger.log(`Đã xóa job cũ: ${jobId}`);
+            // Correctly find and remove scheduled (delayed) jobs
+            const jobs = await this.notificationQueue.getJobs(['delayed']);
+            for (const job of jobs) {
+                if (job.id === jobId) {
+                    await job.remove();
+                    this.logger.log(`Đã xóa job cũ: ${jobId}`);
+                }
             }
         }
     }
 
-    /**
-     * Lấy dữ liệu dự đoán cho người dùng hiện tại
-     * @param userId ID của người dùng
-     * @returns Dữ liệu dự đoán hoặc ném lỗi nếu không tìm thấy
-     */
     async getPredictionsForUser(userId: string): Promise<MenstrualPrediction> {
         const prediction = await this.predictionRepository.findOne({
             where: { user: { id: userId } },

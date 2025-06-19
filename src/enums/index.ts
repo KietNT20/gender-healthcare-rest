@@ -62,6 +62,8 @@ export enum ProfileStatusType {
     ON_LEAVE = 'on_leave',
     TRAINING = 'training',
     INACTIVE = 'inactive',
+    PENDING_APPROVAL = 'pending_approval',
+    REJECTED = 'rejected',
 }
 
 export enum QuestionStatusType {

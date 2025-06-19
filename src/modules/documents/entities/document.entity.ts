@@ -1,3 +1,4 @@
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { ContractFile } from 'src/modules/contract-files/entities/contract-file.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -80,4 +81,15 @@ export class Document {
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.file)
     contractFiles: ContractFile[];
+
+    @ManyToOne(
+        () => ConsultantProfile,
+        (consultantProfile) => consultantProfile.documents,
+        {
+            nullable: true,
+            onDelete: 'CASCADE',
+        },
+    )
+    @Index()
+    consultantProfile: ConsultantProfile;
 }

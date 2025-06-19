@@ -99,20 +99,24 @@ export class SymptomsService {
             );
         }
 
-        await this.symptomRepository.update(id, {
-            ...updateSymptomDto,
-            updatedAt: new Date(),
+        const category = await this.categoryRepository.findOneBy({
+            id: updateSymptomDto.categoryId,
         });
 
-        const updatedSymptom = await this.symptomRepository.findOneBy({ id });
-
-        if (!updatedSymptom) {
+        if (!category) {
             throw new NotFoundException(
-                'Không tìm thấy triệu chứng với ID là ' + id,
+                `Category with ID ${updateSymptomDto.categoryId} not found`,
             );
         }
 
-        return updatedSymptom;
+        updateSymptomDto.categoryId = category.id;
+
+        const updatedSymptom = this.symptomRepository.merge(
+            checkSymptom,
+            updateSymptomDto,
+        );
+
+        return this.symptomRepository.save(updatedSymptom);
     }
 
     async remove(id: string) {

@@ -3,6 +3,7 @@ import { Symptom } from 'src/modules/symptoms/entities/symptom.entity';
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     ManyToOne,
     PrimaryGeneratedColumn,
@@ -25,6 +26,9 @@ export class CycleSymptom {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 
     // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)

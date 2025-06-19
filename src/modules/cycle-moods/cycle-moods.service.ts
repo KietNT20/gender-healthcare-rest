@@ -35,6 +35,7 @@ export class CycleMoodsService {
 
         const queryBuilder = this.cycleMoodRepository
             .createQueryBuilder('cycleMood')
+            .where('cycleMood.deletedAt IS NULL')
             .leftJoinAndSelect('cycleMood.mood', 'mood')
             .leftJoinAndSelect('cycleMood.cycle', 'cycle');
 
@@ -93,8 +94,8 @@ export class CycleMoodsService {
         };
     }
 
-    findOne(id: string): Promise<CycleMood | null> {
-        const cycleMood = this.cycleMoodRepository.findOne({
+    async findOne(id: string): Promise<CycleMood | null> {
+        const cycleMood = await this.cycleMoodRepository.findOne({
             where: { id },
             relations: ['mood', 'cycle'],
         });
@@ -108,8 +109,11 @@ export class CycleMoodsService {
         return cycleMood;
     }
 
-    update(id: string, updateCycleMoodDto: UpdateCycleMoodDto) {
-        const checkCycleMood = this.cycleMoodRepository.findOneBy({ id });
+    async update(
+        id: string,
+        updateCycleMoodDto: UpdateCycleMoodDto,
+    ): Promise<CycleMood> {
+        const checkCycleMood = await this.cycleMoodRepository.findOneBy({ id });
 
         if (!checkCycleMood) {
             throw new NotFoundException(
@@ -117,16 +121,20 @@ export class CycleMoodsService {
             );
         }
 
-        const updatedCycleMood = {
-            ...checkCycleMood,
-            ...updateCycleMoodDto,
-            updatedAt: new Date(),
-        };
+        const updatedCycleMood = this.cycleMoodRepository.merge(
+            checkCycleMood,
+            updateCycleMoodDto,
+        );
 
         return this.cycleMoodRepository.save(updatedCycleMood);
     }
 
-    remove(id: string) {
-        return this.cycleMoodRepository.softDelete(id);
+    async remove(id: string): Promise<void> {
+        const deletedCycleMood = await this.cycleMoodRepository.softDelete(id);
+        if (deletedCycleMood.affected === 0) {
+            throw new NotFoundException(
+                `Không tìm thấy Tâm trạng chu kỳ với ID là ${id}`,
+            );
+        }
     }
 }

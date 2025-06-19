@@ -277,7 +277,7 @@ export class AwsS3Service {
                 }
 
                 const chunks: Uint8Array[] = [];
-                const stream = response.Body as any;
+                const stream = response.Body as ReadableStream<Uint8Array>;
 
                 for await (const chunk of stream) {
                     chunks.push(chunk);

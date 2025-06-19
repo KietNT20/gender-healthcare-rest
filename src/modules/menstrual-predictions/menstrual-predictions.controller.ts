@@ -1,52 +1,23 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../users/entities/user.entity';
 import { MenstrualPredictionsService } from './menstrual-predictions.service';
-import { CreateMenstrualPredictionDto } from './dto/create-menstrual-prediction.dto';
-import { UpdateMenstrualPredictionDto } from './dto/update-menstrual-prediction.dto';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('menstrual-predictions')
 export class MenstrualPredictionsController {
     constructor(
         private readonly menstrualPredictionsService: MenstrualPredictionsService,
     ) {}
 
-    @Post()
-    create(@Body() createMenstrualPredictionDto: CreateMenstrualPredictionDto) {
-        return this.menstrualPredictionsService.create(
-            createMenstrualPredictionDto,
-        );
-    }
-
-    @Get()
-    findAll() {
-        return this.menstrualPredictionsService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.menstrualPredictionsService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(
-        @Param('id') id: string,
-        @Body() updateMenstrualPredictionDto: UpdateMenstrualPredictionDto,
-    ) {
-        return this.menstrualPredictionsService.update(
-            +id,
-            updateMenstrualPredictionDto,
-        );
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.menstrualPredictionsService.remove(+id);
+    @Get('me')
+    @ApiOperation({
+        summary: 'Get my menstrual predictions',
+    })
+    getMyPredictions(@CurrentUser() user: User) {
+        return this.menstrualPredictionsService.getPredictionsForUser(user.id);
     }
 }

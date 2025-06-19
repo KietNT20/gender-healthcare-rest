@@ -4,14 +4,13 @@ import {
     Injectable,
     InternalServerErrorException,
     NotFoundException,
-    RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { RolesNameEnum } from 'src/enums';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { HashingProvider } from '../auth/providers/hashing.provider';
 import { Role } from '../roles/entities/role.entity';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
@@ -49,7 +48,7 @@ export class UsersService {
         });
 
         if (existingUser) {
-            throw new ConflictException('Email already exists');
+            throw new ConflictException('Email này đã tồn tại');
         }
 
         // Hash password
@@ -94,41 +93,36 @@ export class UsersService {
     }
 
     /**
-     * @param createManyUsersDto The DTO containing multiple users to create.
-     * @returns An array of created user data.
+     * Creates multiple users in a single transaction for better performance and data integrity.
+     * @param createManyUsersDto The DTO containing an array of user data.
+     * @returns A promise that resolves to an array of the created users.
+     * @throws {ConflictException} If any emails in the payload already exist or are duplicated.
+     * @throws {BadRequestException} If any provided roleId is invalid.
+     * @throws {InternalServerErrorException} If the transaction fails for other reasons.
      */
     async createMany(
         createManyUsersDto: CreateManyUsersDto,
     ): Promise<UserResponseDto[]> {
-        let newUsers: User[] = [];
+        // Start a database transaction.
         const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
-        } catch (error) {
-            await queryRunner.release();
-            throw new RequestTimeoutException(
-                'Could not connect to the database',
-            );
-        }
-
-        try {
-            // Pre-validate all emails for duplicates
+            // 1. Validate for duplicate emails within the request payload.
             const emails = createManyUsersDto.users.map((user) =>
                 user.email.toLowerCase(),
             );
             const emailSet = new Set(emails);
-
             if (emailSet.size !== emails.length) {
                 throw new ConflictException(
-                    'Duplicate emails found in the request',
+                    'Duplicate emails found in the request payload.',
                 );
             }
 
-            // Check existing emails in database
+            // 2. Check against the database for any existing emails.
             const existingUsers = await queryRunner.manager.find(User, {
-                where: emails.map((email) => ({ email })),
+                where: { email: In(emails) },
                 select: ['email'],
             });
 
@@ -141,57 +135,90 @@ export class UsersService {
                 );
             }
 
-            // Process each user
-            for (let userData of createManyUsersDto.users) {
-                // Hash password
-                const hashedPassword = await this.hashingProvider.hashPassword(
-                    userData.password,
-                );
+            // 3. Fetch all required roles in a single query for efficiency.
+            const roleIds = [
+                ...new Set(createManyUsersDto.users.map((u) => u.roleId)),
+            ];
+            const roles = await queryRunner.manager.findBy(Role, {
+                id: In(roleIds),
+            });
+            const roleMap = new Map(roles.map((role) => [role.id, role]));
 
-                // Generate unique slug
-                const baseSlug = slugify(userData.email, {
-                    lower: true,
-                    strict: true,
-                });
-                const slug = await this.generateUniqueSlugInTransaction(
-                    queryRunner,
-                    baseSlug,
-                );
+            // 4. Prepare all user entities concurrently using Promise.all.
+            const userPromises = createManyUsersDto.users.map(
+                async (userData) => {
+                    const hashedPassword =
+                        await this.hashingProvider.hashPassword(
+                            userData.password,
+                        );
 
-                // Prepare user data
-                const userToCreate = {
-                    ...userData,
-                    email: userData.email.toLowerCase(),
-                    password: hashedPassword,
-                    slug,
-                    roleId: userData.roleId,
-                    dateOfBirth: userData.dateOfBirth
-                        ? new Date(userData.dateOfBirth)
-                        : undefined,
-                    emailVerified: true,
-                    phoneVerified: true,
-                };
+                    const baseSlug = slugify(userData.email, {
+                        lower: true,
+                        strict: true,
+                    });
+                    const slug = await this.generateUniqueSlugInTransaction(
+                        queryRunner.manager,
+                        baseSlug,
+                    );
 
-                const newUser = queryRunner.manager.create(User, userToCreate);
-                const result = await queryRunner.manager.save(newUser);
-                newUsers.push(result);
-            }
+                    const userRole = roleMap.get(userData.roleId);
+                    if (!userRole) {
+                        // This check ensures data consistency before insertion.
+                        throw new BadRequestException(
+                            `Invalid role ID provided: ${userData.roleId}`,
+                        );
+                    }
 
+                    // Create an entity instance without saving it yet.
+                    return queryRunner.manager.create(User, {
+                        ...userData,
+                        email: userData.email.toLowerCase(),
+                        password: hashedPassword,
+                        slug,
+                        role: userRole, // Assign the full Role entity object for the relationship.
+                        dateOfBirth: userData.dateOfBirth
+                            ? new Date(userData.dateOfBirth)
+                            : undefined,
+                        emailVerified: true, // Assuming bulk-created users are pre-verified.
+                        phoneVerified: true,
+                    });
+                },
+            );
+
+            const usersToCreate = await Promise.all(userPromises);
+
+            // 5. Perform a single bulk insert operation for all prepared user entities.
+            // Using a chunk size helps manage memory for very large arrays.
+            const newUsers = await queryRunner.manager.save(usersToCreate, {
+                chunk: 100,
+            });
+
+            // 6. If all operations succeed, commit the transaction.
             await queryRunner.commitTransaction();
+
+            // 7. Return the created users, mapping them to the response DTO.
+            return newUsers.map((user) => this.toUserResponse(user));
         } catch (error) {
+            // If any error occurs, roll back the entire transaction.
             await queryRunner.rollbackTransaction();
-            throw error instanceof ConflictException ||
+
+            // Re-throw known client errors or a generic server error for unknown issues.
+            if (
+                error instanceof ConflictException ||
                 error instanceof BadRequestException
-                ? error
-                : new ConflictException('Could not complete the transaction', {
-                      description: String(error),
-                  });
+            ) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                'Could not complete the bulk user creation.',
+                {
+                    description: String(error),
+                },
+            );
         } finally {
+            // Always release the query runner to free up the database connection.
             await queryRunner.release();
         }
-
-        // Return users without passwords
-        return newUsers.map((user) => this.toUserResponse(user));
     }
 
     async findAll(
@@ -441,7 +468,10 @@ export class UsersService {
             updateData.accountLockedUntil = lockUntil;
         }
 
-        await this.userRepository.update(id, updateData);
+        await this.userRepository.update(id, {
+            ...updateData,
+            updatedAt: new Date(),
+        });
     }
 
     async resetLoginAttempts(id: string): Promise<void> {
@@ -759,13 +789,13 @@ export class UsersService {
 
     // Helper method for generating unique slug in transaction
     private async generateUniqueSlugInTransaction(
-        queryRunner: any,
+        manager: EntityManager,
         baseSlug: string,
     ): Promise<string> {
         let slug = baseSlug;
         let counter = 1;
 
-        while (await this.isSlugExistsInTransaction(queryRunner, slug)) {
+        while (await this.isSlugExistsInTransaction(manager, slug)) {
             slug = `${baseSlug}-${counter}`;
             counter++;
         }
@@ -774,10 +804,10 @@ export class UsersService {
     }
 
     private async isSlugExistsInTransaction(
-        queryRunner: any,
+        manager: EntityManager,
         slug: string,
     ): Promise<boolean> {
-        const count = await queryRunner.manager.count(User, {
+        const count = await manager.count(User, {
             where: {
                 slug,
                 deletedAt: IsNull(),

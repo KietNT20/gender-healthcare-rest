@@ -219,44 +219,52 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
      * @param updateDto Dữ liệu cập nhật
      * @returns Dịch vụ đã được cập nhật
      */
-    async update(id: string, updateDto: UpdateServiceProfileDto): Promise<ServiceResponseDto> {
-    const service = await this.serviceRepo.findOne({
-        where: { id, deletedAt: IsNull() },
-        relations: ['category'],
+    async update(
+  id: string,
+  updateDto: UpdateServiceProfileDto,
+): Promise<ServiceResponseDto> {
+  // 1. Lấy entity gốc
+  const service = await this.serviceRepo.findOne({
+    where: { id, deletedAt: IsNull() },
+    relations: ['category'],
+  });
+  if (!service) {
+    throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+  }
+
+  // 2. Tạo slug mới (nếu tên thay đổi)
+  let slug = service.slug;
+  if (updateDto.name && updateDto.name !== service.name) {
+    const baseSlug = slugify(updateDto.name, { lower: true, strict: true });
+    slug = await this.generateUniqueSlug(baseSlug, id);
+  }
+
+  // 3. Xác thực category (nếu có)
+  let categoryRef = service.category;
+  if (updateDto.categoryId && updateDto.categoryId !== categoryRef?.id) {
+    const category = await this.categoryRepo.findOne({
+      where: { id: updateDto.categoryId, deletedAt: IsNull() },
     });
-
-    if (!service) {
-        throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+    if (!category) {
+      throw new NotFoundException(
+        `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
+      );
     }
+    categoryRef = category;
+  }
 
-    // Tạo slug mới nếu name được cập nhật, nếu không giữ slug cũ
-    let slug = service.slug;
-    if (updateDto.name && updateDto.name !== service.name) {
-        const baseSlug = slugify(updateDto.name, { lower: true, strict: true });
-        slug = await this.generateUniqueSlug(baseSlug, id);
-    }
+  // 4. Sử dụng merge để hợp nhất các thay đổi
+  const updatedService = this.serviceRepo.merge(service, {
+    ...updateDto,
+    slug,
+    category: categoryRef ? { id: categoryRef.id } : IsNull(),
+    updatedAt: new Date(), // Thêm dòng này để ép cập nhật updatedAt
+  });
 
-    // Kiểm tra categoryId nếu được cung cấp
-    if (updateDto.categoryId) {
-        const category = await this.categoryRepo.findOne({
-            where: { id: updateDto.categoryId, deletedAt: IsNull() },
-        });
-
-        if (!category) {
-            throw new NotFoundException(
-                `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
-            );
-        }
-    }
-
-    Object.assign(service, {
-        ...updateDto,
-        slug, // Cập nhật slug
-        category: updateDto.categoryId ? { id: updateDto.categoryId } : service.category,
-    });
-
-    const updatedService = await this.serviceRepo.save(service);
-    return this.toServiceResponse(updatedService);
+  // 5. Lưu và trả về DTO
+  const savedService = await this.serviceRepo.save(updatedService);
+  this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
+  return this.toServiceResponse(savedService);
 }
 
     /**

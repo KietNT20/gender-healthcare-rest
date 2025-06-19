@@ -39,7 +39,7 @@ export class AuthService {
         const emailVerificationToken = randomBytes(32).toString('hex');
         const emailVerificationExpires = new Date();
         emailVerificationExpires.setHours(
-            emailVerificationExpires.getHours() + 24,
+            emailVerificationExpires.getHours() + 48,
         );
 
         const userSlug = `${registerDto.firstName} ${registerDto.lastName} ${registerDto.email}`;

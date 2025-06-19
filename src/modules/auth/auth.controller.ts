@@ -9,6 +9,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import {
+    ApiBearerAuth,
     ApiBody,
     ApiOperation,
     ApiParam,
@@ -24,6 +25,7 @@ import { RefreshTokenDto } from './dto/refresh-toekn.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshJwtGuard } from './guards/refresh-jwt.guard';
 
 @Controller('auth')
@@ -175,6 +177,8 @@ export class AuthController {
     })
     @ApiResponse({ status: 401, description: 'User not authenticated' })
     @ResponseMessage('User profile retrieved')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     async getProfile(@CurrentUser() user: User) {
         // Return user without sensitive information
         const { password, refreshToken, ...userProfile } = user;

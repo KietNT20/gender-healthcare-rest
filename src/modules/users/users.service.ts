@@ -36,6 +36,12 @@ export class UsersService {
         private readonly hashingProvider: HashingProvider,
     ) {}
 
+    /**
+     *
+     * @param createUserDto The DTO containing user creation data.
+     * @throws ConflictException if the email already exists.
+     * @returns The created user data.
+     */
     async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
         // Check if email already exists
         const existingUser = await this.userRepository.findOne({
@@ -77,6 +83,8 @@ export class UsersService {
                 ? new Date(createUserDto.dateOfBirth)
                 : undefined,
             role: userRole,
+            emailVerified: true,
+            phoneVerified: true,
         });
 
         const savedUser = await this.userRepository.save(user);
@@ -85,6 +93,10 @@ export class UsersService {
         return this.toUserResponse(savedUser);
     }
 
+    /**
+     * @param createManyUsersDto The DTO containing multiple users to create.
+     * @returns An array of created user data.
+     */
     async createMany(
         createManyUsersDto: CreateManyUsersDto,
     ): Promise<UserResponseDto[]> {
@@ -102,9 +114,6 @@ export class UsersService {
         }
 
         try {
-            // Get customer role ID once
-            const customerRoleId = await this.getCustomerRoleId();
-
             // Pre-validate all emails for duplicates
             const emails = createManyUsersDto.users.map((user) =>
                 user.email.toLowerCase(),
@@ -155,10 +164,12 @@ export class UsersService {
                     email: userData.email.toLowerCase(),
                     password: hashedPassword,
                     slug,
-                    roleId: userData.roleId || customerRoleId,
+                    roleId: userData.roleId,
                     dateOfBirth: userData.dateOfBirth
                         ? new Date(userData.dateOfBirth)
                         : undefined,
+                    emailVerified: true,
+                    phoneVerified: true,
                 };
 
                 const newUser = queryRunner.manager.create(User, userToCreate);
@@ -209,6 +220,7 @@ export class UsersService {
         const sortField = allowedSortFields.includes(userQueryDto.sortBy)
             ? userQueryDto.sortBy
             : 'createdAt';
+
         queryBuilder.orderBy(`user.${sortField}`, userQueryDto.sortOrder);
 
         // Execute và format response
@@ -366,18 +378,38 @@ export class UsersService {
         id: string,
         googleId: string,
         profilePicture?: string,
-    ): Promise<void> {
-        const updateData: Partial<User> = {
+    ): Promise<User> {
+        const googleIdExists = await this.userRepository.findOneBy({
             googleId,
-            emailVerified: true, // Google emails are verified
-            updatedAt: new Date(),
+        });
+
+        if (googleIdExists && googleIdExists.id !== id) {
+            throw new ConflictException(
+                'Tài khoản Google đã được liên kết với người dùng khác',
+            );
+        }
+
+        const user = await this.userRepository.findOneBy({
+            id,
+            deletedAt: IsNull(),
+        });
+
+        if (!user) {
+            throw new NotFoundException('Không tìm thấy người dùng này');
+        }
+
+        const dataToMerge: Partial<User> = {
+            googleId,
+            emailVerified: true,
         };
 
         if (profilePicture) {
-            updateData.profilePicture = profilePicture;
+            dataToMerge.profilePicture = profilePicture;
         }
 
-        await this.userRepository.update(id, updateData);
+        this.userRepository.merge(user, dataToMerge);
+
+        return this.userRepository.save(user);
     }
 
     async getCustomerRoleId(): Promise<string> {
@@ -386,7 +418,7 @@ export class UsersService {
         });
 
         if (!customerRole) {
-            throw new NotFoundException('Customer role not found');
+            throw new NotFoundException('Không tìm thấy vai trò khách hàng');
         }
 
         return customerRole.id;
@@ -526,12 +558,6 @@ export class UsersService {
             payload.dateOfBirth = new Date(dateOfBirth);
         }
 
-        // Update user
-        await this.userRepository.update(id, {
-            ...payload,
-            updatedAt: new Date(),
-        });
-
         const updatedUser = await this.userRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -541,6 +567,13 @@ export class UsersService {
                 'Failed to update user, user not found after update',
             );
         }
+
+        // Update user
+        await this.userRepository.save({
+            ...updatedUser,
+            ...payload,
+            updatedAt: new Date(),
+        });
 
         return this.toUserResponse(updatedUser);
     }
@@ -576,14 +609,6 @@ export class UsersService {
             dateOfBirth = new Date(updateProfileDto.dateOfBirth);
         }
 
-        // Update user
-        await this.userRepository.update(id, {
-            ...updateProfileDto,
-            slug,
-            dateOfBirth,
-            updatedAt: new Date(),
-        });
-
         const updatedUser = await this.userRepository.findOneBy({
             id,
             deletedAt: IsNull(),
@@ -594,6 +619,14 @@ export class UsersService {
                 'Failed to update user, user not found after update',
             );
         }
+
+        // Update user profile
+        await this.userRepository.save({
+            ...updatedUser,
+            slug,
+            dateOfBirth,
+            updatedAt: new Date(),
+        });
 
         return this.toUserResponse(updatedUser);
     }

@@ -143,6 +143,48 @@ export class PaymentsService {
         }
     }
 
+
+    async handleSuccessCallback(orderCode: string) {
+      console.log(`Xử lý callback thành công cho orderCode: ${orderCode}`);
+      try {
+        const payment = await this.paymentRepository.findOne({
+          where: { invoiceNumber: orderCode.toString() },
+          relations: ['user', 'appointment'],
+        });
+  
+        if (!payment) {
+          throw new NotFoundException(`Không tìm thấy thanh toán với orderCode '${orderCode}'`);
+        }
+  
+        if (payment.status !== PaymentStatusType.PENDING) {
+          throw new BadRequestException(`Thanh toán đã ở trạng thái ${payment.status}, không thể xử lý lại`);
+        }
+  
+        // Xác minh trạng thái với PayOS
+        const paymentInfo = await this.payOS.getPaymentLinkInformation(orderCode);
+        console.log('Thông tin thanh toán từ PayOS:', paymentInfo);
+  
+        if (paymentInfo.status === 'PAID') {
+          payment.status = PaymentStatusType.COMPLETED;
+          payment.paymentDate = new Date();
+          payment.gatewayResponse = {
+            ...payment.gatewayResponse,
+            payosStatus: 'PAID',
+            paymentConfirmedAt: new Date().toISOString(),
+          };
+          await this.paymentRepository.save(payment);
+          console.log(`Cập nhật thanh toán ${orderCode} thành completed thành công`);
+        } else {
+          throw new BadRequestException(`Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi PAID`);
+        }
+  
+        return payment;
+      } catch (error) {
+        console.error('Lỗi xử lý callback thành công:', error.message, error.stack);
+        throw new BadRequestException(`Không thể xử lý callback thành công: ${error.message}`);
+      }
+    }
+
     async handleCancelCallback(orderCode: string) {
       console.log(`Xử lý callback hủy cho orderCode: ${orderCode}`);
       try {

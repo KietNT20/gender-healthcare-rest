@@ -30,6 +30,10 @@ export class PaymentsController {
     return this.paymentsService.findAll();
   }
 
+
+
+  
+
   @Get('cancel')
   async handleCancel(@Query() query: any) {
     console.log('Nhận callback hủy:', query);
@@ -57,11 +61,23 @@ export class PaymentsController {
   async handleSuccess(@Query() query: any) {
     console.log('Nhận callback thành công:', query);
     const { orderCode } = query;
-    const payment = await this.paymentsService.findOneByInvoiceNumber(orderCode);
-    if (payment) {
-      return { message: 'Thanh toán thành công', payment };
+    if (!orderCode) {
+      throw new BadRequestException('Tham số orderCode là bắt buộc');
     }
-    return { message: 'Không tìm thấy thanh toán', data: query };
+
+    try {
+      const payment = await this.paymentsService.handleSuccessCallback(orderCode);
+      return {
+        success: true,
+        data: {
+          message: 'Thanh toán thành công',
+          payment,
+        },
+      };
+    } catch (error) {
+      console.error('Lỗi callback thành công:', error.message, error.stack);
+      throw new BadRequestException(`Không thể xử lý callback thành công: ${error.message}`);
+    }
   }
 
   @Post('webhook')

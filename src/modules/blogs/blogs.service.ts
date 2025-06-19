@@ -15,6 +15,8 @@ import { SortOrder } from 'src/enums';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import slugify from 'slugify';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Tag } from '../tags/entities/tag.entity';
+import { TagsService } from '../tags/tags.service';
 
 @Injectable()
 export class BlogsService {
@@ -23,6 +25,7 @@ export class BlogsService {
         private readonly blogRepository: Repository<Blog>,
         @InjectRepository(Category)
         private readonly categoryRepository: Repository<Category>,
+        private readonly tagsService: TagsService,
     ) {}
 
     async create(createBlogDto: CreateBlogDto){
@@ -43,15 +46,31 @@ export class BlogsService {
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
-        // Create blog with proper type handling
-        const { tags, relatedServicesIds, ...blogData } = createBlogDto;
-        const blog = this.blogRepository.create({
-            ...blogData,
-            slug,
-        });
-
-        return this.blogRepository.save(blog);
+        
+       // Handle tags
+    let tags: Tag[] = [];
+    if (createBlogDto.tags && createBlogDto.tags.length > 0) {
+      tags = await Promise.all(
+        createBlogDto.tags.map(async (tagName) => {
+          let tag = await this.tagsService.findOneByName(tagName);
+          if (!tag) {
+            tag = await this.tagsService.create({ name: tagName });
+          }
+          return tag;
+        }),
+      );
     }
+
+    // Create blog with proper type handling
+    const { tags: tagNames, relatedServicesIds, ...blogData } = createBlogDto;
+    const blog = this.blogRepository.create({
+      ...blogData,
+      slug,
+      tags,
+    });
+
+    return this.blogRepository.save(blog);
+  }
 
     async findAll(
         blogQueryDto: BlogQueryDto,

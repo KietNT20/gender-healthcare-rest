@@ -1,26 +1,156 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { Repository } from 'typeorm';
+import { MenstrualCycle } from '../menstrual-cycles/entities/menstrual-cycle.entity';
+import { Symptom } from '../symptoms/entities/symptom.entity';
 import { CreateCycleSymptomDto } from './dto/create-cycle-symptom.dto';
+import { CycleSymptomQueryDto } from './dto/cycle-symptom-query.dto';
 import { UpdateCycleSymptomDto } from './dto/update-cycle-symptom.dto';
+import { CycleSymptom } from './entities/cycle-symptom.entity';
 
 @Injectable()
 export class CycleSymptomsService {
-    create(createCycleSymptomDto: CreateCycleSymptomDto) {
-        return 'This action adds a new cycleSymptom';
+    constructor(
+        @InjectRepository(Symptom)
+        private readonly symptomRepository: Repository<Symptom>,
+        @InjectRepository(MenstrualCycle)
+        private readonly cycleRepository: Repository<MenstrualCycle>,
+        @InjectRepository(CycleSymptom)
+        private readonly cycleSymptomRepository: Repository<CycleSymptom>,
+    ) {}
+    async create(
+        createCycleSymptomDto: CreateCycleSymptomDto,
+    ): Promise<CycleSymptom> {
+        const cycleSymptom = this.cycleSymptomRepository.create(
+            createCycleSymptomDto,
+        );
+        return this.cycleSymptomRepository.save(cycleSymptom);
     }
 
-    findAll() {
-        return `This action returns all cycleSymptoms`;
+    async findAll(
+        cycleSymptomQueryDto: CycleSymptomQueryDto,
+    ): Promise<Paginated<CycleSymptom>> {
+        const {
+            page,
+            limit,
+            cycleId,
+            symptomId,
+            intensity,
+            sortBy,
+            sortOrder,
+        } = cycleSymptomQueryDto;
+
+        let pageNumber = page || 1;
+        let limitNumber = limit || 10;
+
+        const queryBuilder = this.cycleSymptomRepository
+            .createQueryBuilder('cycleSymptom')
+            .where('cycleSymptom.deletedAt IS NULL')
+            .leftJoinAndSelect('cycleSymptom.symptom', 'symptom')
+            .leftJoinAndSelect('cycleSymptom.cycle', 'cycle');
+
+        if (cycleId) {
+            queryBuilder.andWhere('cycleSymptom.cycleId = :cycleId', {
+                cycleId,
+            });
+
+            const cycle = await this.cycleRepository.findOneBy({ id: cycleId });
+
+            if (!cycle) {
+                throw new NotFoundException(
+                    `Không tìm thấy Chu kỳ kinh nguyệt có ID là ${cycleId}`,
+                );
+            }
+        }
+
+        if (symptomId) {
+            queryBuilder.andWhere('cycleSymptom.symptomId = :symptomId', {
+                symptomId,
+            });
+
+            const symptom = await this.symptomRepository.findOneBy({
+                id: symptomId,
+            });
+
+            if (!symptom) {
+                throw new NotFoundException(
+                    `Không tìm thấy Triệu chứng có ID là ${symptomId}`,
+                );
+            }
+        }
+
+        if (intensity) {
+            queryBuilder.andWhere('cycleSymptom.intensity = :intensity', {
+                intensity,
+            });
+        }
+
+        if (sortBy) {
+            queryBuilder.orderBy(`cycleSymptom.${sortBy}`, sortOrder || 'DESC');
+        } else {
+            queryBuilder.orderBy('cycleSymptom.createdAt', sortOrder || 'DESC');
+        }
+
+        queryBuilder.skip((pageNumber - 1) * limitNumber).take(limitNumber);
+
+        const [items, total] = await queryBuilder.getManyAndCount();
+
+        return {
+            data: items,
+            meta: {
+                totalItems: total,
+                itemsPerPage: limitNumber,
+                totalPages: Math.ceil(total / limitNumber),
+                currentPage: pageNumber,
+            },
+        };
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} cycleSymptom`;
+    async findOne(id: string): Promise<CycleSymptom | null> {
+        const cycleSymptom = await this.cycleSymptomRepository.findOne({
+            where: { id },
+            relations: ['symptom', 'cycle'],
+        });
+
+        if (!cycleSymptom) {
+            throw new NotFoundException(
+                `Không tìm thấy Triệu chứng chu kỳ với ID là ${id}`,
+            );
+        }
+
+        return cycleSymptom;
     }
 
-    update(id: number, updateCycleSymptomDto: UpdateCycleSymptomDto) {
-        return `This action updates a #${id} cycleSymptom`;
+    async update(
+        id: string,
+        updateCycleSymptomDto: UpdateCycleSymptomDto,
+    ): Promise<CycleSymptom> {
+        const checkCycleSymptom = await this.cycleSymptomRepository.findOneBy({
+            id,
+        });
+
+        if (!checkCycleSymptom) {
+            throw new NotFoundException(
+                `Không tìm thấy Triệu chứng chu kỳ với ID là ${id}`,
+            );
+        }
+
+        const updatedCycleSymptom = this.cycleSymptomRepository.merge(
+            checkCycleSymptom,
+            updateCycleSymptomDto,
+        );
+
+        return this.cycleSymptomRepository.save(updatedCycleSymptom);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} cycleSymptom`;
+    async remove(id: string): Promise<void> {
+        const deletedCycleSymptom =
+            await this.cycleSymptomRepository.softDelete(id);
+        if (deletedCycleSymptom.affected === 0) {
+            throw new NotFoundException(
+                `Không tìm thấy Triệu chứng chu kỳ với ID là ${id}`,
+            );
+        }
     }
 }

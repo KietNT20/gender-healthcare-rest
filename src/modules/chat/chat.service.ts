@@ -119,19 +119,16 @@ export class ChatService {
             sender,
             isRead: false,
         });
-
-        // If it's a file message, validate and store file info
-        if (type === MessageType.FILE && fileData) {
-            // Store file reference in content as JSON
-            message.content = JSON.stringify({
-                text: content,
-                file: fileData,
-            });
+        if (
+            (type === MessageType.FILE || type === MessageType.IMAGE) &&
+            fileData
+        ) {
+            message.metadata = fileData;
+            message.content = fileData.fileName;
         }
 
         const savedMessage = await this.messageRepository.save(message);
 
-        // Return message with sender info
         return {
             ...savedMessage,
             sender: {
@@ -269,6 +266,7 @@ export class ChatService {
      * Send message with file attachment
      */
     async sendMessageWithFile(
+        //
         questionId: string,
         senderId: string,
         content: string,
@@ -276,35 +274,21 @@ export class ChatService {
         type: MessageType = MessageType.FILE,
     ): Promise<MessageWithSender> {
         try {
-            // Determine entity type based on message type
-            let entityType = 'message';
+            let entityType = 'message_document';
             if (type === MessageType.IMAGE) {
                 entityType = 'message_image';
             }
 
-            // Upload file
-            let uploadResult;
-            if (type === MessageType.IMAGE) {
-                uploadResult = await this.filesService.uploadImage({
-                    file,
-                    entityType,
-                    entityId: questionId,
-                    isPublic: false, // Chat files are private
-                    generateThumbnails: true,
-                });
-            } else {
-                uploadResult = await this.filesService.uploadDocument({
-                    file,
-                    entityType,
-                    entityId: questionId,
-                    description: `File sent in chat: ${content}`,
-                    isSensitive: false,
-                });
-            }
+            const uploadResult = await this.filesService.uploadImage({
+                file,
+                entityType,
+                entityId: questionId,
+                isPublic: false,
+                generateThumbnails: type === MessageType.IMAGE,
+            });
 
-            // Create message with file data
             return await this.createMessage({
-                content,
+                content: content || file.originalname, // Use content from body or file name
                 type,
                 questionId,
                 senderId,
@@ -337,7 +321,6 @@ export class ChatService {
             throw new NotFoundException('Message not found');
         }
 
-        // Verify access
         const hasAccess = await this.verifyQuestionAccess(
             message.question.id,
             userId,
@@ -346,39 +329,33 @@ export class ChatService {
             throw new ForbiddenException('Access denied');
         }
 
-        // Parse file data from content
         if (
-            message.type === MessageType.FILE ||
-            message.type === MessageType.IMAGE
+            (message.type === MessageType.FILE ||
+                message.type === MessageType.IMAGE) &&
+            message.metadata?.fileId
         ) {
             try {
-                const fileData = JSON.parse(message.content);
-                if (fileData.file && fileData.file.fileId) {
-                    if (message.type === MessageType.IMAGE) {
-                        const imageWithUrl =
-                            await this.filesService.getImageWithAccessUrl(
-                                fileData.file.fileId,
-                                3600, // 1 hour expiry
-                            );
-                        return imageWithUrl.accessUrl;
-                    } else {
-                        const docWithUrl =
-                            await this.filesService.getDocumentWithAccessUrl(
-                                fileData.file.fileId,
-                                3600, // 1 hour expiry
-                            );
-                        return docWithUrl.accessUrl;
-                    }
+                const fileId = message.metadata.fileId as string;
+                if (message.type === MessageType.IMAGE) {
+                    const imageWithUrl =
+                        await this.filesService.getImageWithAccessUrl(fileId);
+                    return imageWithUrl.accessUrl;
+                } else {
+                    const docWithUrl =
+                        await this.filesService.getDocumentWithAccessUrl(
+                            fileId,
+                        );
+                    return docWithUrl.accessUrl;
                 }
             } catch (error) {
                 this.logger.error(
-                    `Failed to parse file data from message ${messageId}:`,
+                    `Failed to get file URL from message ${messageId}:`,
                     error,
                 );
             }
         }
 
-        throw new NotFoundException('File not found');
+        throw new NotFoundException('File not found in this message');
     }
 
     /**

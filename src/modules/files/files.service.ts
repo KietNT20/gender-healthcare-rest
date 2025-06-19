@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import * as crypto from 'crypto';
+import { THIRTY_DAYS } from 'src/constant';
 import { sanitizeFilename } from 'src/utils/sanitize-name.util';
 import { Repository } from 'typeorm';
 import { Document } from '../documents/entities/document.entity';
@@ -212,7 +213,7 @@ export class FilesService {
      */
     async getImageWithAccessUrl(
         imageId: string,
-        expiresIn: number = 3600,
+        expiresIn: number = THIRTY_DAYS, // 30 days default
     ): Promise<Image & { accessUrl: string }> {
         const image = await this.imageRepository.findOne({
             where: { id: imageId },
@@ -282,7 +283,7 @@ export class FilesService {
      */
     async getDocumentWithAccessUrl(
         documentId: string,
-        expiresIn: number = 3600,
+        expiresIn: number = THIRTY_DAYS, // 30 days default
     ): Promise<Document & { accessUrl: string }> {
         const document = await this.documentRepository.findOne({
             where: { id: documentId },

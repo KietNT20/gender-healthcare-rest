@@ -26,7 +26,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
     TestUploadDto,
     UploadDocumentDto,
+    UploadDocumentMetadataDto,
     UploadImageDto,
+    UploadImageMetadataDto,
 } from './dto/upload-file.dto';
 import { FilesService } from './files.service';
 
@@ -43,7 +45,7 @@ export class FilesController {
     @ApiBody({ type: UploadImageDto })
     async uploadImage(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadImageDto: UploadImageDto,
+        @Body() uploadImageDto: UploadImageMetadataDto,
     ) {
         return this.filesService.uploadImage({
             ...uploadImageDto,
@@ -60,7 +62,7 @@ export class FilesController {
     @ApiBody({ type: UploadDocumentDto })
     async uploadDocument(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadDocumentDto: UploadDocumentDto,
+        @Body() uploadDocumentDto: UploadDocumentMetadataDto,
     ) {
         return this.filesService.uploadDocument({
             ...uploadDocumentDto,

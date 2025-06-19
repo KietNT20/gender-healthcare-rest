@@ -1,5 +1,4 @@
 import {
-    BadRequestException,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
@@ -80,29 +79,22 @@ export class MoodsService {
     }
 
     async update(id: string, updateMoodDto: UpdateMoodDto): Promise<Mood> {
-        if (!id) {
-            throw new BadRequestException('ID không được để trống');
-        }
+        const mood = await this.moodRepository.findOneBy({ id });
 
-        await this.moodRepository.update(id, {
-            ...updateMoodDto,
-            updatedAt: new Date(),
-        });
-
-        const updatedData = await this.moodRepository.findOneBy({ id });
-
-        if (!updatedData) {
+        if (!mood) {
             throw new NotFoundException(
                 'Không tìm thấy tâm trạng với ID là ' + id,
             );
         }
 
-        return updatedData;
+        const updatedMood = this.moodRepository.merge(mood, updateMoodDto);
+
+        return this.moodRepository.save(updatedMood);
     }
 
     async remove(id: string): Promise<void> {
         const res = await this.moodRepository.delete(id);
-        if (!res.affected) {
+        if (res.affected === 0) {
             throw new NotFoundException(
                 'Không tìm thấy tâm trạng với ID là ' + id,
             );

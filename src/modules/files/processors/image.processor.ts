@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as sharp from 'sharp';
-import { AwsS3Service } from '../aws-s3.service';
+import { AwsS3Service, FileMetadata } from '../aws-s3.service';
 import { FilesService } from '../files.service';
 
 /**
@@ -503,27 +503,29 @@ export class ImageProcessor extends WorkerHost {
         }
 
         return `${basePath}/thumbnails/${timestamp}-${nameWithoutExt}-${size}.webp`;
-    }
-
-    /**
+    } /**
      * @private
      * @method validateImageFile
      * @description Validates the file metadata from S3 before downloading.
-     * @param {any} fileMetadata - The metadata object from S3.
+     * @param {FileMetadata} fileMetadata - The metadata object from S3.
      */
-    private validateImageFile(fileMetadata: any): void {
+    private validateImageFile(fileMetadata: FileMetadata): void {
         // Check file size (max 20MB for processing).
         const maxSize = 20 * 1024 * 1024; // 20 MB
-        if (fileMetadata.ContentLength > maxSize) {
-            // S3 SDK uses ContentLength
+        if (fileMetadata.size > maxSize) {
             throw new Error(
-                `File too large: ${this.formatBytes(fileMetadata.ContentLength)} (max: ${this.formatBytes(maxSize)})`,
+                `File too large: ${this.formatBytes(fileMetadata.size)} (max: ${this.formatBytes(maxSize)})`,
             );
         }
 
         // Check content type.
-        if (!fileMetadata.ContentType.startsWith('image/')) {
-            throw new Error(`Invalid file type: ${fileMetadata.ContentType}`);
+        if (
+            !fileMetadata.contentType ||
+            !fileMetadata.contentType.startsWith('image/')
+        ) {
+            throw new Error(
+                `Invalid or missing file type: ${fileMetadata.contentType}`,
+            );
         }
     }
 

@@ -4,6 +4,7 @@ import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/
 import {
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     ManyToOne,
     PrimaryGeneratedColumn,
@@ -29,6 +30,9 @@ export class PackageServiceUsage {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(

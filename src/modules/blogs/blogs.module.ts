@@ -4,9 +4,10 @@ import { BlogsController } from './blogs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './entities/blog.entity';
 import { Category } from '../categories/entities/category.entity';
+import { TagsModule } from '../tags/tags.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Blog, Category])],
+    imports: [TypeOrmModule.forFeature([Blog, Category]), TagsModule],
     controllers: [BlogsController],
     providers: [BlogsService],
 })

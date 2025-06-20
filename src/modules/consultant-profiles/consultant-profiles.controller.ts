@@ -115,7 +115,6 @@ export class ConsultantProfilesController {
         return this.consultantProfilesService.remove(id);
     }
 
-    // --- Các endpoint review đã có từ trước ---
     @Get('pending-approval')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])

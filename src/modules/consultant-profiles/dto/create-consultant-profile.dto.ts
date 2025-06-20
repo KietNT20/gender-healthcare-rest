@@ -18,19 +18,19 @@ export class CreateConsultantProfileDto {
     @IsNotEmpty()
     userId: string;
 
-    @ApiProperty({ example: 'Tâm lý học đường, Trầm cảm' })
+    @ApiProperty({ description: 'Specialization of the consultant.' })
     @IsString()
     @IsNotEmpty()
     specialization: string;
 
     @ApiProperty({
-        example: 'Thạc sĩ Tâm lý học, Đại học Khoa học Xã hội và Nhân văn',
+        description: 'Qualification of the consultant.',
     })
     @IsString()
     @IsNotEmpty()
     qualification: string;
 
-    @ApiProperty({ example: '5 năm kinh nghiệm tư vấn cho thanh thiếu niên.' })
+    @ApiProperty({ description: 'Experience of the consultant.' })
     @IsString()
     @IsNotEmpty()
     experience: string;

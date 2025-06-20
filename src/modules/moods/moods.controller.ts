@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateMoodDto } from './dto/create-mood.dto';
-import { MoodQueryDto } from './dto/mood-query.dto';
+import { MoodQueryDto } from './dto/query-mood.dto';
 import { UpdateMoodDto } from './dto/update-mood.dto';
 import { MoodsService } from './moods.service';
 

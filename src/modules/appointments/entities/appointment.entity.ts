@@ -9,6 +9,7 @@ import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
+import { StiTestProcess } from 'src/modules/sti-test-processes/entities/sti-test-process.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -126,9 +127,14 @@ export class Appointment {
 
     @OneToMany(() => Feedback, (feedback) => feedback.appointment)
     feedbacks: Feedback[];
-
     @OneToOne(() => TestResult, (testResult) => testResult.appointment)
     testResult: TestResult;
+
+    @OneToOne(
+        () => StiTestProcess,
+        (stiTestProcess) => stiTestProcess.appointment,
+    )
+    stiTestProcess: StiTestProcess;
 
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];

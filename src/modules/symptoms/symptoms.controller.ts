@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -26,7 +27,7 @@ export class SymptomsController {
     @Post()
     @ApiOperation({ summary: 'Create a new symptom' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Symptom created successfully',
     })
     create(@Body() createSymptomDto: CreateSymptomDto) {
@@ -47,7 +48,7 @@ export class SymptomsController {
 
     @Patch(':id')
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Symptom updated successfully',
     })
     @ApiOperation({ summary: 'Update a symptom by ID' })

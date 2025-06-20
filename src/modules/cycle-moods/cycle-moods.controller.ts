@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -26,7 +27,7 @@ export class CycleMoodsController {
     @Post()
     @ApiOperation({ summary: 'Create a new cycle mood entry' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Cycle mood entry created successfully.',
     })
     create(@Body() createCycleMoodDto: CreateCycleMoodDto) {
@@ -38,7 +39,7 @@ export class CycleMoodsController {
         summary: 'Get all cycle moods with optional filtering',
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'List of cycle moods retrieved successfully.',
     })
     findAll(@Query() cycleMoodQueryDto: CycleMoodQueryDto) {

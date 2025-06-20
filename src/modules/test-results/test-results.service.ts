@@ -16,6 +16,7 @@ import { User } from '../users/entities/user.entity';
 import { CreateTestResultDto } from './dto/create-test-result.dto';
 import { UpdateTestResultDto } from './dto/update-test-result.dto';
 import { TestResult } from './entities/test-result.entity';
+import { TestResultMapperService } from './services/test-result-mapper.service';
 
 @Injectable()
 export class TestResultsService {
@@ -26,6 +27,7 @@ export class TestResultsService {
         private readonly notificationsService: NotificationsService,
         private readonly mailService: MailService,
         private readonly dataSource: DataSource,
+        private readonly mapperService: TestResultMapperService,
     ) {}
 
     async create(
@@ -158,7 +160,6 @@ export class TestResultsService {
         return testResult;
     }
 
-    // Các phương thức khác (findAll, findOne, update, remove)
     findAll() {
         return this.testResultRepository.find({
             relations: ['user', 'appointment'],
@@ -185,8 +186,55 @@ export class TestResultsService {
     }
 
     async remove(id: string) {
-        const result = await this.findOne(id);
-        // Cần thêm logic để xóa file trên S3 nếu muốn
-        return this.testResultRepository.remove(result);
+        const result = await this.testResultRepository.findOne({
+            where: { id },
+            relations: ['documents'],
+        });
+
+        if (!result) {
+            throw new NotFoundException(`Test result with ID ${id} not found.`);
+        }
+
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 1. Delete associated documents from S3 and database
+            if (result.documents && result.documents.length > 0) {
+                for (const document of result.documents) {
+                    try {
+                        // Delete file from S3
+                        await this.filesService
+                            .getAwsS3Service()
+                            .deleteFile(document.path);
+                        console.log(
+                            `Deleted document file from S3: ${document.path}`,
+                        );
+                    } catch (error) {
+                        console.error(
+                            `Failed to delete file from S3: ${document.path}`,
+                            error,
+                        );
+                        // Continue with database deletion even if S3 deletion fails
+                    }
+
+                    // Delete document from database
+                    await queryRunner.manager.remove(Document, document);
+                }
+            }
+
+            // 2. Delete test result from database
+            await queryRunner.manager.remove(TestResult, result);
+
+            await queryRunner.commitTransaction();
+
+            return result;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
     }
 }

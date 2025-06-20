@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { RoleGuard } from 'src/guards/role.guard';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
@@ -32,6 +33,7 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
         }),
         UsersModule,
         MailModule,
+        AuditLogsModule,
     ],
     providers: [
         AuthService,

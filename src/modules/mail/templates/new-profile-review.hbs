@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hồ sơ mới cần duyệt</title>
+</head>
+
+<body>
+    <p>Chào {{ adminName }},</p>
+    <p>Hệ thống <strong>{{ appName }}</strong> vừa ghi nhận một hồ sơ đăng ký mới từ tư vấn viên:</p>
+    <h3 style="font-weight: bold;">{{ consultantName }}</h3>
+    <p>Vui lòng truy cập vào hệ thống quản trị để xem xét và phê duyệt hồ sơ này.</p>
+    <p>
+        <a href="{{ reviewUrl }}">Xem hồ sơ ngay</a>
+    </p>
+    <p>Cảm ơn bạn.</p>
+</body>
+
+</html>

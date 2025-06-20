@@ -1,63 +1,105 @@
 import {
+    Body,
     Controller,
     Get,
-    Post,
-    Body,
-    Patch,
     Param,
-    Delete,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
     UseGuards,
-  } from '@nestjs/common';
-  import { AppointmentsService } from './appointments.service';
-  import { CreateAppointmentDto } from './dto/create-appointment.dto';
-  import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-  import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-  import { RoleGuard } from 'src/guards/role.guard';
-  import { Roles } from 'src/decorators/roles.decorator';
-  import { RolesNameEnum } from 'src/enums';
-import { ApiBearerAuth } from '@nestjs/swagger';
-  
-  @ApiBearerAuth()
-  @Controller('appointments')
-  export class AppointmentsController {
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesNameEnum } from 'src/enums';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../users/entities/user.entity';
+import { AppointmentsService } from './appointments.service';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { QueryAppointmentDto } from './dto/query-appointment.dto';
+import {
+    CancelAppointmentDto,
+    UpdateAppointmentDto,
+} from './dto/update-appointment.dto';
+
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('appointments')
+export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
   
     @Post()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
-    async create(@Body() createAppointmentDto: CreateAppointmentDto) {
-      return this.appointmentsService.create(createAppointmentDto);
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    @ApiOperation({ summary: 'Book an appointment' })
+    create(
+        @Body() createAppointmentDto: CreateAppointmentDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.appointmentsService.create(
+            createAppointmentDto,
+            currentUser,
+        );
     }
   
     @Get()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
-    findAll() {
-      return this.appointmentsService.findAll();
+    @ApiOperation({
+        summary: 'Get a list of appointments (role-based access)',
+    })
+    @ResponseMessage('Successfully retrieved appointment list.')
+    findAll(
+        @CurrentUser() currentUser: User,
+        @Query() queryDto: QueryAppointmentDto,
+    ) {
+        return this.appointmentsService.findAll(currentUser, queryDto);
     }
 
     @Get(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
-    async findOne(@Param('id') id: string) {
-      return this.appointmentsService.findOne(id);
-    }
-  
-    @Patch(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
-    async update(
-      @Param('id') id: string,
-      @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @ApiOperation({ summary: 'Get appointment details' })
+    @ResponseMessage('Successfully retrieved appointment details.')
+    findOne(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
     ) {
-      return this.appointmentsService.update(id, updateAppointmentDto);
+        return this.appointmentsService.findOne(id, currentUser);
     }
-  
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN])
-    async remove(@Param('id') id: string) {
-      await this.appointmentsService.remove(id);
-      return { message: 'Appointment deleted successfully' };
+
+    @Patch(':id/status')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.CONSULTANT,
+    ])
+    @ApiOperation({
+        summary: 'Update appointment status (e.g., confirm, complete)',
+    })
+    @ResponseMessage('Successfully updated appointment status.')
+    updateStatus(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateAppointmentDto: UpdateAppointmentDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.appointmentsService.updateStatus(
+            id,
+            updateAppointmentDto,
+            currentUser,
+        );
     }
-  }
+
+    @Patch(':id/cancel')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Cancel an appointment' })
+    @ResponseMessage('Successfully canceled appointment.')
+    cancel(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() cancelDto: CancelAppointmentDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.appointmentsService.cancel(id, cancelDto, currentUser);
+    }
+}

@@ -5,12 +5,20 @@ import {
     IsOptional,
     IsString,
     IsUUID,
+    Max,
+    Min,
 } from 'class-validator';
 
 export class CreateCycleMoodDto {
-    @ApiProperty()
+    @ApiPropertyOptional({
+        description: 'Mức độ của tâm trạng',
+        minimum: 1,
+        maximum: 5,
+    })
     @IsNumber()
     @IsOptional()
+    @Min(1)
+    @Max(5)
     intensity?: number;
 
     @ApiPropertyOptional()

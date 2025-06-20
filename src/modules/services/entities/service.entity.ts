@@ -10,7 +10,6 @@ import {
     DeleteDateColumn,
     Entity,
     Index,
-    JoinTable,
     ManyToMany,
     ManyToOne,
     OneToMany,
@@ -62,6 +61,8 @@ export class Service {
     @Column({ default: false })
     featured: boolean;
 
+    @Column({ type: 'text', array: true, nullable: true })
+    specialties?: string[];
 
     @Column({ default: 0 })
     version: number;
@@ -93,7 +94,6 @@ export class Service {
     packageServiceUsages: PackageServiceUsage[];
 
     @ManyToMany(() => Appointment, (appointment) => appointment.services)
-    @JoinTable()
     appointments: Appointment[];
 
     @ManyToMany(() => Blog, (blog) => blog.services)

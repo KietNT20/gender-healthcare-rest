@@ -5,6 +5,8 @@ import {
     IsOptional,
     IsString,
     IsUUID,
+    Max,
+    Min,
 } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { SortOrder } from 'src/enums';
@@ -34,6 +36,8 @@ export class GetCycleMoodQueryDto {
     })
     @IsNumber()
     @IsOptional()
+    @Min(1)
+    @Max(5)
     intensity?: number;
 
     @ApiPropertyOptional({

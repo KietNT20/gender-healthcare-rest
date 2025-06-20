@@ -223,6 +223,7 @@ export interface UploadDocumentOptions {
     isSensitive?: boolean;
     tags?: string[];
     category?: string;
+    documentType?: string;
 }
 
 export interface FileResult {

@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -20,13 +21,9 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserQueryDto } from './dto/query-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserQueryDto } from './dto/user-query.dto';
-import {
-    ChangePasswordDto,
-    UpdateProfileDto,
-    UserResponseDto,
-} from './dto/user-response.dto';
+import { ChangePasswordDto, UpdateProfileDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -40,17 +37,23 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Create a new user' })
-    @ApiResponse({ status: 201, description: 'User created successfully' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'User created successfully',
+    })
     @ResponseMessage('User created successfully')
-    create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-        return this.usersService.create(createUserDto);
+    create(@Body() createUserDto: CreateUserDto, @CurrentUser() actor: User) {
+        return this.usersService.create(createUserDto, actor.id);
     }
 
     @Get()
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
     @ApiOperation({ summary: 'Get all users with pagination and filters' })
-    @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Users retrieved successfully',
+    })
     @ResponseMessage('Users retrieved successfully')
     findAll(@Query() userQueryDto: UserQueryDto) {
         return this.usersService.findAll(userQueryDto);
@@ -59,7 +62,7 @@ export class UsersController {
     @Get('me')
     @ApiOperation({ summary: 'Get current user profile' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Current user profile retrieved successfully',
     })
     @ResponseMessage('Current user profile retrieved successfully')
@@ -69,9 +72,12 @@ export class UsersController {
 
     @Get('slug/:slug')
     @ApiOperation({ summary: 'Get user by slug' })
-    @ApiResponse({ status: 200, description: 'User retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User retrieved successfully',
+    })
     @ResponseMessage('User retrieved successfully')
-    findBySlug(@Param('slug') slug: string): Promise<UserResponseDto> {
+    findBySlug(@Param('slug') slug: string) {
         return this.usersService.findBySlug(slug);
     }
 
@@ -79,26 +85,35 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
     @ApiOperation({ summary: 'Get user by ID' })
-    @ApiResponse({ status: 200, description: 'User retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User retrieved successfully',
+    })
     @ResponseMessage('User retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.usersService.findOne(id);
     }
 
     @Patch('me')
     @ApiOperation({ summary: 'Update current user profile' })
-    @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Profile updated successfully',
+    })
     @ResponseMessage('Profile updated successfully')
     updateProfile(
         @CurrentUser() user: User,
         @Body() updateProfileDto: UpdateProfileDto,
-    ): Promise<UserResponseDto> {
+    ) {
         return this.usersService.updateProfile(user.id, updateProfileDto);
     }
 
     @Put('me/change-password')
     @ApiOperation({ summary: 'Change current user password' })
-    @ApiResponse({ status: 200, description: 'Password changed successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Password changed successfully',
+    })
     @ResponseMessage('Password changed successfully')
     async changePassword(
         @CurrentUser() user: User,
@@ -112,13 +127,17 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Update user by ID (Admin/Manager only)' })
-    @ApiResponse({ status: 200, description: 'User updated successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User updated successfully',
+    })
     @ResponseMessage('User updated successfully')
     update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateUserDto: UpdateUserDto,
-    ): Promise<UserResponseDto> {
-        return this.usersService.update(id, updateUserDto);
+        @CurrentUser() actor: User,
+    ) {
+        return this.usersService.update(id, updateUserDto, actor.id);
     }
 
     @Put(':id/toggle-active')
@@ -126,13 +145,11 @@ export class UsersController {
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Toggle user active status (Admin/Manager only)' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'User status updated successfully',
     })
     @ResponseMessage('User status updated successfully')
-    toggleActive(
-        @Param('id', ParseUUIDPipe) id: string,
-    ): Promise<UserResponseDto> {
+    toggleActive(@Param('id', ParseUUIDPipe) id: string) {
         return this.usersService.toggleActive(id);
     }
 
@@ -140,7 +157,10 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Verify user email (Admin/Manager only)' })
-    @ApiResponse({ status: 200, description: 'Email verified successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Email verified successfully',
+    })
     @ResponseMessage('Email verified successfully')
     async verifyEmail(
         @Param('id', ParseUUIDPipe) id: string,
@@ -153,7 +173,10 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Soft delete user (Admin only)' })
-    @ApiResponse({ status: 200, description: 'User deleted successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User deleted successfully',
+    })
     @ResponseMessage('User deleted successfully')
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
@@ -167,7 +190,10 @@ export class UsersController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Create multiple users' })
-    @ApiResponse({ status: 201, description: 'Users created successfully' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Users created successfully',
+    })
     @ResponseMessage('Users created successfully')
     createMany(@Body() createManyUsersDto: CreateManyUsersDto) {
         return this.usersService.createMany(createManyUsersDto);

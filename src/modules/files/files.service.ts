@@ -127,6 +127,7 @@ export class FilesService {
             entityId,
             description,
             isSensitive = false,
+            documentType,
         } = options;
 
         try {
@@ -180,7 +181,8 @@ export class FilesService {
                 size: file.size,
                 path: fileKey,
                 description,
-                documentType: this.getDocumentType(file.mimetype),
+                documentType:
+                    documentType || this.getDocumentType(file.mimetype),
                 entityType,
                 entityId,
                 isSensitive,

@@ -26,7 +26,6 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-    JoinTable,
 } from 'typeorm';
 
 @Entity()
@@ -137,8 +136,7 @@ export class Appointment {
     )
     stiTestProcess: StiTestProcess;
 
-    @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
-    packageServiceUsages: PackageServiceUsage[];
+
 
     @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable()

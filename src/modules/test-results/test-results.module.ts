@@ -7,6 +7,8 @@ import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { User } from '../users/entities/user.entity';
 import { TestResult } from './entities/test-result.entity';
+import { TestResultMapperService } from './services/test-result-mapper.service';
+import { TestResultTemplateService } from './services/test-result-template.service';
 import { TestResultsController } from './test-results.controller';
 import { TestResultsService } from './test-results.service';
 
@@ -18,7 +20,15 @@ import { TestResultsService } from './test-results.service';
         MailModule,
     ],
     controllers: [TestResultsController],
-    providers: [TestResultsService],
-    exports: [TestResultsService],
+    providers: [
+        TestResultsService,
+        TestResultTemplateService,
+        TestResultMapperService,
+    ],
+    exports: [
+        TestResultsService,
+        TestResultTemplateService,
+        TestResultMapperService,
+    ],
 })
 export class TestResultsModule {}

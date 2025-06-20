@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Post,
@@ -44,7 +45,7 @@ export class ConsultantAvailabilityController {
     @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Consultant create availability' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Create availability successfully.',
     })
     create(
@@ -62,7 +63,7 @@ export class ConsultantAvailabilityController {
     ])
     @ApiOperation({ summary: 'Consultant get all availability' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Get all availability successfully.',
     })
     findAll(
@@ -79,7 +80,7 @@ export class ConsultantAvailabilityController {
         RolesNameEnum.CONSULTANT,
     ])
     @ApiOperation({ summary: 'Consultant get availability by id' })
-    @ApiResponse({ status: 200, description: 'Get availability successfully.' })
+    @ApiResponse({ status: HttpStatus.OK, description: 'Get availability successfully.' })
     findOne(
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
@@ -93,7 +94,7 @@ export class ConsultantAvailabilityController {
     @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Consultant update availability' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Update availability successfully.',
     })
     update(
@@ -108,7 +109,7 @@ export class ConsultantAvailabilityController {
     @Roles([RolesNameEnum.CONSULTANT])
     @ApiOperation({ summary: 'Consultant delete availability' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Delete availability successfully.',
     })
     @ResponseMessage('Availability deleted successfully.')

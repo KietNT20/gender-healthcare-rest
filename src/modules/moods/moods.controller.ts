@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -26,7 +27,7 @@ export class MoodsController {
     @Post()
     @ApiOperation({ summary: 'Create a new mood' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Mood created successfully',
     })
     create(@Body() createMoodDto: CreateMoodDto) {
@@ -36,7 +37,7 @@ export class MoodsController {
     @Get()
     @ApiOperation({ summary: 'Get all moods with pagination and filters' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Moods retrieved successfully',
     })
     findAll(@Query() moodQueryDto: MoodQueryDto) {
@@ -46,7 +47,7 @@ export class MoodsController {
     @Get(':id')
     @ApiOperation({ summary: 'Get a mood by ID' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Mood retrieved successfully',
     })
     findOne(@Param('id') id: string) {
@@ -56,7 +57,7 @@ export class MoodsController {
     @Patch(':id')
     @ApiOperation({ summary: 'Update a mood by ID' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Mood updated successfully',
     })
     update(@Param('id') id: string, @Body() updateMoodDto: UpdateMoodDto) {
@@ -66,7 +67,7 @@ export class MoodsController {
     @Delete(':id')
     @ApiOperation({ summary: 'Delete a mood by ID' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Mood deleted successfully',
     })
     @ResponseMessage('Mood deleted successfully')

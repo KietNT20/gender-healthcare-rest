@@ -1,16 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
     IsBoolean,
     IsNotEmpty,
-    IsObject,
     IsOptional,
     IsString,
     IsUUID,
+    ValidateNested,
 } from 'class-validator';
-
-class TestResultDataDto {
-    [key: string]: string | number | boolean | object;
-}
+import { TestResultDataDto } from './test-result-data.dto';
 
 export class CreateTestResultDto {
     @ApiProperty({
@@ -21,10 +19,11 @@ export class CreateTestResultDto {
     appointmentId: string;
 
     @ApiProperty({
-        description: 'Structured result data in JSON format',
-        example: { glucose: 120, unit: 'mg/dL', cholesterol: 200 },
+        description: 'Structured result data in standardized format',
+        type: TestResultDataDto,
     })
-    @IsObject()
+    @ValidateNested()
+    @Type(() => TestResultDataDto)
     resultData: TestResultDataDto;
 
     @ApiPropertyOptional({

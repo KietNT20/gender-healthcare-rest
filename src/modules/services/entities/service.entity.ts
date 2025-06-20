@@ -16,7 +16,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-
 import { Image } from 'src/modules/images/entities/image.entity';
 
 @Entity()

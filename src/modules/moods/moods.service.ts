@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Repository } from 'typeorm';
 import { CreateMoodDto } from './dto/create-mood.dto';
-import { MoodQueryDto } from './dto/mood-query.dto';
+import { MoodQueryDto } from './dto/query-mood.dto';
 import { UpdateMoodDto } from './dto/update-mood.dto';
 import { Mood } from './entities/mood.entity';
 

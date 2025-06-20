@@ -15,8 +15,8 @@ import { HashingProvider } from '../auth/providers/hashing.provider';
 import { Role } from '../roles/entities/role.entity';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserQueryDto } from './dto/query-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserQueryDto } from './dto/user-query.dto';
 import {
     ChangePasswordDto,
     UpdateProfileDto,

@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
-import { SymptomQueryDto } from './dto/symptom-query.dto';
+import { SymptomQueryDto } from './dto/query-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
 import { SymptomsService } from './symptoms.service';
 

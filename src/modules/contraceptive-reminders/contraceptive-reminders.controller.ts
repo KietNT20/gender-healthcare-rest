@@ -5,11 +5,13 @@ import {
     Get,
     Param,
     ParseUUIDPipe,
-    Patch,
     Post,
+    Put,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { NoFilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,6 +29,8 @@ export class ContraceptiveRemindersController {
     ) {}
 
     @Post()
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create a new contraceptive reminder' })
     create(
         @CurrentUser() user: User,
@@ -51,7 +55,9 @@ export class ContraceptiveRemindersController {
         return this.contraceptiveRemindersService.findOne(id, user.id);
     }
 
-    @Patch(':id')
+    @Put(':id')
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update a contraceptive reminder' })
     update(
         @Param('id', ParseUUIDPipe) id: string,
@@ -66,7 +72,9 @@ export class ContraceptiveRemindersController {
     }
 
     @Delete(':id')
-    @ApiOperation({ summary: 'Delete a contraceptive reminder' })
+    @ApiOperation({
+        summary: 'Delete a contraceptive reminder ( Soft delete )',
+    })
     @ResponseMessage('Delete contraceptive reminder successfully.')
     remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
         return this.contraceptiveRemindersService.remove(id, user.id);

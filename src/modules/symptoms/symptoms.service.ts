@@ -4,7 +4,7 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
-import { SymptomQueryDto } from './dto/symptom-query.dto';
+import { SymptomQueryDto } from './dto/query-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
 import { Symptom } from './entities/symptom.entity';
 

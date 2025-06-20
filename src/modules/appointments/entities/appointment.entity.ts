@@ -116,9 +116,6 @@ export class Appointment {
     @OneToOne(() => TestResult, (testResult) => testResult.appointment)
     testResult: TestResult;
 
-    @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
-    packageServiceUsages: PackageServiceUsage[];
-
     @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable({
         name: 'appointment_services_service',

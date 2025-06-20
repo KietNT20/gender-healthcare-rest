@@ -1,4 +1,4 @@
-import { IsUUID, IsDate, IsOptional } from 'class-validator';
+import { IsUUID, IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePackageServiceUsageDto {
@@ -18,29 +18,12 @@ export class CreatePackageServiceUsageDto {
   @IsUUID()
   serviceId: string;
 
-  @ApiProperty({
-    description: 'ID of the appointment',
-    example: '550e8400-e29b-41d4-a716-446655440003',
-    required: true,
-  })
-  @IsUUID()
-  appointmentId: string;
-
   @ApiPropertyOptional({
-    description: 'Date of usage',
+    description: 'Date of usage (ISO format)',
     example: '2025-06-19',
     required: false,
   })
-  @IsDate()
+  @IsDateString()
   @IsOptional()
-  usageDate?: Date;
-
-  @ApiPropertyOptional({
-    description: 'Date of deletion (for soft delete)',
-    example: '2025-06-20',
-    required: false,
-  })
-  @IsDate()
-  @IsOptional()
-  deletedAt?: Date;
+  usageDate?: string;
 }

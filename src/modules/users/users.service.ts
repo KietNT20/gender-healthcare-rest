@@ -10,7 +10,9 @@ import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { RolesNameEnum } from 'src/enums';
+import { ActionType } from 'src/enums/action-type.enum';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { HashingProvider } from '../auth/providers/hashing.provider';
 import { Role } from '../roles/entities/role.entity';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
@@ -33,6 +35,7 @@ export class UsersService {
         private readonly roleRepository: Repository<Role>,
         private readonly dataSource: DataSource,
         private readonly hashingProvider: HashingProvider,
+        private readonly auditLogsService: AuditLogsService,
     ) {}
 
     /**
@@ -41,7 +44,10 @@ export class UsersService {
      * @throws ConflictException if the email already exists.
      * @returns The created user data.
      */
-    async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    async create(
+        createUserDto: CreateUserDto,
+        actorId: string,
+    ): Promise<UserResponseDto> {
         // Check if email already exists
         const existingUser = await this.userRepository.findOne({
             where: { email: createUserDto.email },
@@ -87,6 +93,15 @@ export class UsersService {
         });
 
         const savedUser = await this.userRepository.save(user);
+
+        // Write audit log
+        await this.auditLogsService.create({
+            userId: actorId,
+            action: ActionType.CREATE,
+            entityType: 'User',
+            entityId: savedUser.id,
+            newValues: savedUser,
+        });
 
         // Return user without password
         return this.toUserResponse(savedUser);
@@ -548,14 +563,18 @@ export class UsersService {
     async update(
         id: string,
         updateUserDto: UpdateUserDto,
+        actorId: string,
     ): Promise<UserResponseDto> {
-        const user = await this.findOne(id);
-        if (!user) {
+        const userBeforeUpdate = await this.findOne(id);
+        if (!userBeforeUpdate) {
             throw new NotFoundException('User not found');
         }
 
         // Check email uniqueness if email is being updated
-        if (updateUserDto.email && updateUserDto.email !== user.email) {
+        if (
+            updateUserDto.email &&
+            updateUserDto.email !== userBeforeUpdate.email
+        ) {
             const existingUser = await this.findByEmail(updateUserDto.email);
             if (existingUser && existingUser.id !== id) {
                 throw new ConflictException('Email already exists');
@@ -569,43 +588,44 @@ export class UsersService {
         // Update slug if firstName or lastName is being updated
         if (
             firstName &&
-            firstName !== user.firstName &&
+            firstName !== userBeforeUpdate.firstName &&
             lastName &&
-            lastName !== user.lastName
+            lastName !== userBeforeUpdate.lastName
         ) {
             // Generate slug based on firstName and lastName
-            const genSlug = `${firstName} ${lastName} ${user.email}`;
+            const genSlug = `${firstName} ${lastName} ${userBeforeUpdate.email}`;
             // Use slugify to create a base slug
             const baseSlug = slugify(genSlug, { lower: true, strict: true });
             payload.slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
-        if (lastName && lastName !== user.lastName) {
-            payload.lastName = lastName;
-        }
+        if (firstName) payload.firstName = firstName;
+        if (lastName) payload.lastName = lastName;
         // Handle date conversion
         if (dateOfBirth) {
             payload.dateOfBirth = new Date(dateOfBirth);
         }
 
-        const updatedUser = await this.userRepository.findOne({
-            where: { id, deletedAt: IsNull() },
+        const userToUpdate = await this.userRepository.findOneBy({ id });
+        if (!userToUpdate)
+            throw new NotFoundException('User not found for update.');
+
+        const updatedUserEntity = this.userRepository.merge(
+            userToUpdate,
+            payload,
+        );
+        const savedUser = await this.userRepository.save(updatedUserEntity);
+
+        await this.auditLogsService.create({
+            userId: actorId,
+            action: ActionType.UPDATE,
+            entityType: 'User',
+            entityId: id,
+            oldValues: userBeforeUpdate,
+            newValues: updateUserDto,
         });
 
-        if (!updatedUser) {
-            throw new InternalServerErrorException(
-                'Failed to update user, user not found after update',
-            );
-        }
-
-        // Update user
-        await this.userRepository.save({
-            ...updatedUser,
-            ...payload,
-            updatedAt: new Date(),
-        });
-
-        return this.toUserResponse(updatedUser);
+        return this.toUserResponse(savedUser);
     }
 
     async updateProfile(
@@ -697,11 +717,21 @@ export class UsersService {
         });
     }
 
-    async remove(id: string, deletedByUserId?: string): Promise<void> {
-        const user = await this.findOne(id);
-        if (!user) {
+    async remove(id: string, deletedByUserId: string): Promise<void> {
+        const userToRemove = await this.findOne(id);
+        if (!userToRemove) {
             throw new NotFoundException('User not found');
         }
+
+        // Ghi log hành động
+        await this.auditLogsService.create({
+            userId: deletedByUserId,
+            action: ActionType.DELETE,
+            entityType: 'User',
+            entityId: id,
+            oldValues: userToRemove,
+        });
+
         await this.userRepository.update(id, {
             deletedAt: new Date(),
             deletedByUserId: deletedByUserId,

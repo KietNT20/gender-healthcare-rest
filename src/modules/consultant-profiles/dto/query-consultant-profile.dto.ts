@@ -13,11 +13,19 @@ import { ProfileStatusType, SortOrder } from 'src/enums';
 
 export class FilterConsultantProfileDto {
     @ApiPropertyOptional({
-        description: 'Search by consultant name or specialization',
+        description: 'Search by consultant name',
     })
     @IsOptional()
     @IsString()
     search?: string;
+
+    @ApiPropertyOptional({
+        description:
+            'Lọc theo chuyên môn. Có thể truyền nhiều chuyên môn, phân cách bởi dấu phẩy (e.g., "STIs,Nutrition").',
+    })
+    @IsOptional()
+    @IsString()
+    specialties?: string;
 
     @ApiPropertyOptional({
         enum: ProfileStatusType,
@@ -42,7 +50,13 @@ export class FilterConsultantProfileDto {
 
 export class SortConsultantProfileDto {
     @ApiPropertyOptional({
-        enum: ['rating', 'consultationFee', 'experience', 'createdAt'],
+        enum: [
+            'rating',
+            'consultationFee',
+            'experience',
+            'createdAt',
+            'updatedAt',
+        ],
         default: 'createdAt',
     })
     @IsOptional()

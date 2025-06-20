@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+    IsArray,
     IsEmail,
     IsNotEmpty,
     IsOptional,
@@ -28,10 +29,14 @@ export class RegisterConsultantDataDto {
     @MinLength(8, { message: 'Password must be at least 8 characters long' })
     password: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        description: 'Danh sách các chuyên môn của tư vấn viên',
+        type: [String],
+    })
+    @IsArray()
+    @IsString({ each: true })
     @IsNotEmpty()
-    @IsString()
-    specialization: string;
+    specialties: string[];
 
     @ApiProperty()
     @IsNotEmpty()

@@ -50,7 +50,7 @@ export class ConsultantRegistrationService {
             password,
             firstName,
             lastName,
-            specialization,
+            specialties,
             qualification,
             experience,
             bio,
@@ -96,7 +96,7 @@ export class ConsultantRegistrationService {
             // 2. Create Consultant Profile
             const profile = this.consultantProfileRepository.create({
                 user: savedUser,
-                specialization,
+                specialties,
                 qualification,
                 experience,
                 bio,

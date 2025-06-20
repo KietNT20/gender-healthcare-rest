@@ -109,3 +109,9 @@ export enum MessageType {
     IMAGE = 'image',
     FILE = 'file',
 }
+
+export enum ConsultantSelectionType {
+    MANUAL = 'manual',
+    AUTOMATIC = 'automatic',
+    SERVICE_BOOKING = 'service_booking',
+}

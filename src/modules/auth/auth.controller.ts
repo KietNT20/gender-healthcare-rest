@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpStatus,
     Param,
     Post,
     Put,
@@ -35,11 +36,11 @@ export class AuthController {
     @Post('register')
     @ApiOperation({ summary: 'Register a new user account' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'User registered successfully',
     })
     @ApiResponse({
-        status: 400,
+        status: HttpStatus.BAD_REQUEST,
         description: 'Email already exists or validation failed',
     })
     @ResponseMessage('User registered successfully')
@@ -50,11 +51,11 @@ export class AuthController {
     @Post('login')
     @ApiOperation({ summary: 'Login user and get access tokens' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Login successful',
     })
     @ApiResponse({
-        status: 401,
+        status: HttpStatus.UNAUTHORIZED,
         description: 'Invalid credentials or account locked',
     })
     @ResponseMessage('Login successful')
@@ -70,11 +71,11 @@ export class AuthController {
         type: String,
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Email verified successfully',
     })
     @ApiResponse({
-        status: 400,
+        status: HttpStatus.BAD_REQUEST,
         description: 'Invalid or expired verification token',
     })
     @ResponseMessage('Email verified successfully')
@@ -85,11 +86,11 @@ export class AuthController {
     @Post('resend-verification')
     @ApiOperation({ summary: 'Resend email verification' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Verification email sent',
     })
     @ApiResponse({
-        status: 400,
+        status: HttpStatus.BAD_REQUEST,
         description: 'Email already verified or not found',
     })
     @ResponseMessage('Verification email sent')
@@ -117,7 +118,7 @@ export class AuthController {
         },
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Password reset email sent (or message for security)',
     })
     @ResponseMessage('Password reset instructions sent')
@@ -133,10 +134,13 @@ export class AuthController {
         type: String,
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Password reset successful',
     })
-    @ApiResponse({ status: 400, description: 'Invalid or expired reset token' })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid or expired reset token',
+    })
     @ResponseMessage('Password reset successful')
     async resetPassword(
         @Param('token') token: string,
@@ -149,10 +153,13 @@ export class AuthController {
     @UseGuards(RefreshJwtGuard)
     @ApiOperation({ summary: 'Refresh access token' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Token refreshed successfully',
     })
-    @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Invalid refresh token',
+    })
     @ResponseMessage('Token refreshed successfully')
     async refreshToken(@CurrentUser() user: RefreshTokenDto) {
         return this.authService.refreshToken(user.refreshToken);
@@ -161,7 +168,7 @@ export class AuthController {
     @Post('logout')
     @ApiOperation({ summary: 'Logout user and invalidate refresh token' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Logout successful',
     })
     @ResponseMessage('Logout successful')
@@ -172,10 +179,13 @@ export class AuthController {
     @Get('me')
     @ApiOperation({ summary: 'Get current authenticated user profile' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'User profile retrieved successfully',
     })
-    @ApiResponse({ status: 401, description: 'User not authenticated' })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'User not authenticated',
+    })
     @ResponseMessage('User profile retrieved')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()

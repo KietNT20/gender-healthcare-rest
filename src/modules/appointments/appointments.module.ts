@@ -1,16 +1,27 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppointmentsService } from './appointments.service';
+import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { AppointmentBookingService } from './appointment-booking.service';
+import { AppointmentNotificationService } from './appointment-notification.service';
+import { AppointmentValidationService } from './appointment-validation.service';
 import { AppointmentsController } from './appointments.controller';
+import { AppointmentsService } from './appointments.service';
 import { Appointment } from './entities/appointment.entity';
-import { Payment } from '../payments/entities/payment.entity';
-import { User } from '../users/entities/user.entity';
-import { Service } from '../services/entities/service.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Appointment, Payment, User, Service])],
-  controllers: [AppointmentsController],
-  providers: [AppointmentsService],
-  exports: [AppointmentsService],
+    imports: [
+        TypeOrmModule.forFeature([Appointment]),
+        MailModule,
+        NotificationsModule,
+    ],
+    controllers: [AppointmentsController],
+    providers: [
+        AppointmentsService,
+        AppointmentBookingService,
+        AppointmentValidationService,
+        AppointmentNotificationService,
+    ],
+    exports: [AppointmentsService],
 })
 export class AppointmentsModule {}

@@ -1,0 +1,10 @@
+export enum ActionType {
+    CREATE = 'CREATE',
+    UPDATE = 'UPDATE',
+    DELETE = 'DELETE',
+    LOGIN = 'LOGIN',
+    LOGOUT = 'LOGOUT',
+    CHANGE_PASSWORD = 'CHANGE_PASSWORD',
+    TOGGLE_ACTIVE = 'TOGGLE_ACTIVE',
+    VERIFY_EMAIL = 'VERIFY_EMAIL',
+}

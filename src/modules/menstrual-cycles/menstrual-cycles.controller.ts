@@ -1,16 +1,24 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    Controller,
     Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    UseGuards,
 } from '@nestjs/common';
-import { MenstrualCyclesService } from './menstrual-cycles.service';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { User } from 'src/modules/users/entities/user.entity';
 import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
 import { UpdateMenstrualCycleDto } from './dto/update-menstrual-cycle.dto';
+import { MenstrualCyclesService } from './menstrual-cycles.service';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('menstrual-cycles')
 export class MenstrualCyclesController {
     constructor(
@@ -18,30 +26,48 @@ export class MenstrualCyclesController {
     ) {}
 
     @Post()
-    create(@Body() createMenstrualCycleDto: CreateMenstrualCycleDto) {
-        return this.menstrualCyclesService.create(createMenstrualCycleDto);
+    @ApiOperation({ summary: 'Create a new menstrual cycle' })
+    create(
+        @CurrentUser() user: User,
+        @Body() createMenstrualCycleDto: CreateMenstrualCycleDto,
+    ) {
+        return this.menstrualCyclesService.create(
+            user.id,
+            createMenstrualCycleDto,
+        );
     }
 
     @Get()
-    findAll() {
-        return this.menstrualCyclesService.findAll();
+    @ApiOperation({
+        summary: 'Get the history of menstrual cycles for a user',
+    })
+    findAll(@CurrentUser() user: User) {
+        return this.menstrualCyclesService.findAll(user.id);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.menstrualCyclesService.findOne(+id);
+    @ApiOperation({ summary: 'Get detailed information about a cycle' })
+    findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+        return this.menstrualCyclesService.findOne(id, user.id);
     }
 
     @Patch(':id')
+    @ApiOperation({ summary: 'Update a menstrual cycle' })
     update(
-        @Param('id') id: string,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user: User,
         @Body() updateMenstrualCycleDto: UpdateMenstrualCycleDto,
     ) {
-        return this.menstrualCyclesService.update(+id, updateMenstrualCycleDto);
+        return this.menstrualCyclesService.update(
+            id,
+            user.id,
+            updateMenstrualCycleDto,
+        );
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.menstrualCyclesService.remove(+id);
+    @ApiOperation({ summary: 'Delete a menstrual cycle' })
+    remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+        return this.menstrualCyclesService.remove(id, user.id);
     }
 }

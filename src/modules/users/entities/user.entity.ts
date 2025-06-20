@@ -16,6 +16,7 @@ import { MenstrualPrediction } from 'src/modules/menstrual-predictions/entities/
 import { Notification } from 'src/modules/notifications/entities/notification.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Role } from 'src/modules/roles/entities/role.entity';
+import { StiTestProcess } from 'src/modules/sti-test-processes/entities/sti-test-process.entity';
 import { TestResult } from 'src/modules/test-results/entities/test-result.entity';
 import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
@@ -240,11 +241,13 @@ export class User {
 
     // Notification relations
     @OneToMany(() => Notification, (notification) => notification.user)
-    notifications: Notification[];
-
-    // Test result relations
+    notifications: Notification[]; // Test result relations
     @OneToMany(() => TestResult, (testResult) => testResult.user)
     testResults: TestResult[];
+
+    // STI Test Process relations
+    @OneToMany(() => StiTestProcess, (stiTestProcess) => stiTestProcess.patient)
+    stiTestProcesses: StiTestProcess[];
 
     // Document & Image relations
     @OneToMany(() => Document, (document) => document.user)

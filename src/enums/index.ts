@@ -1,7 +1,6 @@
 export enum GenderType {
     MALE = 'M',
     FEMALE = 'F',
-    OTHER = 'O',
 }
 
 export enum RolesNameEnum {
@@ -63,6 +62,8 @@ export enum ProfileStatusType {
     ON_LEAVE = 'on_leave',
     TRAINING = 'training',
     INACTIVE = 'inactive',
+    PENDING_APPROVAL = 'pending_approval',
+    REJECTED = 'rejected',
 }
 
 export enum QuestionStatusType {
@@ -107,4 +108,10 @@ export enum MessageType {
     TEXT = 'text',
     IMAGE = 'image',
     FILE = 'file',
+}
+
+export enum ConsultantSelectionType {
+    MANUAL = 'manual',
+    AUTOMATIC = 'automatic',
+    SERVICE_BOOKING = 'service_booking',
 }

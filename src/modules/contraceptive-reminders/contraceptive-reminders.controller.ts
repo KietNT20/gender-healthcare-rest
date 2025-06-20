@@ -1,16 +1,27 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    Controller,
     Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Post,
+    Put,
+    UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
+import { NoFilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../users/entities/user.entity';
 import { ContraceptiveRemindersService } from './contraceptive-reminders.service';
 import { CreateContraceptiveReminderDto } from './dto/create-contraceptive-reminder.dto';
 import { UpdateContraceptiveReminderDto } from './dto/update-contraceptive-reminder.dto';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('contraceptive-reminders')
 export class ContraceptiveRemindersController {
     constructor(
@@ -18,37 +29,54 @@ export class ContraceptiveRemindersController {
     ) {}
 
     @Post()
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
+    @ApiOperation({ summary: 'Create a new contraceptive reminder' })
     create(
-        @Body() createContraceptiveReminderDto: CreateContraceptiveReminderDto,
+        @CurrentUser() user: User,
+        @Body() createDto: CreateContraceptiveReminderDto,
     ) {
-        return this.contraceptiveRemindersService.create(
-            createContraceptiveReminderDto,
-        );
+        return this.contraceptiveRemindersService.create(user.id, createDto);
     }
 
     @Get()
-    findAll() {
-        return this.contraceptiveRemindersService.findAll();
+    @ApiOperation({
+        summary: 'Get all contraceptive reminders for the current user',
+    })
+    findAll(@CurrentUser() user: User) {
+        return this.contraceptiveRemindersService.findAll(user.id);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.contraceptiveRemindersService.findOne(+id);
+    @ApiOperation({
+        summary: 'Get details of a specific contraceptive reminder',
+    })
+    findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+        return this.contraceptiveRemindersService.findOne(id, user.id);
     }
 
-    @Patch(':id')
+    @Put(':id')
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
+    @ApiOperation({ summary: 'Update a contraceptive reminder' })
     update(
-        @Param('id') id: string,
-        @Body() updateContraceptiveReminderDto: UpdateContraceptiveReminderDto,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user: User,
+        @Body() updateDto: UpdateContraceptiveReminderDto,
     ) {
         return this.contraceptiveRemindersService.update(
-            +id,
-            updateContraceptiveReminderDto,
+            id,
+            user.id,
+            updateDto,
         );
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.contraceptiveRemindersService.remove(+id);
+    @ApiOperation({
+        summary: 'Delete a contraceptive reminder ( Soft delete )',
+    })
+    @ResponseMessage('Delete contraceptive reminder successfully.')
+    remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+        return this.contraceptiveRemindersService.remove(id, user.id);
     }
 }

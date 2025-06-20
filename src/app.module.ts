@@ -40,6 +40,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
+import { StiTestProcessesModule } from './modules/sti-test-processes/sti-test-processes.module';
 import { SymptomsModule } from './modules/symptoms/symptoms.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
@@ -79,7 +80,7 @@ import { UsersModule } from './modules/users/users.module';
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                logging: true,
+                // logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,
@@ -133,6 +134,7 @@ import { UsersModule } from './modules/users/users.module';
         RolesModule,
         ServicePackagesModule,
         ServicesModule,
+        StiTestProcessesModule,
         SymptomsModule,
         TestResultsModule,
         UserPackageSubscriptionsModule,

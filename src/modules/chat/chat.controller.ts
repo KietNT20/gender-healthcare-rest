@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -38,7 +39,10 @@ export class ChatController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
     @ApiOperation({ summary: 'Create a new question' })
-    @ApiResponse({ status: 201, description: 'Question created successfully.' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Question created successfully.',
+    })
     async createQuestion(
         @Body() createQuestionDto: CreateQuestionDto,
         @Req() req: Request,
@@ -57,9 +61,15 @@ export class ChatController {
 
     @Post('questions/:questionId/messages')
     @ApiOperation({ summary: 'Send a text message to a question chat' })
-    @ApiResponse({ status: 201, description: 'Message sent successfully' })
-    @ApiResponse({ status: 403, description: 'Access denied' })
-    @ApiResponse({ status: 404, description: 'Question not found' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Message sent successfully',
+    })
+    @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Access denied' })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Question not found',
+    })
     async sendMessage(
         @Param('questionId') questionId: string,
         @Body() createMessageDto: CreateChatDto,
@@ -134,7 +144,7 @@ export class ChatController {
     @Get('questions/:questionId/messages')
     @ApiOperation({ summary: 'Get message history for a question' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Messages retrieved successfully',
     })
     async getMessages(
@@ -172,7 +182,10 @@ export class ChatController {
 
     @Patch('messages/:messageId/read')
     @ApiOperation({ summary: 'Mark message as read' })
-    @ApiResponse({ status: 200, description: 'Message marked as read' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Message marked as read',
+    })
     async markMessageAsRead(
         @Param('messageId') messageId: string,
         @Req() req: Request,
@@ -189,7 +202,10 @@ export class ChatController {
 
     @Patch('questions/:questionId/messages/read-all')
     @ApiOperation({ summary: 'Mark all messages in a question as read' })
-    @ApiResponse({ status: 200, description: 'All messages marked as read' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'All messages marked as read',
+    })
     async markAllMessagesAsRead(
         @Param('questionId') questionId: string,
         @Req() req: Request,
@@ -206,9 +222,18 @@ export class ChatController {
 
     @Delete('messages/:messageId')
     @ApiOperation({ summary: 'Delete a message (soft delete)' })
-    @ApiResponse({ status: 200, description: 'Message deleted successfully' })
-    @ApiResponse({ status: 403, description: 'Cannot delete this message' })
-    @ApiResponse({ status: 404, description: 'Message not found' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Message deleted successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Cannot delete this message',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Message not found',
+    })
     async deleteMessage(
         @Param('messageId') messageId: string,
         @Req() req: Request,
@@ -225,7 +250,10 @@ export class ChatController {
 
     @Get('questions/:questionId/summary')
     @ApiOperation({ summary: 'Get question chat summary with last message' })
-    @ApiResponse({ status: 200, description: 'Summary retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Summary retrieved successfully',
+    })
     async getQuestionSummary(
         @Param('questionId') questionId: string,
         @Req() req: Request,
@@ -253,7 +281,7 @@ export class ChatController {
     @Get('messages/unread-count')
     @ApiOperation({ summary: 'Get unread message count for current user' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Unread count retrieved successfully',
     })
     async getUnreadCount(@Req() req: Request) {
@@ -270,10 +298,13 @@ export class ChatController {
     @Get('messages/:messageId/file')
     @ApiOperation({ summary: 'Download file from message' })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'File URL retrieved successfully',
     })
-    @ApiResponse({ status: 404, description: 'File not found' })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'File not found',
+    })
     async getMessageFile(
         @Param('messageId') messageId: string,
         @Req() req: Request,

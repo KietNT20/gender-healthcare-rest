@@ -254,6 +254,126 @@ export class MailService {
         }
     }
 
+    /**
+     * Gửi email thông báo khi hồ sơ tư vấn viên được CHẤP THUẬN.
+     * @param email Email của tư vấn viên
+     * @param userName Tên của tư vấn viên
+     */
+    async sendConsultantApprovalEmail(
+        email: string,
+        userName: string,
+    ): Promise<void> {
+        const loginUrl = `${this.configService.get('FRONTEND_URL')}/login`;
+
+        try {
+            await this.mailerService.sendMail({
+                to: email,
+                subject: 'Hồ sơ tư vấn viên của bạn đã được duyệt',
+                template: './consultant-approved',
+                context: {
+                    userName,
+                    loginUrl,
+                    appName: 'Dịch vụ Y tế Giới tính',
+                },
+            });
+            this.logger.log(`Consultant approval email sent to ${email}`);
+        } catch (error) {
+            this.logger.error(
+                `Failed to send consultant approval email to ${email}`,
+                error.stack,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Gửi email thông báo khi hồ sơ tư vấn viên bị TỪ CHỐI.
+     * @param email Email của tư vấn viên
+     * @param userName Tên của tư vấn viên
+     * @param reason Lý do bị từ chối
+     */
+    async sendConsultantRejectionEmail(
+        email: string,
+        userName: string,
+        reason: string,
+    ): Promise<void> {
+        const supportEmail = this.configService.get('MAIL_FROM');
+
+        try {
+            await this.mailerService.sendMail({
+                to: email,
+                subject: 'Cập nhật về hồ sơ tư vấn viên của bạn',
+                template: './consultant-rejected',
+                context: {
+                    userName,
+                    reason,
+                    supportEmail,
+                    appName: 'Dịch vụ Y tế Giới tính',
+                },
+            });
+            this.logger.log(`Consultant rejection email sent to ${email}`);
+        } catch (error) {
+            this.logger.error(
+                `Failed to send consultant rejection email to ${email}`,
+                error.stack,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Gửi email cho Admin/Manager khi có hồ sơ mới cần duyệt
+     * @param adminEmail Email của admin/manager
+     * @param adminName Tên của admin/manager
+     * @param consultantName Tên của tư vấn viên mới
+     * @param reviewUrl URL để xem và duyệt hồ sơ
+     */
+    async sendNewProfilePendingReviewEmail(
+        adminEmail: string,
+        adminName: string,
+        consultantName: string,
+        reviewUrl: string,
+    ): Promise<void> {
+        try {
+            await this.mailerService.sendMail({
+                to: adminEmail,
+                subject: `[Thông báo] Có hồ sơ tư vấn viên mới cần duyệt`,
+                template: './new-profile-review',
+                context: {
+                    adminName,
+                    consultantName,
+                    reviewUrl,
+                    appName: 'Dịch vụ Y tế Giới tính',
+                },
+            });
+            this.logger.log(
+                `New profile review notification sent to ${adminEmail}`,
+            );
+        } catch (error) {
+            this.logger.error(
+                `Failed to send new profile review email to ${adminEmail}`,
+                error.stack,
+            );
+        }
+    }
+
+    async sendAppointmentCancellation(
+        email: string,
+        context: {
+            recipientName: string;
+            appointmentTime: string;
+            cancellerName: string;
+            cancellationReason: string;
+        },
+    ): Promise<void> {
+        await this.sendEmail(
+            email,
+            'Thông báo: Lịch hẹn đã bị hủy',
+            './appointment-cancellation',
+            context,
+        );
+    }
+
     // Generic method to send custom emails
     async sendEmail(
         to: string,

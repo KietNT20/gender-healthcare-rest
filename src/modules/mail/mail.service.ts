@@ -357,6 +357,23 @@ export class MailService {
         }
     }
 
+    async sendAppointmentCancellation(
+        email: string,
+        context: {
+            recipientName: string;
+            appointmentTime: string;
+            cancellerName: string;
+            cancellationReason: string;
+        },
+    ): Promise<void> {
+        await this.sendEmail(
+            email,
+            'Thông báo: Lịch hẹn đã bị hủy',
+            './appointment-cancellation',
+            context,
+        );
+    }
+
     // Generic method to send custom emails
     async sendEmail(
         to: string,

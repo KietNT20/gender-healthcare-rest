@@ -18,10 +18,14 @@ export class CreateConsultantProfileDto {
     @IsNotEmpty()
     userId: string;
 
-    @ApiProperty({ description: 'Specialization of the consultant.' })
-    @IsString()
+    @ApiProperty({
+        description: 'Danh sách các chuyên môn của tư vấn viên',
+        type: [String],
+    })
+    @IsArray()
+    @IsString({ each: true })
     @IsNotEmpty()
-    specialization: string;
+    specialties: string[];
 
     @ApiProperty({
         description: 'Qualification of the consultant.',

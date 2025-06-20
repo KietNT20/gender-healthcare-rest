@@ -22,9 +22,13 @@ export class ConsultantProfile {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 1024 })
-    @Index()
-    specialization: string;
+    @Column({
+        type: 'varchar',
+        array: true,
+        nullable: true,
+        default: () => "'{}'",
+    })
+    specialties: string[];
 
     @Column({ type: 'text' })
     qualification: string;

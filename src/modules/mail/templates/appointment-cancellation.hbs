@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo Hủy Lịch Hẹn</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #d9534f;
+            border-bottom: 2px solid #eeeeee;
+            padding-bottom: 10px;
+        }
+
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #d9534f;
+            margin: 20px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #777;
+            text-align: center;
+        }
+
+        strong {
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Lịch hẹn của bạn đã bị hủy</h1>
+        <p>Chào {{recipientName}},</p>
+        <p>Chúng tôi rất tiếc phải thông báo rằng lịch hẹn của bạn vào lúc <strong>{{appointmentTime}}</strong> đã bị
+            hủy.</p>
+        <div class="details">
+            <p><strong>Người hủy:</strong> {{cancellerName}}</p>
+            <p><strong>Lý do:</strong> {{cancellationReason}}</p>
+        </div>
+        <p>Nếu bạn có bất kỳ câu hỏi nào hoặc muốn đặt lại lịch hẹn, vui lòng liên hệ với chúng tôi qua email hoặc truy
+            cập trang web của chúng tôi.</p>
+        <p class="footer">Trân trọng,<br>Đội ngũ {{appName}}</p>
+    </div>
+</body>
+
+</html>

@@ -1,4 +1,8 @@
-import { AppointmentStatusType, LocationTypeEnum } from 'src/enums';
+import {
+    AppointmentStatusType,
+    ConsultantSelectionType,
+    LocationTypeEnum,
+} from 'src/enums';
 import { Question } from 'src/modules/chat/entities/question.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
@@ -14,6 +18,7 @@ import {
     Entity,
     Index,
     JoinColumn,
+    JoinTable,
     ManyToMany,
     ManyToOne,
     OneToMany,
@@ -70,10 +75,11 @@ export class Appointment {
     fixedPrice: number;
 
     @Column({
-        length: 20,
-        default: 'system',
+        type: 'enum',
+        enum: ConsultantSelectionType,
+        default: ConsultantSelectionType.MANUAL,
     })
-    consultantSelectionType: string;
+    consultantSelectionType: ConsultantSelectionType;
 
     @Column({
         type: 'enum',
@@ -82,6 +88,9 @@ export class Appointment {
     })
     @Index()
     appointmentLocation: LocationTypeEnum;
+
+    @Column({ type: 'text', nullable: true })
+    cancellationReason?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -94,17 +103,23 @@ export class Appointment {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.appointments)
+    @ManyToOne(() => User, (user) => user.appointments, { onDelete: 'CASCADE' })
     user: User;
 
-    @ManyToOne(() => User, (user) => user.consultantAppointments)
-    consultant: User;
+    @ManyToOne(() => User, { nullable: true })
+    cancelledBy?: User;
+
+    @ManyToOne(() => User, (user) => user.consultantAppointments, {
+        nullable: true,
+    })
+    consultant?: User;
 
     @ManyToOne(
         () => ConsultantAvailability,
         (consultantAvailability) => consultantAvailability.appointments,
+        { nullable: true },
     )
-    consultantAvailability: ConsultantAvailability;
+    consultantAvailability?: ConsultantAvailability;
 
     @OneToMany(() => Payment, (payment) => payment.appointment)
     payments: Payment[];
@@ -118,7 +133,8 @@ export class Appointment {
     @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
     packageServiceUsages: PackageServiceUsage[];
 
-    @ManyToMany(() => Service)
+    @ManyToMany(() => Service, (service) => service.appointments)
+    @JoinTable()
     services: Service[];
 
     @OneToOne(() => Question, (question) => question.appointment, {

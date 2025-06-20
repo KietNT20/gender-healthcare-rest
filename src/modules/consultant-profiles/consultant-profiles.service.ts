@@ -69,6 +69,7 @@ export class ConsultantProfilesService {
             status,
             isAvailable,
             minRating,
+            specialties,
             sortBy,
             sortOrder,
         } = queryDto;
@@ -101,6 +102,20 @@ export class ConsultantProfilesService {
             queryBuilder.andWhere('profile.rating >= :minRating', {
                 minRating,
             });
+        }
+
+        if (specialties) {
+            const specialtiesArray = specialties
+                .split(',')
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0);
+
+            if (specialtiesArray.length > 0) {
+                queryBuilder.andWhere(
+                    'profile.specialties && ARRAY[:...specialtiesArray]',
+                    { specialtiesArray },
+                );
+            }
         }
 
         const validSortFields = ['rating', 'consultationFee', 'createdAt'];

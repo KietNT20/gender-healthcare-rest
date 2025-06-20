@@ -18,35 +18,21 @@ export class ServicePackagesService {
   ) {}
 
   async create(createDto: CreateServicePackageDto) {
-    const { name, services, ...packageData } = createDto;
+  const { name, ...packageData } = createDto;
 
-    const slug = slugify(name, { lower: true, strict: true });
-    const existingPackage = await this.packageRepository.findOne({ where: { slug, deletedAt: IsNull() } });
-    if (existingPackage) {
-      throw new NotFoundException(`Package with name '${name}' already exists`);
-    }
-
-    const packageEntity = this.packageRepository.create({
-      ...packageData,
-      name,
-      slug,
-      isActive: createDto.isActive ?? true,
-    });
-
-    const savedPackage = await this.packageRepository.save(packageEntity);
-
-    if (services && services.length > 0) {
-      const packageServices = services.map(serviceId => this.packageServiceRepository.create({
-        package: { id: savedPackage.id },
-        service: { id: serviceId },
-        quantityLimit: 10,
-        discountPercentage: 0,
-      }));
-      await this.packageServiceRepository.save(packageServices);
-    }
-
-    return savedPackage;
+  const slug = slugify(name, { lower: true, strict: true });
+  const existingPackage = await this.packageRepository.findOne({ where: { slug, deletedAt: IsNull() } });
+  if (existingPackage) {
+    throw new NotFoundException(`Package with name '${name}' already exists`);
   }
+
+  const packageEntity = this.packageRepository.create({
+    ...packageData,
+    name,
+    slug,
+    isActive: createDto.isActive ?? true,
+  });
+}
 
   async findAll() {
     return this.packageRepository.find({

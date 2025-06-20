@@ -25,9 +25,4 @@ export class CreateServicePackageDto {
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ description: 'List of service IDs', example: ['550e8400-e29b-41d4-a716-446655440003'], required: false })
-  @IsArray()
-  @IsUUID('all', { each: true })
-  @IsOptional()
-  services?: string[];
 }

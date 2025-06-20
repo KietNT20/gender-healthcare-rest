@@ -1,25 +1,14 @@
-import { Service } from 'src/modules/services/entities/service.entity';
-import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Service } from '../../services/entities/service.entity';
+import { ServicePackage } from '../../service-packages/entities/service-package.entity';
 
 @Entity()
 export class PackageService {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
-  quantityLimit?: number;
-
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  discountPercentage?: number;
+  @Column({ type: 'integer', default: 1 })
+  quantity: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -27,11 +16,11 @@ export class PackageService {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
+  @DeleteDateColumn({ nullable: true }) // Thêm DeleteDateColumn để hỗ trợ soft delete
   deletedAt?: Date;
 
   // Relations
-  @ManyToOne(() => ServicePackage, (servicePackage) => servicePackage.packageServices) // Thay 'package' bằng 'servicePackage'
+  @ManyToOne(() => ServicePackage, (servicePackage) => servicePackage.packageServices)
   package: ServicePackage;
 
   @ManyToOne(() => Service, (service) => service.packageServices)

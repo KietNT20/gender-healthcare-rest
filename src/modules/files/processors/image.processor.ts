@@ -1,5 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import {
+    BadRequestException,
+    Logger,
+    NotFoundException,
+    PayloadTooLargeException,
+    UnsupportedMediaTypeException,
+} from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as sharp from 'sharp';
 import { AwsS3Service, FileMetadata } from '../aws-s3.service';
@@ -144,7 +150,9 @@ export class ImageProcessor extends WorkerHost {
             // 1. Check if the original file exists in S3.
             const fileExists = await this.s3Service.fileExists(originalKey);
             if (!fileExists) {
-                throw new Error(`Original file not found: ${originalKey}`);
+                throw new NotFoundException(
+                    `Original file not found: ${originalKey}`,
+                );
             }
 
             // 2. Get and validate S3 file metadata (e.g., size, content-type).
@@ -513,7 +521,7 @@ export class ImageProcessor extends WorkerHost {
         // Check file size (max 20MB for processing).
         const maxSize = 20 * 1024 * 1024; // 20 MB
         if (fileMetadata.size > maxSize) {
-            throw new Error(
+            throw new PayloadTooLargeException(
                 `File too large: ${this.formatBytes(fileMetadata.size)} (max: ${this.formatBytes(maxSize)})`,
             );
         }
@@ -523,7 +531,7 @@ export class ImageProcessor extends WorkerHost {
             !fileMetadata.contentType ||
             !fileMetadata.contentType.startsWith('image/')
         ) {
-            throw new Error(
+            throw new BadRequestException(
                 `Invalid or missing file type: ${fileMetadata.contentType}`,
             );
         }
@@ -542,16 +550,18 @@ export class ImageProcessor extends WorkerHost {
                 metadata.format.toLowerCase(),
             )
         ) {
-            throw new Error(`Unsupported image format: ${metadata.format}`);
+            throw new UnsupportedMediaTypeException(
+                `Unsupported image format: ${metadata.format}`,
+            );
         }
 
         if (!metadata.width || !metadata.height) {
-            throw new Error('Invalid image dimensions');
+            throw new BadRequestException('Invalid image dimensions');
         }
 
         // Check minimum dimensions.
         if (metadata.width < 10 || metadata.height < 10) {
-            throw new Error(
+            throw new BadRequestException(
                 `Image too small: ${metadata.width}x${metadata.height} (minimum: 10x10)`,
             );
         }
@@ -559,7 +569,7 @@ export class ImageProcessor extends WorkerHost {
         // Check maximum dimensions to prevent processing excessively large images (e.g., pixel bombs).
         const maxDimension = 10000;
         if (metadata.width > maxDimension || metadata.height > maxDimension) {
-            throw new Error(
+            throw new PayloadTooLargeException(
                 `Image too large: ${metadata.width}x${metadata.height} (maximum: ${maxDimension}x${maxDimension})`,
             );
         }

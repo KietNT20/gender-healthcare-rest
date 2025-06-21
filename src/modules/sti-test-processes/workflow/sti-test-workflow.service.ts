@@ -228,7 +228,7 @@ export class StiTestWorkflowService {
 
         // Kiểm tra xem có thể chuyển đổi không
         if (!this.canTransitionTo(currentProcess.status, newStatus)) {
-            throw new Error(
+            throw new BadRequestException(
                 `Không thể chuyển từ trạng thái "${currentProcess.status}" sang "${newStatus}"`,
             );
         }

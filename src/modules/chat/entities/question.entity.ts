@@ -1,6 +1,5 @@
 import { QuestionStatusType } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
-import { Category } from 'src/modules/categories/entities/category.entity';
 import { Message } from 'src/modules/chat/entities/message.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -50,9 +49,6 @@ export class Question {
     // Relations
     @ManyToOne(() => User, (user) => user.questions)
     user: User;
-
-    @ManyToOne(() => Category, (category) => category.questions)
-    category: Category;
 
     @OneToMany(() => Message, (message) => message.question)
     messages: Message[];

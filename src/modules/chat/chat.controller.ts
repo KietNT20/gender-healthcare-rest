@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Delete,
+    ForbiddenException,
     Get,
     HttpStatus,
     Param,
@@ -160,7 +161,7 @@ export class ChatController {
             userId,
         );
         if (!hasAccess) {
-            throw new Error('Access denied to this question');
+            throw new ForbiddenException('Truy cập bị từ chối vào câu hỏi này');
         }
 
         const messages = await this.chatService.getMessageHistory(
@@ -266,7 +267,7 @@ export class ChatController {
             userId,
         );
         if (!hasAccess) {
-            throw new Error('Access denied to this question');
+            throw new ForbiddenException('Truy cập bị từ chối vào câu hỏi này');
         }
 
         const summary =
@@ -319,6 +320,27 @@ export class ChatController {
         return {
             success: true,
             data: { fileUrl },
+        };
+    }
+
+    @Get('questions')
+    @ApiOperation({
+        summary: 'Get questions that the current user has access to',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Questions retrieved successfully',
+    })
+    async getUserQuestions(@Req() req: Request) {
+        const userId = (req as any).user?.id;
+
+        const questions =
+            await this.chatService.getUserAccessibleQuestions(userId);
+
+        return {
+            success: true,
+            data: questions,
+            message: 'Questions retrieved successfully',
         };
     }
 }

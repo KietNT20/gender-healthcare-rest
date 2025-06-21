@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileStatusType } from 'src/enums';
@@ -141,13 +141,13 @@ export class ConsultantScheduleCronService {
             });
 
             if (!profile) {
-                throw new Error(
+                throw new NotFoundException(
                     `Không tìm thấy consultant với ID: ${consultantId}`,
                 );
             }
 
             if (!profile.workingHours) {
-                throw new Error(
+                throw new NotFoundException(
                     `Consultant ${consultantId} chưa thiết lập workingHours`,
                 );
             }

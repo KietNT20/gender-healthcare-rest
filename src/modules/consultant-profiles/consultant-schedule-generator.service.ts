@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ConsultantAvailability } from '../consultant-availability/entities/consultant-availability.entity';
@@ -27,7 +27,9 @@ export class ConsultantScheduleGeneratorService {
         weeksToGenerate: number = 4,
     ): Promise<ConsultantAvailability[]> {
         if (!consultantProfile.workingHours) {
-            throw new Error('Consultant chưa thiết lập workingHours');
+            throw new BadRequestException(
+                'Tư vấn viên chưa thiết lập giờ làm việc',
+            );
         }
 
         const workingHours = consultantProfile.workingHours;

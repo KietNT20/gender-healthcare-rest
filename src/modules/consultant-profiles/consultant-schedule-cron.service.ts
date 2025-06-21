@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ProfileStatusType } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
 import { ConsultantScheduleGeneratorService } from './consultant-schedule-generator.service';
 import { ConsultantProfile } from './entities/consultant-profile.entity';
@@ -28,7 +29,7 @@ export class ConsultantScheduleCronService {
             // Lấy tất cả consultant profile đang active và có workingHours
             const activeProfiles = await this.profileRepository.find({
                 where: {
-                    profileStatus: 'ACTIVE' as any,
+                    profileStatus: ProfileStatusType.ACTIVE,
                     isAvailable: true,
                     deletedAt: IsNull(),
                 },

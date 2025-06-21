@@ -29,6 +29,7 @@ import { User } from 'src/modules/users/entities/user.entity';
 import { ConsultantProfilesService } from './consultant-profiles.service';
 import { ConsultantRegistrationService } from './consultant-registration/consultant-registration.service';
 import { CreateConsultantProfileDto } from './dto/create-consultant-profile.dto';
+import { GenerateScheduleDto } from './dto/generate-schedule.dto';
 import { QueryConsultantProfileDto } from './dto/query-consultant-profile.dto';
 import {
     RegisterConsultantDataDto,
@@ -36,6 +37,7 @@ import {
 } from './dto/register-consultant.dto';
 import { RejectProfileDto } from './dto/review-profile.dto';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
+import { UpdateWorkingHoursDto } from './dto/update-working-hours.dto';
 
 @Controller('consultant-profiles')
 export class ConsultantProfilesController {
@@ -156,5 +158,74 @@ export class ConsultantProfilesController {
             rejectDto,
             admin.id,
         );
+    }
+
+    @Patch(':id/working-hours')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Update working hours and auto-generate availability schedule',
+        description:
+            'Update working hours for a consultant and automatically generate their availability schedule for the next 4 weeks.',
+    })
+    @ResponseMessage(
+        'Working hours updated and schedule generated successfully.',
+    )
+    updateWorkingHours(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateDto: UpdateWorkingHoursDto,
+    ) {
+        return this.consultantProfilesService.updateWorkingHoursAndGenerateSchedule(
+            id,
+            updateDto.workingHours,
+            updateDto.weeksToGenerate,
+        );
+    }
+
+    @Post(':id/generate-schedule')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Generate availability schedule from working hours',
+        description:
+            'Generate availability schedule from the pre-defined working hours',
+    })
+    @ResponseMessage('Schedule generated successfully.')
+    generateSchedule(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() generateDto: GenerateScheduleDto,
+    ) {
+        return this.consultantProfilesService.generateScheduleFromWorkingHours(
+            id,
+            generateDto.weeksToGenerate,
+        );
+    }
+
+    @Post(':id/ensure-upcoming-schedule')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Ensure upcoming weeks have availability schedule',
+        description:
+            'Ensure there is always an availability schedule for the upcoming weeks',
+    })
+    @ResponseMessage('Upcoming schedule ensured successfully.')
+    ensureUpcomingSchedule(@Param('id', ParseUUIDPipe) id: string) {
+        return this.consultantProfilesService.ensureUpcomingSchedule(id);
     }
 }

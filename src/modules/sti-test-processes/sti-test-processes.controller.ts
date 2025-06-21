@@ -178,6 +178,7 @@ export class StiTestProcessesController {
         description: 'List of workflow steps',
     })
     @ResponseMessage('Get workflow steps successfully')
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     getWorkflowSteps() {
         return this.stiTestWorkflowService.getFullWorkflow();
@@ -191,6 +192,7 @@ export class StiTestProcessesController {
         description: 'List of next steps',
     })
     @ResponseMessage('Get next steps successfully')
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     getNextSteps(@Param('status') status: StiTestProcessStatus) {
         return this.stiTestWorkflowService.getNextSteps(status);
@@ -205,6 +207,7 @@ export class StiTestProcessesController {
         type: StiTestProcessResponseDto,
     })
     @ResponseMessage('Status transitioned successfully')
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     transitionStatus(
         @Param('id', ParseUUIDPipe) id: string,
@@ -225,6 +228,7 @@ export class StiTestProcessesController {
         description: 'STI test process deleted successfully',
     })
     @ResponseMessage('STI test process deleted successfully')
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         return this.stiTestProcessesService.remove(id);

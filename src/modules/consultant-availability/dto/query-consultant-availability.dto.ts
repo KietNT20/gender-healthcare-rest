@@ -61,8 +61,9 @@ class Sorting {
     sortOrder: SortOrder = SortOrder.ASC;
 }
 
+export class FiltersAndSorting extends IntersectionType(Filters, Sorting) {}
+
 export class QueryConsultantAvailabilityDto extends IntersectionType(
     PaginationDto,
-    Filters,
-    Sorting,
+    FiltersAndSorting,
 ) {}

@@ -69,8 +69,12 @@ export class SortConsultantProfileDto {
     sortOrder: SortOrder = SortOrder.DESC;
 }
 
-export class QueryConsultantProfileDto extends IntersectionType(
-    PaginationDto,
+export class FilterAndSortConsultantProfileDto extends IntersectionType(
     FilterConsultantProfileDto,
     SortConsultantProfileDto,
+) {}
+
+export class QueryConsultantProfileDto extends IntersectionType(
+    PaginationDto,
+    FilterAndSortConsultantProfileDto,
 ) {}

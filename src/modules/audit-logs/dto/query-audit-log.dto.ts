@@ -62,10 +62,10 @@ class AuditLogSorting {
     sortOrder?: SortOrder = SortOrder.DESC;
 }
 
-const AuditLogFiltersAndSorting = IntersectionType(
+export class AuditLogFiltersAndSorting extends IntersectionType(
     AuditLogFilters,
     AuditLogSorting,
-);
+) {}
 
 export class QueryAuditLogDto extends IntersectionType(
     PaginationDto,

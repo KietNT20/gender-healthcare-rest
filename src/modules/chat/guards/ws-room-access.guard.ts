@@ -1,9 +1,16 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    Logger,
+} from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { ChatService } from '../chat.service';
 
 @Injectable()
 export class WsRoomAccessGuard implements CanActivate {
+    private readonly logger = new Logger(WsRoomAccessGuard.name);
+
     constructor(private readonly chatService: ChatService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -28,19 +35,34 @@ export class WsRoomAccessGuard implements CanActivate {
             );
 
             if (!hasAccess) {
+                this.logger.warn(
+                    `Access denied: User ${client.user.id} (${client.user.role?.name}) attempted to access question ${data.questionId}`,
+                );
+
                 throw new WsException({
                     success: false,
-                    message: 'Access denied to this question',
+                    message:
+                        'Access denied to this question. Only the customer and assigned consultant can access this chat room.',
                     questionId: data.questionId,
+                    code: 'ACCESS_DENIED',
                 });
             }
 
+            this.logger.log(
+                `Access granted: User ${client.user.id} (${client.user.role?.name}) accessing question ${data.questionId}`,
+            );
+
             return true;
         } catch (error) {
+            this.logger.error(
+                `Access verification failed for user ${client.user.id} on question ${data.questionId}: ${error.message}`,
+            );
+
             throw new WsException({
                 success: false,
                 message: error.message || 'Access verification failed',
                 questionId: data.questionId,
+                code: 'VERIFICATION_FAILED',
             });
         }
     }

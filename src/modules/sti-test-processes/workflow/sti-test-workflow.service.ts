@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ValidationDataDto } from '../dto/validation-data.dto';
 import { StiTestProcessStatus } from '../entities/sti-test-process.entity';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
@@ -213,15 +214,13 @@ export class StiTestWorkflowService {
         return currentStep.nextSteps
             .map((status) => this.workflow.get(status))
             .filter((step): step is WorkflowStep => step !== undefined);
-    }
-
-    /**
+    } /**
      * Chuyển đổi trạng thái với kiểm tra workflow
      */
     async transitionStatus(
         processId: string,
         newStatus: StiTestProcessStatus,
-        validationData?: any,
+        validationData?: ValidationDataDto,
     ): Promise<any> {
         // Lấy thông tin process hiện tại
         const currentProcess =
@@ -246,57 +245,249 @@ export class StiTestWorkflowService {
             processId,
             newStatus,
         );
-    }
-
-    /**
+    } /**
      * Validation cho việc chuyển đổi trạng thái
      */
     private async validateTransition(
         currentStatus: StiTestProcessStatus,
         newStatus: StiTestProcessStatus,
-        validationData?: any,
+        validationData?: ValidationDataDto,
     ): Promise<void> {
         const targetStep = this.workflow.get(newStatus);
         if (!targetStep) return;
 
-        // Validation tùy theo từng bước
+        // Kiểm tra xem có thể chuyển đổi từ trạng thái hiện tại không
+        if (!this.canTransitionTo(currentStatus, newStatus)) {
+            throw new BadRequestException(
+                `Không thể chuyển từ trạng thái "${currentStatus}" sang "${newStatus}"`,
+            );
+        } // Validation tùy theo từng bước
         switch (newStatus) {
             case StiTestProcessStatus.SAMPLE_COLLECTION_SCHEDULED:
-                if (!validationData?.appointmentId) {
-                    throw new Error('Cần có ID cuộc hẹn để lên lịch lấy mẫu');
-                }
+                this.validateSampleCollectionScheduled(validationData);
                 break;
 
             case StiTestProcessStatus.SAMPLE_COLLECTED:
-                if (!validationData?.sampleCollectedBy) {
-                    throw new Error('Cần thông tin người lấy mẫu');
-                }
-                if (!validationData?.sampleCollectionDate) {
-                    throw new Error('Cần thời gian lấy mẫu');
-                }
+                this.validateSampleCollected(validationData);
                 break;
 
             case StiTestProcessStatus.PROCESSING:
-                if (!validationData?.labProcessedBy) {
-                    throw new Error('Cần thông tin lab xử lý');
-                }
+                this.validateProcessing(validationData);
                 break;
 
             case StiTestProcessStatus.RESULT_READY:
-                if (!validationData?.testResultId) {
-                    throw new Error('Cần có kết quả xét nghiệm');
-                }
+                this.validateResultReady(validationData);
+                break;
+
+            case StiTestProcessStatus.RESULT_DELIVERED:
+                this.validateResultDelivered(validationData);
                 break;
 
             case StiTestProcessStatus.CONSULTATION_REQUIRED:
-                if (!validationData?.consultantDoctorId) {
-                    throw new Error('Cần chỉ định bác sĩ tư vấn');
-                }
+                this.validateConsultationRequired(validationData);
+                break;
+
+            case StiTestProcessStatus.FOLLOW_UP_SCHEDULED:
+                this.validateFollowUpScheduled(validationData);
+                break;
+
+            case StiTestProcessStatus.CANCELLED:
+                this.validateCancelled(validationData);
                 break;
 
             default:
                 // Không cần validation đặc biệt
                 break;
+        }
+    } /**
+     * Validate cho SAMPLE_COLLECTION_SCHEDULED
+     */
+    private validateSampleCollectionScheduled(
+        validationData?: ValidationDataDto,
+    ): void {
+        this.validateRequiredFields(
+            validationData,
+            ['appointmentId'],
+            'Lên lịch lấy mẫu',
+        );
+    } /**
+     * Validate cho SAMPLE_COLLECTED
+     */
+    private validateSampleCollected(validationData?: ValidationDataDto): void {
+        this.validateRequiredFields(
+            validationData,
+            ['sampleCollectedBy', 'sampleCollectionDate'],
+            'Lấy mẫu',
+        );
+        this.validateSpecialFormats(validationData);
+    }
+
+    /**
+     * Validate cho PROCESSING
+     */
+    private validateProcessing(validationData?: ValidationDataDto): void {
+        if (!validationData?.labProcessedBy) {
+            throw new BadRequestException('Cần thông tin lab xử lý');
+        }
+        // Optional: Validate lab batch number format
+        if (
+            validationData?.labBatchNumber &&
+            !/^[A-Z0-9]{6,}$/.test(validationData.labBatchNumber)
+        ) {
+            throw new BadRequestException(
+                'Số batch lab không đúng định dạng (ít nhất 6 ký tự chữ/số)',
+            );
+        }
+    }
+
+    /**
+     * Validate cho RESULT_READY
+     */
+    private validateResultReady(validationData?: ValidationDataDto): void {
+        if (!validationData?.testResultId) {
+            throw new BadRequestException('Cần có kết quả xét nghiệm');
+        }
+        if (!validationData?.resultValidatedBy) {
+            throw new BadRequestException(
+                'Cần thông tin người validate kết quả',
+            );
+        }
+    } /**
+     * Validate cho RESULT_DELIVERED
+     */
+    private validateResultDelivered(validationData?: ValidationDataDto): void {
+        this.validateRequiredFields(
+            validationData,
+            ['deliveredToPatient', 'deliveryMethod', 'deliveredBy'],
+            'Giao kết quả',
+        );
+        this.validateSpecialFormats(validationData);
+    }
+
+    /**
+     * Validate cho CONSULTATION_REQUIRED
+     */
+    private validateConsultationRequired(
+        validationData?: ValidationDataDto,
+    ): void {
+        if (!validationData?.consultantDoctorId) {
+            throw new BadRequestException('Cần chỉ định bác sĩ tư vấn');
+        }
+        if (!validationData?.consultationReason) {
+            throw new BadRequestException('Cần lý do tư vấn');
+        }
+    }
+
+    /**
+     * Validate cho FOLLOW_UP_SCHEDULED
+     */
+    private validateFollowUpScheduled(
+        validationData?: ValidationDataDto,
+    ): void {
+        if (!validationData?.followUpAppointmentId) {
+            throw new BadRequestException('Cần ID cuộc hẹn theo dõi');
+        }
+        if (!validationData?.followUpType) {
+            throw new BadRequestException('Cần chỉ định loại theo dõi');
+        }
+        if (!validationData?.followUpDate) {
+            throw new BadRequestException('Cần thời gian theo dõi');
+        }
+    }
+
+    /**
+     * Validate cho CANCELLED
+     */
+    private validateCancelled(validationData?: ValidationDataDto): void {
+        if (!validationData?.cancellationReason) {
+            throw new BadRequestException('Cần lý do hủy');
+        }
+        if (!validationData?.cancelledBy) {
+            throw new BadRequestException('Cần thông tin người hủy');
+        }
+        // Auto-set cancellation date if not provided
+        if (!validationData?.cancellationDate) {
+            validationData.cancellationDate = new Date();
+        }
+    }
+
+    /**
+     * Utility method để validate ValidationDataDto
+     */
+    private validateRequiredFields(
+        data: any,
+        requiredFields: string[],
+        context: string,
+    ): void {
+        const missingFields = requiredFields.filter((field) => !data?.[field]);
+
+        if (missingFields.length > 0) {
+            throw new BadRequestException(
+                `${context}: Thiếu các trường bắt buộc: ${missingFields.join(', ')}`,
+            );
+        }
+    }
+
+    /**
+     * Validate format các trường đặc biệt
+     */
+    private validateSpecialFormats(validationData?: ValidationDataDto): void {
+        // Validate email format if delivery method is email
+        if (
+            validationData?.deliveryMethod === 'email' &&
+            validationData?.deliveredBy
+        ) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(validationData.deliveredBy)) {
+                throw new BadRequestException(
+                    'Email người giao kết quả không đúng định dạng',
+                );
+            }
+        }
+
+        // Validate phone format if delivery method is phone
+        if (
+            validationData?.deliveryMethod === 'phone' &&
+            validationData?.deliveredBy
+        ) {
+            const phoneRegex = /^[0-9+\-\s()]{10,}$/;
+            if (!phoneRegex.test(validationData.deliveredBy)) {
+                throw new BadRequestException(
+                    'Số điện thoại không đúng định dạng',
+                );
+            }
+        }
+
+        // Validate date is not in the future for collection/delivery dates
+        const now = new Date();
+        if (validationData?.sampleCollectionDate) {
+            const collectionDate = new Date(
+                validationData.sampleCollectionDate,
+            );
+            if (collectionDate > now) {
+                throw new BadRequestException(
+                    'Thời gian lấy mẫu không thể trong tương lai',
+                );
+            }
+        }
+
+        if (validationData?.deliveryDate) {
+            const deliveryDate = new Date(validationData.deliveryDate);
+            if (deliveryDate > now) {
+                throw new BadRequestException(
+                    'Thời gian giao kết quả không thể trong tương lai',
+                );
+            }
+        }
+
+        // Validate follow-up date is in the future
+        if (validationData?.followUpDate) {
+            const followUpDate = new Date(validationData.followUpDate);
+            if (followUpDate <= now) {
+                throw new BadRequestException(
+                    'Thời gian theo dõi phải trong tương lai',
+                );
+            }
         }
     }
 

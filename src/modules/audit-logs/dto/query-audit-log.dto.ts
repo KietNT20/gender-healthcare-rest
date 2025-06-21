@@ -46,11 +46,11 @@ class AuditLogFilters {
 
 class AuditLogSorting {
     @ApiPropertyOptional({
-        enum: ['createdAt', 'action', 'entityType'],
+        enum: ['createdAt', 'action', 'entityType', 'updatedAt'],
         default: 'createdAt',
     })
     @IsOptional()
-    @IsString()
+    @IsEnum(['createdAt', 'action', 'entityType', 'updatedAt'])
     sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({
@@ -62,8 +62,12 @@ class AuditLogSorting {
     sortOrder?: SortOrder = SortOrder.DESC;
 }
 
-export class QueryAuditLogDto extends IntersectionType(
-    PaginationDto,
+const AuditLogFiltersAndSorting = IntersectionType(
     AuditLogFilters,
     AuditLogSorting,
+);
+
+export class QueryAuditLogDto extends IntersectionType(
+    PaginationDto,
+    AuditLogFiltersAndSorting,
 ) {}

@@ -15,7 +15,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Certificates, WorkingHours } from './consultant-profile-data.entity';
+import { WorkingHours } from './consultant-profile-data.entity';
 
 @Entity()
 export class ConsultantProfile {
@@ -59,9 +59,6 @@ export class ConsultantProfile {
 
     @Column({ type: 'text', nullable: true })
     rejectionReason?: string;
-
-    @Column({ type: 'jsonb', nullable: true })
-    certificates?: Certificates;
 
     @Column({ type: 'text', array: true, nullable: true })
     languages?: string[];

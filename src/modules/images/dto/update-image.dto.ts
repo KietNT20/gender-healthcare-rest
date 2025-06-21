@@ -1,4 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateImageDto } from './create-image.dto';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class UpdateImageDto extends PartialType(CreateImageDto) {}
+export class UpdateImageDto {
+    @ApiPropertyOptional({
+        description:
+            'Alternative text for the image, used for accessibility (SEO)',
+        example: 'A beautiful landscape',
+    })
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    altText?: string;
+}

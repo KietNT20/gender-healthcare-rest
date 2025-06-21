@@ -1,45 +1,42 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    Controller,
     Delete,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContractFilesService } from './contract-files.service';
-import { CreateContractFileDto } from './dto/create-contract-file.dto';
 import { UpdateContractFileDto } from './dto/update-contract-file.dto';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('contract-files')
 export class ContractFilesController {
     constructor(private readonly contractFilesService: ContractFilesService) {}
 
-    @Post()
-    create(@Body() createContractFileDto: CreateContractFileDto) {
-        return this.contractFilesService.create(createContractFileDto);
-    }
-
-    @Get()
-    findAll() {
-        return this.contractFilesService.findAll();
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.contractFilesService.findOne(+id);
-    }
-
     @Patch(':id')
+    @ApiOperation({
+        summary: 'Update the metadata of a contract file link (e.g., fileType)',
+    })
+    @ResponseMessage('Contract file link updated successfully.')
     update(
-        @Param('id') id: string,
-        @Body() updateContractFileDto: UpdateContractFileDto,
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateDto: UpdateContractFileDto,
     ) {
-        return this.contractFilesService.update(+id, updateContractFileDto);
+        return this.contractFilesService.update(id, updateDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.contractFilesService.remove(+id);
+    @ApiOperation({
+        summary: 'Unlink a file from a contract (does not delete the file)',
+    })
+    @ResponseMessage('File unlinked successfully.')
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.contractFilesService.remove(id);
     }
 }

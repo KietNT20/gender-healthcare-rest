@@ -8,7 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import slugify from 'slugify';
+import { ActionType } from 'src/enums/action-type.enum';
 import { v4 as uuidv4 } from 'uuid';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -23,6 +25,7 @@ export class AuthService {
         private readonly configService: ConfigService,
         private readonly mailService: MailService,
         private readonly hashingProvider: HashingProvider,
+        private readonly auditLogsService: AuditLogsService,
     ) {}
 
     async register(registerDto: RegisterDto) {
@@ -60,7 +63,11 @@ export class AuthService {
             roleId: await this.usersService.getCustomerRoleId(),
         };
 
-        const user = await this.usersService.create(userData);
+        const actorIdForNewUser = 'SYSTEM';
+        const user = await this.usersService.create(
+            userData,
+            actorIdForNewUser,
+        );
 
         if (!user) {
             throw new NotFoundException('User not found');
@@ -136,6 +143,14 @@ export class AuthService {
         // Update last login
         await this.usersService.updateLastLogin(user.id);
 
+        await this.auditLogsService.create({
+            userId: user.id,
+            action: ActionType.LOGIN,
+            entityType: 'User',
+            entityId: user.id,
+            details: 'User logged in successfully.',
+        });
+
         // Generate tokens
         const payload = { sub: user.id, email: user.email };
         const accessToken = this.jwtService.sign(payload);
@@ -180,6 +195,14 @@ export class AuthService {
 
         // Update user as verified
         await this.usersService.verifyEmail(user.id);
+
+        await this.auditLogsService.create({
+            userId: user.id,
+            action: ActionType.VERIFY_EMAIL,
+            entityType: 'User',
+            entityId: user.id,
+            details: 'User verified their email address.',
+        });
 
         return {
             message: 'Xác thực email thành công',
@@ -283,6 +306,14 @@ export class AuthService {
         // Update password and clear reset token
         await this.usersService.updatePassword(user.id, hashedPassword);
 
+        await this.auditLogsService.create({
+            userId: user.id,
+            action: ActionType.CHANGE_PASSWORD,
+            entityType: 'User',
+            entityId: user.id,
+            details: 'User reset password via forgot password link.',
+        });
+
         return {
             message: 'Đặt lại mật khẩu thành công',
         };
@@ -318,6 +349,14 @@ export class AuthService {
     async logout(userId: string) {
         // Clear refresh token
         await this.usersService.clearRefreshToken(userId);
+
+        await this.auditLogsService.create({
+            userId: userId,
+            action: ActionType.LOGOUT,
+            entityType: 'User',
+            entityId: userId,
+            details: 'User logged out successfully.',
+        });
 
         return {
             message: 'Đăng xuất thành công',

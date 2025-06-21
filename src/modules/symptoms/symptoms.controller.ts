@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -13,7 +14,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateSymptomDto } from './dto/create-symptom.dto';
-import { SymptomQueryDto } from './dto/symptom-query.dto';
+import { SymptomQueryDto } from './dto/query-symptom.dto';
 import { UpdateSymptomDto } from './dto/update-symptom.dto';
 import { SymptomsService } from './symptoms.service';
 
@@ -26,7 +27,7 @@ export class SymptomsController {
     @Post()
     @ApiOperation({ summary: 'Create a new symptom' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Symptom created successfully',
     })
     create(@Body() createSymptomDto: CreateSymptomDto) {
@@ -47,7 +48,7 @@ export class SymptomsController {
 
     @Patch(':id')
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Symptom updated successfully',
     })
     @ApiOperation({ summary: 'Update a symptom by ID' })

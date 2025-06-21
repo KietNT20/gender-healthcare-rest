@@ -1,5 +1,6 @@
 import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
+import { Document } from 'src/modules/documents/entities/document.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
@@ -14,16 +15,20 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Certificates, WorkingHours } from './consultant-profile-data.entity';
+import { WorkingHours } from './consultant-profile-data.entity';
 
 @Entity()
 export class ConsultantProfile {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 1024 })
-    @Index()
-    specialization: string;
+    @Column({
+        type: 'varchar',
+        array: true,
+        nullable: true,
+        default: () => "'{}'",
+    })
+    specialties: string[];
 
     @Column({ type: 'text' })
     qualification: string;
@@ -52,8 +57,8 @@ export class ConsultantProfile {
     @Index()
     profileStatus: ProfileStatusType;
 
-    @Column({ type: 'jsonb', nullable: true })
-    certificates?: Certificates;
+    @Column({ type: 'text', nullable: true })
+    rejectionReason?: string;
 
     @Column({ type: 'text', array: true, nullable: true })
     languages?: string[];
@@ -118,4 +123,9 @@ export class ConsultantProfile {
         (availability) => availability.consultantProfile,
     )
     availabilities: ConsultantAvailability[];
+
+    @OneToMany(() => Document, (document) => document.consultantProfile, {
+        cascade: true,
+    })
+    documents: Document[];
 }

@@ -8,7 +8,7 @@ export class PackageService {
   id: string;
 
   @Column({ type: 'integer', default: 1 })
-  quantity: number;
+  quantityLimit?: number;
 
   @CreateDateColumn()
   createdAt: Date;

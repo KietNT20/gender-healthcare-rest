@@ -10,13 +10,12 @@ import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
 import { Service } from './entities/service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
-import {
-    UpdateServiceProfileDto,
-    ServiceResponseDto,
-} from './dto/service-response.dto';
+
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Category } from '../categories/entities/category.entity';
+import { UpdateServiceDto } from './dto/update-service.dto';
+import { ServiceResponseDto } from './dto/service-response.dto';
 
 @Injectable()
 export class ServicesService {
@@ -221,7 +220,7 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
      */
     async update(
   id: string,
-  updateDto: UpdateServiceProfileDto,
+  updateDto: UpdateServiceDto,
 ): Promise<ServiceResponseDto> {
   // 1. Lấy entity gốc
   const service = await this.serviceRepo.findOne({

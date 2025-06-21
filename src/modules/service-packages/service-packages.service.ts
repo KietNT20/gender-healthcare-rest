@@ -32,6 +32,9 @@ export class ServicePackagesService {
     slug,
     isActive: createDto.isActive ?? true,
   });
+
+  // Lưu entity vào database
+  return await this.packageRepository.save(packageEntity);
 }
 
   async findAll() {

@@ -77,7 +77,7 @@ export class PaymentsService {
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID '${appointmentId}' not found`);
     }
-    finalAmount = appointment.fixedPrice || (await this.appointmentsService.calculateTotalPrice(appointmentId));
+    finalAmount = appointment.fixedPrice || (await this.appointmentsService.calculateTotalPrice(appointmentId, user));
     itemName = (appointment.notes || 'Cuộc hẹn').slice(0, 25);
   } else {
     throw new BadRequestException('Phải cung cấp ít nhất một trong packageId hoặc appointmentId');

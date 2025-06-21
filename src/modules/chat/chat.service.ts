@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { MessageType, QuestionStatusType, RolesNameEnum } from 'src/enums';
+import {
+    MessageType,
+    QuestionStatusType,
+    RolesNameEnum,
+    SortOrder,
+} from 'src/enums';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { FilesService } from '../files/files.service';
@@ -411,7 +416,7 @@ export class ChatService {
         const lastMessage = await this.messageRepository.findOne({
             where: { question: { id: questionId } },
             relations: ['sender', 'sender.role'],
-            order: { createdAt: 'DESC' },
+            order: { createdAt: SortOrder.DESC },
         });
 
         // Get unread count

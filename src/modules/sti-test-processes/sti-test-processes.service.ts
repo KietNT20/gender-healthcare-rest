@@ -5,11 +5,10 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SortOrder } from 'src/enums';
 import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
-import { AppointmentsService } from '../appointments/appointments.service';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { TestResultsService } from '../test-results/test-results.service';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
@@ -28,15 +27,15 @@ export class StiTestProcessesService {
     constructor(
         @InjectRepository(StiTestProcess)
         private readonly stiTestProcessRepository: Repository<StiTestProcess>,
-        private readonly testResultsService: TestResultsService,
-        private readonly appointmentsService: AppointmentsService,
         private readonly notificationsService: NotificationsService,
         private readonly mailService: MailService,
         private readonly usersService: UsersService,
     ) {}
-
     /**
-     * Tạo mã xét nghiệm duy nhất
+     * Tạo mã xét nghiệm ngẫu nhiên\
+     * @description Mã này bao gồm tiền tố "STI",
+     * thời gian hiện tại và một chuỗi ngẫu nhiên để đảm bảo tính duy nhất.
+     * @returns Mã xét nghiệm duy nhất
      */
     private generateTestCode(): string {
         const prefix = 'STI';
@@ -55,7 +54,7 @@ export class StiTestProcessesService {
         const patient = await this.usersService.findOne(createDto.patientId);
         if (!patient) {
             throw new NotFoundException('Không tìm thấy bệnh nhân');
-        } // Tạo mã xét nghiệm duy nhất
+        }
         let testCode = '';
         let isUnique = false;
         let attempts = 0;
@@ -113,7 +112,7 @@ export class StiTestProcessesService {
             page = 1,
             limit = 10,
             sortBy = 'createdAt',
-            sortOrder = 'DESC',
+            sortOrder = SortOrder.DESC,
             startDate,
             endDate,
             ...filters
@@ -139,7 +138,7 @@ export class StiTestProcessesService {
             where.createdAt = Between(start, end);
         }
 
-        const orderOptions: any = {};
+        const orderOptions: { [key: string]: SortOrder } = {};
         orderOptions[sortBy] = sortOrder;
 
         const [data, total] = await this.stiTestProcessRepository.findAndCount({

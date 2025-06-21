@@ -55,8 +55,9 @@ class Sorting {
     sortOrder?: SortOrder = SortOrder.ASC;
 }
 
+const FiltersAndSorting = IntersectionType(Filters, Sorting);
+
 export class QueryAppointmentDto extends IntersectionType(
     PaginationDto,
-    Filters,
-    Sorting,
+    FiltersAndSorting,
 ) {}

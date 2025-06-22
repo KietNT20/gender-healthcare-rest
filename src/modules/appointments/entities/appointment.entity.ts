@@ -140,6 +140,7 @@ export class Appointment {
     packageServiceUsages: PackageServiceUsage[];
 
     @ManyToMany(() => Service)
+    @JoinTable()
     services: Service[];
 
     @OneToOne(() => Question, (question) => question.appointment, {

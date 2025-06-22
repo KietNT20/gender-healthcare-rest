@@ -274,4 +274,13 @@ export class AppointmentsService {
 
         return savedAppointment;
     }
+
+    async calculateTotalPrice(id: string, currentUser: User): Promise<number> {
+        const appointment = await this.findOne(id, currentUser);
+        if (!appointment.services || appointment.services.length === 0) {
+          return appointment.fixedPrice || 0;
+        }
+        return appointment.fixedPrice || 0; // Trả về fixedPrice đã lưu
+    }
+   
 }

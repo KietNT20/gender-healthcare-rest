@@ -40,8 +40,22 @@ export class PaymentsService {
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, appointmentId } = createPaymentDto;
+    async create(createPaymentDto: CreatePaymentDto, currentUser: User) {
+        if (!currentUser || !currentUser.id) {
+            throw new BadRequestException(
+                'Người dùng hiện tại không hợp lệ hoặc chưa được xác thực',
+            );
+        }
+        const { description, appointmentId } = createPaymentDto;
+
+        const userId = currentUser.id;
+
+        // Kiểm tra quyền truy cập: Chỉ cho phép người dùng hiện tại tạo thanh toán cho chính họ
+        if (userId !== currentUser.id) {
+            throw new BadRequestException(
+                'Bạn chỉ có thể tạo thanh toán cho chính mình',
+            );
+        }
 
         // Kiểm tra userId
         const user = await this.userRepository.findOne({
@@ -56,20 +70,27 @@ export class PaymentsService {
             throw new NotFoundException('appointmentId is required');
         }
 
-        // Lấy thông tin Appointment
+        // Kiểm tra quyền truy cập: Chỉ cho phép người dùng liên quan đến cuộc hẹn
         const appointment = await this.appointmentRepository.findOne({
-            where: { id: appointmentId, deletedAt: IsNull() },
+            where: {
+                id: appointmentId,
+                deletedAt: IsNull(),
+                user: { id: userId },
+            },
         });
         if (!appointment) {
             throw new NotFoundException(
-                `Appointment with ID '${appointmentId}' not found`,
+                `Appointment with ID '${appointmentId}' not found or not accessible`,
             );
         }
 
         // Lấy fixedPrice từ Appointment
         let finalAmount =
             appointment.fixedPrice ||
-            (await this.appointmentsService.calculateTotalPrice(appointmentId));
+            (await this.appointmentsService.calculateTotalPrice(
+                appointmentId,
+                currentUser,
+            ));
 
         // Chuyển đổi finalAmount thành số và chuẩn hóa
         finalAmount = parseFloat(finalAmount.toString());
@@ -86,6 +107,7 @@ export class PaymentsService {
                 `Invalid amount: ${finalAmount}. Amount must be between 0.01 and 10,000,000,000 VND.`,
             );
         }
+
         // Rút ngắn description (tối đa 25 ký tự)
         const shortDescription = (
             description ||
@@ -143,145 +165,186 @@ export class PaymentsService {
         }
     }
 
+    async handleSuccessCallback(orderCode: string, currentUser: User) {
+        console.log(`Xử lý callback thành công cho orderCode: ${orderCode}`);
+        try {
+            const payment = await this.paymentRepository.findOne({
+                where: { invoiceNumber: orderCode.toString() },
+                relations: ['user', 'appointment'],
+            });
 
-    async handleSuccessCallback(orderCode: string) {
-      console.log(`Xử lý callback thành công cho orderCode: ${orderCode}`);
-      try {
-        const payment = await this.paymentRepository.findOne({
-          where: { invoiceNumber: orderCode.toString() },
-          relations: ['user', 'appointment'],
-        });
-  
-        if (!payment) {
-          throw new NotFoundException(`Không tìm thấy thanh toán với orderCode '${orderCode}'`);
+            if (!payment) {
+                throw new NotFoundException(
+                    `Không tìm thấy thanh toán với orderCode '${orderCode}'`,
+                );
+            }
+
+            // Kiểm tra quyền truy cập: Chỉ cho phép người dùng liên quan
+            if (
+                payment.user.id !== currentUser.id &&
+                !currentUser.role.name.includes('ADMIN')
+            ) {
+                throw new BadRequestException(
+                    'Bạn không có quyền truy cập thanh toán này',
+                );
+            }
+
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}, không thể xử lý lại`,
+                );
+            }
+
+            // Xác minh trạng thái với PayOS
+            const paymentInfo =
+                await this.payOS.getPaymentLinkInformation(orderCode);
+            console.log('Thông tin thanh toán từ PayOS:', paymentInfo);
+
+            if (paymentInfo.status === 'PAID') {
+                payment.status = PaymentStatusType.COMPLETED;
+                payment.paymentDate = new Date();
+                payment.gatewayResponse = {
+                    ...payment.gatewayResponse,
+                    payosStatus: 'PAID',
+                    paymentConfirmedAt: new Date().toISOString(),
+                };
+                await this.paymentRepository.save(payment);
+                console.log(
+                    `Cập nhật thanh toán ${orderCode} thành completed thành công`,
+                );
+            } else {
+                throw new BadRequestException(
+                    `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi PAID`,
+                );
+            }
+
+            return payment;
+        } catch (error) {
+            console.error(
+                'Lỗi xử lý callback thành công:',
+                error.message,
+                error.stack,
+            );
+            throw new BadRequestException(
+                `Không thể xử lý callback thành công: ${error.message}`,
+            );
         }
-  
-        if (payment.status !== PaymentStatusType.PENDING) {
-          throw new BadRequestException(`Thanh toán đã ở trạng thái ${payment.status}, không thể xử lý lại`);
-        }
-  
-        // Xác minh trạng thái với PayOS
-        const paymentInfo = await this.payOS.getPaymentLinkInformation(orderCode);
-        console.log('Thông tin thanh toán từ PayOS:', paymentInfo);
-  
-        if (paymentInfo.status === 'PAID') {
-          payment.status = PaymentStatusType.COMPLETED;
-          payment.paymentDate = new Date();
-          payment.gatewayResponse = {
-            ...payment.gatewayResponse,
-            payosStatus: 'PAID',
-            paymentConfirmedAt: new Date().toISOString(),
-          };
-          await this.paymentRepository.save(payment);
-          console.log(`Cập nhật thanh toán ${orderCode} thành completed thành công`);
-        } else {
-          throw new BadRequestException(`Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi PAID`);
-        }
-  
-        return payment;
-      } catch (error) {
-        console.error('Lỗi xử lý callback thành công:', error.message, error.stack);
-        throw new BadRequestException(`Không thể xử lý callback thành công: ${error.message}`);
-      }
     }
 
     async handleCancelCallback(orderCode: string) {
-      console.log(`Xử lý callback hủy cho orderCode: ${orderCode}`);
-      try {
-        const payment = await this.paymentRepository.findOne({
-          where: { invoiceNumber: orderCode.toString() },
-          relations: ['user', 'appointment'],
-        });
-  
-        if (!payment) {
-          throw new NotFoundException(`Không tìm thấy thanh toán với orderCode '${orderCode}'`);
+        console.log(`Xử lý callback hủy cho orderCode: ${orderCode}`);
+        try {
+            const payment = await this.paymentRepository.findOne({
+                where: { invoiceNumber: orderCode.toString() },
+                relations: ['user', 'appointment'],
+            });
+
+            if (!payment) {
+                throw new NotFoundException(
+                    `Không tìm thấy thanh toán với orderCode '${orderCode}'`,
+                );
+            }
+
+            // Loại bỏ kiểm tra quyền truy cập dựa trên currentUser
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}`,
+                );
+            }
+
+            // Xác minh trạng thái với PayOS
+            const paymentInfo =
+                await this.payOS.getPaymentLinkInformation(orderCode);
+            console.log('Thông tin thanh toán từ PayOS:', paymentInfo);
+            if (paymentInfo.status !== 'CANCELLED') {
+                throw new BadRequestException(
+                    `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi CANCELLED`,
+                );
+            }
+
+            // Ánh xạ CANCELLED thành FAILED và lưu thông tin hủy
+            payment.status = PaymentStatusType.FAILED;
+            payment.gatewayResponse = {
+                ...paymentInfo,
+                payosStatus: 'CANCELLED',
+                cancelledAt: new Date().toISOString(),
+                cancellationReason: 'Hủy bởi người dùng qua giao diện PayOS',
+            };
+            await this.paymentRepository.save(payment);
+
+            console.log(`Hủy thanh toán ${orderCode} thành công`);
+            return payment;
+        } catch (error) {
+            console.error(
+                'Lỗi xử lý callback hủy:',
+                error.message,
+                error.stack,
+            );
+            throw new BadRequestException(
+                `Không thể xử lý callback hủy: ${error.message}`,
+            );
         }
-  
-        if (payment.status !== PaymentStatusType.PENDING) {
-          throw new BadRequestException(`Thanh toán đã ở trạng thái ${payment.status}`);
-        }
-  
-        // Xác minh trạng thái với PayOS
-        const paymentInfo = await this.payOS.getPaymentLinkInformation(orderCode);
-        console.log('Thông tin thanh toán từ PayOS:', paymentInfo);
-        if (paymentInfo.status !== 'CANCELLED') {
-          throw new BadRequestException(`Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi CANCELLED`);
-        }
-  
-        // Ánh xạ CANCELLED thành FAILED và lưu thông tin hủy vào gatewayResponse
-        payment.status = PaymentStatusType.FAILED;
-        payment.gatewayResponse = {
-          ...paymentInfo,
-          payosStatus: 'CANCELLED',
-          cancelledAt: new Date().toISOString(),
-          cancellationReason: 'Hủy bởi người dùng qua giao diện PayOS',
-        };
-        await this.paymentRepository.save(payment);
-  
-        console.log(`Hủy thanh toán ${orderCode} thành công`);
-        return payment;
-      } catch (error) {
-        console.error('Lỗi xử lý callback hủy:', error.message, error.stack);
-        throw new BadRequestException(`Không thể xử lý callback hủy: ${error.message}`);
-      }
     }
 
     async verifyWebhook(webhookData: any) {
-      console.log('Nhận webhook:', webhookData);
-      try {
-        const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
-        if (!checksumKey) {
-          throw new Error('Thiếu khóa checksum trong file .env');
+        console.log('Nhận webhook:', webhookData);
+        try {
+            const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
+            if (!checksumKey) {
+                throw new Error('Thiếu khóa checksum trong file .env');
+            }
+
+            const { signature, ...data } = webhookData;
+            const sortedData = Object.keys(data)
+                .sort()
+                .reduce((obj, key) => {
+                    obj[key] = data[key];
+                    return obj;
+                }, {});
+            const dataStr = JSON.stringify(sortedData);
+            const calculatedSignature = crypto
+                .createHmac('sha256', checksumKey)
+                .update(dataStr)
+                .digest('hex');
+
+            if (calculatedSignature !== signature) {
+                throw new Error('Chữ ký webhook không hợp lệ');
+            }
+
+            const { orderCode, status } = webhookData;
+            const payment = await this.paymentRepository.findOne({
+                where: { invoiceNumber: orderCode.toString() },
+            });
+
+            if (!payment) {
+                throw new Error('Không tìm thấy thanh toán');
+            }
+
+            // Ánh xạ trạng thái từ PayOS
+            payment.status =
+                status === 'PAID'
+                    ? PaymentStatusType.COMPLETED
+                    : PaymentStatusType.FAILED; // Ánh xạ CANCELLED thành FAILED
+            payment.paymentDate =
+                status === 'PAID' ? new Date() : payment.paymentDate;
+            payment.gatewayResponse = {
+                ...webhookData,
+                payosStatus: status,
+                ...(status === 'CANCELLED' && {
+                    cancelledAt: new Date().toISOString(),
+                    cancellationReason:
+                        webhookData.cancellationReason ||
+                        'Hủy qua webhook PayOS',
+                }),
+            };
+            await this.paymentRepository.save(payment);
+
+            console.log(`Xử lý webhook cho orderCode ${orderCode} thành công`);
+            return payment;
+        } catch (error) {
+            console.error('Lỗi webhook:', error.message, error.stack);
+            throw new Error(`Lỗi webhook: ${error.message}`);
         }
-  
-        const { signature, ...data } = webhookData;
-        const sortedData = Object.keys(data)
-          .sort()
-          .reduce((obj, key) => {
-            obj[key] = data[key];
-            return obj;
-          }, {});
-        const dataStr = JSON.stringify(sortedData);
-        const calculatedSignature = crypto
-          .createHmac('sha256', checksumKey)
-          .update(dataStr)
-          .digest('hex');
-  
-        if (calculatedSignature !== signature) {
-          throw new Error('Chữ ký webhook không hợp lệ');
-        }
-  
-        const { orderCode, status } = webhookData;
-        const payment = await this.paymentRepository.findOne({
-          where: { invoiceNumber: orderCode.toString() },
-        });
-  
-        if (!payment) {
-          throw new Error('Không tìm thấy thanh toán');
-        }
-  
-        // Ánh xạ trạng thái từ PayOS
-        payment.status =
-          status === 'PAID'
-            ? PaymentStatusType.COMPLETED
-            : PaymentStatusType.FAILED; // Ánh xạ CANCELLED thành FAILED
-        payment.paymentDate = status === 'PAID' ? new Date() : payment.paymentDate;
-        payment.gatewayResponse = {
-          ...webhookData,
-          payosStatus: status,
-          ...(status === 'CANCELLED' && {
-            cancelledAt: new Date().toISOString(),
-            cancellationReason: webhookData.cancellationReason || 'Hủy qua webhook PayOS',
-          }),
-        };
-        await this.paymentRepository.save(payment);
-  
-        console.log(`Xử lý webhook cho orderCode ${orderCode} thành công`);
-        return payment;
-      } catch (error) {
-        console.error('Lỗi webhook:', error.message, error.stack);
-        throw new Error(`Lỗi webhook: ${error.message}`);
-      }
     }
 
     async findAll() {
@@ -291,18 +354,20 @@ export class PaymentsService {
     }
 
     async findOne(id: string) {
-      console.log(`Gọi findOne với id: ${id}`); // Thêm logging
-      if (!isUUID(id)) {
-        throw new BadRequestException(`UUID không hợp lệ: ${id}`);
-      }
-      const payment = await this.paymentRepository.findOne({
-        where: { id },
-        relations: ['user', 'appointment'],
-      });
-      if (!payment) {
-        throw new NotFoundException(`Không tìm thấy thanh toán với ID '${id}'`);
-      }
-      return payment;
+        console.log(`Gọi findOne với id: ${id}`); // Thêm logging
+        if (!isUUID(id)) {
+            throw new BadRequestException(`UUID không hợp lệ: ${id}`);
+        }
+        const payment = await this.paymentRepository.findOne({
+            where: { id },
+            relations: ['user', 'appointment'],
+        });
+        if (!payment) {
+            throw new NotFoundException(
+                `Không tìm thấy thanh toán với ID '${id}'`,
+            );
+        }
+        return payment;
     }
 
     async update(id: string, updatePaymentDto: UpdatePaymentDto) {

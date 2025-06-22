@@ -10,9 +10,13 @@ import { Image } from '../images/entities/image.entity';
 import { ImagesModule } from '../images/images.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Blog, Category,Image]),ImagesModule, TagsModule],
+    imports: [
+        TypeOrmModule.forFeature([Blog, Category, Image]),
+        ImagesModule,
+        TagsModule,
+    ],
     controllers: [BlogsController],
-    providers: [BlogsService,BlogImageService],
-    exports: [BlogsService,BlogImageService],
+    providers: [BlogsService, BlogImageService],
+    exports: [BlogsService, BlogImageService],
 })
 export class BlogsModule {}

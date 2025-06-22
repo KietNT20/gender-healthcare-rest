@@ -1,19 +1,24 @@
 import {
     BadRequestException,
+    Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
+    forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { PaymentStatusType } from 'src/enums';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Like, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { Service } from '../services/entities/service.entity';
+import { UserPackageSubscriptionsService } from '../user-package-subscriptions/user-package-subscriptions.service';
 import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './entities/payment.entity';
 import PayOS = require('@payos/node');
@@ -31,23 +36,25 @@ export class PaymentsService {
         private appointmentRepository: Repository<Appointment>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        @InjectRepository(Service)
+        private serviceRepository: Repository<Service>,
         private appointmentsService: AppointmentsService,
+        @Inject(forwardRef(() => UserPackageSubscriptionsService))
+        private userPackageSubscriptionsService: UserPackageSubscriptionsService,
     ) {
         const clientId = process.env.PAYOS_CLIENT_ID;
         const apiKey = process.env.PAYOS_API_KEY;
         const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
 
         if (!clientId || !apiKey || !checksumKey) {
-            throw new InternalServerErrorException(
-                'Missing PayOS credentials',
-            );
+            throw new InternalServerErrorException('Missing PayOS credentials');
         }
 
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
     async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, packageId, appointmentId } =
+        const { description, userId, packageId, appointmentId, serviceId } =
             createPaymentDto;
 
         // Kiểm tra userId
@@ -92,9 +99,23 @@ export class PaymentsService {
                     user,
                 ));
             itemName = (appointment.notes || 'Cuộc hẹn').slice(0, 25);
+        }
+        // Nếu có serviceId, lấy giá từ Service
+        else if (serviceId) {
+            const service = await this.serviceRepository.findOne({
+                where: { id: serviceId, deletedAt: IsNull(), isActive: true },
+                select: ['id', 'price', 'name'], // Chỉ tải các trường cần thiết
+            });
+            if (!service) {
+                throw new NotFoundException(
+                    `Service with ID '${serviceId}' not found or inactive`,
+                );
+            }
+            finalAmount = service.price;
+            itemName = (service.name || 'Dịch vụ').slice(0, 25);
         } else {
             throw new BadRequestException(
-                'Phải cung cấp ít nhất một trong packageId hoặc appointmentId',
+                'Phải cung cấp ít nhất một trong packageId, appointmentId hoặc serviceId',
             );
         }
 
@@ -157,6 +178,7 @@ export class PaymentsService {
                 ...(appointmentId && {
                     appointment: { id: appointmentId } as any,
                 }),
+                ...(serviceId && { service: { id: serviceId } as any }),
                 gatewayResponse: paymentLink,
             });
 
@@ -182,6 +204,7 @@ export class PaymentsService {
                     'user',
                     'servicePackage',
                     'appointment',
+                    'service',
                     'packageSubscriptions',
                 ],
             });
@@ -211,6 +234,10 @@ export class PaymentsService {
                     paymentConfirmedAt: new Date().toISOString(),
                 };
                 await this.paymentRepository.save(payment);
+
+                // Xử lý logic business sau thanh toán thành công
+                await this.processSuccessfulPayment(payment);
+
                 console.log(
                     `Cập nhật thanh toán ${orderCode} thành completed thành công`,
                 );
@@ -233,6 +260,66 @@ export class PaymentsService {
         }
     }
 
+    /**
+     * Xử lý logic business sau khi thanh toán thành công
+     */
+    private async processSuccessfulPayment(payment: Payment) {
+        try {
+            // 1. Nếu thanh toán cho gói dịch vụ
+            if (payment.servicePackage) {
+                await this.createUserPackageSubscription(payment);
+            }
+
+            // 2. Nếu thanh toán cho cuộc hẹn
+            if (payment.appointment) {
+                await this.updateAppointmentStatus(payment);
+            }
+        } catch (error) {
+            console.error('Lỗi xử lý business logic sau thanh toán:', error);
+            // Log lỗi nhưng không throw để không ảnh hưởng đến việc cập nhật trạng thái thanh toán
+        }
+    }
+
+    /**
+     * Tạo subscription cho user khi thanh toán gói thành công
+     */
+    private async createUserPackageSubscription(payment: Payment) {
+        if (!payment.servicePackage) return;
+
+        try {
+            const subscriptionData = {
+                userId: payment.user.id,
+                packageId: payment.servicePackage.id,
+                paymentId: payment.id,
+            };
+
+            // Tạo subscription tự động
+            const subscription =
+                await this.userPackageSubscriptionsService.create(
+                    subscriptionData,
+                );
+            console.log('Đã tạo subscription thành công:', subscription.id);
+        } catch (error) {
+            console.error('Lỗi tạo subscription:', error.message);
+            // Không throw error để tránh ảnh hưởng đến flow thanh toán
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái appointment khi thanh toán thành công
+     */
+    private async updateAppointmentStatus(payment: Payment) {
+        if (!payment.appointment) return;
+
+        if (payment.appointment.status === 'pending') {
+            payment.appointment.status = 'confirmed' as any;
+            await this.appointmentRepository.save(payment.appointment);
+            console.log(
+                `Xác nhận appointment ${payment.appointment.id} sau thanh toán thành công`,
+            );
+        }
+    }
+
     async handleCancelCallback(orderCode: string) {
         console.log(`Xử lý callback hủy cho orderCode: ${orderCode}`);
         try {
@@ -242,6 +329,7 @@ export class PaymentsService {
                     'user',
                     'servicePackage',
                     'appointment',
+                    'service',
                     'packageSubscriptions',
                 ],
             });
@@ -322,6 +410,7 @@ export class PaymentsService {
                     'user',
                     'servicePackage',
                     'appointment',
+                    'service',
                     'packageSubscriptions',
                 ],
             });
@@ -362,6 +451,7 @@ export class PaymentsService {
                 'user',
                 'servicePackage',
                 'appointment',
+                'service',
                 'packageSubscriptions',
             ],
         });
@@ -378,6 +468,7 @@ export class PaymentsService {
                 'user',
                 'servicePackage',
                 'appointment',
+                'service',
                 'packageSubscriptions',
             ],
         });
@@ -413,8 +504,189 @@ export class PaymentsService {
                 'user',
                 'servicePackage',
                 'appointment',
+                'service',
                 'packageSubscriptions',
             ],
         });
+    }
+
+    /**
+     * Lấy danh sách gói dịch vụ có thể thanh toán
+     */
+    async getAvailablePackages(query: GetPayablePackagesDto) {
+        const { search, isActive = true } = query;
+
+        const where: any = { deletedAt: IsNull() };
+
+        if (isActive !== undefined) {
+            where.isActive = isActive;
+        }
+
+        if (search) {
+            where.name = Like(`%${search}%`);
+        }
+
+        const packages = await this.packageRepository.find({
+            where,
+            select: [
+                'id',
+                'name',
+                'price',
+                'durationMonths',
+                'maxServicesPerMonth',
+                'isActive',
+            ],
+            order: { createdAt: 'DESC' },
+        });
+
+        return {
+            success: true,
+            data: packages,
+            message: 'Lấy danh sách gói dịch vụ thành công',
+        };
+    }
+
+    /**
+     * Lấy danh sách dịch vụ có thể thanh toán
+     */
+    async getAvailableServices(query: { search?: string; isActive?: boolean }) {
+        const { search, isActive = true } = query;
+
+        const where: any = { deletedAt: IsNull() };
+
+        if (isActive !== undefined) {
+            where.isActive = isActive;
+        }
+
+        if (search) {
+            where.name = Like(`%${search}%`);
+        }
+
+        const services = await this.serviceRepository.find({
+            where,
+            select: [
+                'id',
+                'name',
+                'slug',
+                'description',
+                'shortDescription',
+                'price',
+                'duration',
+                'isActive',
+                'featured',
+            ],
+            relations: ['category'],
+            order: { createdAt: 'DESC' },
+        });
+
+        return {
+            success: true,
+            data: services,
+            message: 'Lấy danh sách dịch vụ thành công',
+        };
+    }
+
+    /**
+     * Lấy danh sách cuộc hẹn chờ thanh toán của user
+     */
+    async getPendingAppointments(userId: string) {
+        const appointments = await this.appointmentRepository.find({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                // Chỉ lấy các appointment chưa có payment hoặc payment chưa thành công
+            },
+            relations: ['services', 'consultant'],
+            select: [
+                'id',
+                'appointmentDate',
+                'appointmentLocation',
+                'notes',
+                'fixedPrice',
+                'status',
+            ],
+            order: { appointmentDate: 'ASC' },
+        });
+
+        // Filter appointments that need payment
+        const pendingPaymentAppointments: Appointment[] = [];
+        for (const appointment of appointments) {
+            const existingPayment = await this.paymentRepository.findOne({
+                where: {
+                    appointment: { id: appointment.id },
+                    status: PaymentStatusType.COMPLETED,
+                },
+            });
+
+            if (!existingPayment) {
+                pendingPaymentAppointments.push(appointment);
+            }
+        }
+
+        return {
+            success: true,
+            data: pendingPaymentAppointments,
+            message: 'Lấy danh sách cuộc hẹn chờ thanh toán thành công',
+        };
+    }
+
+    /**
+     * Thống kê thanh toán của user
+     */
+    async getUserPaymentStats(userId: string) {
+        // Tổng số tiền đã thanh toán
+        const totalPaidResult = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .select('SUM(payment.amount)', 'total')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .getRawOne();
+
+        // Số lượng thanh toán theo trạng thái
+        const paymentsByStatus = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .select('payment.status', 'status')
+            .addSelect('COUNT(*)', 'count')
+            .where('payment.user.id = :userId', { userId })
+            .groupBy('payment.status')
+            .getRawMany();
+
+        // Số gói đã mua
+        const packagesPurchased = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .leftJoin('payment.servicePackage', 'package')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .andWhere('payment.servicePackage IS NOT NULL')
+            .getCount();
+
+        // Số cuộc hẹn đã thanh toán
+        const appointmentsPaid = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .leftJoin('payment.appointment', 'appointment')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .andWhere('payment.appointment IS NOT NULL')
+            .getCount();
+
+        return {
+            success: true,
+            data: {
+                totalAmountPaid: Number(totalPaidResult?.total) || 0,
+                paymentsByStatus: paymentsByStatus.reduce((acc, item) => {
+                    acc[item.status] = Number(item.count);
+                    return acc;
+                }, {}),
+                packagesPurchased,
+                appointmentsPaid,
+            },
+            message: 'Thống kê thanh toán thành công',
+        };
     }
 }

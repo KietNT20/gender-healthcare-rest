@@ -1,16 +1,16 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsNotEmpty, IsString, IsUUID } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export class CreateBlogImageDTO{
+export class CreateBlogImageDTO {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @IsUUID("4")
-    blogId: string
+    @IsUUID('4')
+    blogId: string;
 
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @IsUUID("4")
-    imageId: string
+    @IsUUID('4')
+    imageId: string;
 }

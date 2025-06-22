@@ -1,12 +1,5 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
-import {
-    IsBoolean,
-    IsEnum,
-    IsOptional,
-    IsString,
-    IsIn,
-    IsUUID,
-} from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsIn, IsUUID, IsArray } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { SortOrder } from 'src/enums';
 import { ContentStatusType } from 'src/enums';
@@ -34,11 +27,22 @@ export class GetBlogQueryDto {
     @IsUUID()
     categoryId?: string;
 
+
+
+
+   
+
+
     @ApiPropertyOptional({
-        description: 'Filter by active status',
-        default: true,
-        type: 'boolean',
+        description: 'Filter by tags (comma-separated list, e.g., health,fitness)',
+        example: 'health,fitness',
     })
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    tags?: string[];
+   
+
     @ApiPropertyOptional({
         enum: ['createdAt', 'updatedAt', 'views', 'title'],
         default: 'createdAt',

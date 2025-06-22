@@ -7,9 +7,11 @@ import { ServicePackage } from '../service-packages/entities/service-package.ent
 import { Service } from '../services/entities/service.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PackageService, ServicePackage, Service])],
-  controllers: [PackageServicesController],
-  providers: [PackageServicesService],
-  exports: [PackageServicesService],
+    imports: [
+        TypeOrmModule.forFeature([PackageService, ServicePackage, Service]),
+    ],
+    controllers: [PackageServicesController],
+    providers: [PackageServicesService],
+    exports: [PackageServicesService],
 })
 export class PackageServicesModule {}

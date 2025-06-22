@@ -67,4 +67,3 @@ export class BlogQueryDto extends IntersectionType(
     GetBlogQueryDto,
     PaginationDto,
 ) {}
-

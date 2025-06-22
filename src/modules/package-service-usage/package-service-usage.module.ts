@@ -7,13 +7,13 @@ import { ServicePackagesModule } from '../service-packages/service-packages.modu
 import { ServicesModule } from '../services/services.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PackageServiceUsage]),
-    ServicePackagesModule, // Cung cấp UserPackageSubscriptionRepository
-    ServicesModule, // Cung cấp ServiceRepository
-  ],
-  controllers: [PackageServiceUsageController],
-  providers: [PackageServiceUsageService],
-  exports: [PackageServiceUsageService],
+    imports: [
+        TypeOrmModule.forFeature([PackageServiceUsage]),
+        ServicePackagesModule, // Cung cấp UserPackageSubscriptionRepository
+        ServicesModule, // Cung cấp ServiceRepository
+    ],
+    controllers: [PackageServiceUsageController],
+    providers: [PackageServiceUsageService],
+    exports: [PackageServiceUsageService],
 })
 export class PackageServiceUsageModule {}

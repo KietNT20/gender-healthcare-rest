@@ -28,7 +28,7 @@ export class BlogsService {
         private readonly tagsService: TagsService,
     ) {}
 
-    async create(createBlogDto: CreateBlogDto){
+    async create(createBlogDto: CreateBlogDto) {
         // Validate category if provided
         if (createBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
@@ -46,31 +46,34 @@ export class BlogsService {
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
-        
-       // Handle tags
-    let tags: Tag[] = [];
-    if (createBlogDto.tags && createBlogDto.tags.length > 0) {
-      tags = await Promise.all(
-        createBlogDto.tags.map(async (tagName) => {
-          let tag = await this.tagsService.findOneByName(tagName);
-          if (!tag) {
-            tag = await this.tagsService.create({ name: tagName });
-          }
-          return tag;
-        }),
-      );
+        // Handle tags
+        let tags: Tag[] = [];
+        if (createBlogDto.tags && createBlogDto.tags.length > 0) {
+            tags = await Promise.all(
+                createBlogDto.tags.map(async (tagName) => {
+                    let tag = await this.tagsService.findOneByName(tagName);
+                    if (!tag) {
+                        tag = await this.tagsService.create({ name: tagName });
+                    }
+                    return tag;
+                }),
+            );
+        }
+
+        // Create blog with proper type handling
+        const {
+            tags: tagNames,
+            relatedServicesIds,
+            ...blogData
+        } = createBlogDto;
+        const blog = this.blogRepository.create({
+            ...blogData,
+            slug,
+            tags,
+        });
+
+        return this.blogRepository.save(blog);
     }
-
-    // Create blog with proper type handling
-    const { tags: tagNames, relatedServicesIds, ...blogData } = createBlogDto;
-    const blog = this.blogRepository.create({
-      ...blogData,
-      slug,
-      tags,
-    });
-
-    return this.blogRepository.save(blog);
-  }
 
   async findAll(blogQueryDto: BlogQueryDto): Promise<Paginated<Blog>> {
     const queryBuilder = this.blogRepository
@@ -129,7 +132,7 @@ export class BlogsService {
         return blog;
     }
 
-    async findBySlug(slug: string){
+    async findBySlug(slug: string) {
         const blog = await this.blogRepository.findOne({
             where: { slug, deletedAt: IsNull() },
             relations: ['category'],
@@ -140,10 +143,7 @@ export class BlogsService {
         return blog;
     }
 
-    async update(
-        id: string,
-        updateBlogDto: UpdateBlogDto,
-    ){
+    async update(id: string, updateBlogDto: UpdateBlogDto) {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -151,7 +151,7 @@ export class BlogsService {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
 
-    //     // Validate category if provided
+        //     // Validate category if provided
         if (updateBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
                 where: { id: updateBlogDto.categoryId },
@@ -183,7 +183,7 @@ export class BlogsService {
         return updatedBlog;
     }
 
-    async remove(id: string, deletedByUserId?: string){
+    async remove(id: string, deletedByUserId?: string) {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
         });
@@ -197,10 +197,7 @@ export class BlogsService {
         });
     }
 
-    private async generateUniqueSlug(
-        baseSlug: string,
-        excludeId?: string,
-    ){
+    private async generateUniqueSlug(baseSlug: string, excludeId?: string) {
         let slug = baseSlug;
         let counter = 1;
 
@@ -212,10 +209,7 @@ export class BlogsService {
         return slug;
     }
 
-    private async isSlugExists(
-        slug: string,
-        excludeId?: string,
-    ){
+    private async isSlugExists(slug: string, excludeId?: string) {
         const queryBuilder = this.blogRepository
             .createQueryBuilder('blog')
             .where('blog.slug = :slug', { slug })
@@ -250,9 +244,5 @@ export class BlogsService {
                 categoryId,
             });
         }
-
-        
     }
-
-    
 }

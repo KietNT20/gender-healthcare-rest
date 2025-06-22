@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { MessageType } from 'src/enums';
+import { ConsultantProfile } from 'src/modules/consultant-profiles/entities/consultant-profile.entity';
 import { ChatService } from '../chat.service';
 import {
     CHAT_EVENTS,
@@ -122,7 +123,7 @@ export class MessageHandler {
 
     async notifyConsultantAssigned(
         questionId: string,
-        consultant: any,
+        consultant: ConsultantProfile,
         server: Server,
     ) {
         server

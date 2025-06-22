@@ -8,6 +8,7 @@ import { Service } from '../services/entities/service.entity';
 import { UserPackageSubscriptionsModule } from '../user-package-subscriptions/user-package-subscriptions.module';
 import { User } from '../users/entities/user.entity';
 import { Payment } from './entities/payment.entity';
+import { PaymentServicesService } from './payment-services.service';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 
@@ -25,7 +26,7 @@ import { PaymentsService } from './payments.service';
         forwardRef(() => UserPackageSubscriptionsModule),
     ],
     controllers: [PaymentsController],
-    providers: [PaymentsService],
-    exports: [PaymentsService],
+    providers: [PaymentsService, PaymentServicesService],
+    exports: [PaymentsService, PaymentServicesService],
 })
 export class PaymentsModule {}

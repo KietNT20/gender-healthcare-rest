@@ -7,9 +7,8 @@ import {
     forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as crypto from 'crypto';
 import { PaymentStatusType } from 'src/enums';
-import { IsNull, Like, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
@@ -18,7 +17,6 @@ import { Service } from '../services/entities/service.entity';
 import { UserPackageSubscriptionsService } from '../user-package-subscriptions/user-package-subscriptions.service';
 import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './entities/payment.entity';
 import PayOS = require('@payos/node');
@@ -61,6 +59,7 @@ export class PaymentsService {
         const user = await this.userRepository.findOne({
             where: { id: userId, deletedAt: IsNull() },
         });
+
         if (!user) {
             throw new NotFoundException(`User with ID '${userId}' not found`);
         }
@@ -148,12 +147,8 @@ export class PaymentsService {
             orderCode,
             amount: finalAmount,
             description: shortDescription,
-            returnUrl:
-                process.env.RETURN_URL ||
-                'http://localhost:3333/payments/success',
-            cancelUrl:
-                process.env.CANCEL_URL ||
-                'http://localhost:3333/payments/cancel',
+            returnUrl: process.env.RETURN_URL as string,
+            cancelUrl: process.env.CANCEL_URL as string,
             items: [
                 {
                     name: itemName,
@@ -378,73 +373,6 @@ export class PaymentsService {
         }
     }
 
-    async verifyWebhook(webhookData: any) {
-        console.log('Nhận webhook:', webhookData);
-        try {
-            const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
-            if (!checksumKey) {
-                throw new Error('Thiếu khóa checksum trong file .env');
-            }
-
-            const { signature, ...data } = webhookData;
-            const sortedData = Object.keys(data)
-                .sort()
-                .reduce((obj, key) => {
-                    obj[key] = data[key];
-                    return obj;
-                }, {});
-            const dataStr = JSON.stringify(sortedData);
-            const calculatedSignature = crypto
-                .createHmac('sha256', checksumKey)
-                .update(dataStr)
-                .digest('hex');
-
-            if (calculatedSignature !== signature) {
-                throw new Error('Chữ ký webhook không hợp lệ');
-            }
-
-            const { orderCode, status } = webhookData;
-            const payment = await this.paymentRepository.findOne({
-                where: { invoiceNumber: orderCode.toString() },
-                relations: [
-                    'user',
-                    'servicePackage',
-                    'appointment',
-                    'service',
-                    'packageSubscriptions',
-                ],
-            });
-
-            if (!payment) {
-                throw new Error('Không tìm thấy thanh toán');
-            }
-
-            payment.status =
-                status === 'PAID'
-                    ? PaymentStatusType.COMPLETED
-                    : PaymentStatusType.FAILED;
-            payment.paymentDate =
-                status === 'PAID' ? new Date() : payment.paymentDate;
-            payment.gatewayResponse = {
-                ...webhookData,
-                payosStatus: status,
-                ...(status === 'CANCELLED' && {
-                    cancelledAt: new Date().toISOString(),
-                    cancellationReason:
-                        webhookData.cancellationReason ||
-                        'Hủy qua webhook PayOS',
-                }),
-            };
-            await this.paymentRepository.save(payment);
-
-            console.log(`Xử lý webhook cho orderCode ${orderCode} thành công`);
-            return payment;
-        } catch (error) {
-            console.error('Lỗi webhook:', error.message, error.stack);
-            throw new Error(`Lỗi webhook: ${error.message}`);
-        }
-    }
-
     async findAll() {
         return this.paymentRepository.find({
             relations: [
@@ -508,82 +436,6 @@ export class PaymentsService {
                 'packageSubscriptions',
             ],
         });
-    }
-
-    /**
-     * Lấy danh sách gói dịch vụ có thể thanh toán
-     */
-    async getAvailablePackages(query: GetPayablePackagesDto) {
-        const { search, isActive = true } = query;
-
-        const where: any = { deletedAt: IsNull() };
-
-        if (isActive !== undefined) {
-            where.isActive = isActive;
-        }
-
-        if (search) {
-            where.name = Like(`%${search}%`);
-        }
-
-        const packages = await this.packageRepository.find({
-            where,
-            select: [
-                'id',
-                'name',
-                'price',
-                'durationMonths',
-                'maxServicesPerMonth',
-                'isActive',
-            ],
-            order: { createdAt: 'DESC' },
-        });
-
-        return {
-            success: true,
-            data: packages,
-            message: 'Lấy danh sách gói dịch vụ thành công',
-        };
-    }
-
-    /**
-     * Lấy danh sách dịch vụ có thể thanh toán
-     */
-    async getAvailableServices(query: { search?: string; isActive?: boolean }) {
-        const { search, isActive = true } = query;
-
-        const where: any = { deletedAt: IsNull() };
-
-        if (isActive !== undefined) {
-            where.isActive = isActive;
-        }
-
-        if (search) {
-            where.name = Like(`%${search}%`);
-        }
-
-        const services = await this.serviceRepository.find({
-            where,
-            select: [
-                'id',
-                'name',
-                'slug',
-                'description',
-                'shortDescription',
-                'price',
-                'duration',
-                'isActive',
-                'featured',
-            ],
-            relations: ['category'],
-            order: { createdAt: 'DESC' },
-        });
-
-        return {
-            success: true,
-            data: services,
-            message: 'Lấy danh sách dịch vụ thành công',
-        };
     }
 
     /**

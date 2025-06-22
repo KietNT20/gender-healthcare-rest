@@ -16,27 +16,29 @@ import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
 
 @ApiBearerAuth()
 @Controller('payments')
 export class PaymentsController {
-    constructor(private readonly paymentsService: PaymentsService) {}
+    constructor(
+        private readonly paymentsService: PaymentsService,
+        private readonly paymentServicesService: PaymentServicesService,
+    ) {}
 
     @Get('available-packages')
     @ApiOperation({
         summary: 'Get a list of available service packages for payment',
     })
     getAvailablePackages(@Query() query: GetPayablePackagesDto) {
-        return this.paymentsService.getAvailablePackages(query);
+        return this.paymentServicesService.getAvailablePackages(query);
     }
 
     @Get('available-services')
     @ApiOperation({ summary: 'Get a list of available services for payment' })
-    getAvailableServices(
-        @Query() query: { search?: string; isActive?: boolean },
-    ) {
-        return this.paymentsService.getAvailableServices(query);
+    getAvailableServices(@Query() query: GetPayablePackagesDto) {
+        return this.paymentServicesService.getAvailableServices(query);
     }
 
     @Get('pending-appointments')
@@ -172,13 +174,6 @@ export class PaymentsController {
                 `Không thể xử lý callback thành công: ${error.message}`,
             );
         }
-    }
-
-    @Post('webhook')
-    async handleWebhook(@Body() webhookData: any) {
-        console.log('Nhận webhook:', webhookData);
-        const payment = await this.paymentsService.verifyWebhook(webhookData);
-        return { message: 'Webhook đã được xử lý', payment };
     }
 
     @Get(':id')

@@ -150,7 +150,7 @@ export class BlogsService {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
 
-        //     // Validate category if provided
+        // Validate category if provided
         if (updateBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
                 where: { id: updateBlogDto.categoryId },

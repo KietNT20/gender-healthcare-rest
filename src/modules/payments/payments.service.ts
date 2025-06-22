@@ -47,10 +47,15 @@ export class PaymentsService {
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    async create(createPaymentDto: CreatePaymentDto, userId:string) {
+    async create(createPaymentDto: CreatePaymentDto, userId: string) {
+        const { description, packageId, appointmentId } = createPaymentDto;
 
-        const { description, packageId, appointmentId } =
-            createPaymentDto;
+        // Kiểm tra ít nhất một trong packageId hoặc appointmentId được cung cấp
+        if (!packageId && !appointmentId) {
+            throw new BadRequestException(
+                'Phải cung cấp ít nhất một trong packageId hoặc appointmentId',
+            );
+        }
 
         // Kiểm tra userId
         const user = await this.userRepository.findOne({

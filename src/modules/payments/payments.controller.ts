@@ -9,9 +9,11 @@ import {
     Patch,
     Post,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
@@ -20,6 +22,7 @@ import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
 
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
     constructor(
@@ -52,7 +55,6 @@ export class PaymentsController {
     @Get('user-stats')
     @ApiOperation({ summary: 'Get user payment statistics' })
     getUserPaymentStats(@CurrentUser() currentUser: User) {
-        console.log('Thống kê thanh toán của user:', currentUser.id);
         return this.paymentsService.getUserPaymentStats(currentUser.id);
     }
 
@@ -61,7 +63,7 @@ export class PaymentsController {
         @Body() createPaymentDto: CreatePaymentDto,
         @CurrentUser() currentUser: User,
     ) {
-        return this.paymentsService.create(createPaymentDto);
+        return this.paymentsService.create(createPaymentDto, currentUser.id);
     }
 
     @Post('packages/:packageId')
@@ -72,12 +74,14 @@ export class PaymentsController {
         @CurrentUser() currentUser: User,
         @Body() data?: { description?: string },
     ) {
-        return this.paymentsService.create({
-            userId: currentUser.id,
-            packageId,
-            description: data?.description || `Thanh toán gói dịch vụ`,
-            atLeastOneId: true,
-        });
+        return this.paymentsService.create(
+            {
+                packageId,
+                description: data?.description || `Thanh toán gói dịch vụ`,
+                atLeastOneId: true,
+            },
+            currentUser.id,
+        );
     }
 
     @Post('appointments/:appointmentId')
@@ -88,12 +92,14 @@ export class PaymentsController {
         @CurrentUser() currentUser: User,
         @Body() data?: { description?: string },
     ) {
-        return this.paymentsService.create({
-            userId: currentUser.id,
-            appointmentId,
-            description: data?.description || `Thanh toán cuộc hẹn`,
-            atLeastOneId: true,
-        });
+        return this.paymentsService.create(
+            {
+                appointmentId,
+                description: data?.description || `Thanh toán cuộc hẹn`,
+                atLeastOneId: true,
+            },
+            currentUser.id,
+        );
     }
 
     @Post('services/:serviceId')
@@ -104,17 +110,18 @@ export class PaymentsController {
         @CurrentUser() currentUser: User,
         @Body() data?: { description?: string },
     ) {
-        return this.paymentsService.create({
-            userId: currentUser.id,
-            serviceId,
-            description: data?.description || `Thanh toán dịch vụ`,
-            atLeastOneId: true,
-        });
+        return this.paymentsService.create(
+            {
+                serviceId,
+                description: data?.description || `Thanh toán dịch vụ`,
+                atLeastOneId: true,
+            },
+            currentUser.id,
+        );
     }
 
     @Get()
     findAll() {
-        console.log('Lấy tất cả thanh toán');
         return this.paymentsService.findAll();
     }
 
@@ -147,7 +154,7 @@ export class PaymentsController {
     }
 
     @Get('success')
-    async handleSuccess(@Query() query: any, @CurrentUser() currentUser: User) {
+    async handleSuccess(@Query() query: any) {
         console.log('Nhận callback thành công:', query);
         const { orderCode } = query;
         if (!orderCode) {
@@ -178,50 +185,26 @@ export class PaymentsController {
 
     @Get(':id')
     findOne(
-        @Param(
-            'id',
-            new ParseUUIDPipe({
-                errorHttpStatusCode: 400,
-                exceptionFactory: () =>
-                    new BadRequestException('ID phải là UUID hợp lệ'),
-            }),
-        )
+        @Param('id', ParseUUIDPipe)
         id: string,
     ) {
-        console.log(`Yêu cầu tìm thanh toán với id: ${id}`);
         return this.paymentsService.findOne(id);
     }
 
     @Patch(':id')
     update(
-        @Param(
-            'id',
-            new ParseUUIDPipe({
-                errorHttpStatusCode: 400,
-                exceptionFactory: () =>
-                    new BadRequestException('ID phải là UUID hợp lệ'),
-            }),
-        )
+        @Param('id', ParseUUIDPipe)
         id: string,
         @Body() updatePaymentDto: UpdatePaymentDto,
     ) {
-        console.log(`Cập nhật thanh toán với id: ${id}`);
         return this.paymentsService.update(id, updatePaymentDto);
     }
 
     @Delete(':id')
     remove(
-        @Param(
-            'id',
-            new ParseUUIDPipe({
-                errorHttpStatusCode: 400,
-                exceptionFactory: () =>
-                    new BadRequestException('ID phải là UUID hợp lệ'),
-            }),
-        )
+        @Param('id', ParseUUIDPipe)
         id: string,
     ) {
-        console.log(`Xóa thanh toán với id: ${id}`);
         return this.paymentsService.remove(id);
     }
 }

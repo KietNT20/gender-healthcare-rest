@@ -51,8 +51,8 @@ export class PaymentsService {
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, packageId, appointmentId, serviceId } =
+    async create(createPaymentDto: CreatePaymentDto, userId: string) {
+        const { description, packageId, appointmentId, serviceId } =
             createPaymentDto;
 
         // Kiểm tra userId

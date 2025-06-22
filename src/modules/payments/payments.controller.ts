@@ -17,7 +17,7 @@ import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
 
 @ApiBearerAuth()
 @Controller('payments')
@@ -60,7 +60,7 @@ export class PaymentsController {
       }
   }
 
-  @Get('cancel/*')
+  @Get('cancel/*path')
   async handleInvalidCancel() {
       throw new BadRequestException(
           'Yêu cầu hủy không hợp lệ. Vui lòng sử dụng đúng URL /payments/cancel với các tham số query hợp lệ.',

@@ -47,8 +47,8 @@ export class PaymentsService {
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, packageId, appointmentId } = createPaymentDto;
+    async create(createPaymentDto: CreatePaymentDto, userId: string) {
+        const { description, packageId, appointmentId } = createPaymentDto;
 
         // Kiểm tra ít nhất một trong packageId hoặc appointmentId được cung cấp
         if (!packageId && !appointmentId) {

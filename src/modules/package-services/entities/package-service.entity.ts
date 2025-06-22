@@ -16,7 +16,7 @@ export class PackageService {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true }) // Thêm DeleteDateColumn để hỗ trợ soft delete
+  @DeleteDateColumn({ nullable: true })
   deletedAt?: Date;
 
   // Relations

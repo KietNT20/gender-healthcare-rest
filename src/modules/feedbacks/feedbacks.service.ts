@@ -35,8 +35,9 @@ export class FeedbacksService {
         id: string,
         updateFeedbackDto: UpdateFeedbackDto,
     ): Promise<Feedback> {
-        await this.feedbackRepository.update(id, updateFeedbackDto);
-        return this.findOne(id);
+        const feedback = await this.findOne(id);
+        this.feedbackRepository.merge(feedback, updateFeedbackDto);
+        return this.feedbackRepository.save(feedback);
     }
 
     async remove(id: string): Promise<void> {

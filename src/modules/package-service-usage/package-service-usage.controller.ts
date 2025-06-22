@@ -8,8 +8,8 @@ import { Roles } from '../../decorators/roles.decorator';
 import { RolesNameEnum } from '../../enums';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('package-service-usage')
 export class PackageServiceUsageController {
   constructor(
@@ -17,29 +17,29 @@ export class PackageServiceUsageController {
   ) {}
 
   @Post()
-  // @UseGuards(RoleGuard)
-  // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
   async create(@Body() createDto: CreatePackageServiceUsageDto) {
     return this.packageServiceUsageService.create(createDto);
   }
 
   @Get()
-  // @UseGuards(RoleGuard)
-  // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   findAll() {
     return this.packageServiceUsageService.findAll();
   }
 
   @Get(':id')
-  // @UseGuards(RoleGuard)
-  // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   async findOne(@Param('id') id: string) {
     return this.packageServiceUsageService.findOne(id);
   }
 
   @Patch(':id')
-  // @UseGuards(RoleGuard)
-  // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
   async update(
     @Param('id') id: string,
     @Body() updateDto: UpdatePackageServiceUsageDto,
@@ -48,8 +48,8 @@ export class PackageServiceUsageController {
   }
 
   @Delete(':id')
-  // @UseGuards(RoleGuard)
-  // @Roles([RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.ADMIN])
   async remove(@Param('id') id: string) {
     return this.packageServiceUsageService.remove(id);
   }

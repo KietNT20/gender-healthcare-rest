@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { CreatePackageServiceDto } from './dto/create-package-service.dto';
 import { UpdatePackageServiceDto } from './dto/update-package-service.dto';
 import { PackageService } from './entities/package-service.entity';
@@ -63,7 +63,7 @@ export class PackageServicesService {
 
   async update(id: string, updateDto: UpdatePackageServiceDto) {
     const packageService = await this.findOne(id);
-    Object.assign(packageService, updateDto);
+    this.packageServiceRepository.merge(packageService, updateDto as DeepPartial<PackageService>);
     return await this.packageServiceRepository.save(packageService);
   }
 

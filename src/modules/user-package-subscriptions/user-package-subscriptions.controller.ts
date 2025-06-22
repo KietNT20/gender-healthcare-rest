@@ -8,51 +8,51 @@ import { UserPackageSubscriptionsService } from "./user-package-subscriptions.se
 import { CreateUserPackageSubscriptionDto } from "./dto/create-user-package-subscription.dto";
 import { UpdateUserPackageSubscriptionDto } from "./dto/update-user-package-subscription.dto";
 
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('user-package-subscriptions')
 export class UserPackageSubscriptionsController {
   constructor(private readonly subscriptionsService: UserPackageSubscriptionsService) {}
 
   @Post()
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   async create(@Body() createDto: CreateUserPackageSubscriptionDto) {
     return this.subscriptionsService.create(createDto);
   }
 
   @Get()
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   findAll() {
     return this.subscriptionsService.findAll();
   }
 
   @Get(':id')
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   async findOne(@Param('id') id: string) {
     return this.subscriptionsService.findOne(id);
   }
 
   @Patch(':id')
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   async update(@Param('id') id: string, @Body() updateDto: UpdateUserPackageSubscriptionDto) {
     return this.subscriptionsService.update(id, updateDto);
   }
 
   @Delete(':id')
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.ADMIN])
   async remove(@Param('id') id: string) {
     await this.subscriptionsService.remove(id);
     return { message: 'Subscription deleted successfully' };
   }
 
   @Get('status/:userId')
-//   @UseGuards(RoleGuard)
-//   @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+  @UseGuards(RoleGuard)
+  @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
   async getStatus(@Param('userId') userId: string) {
     return this.subscriptionsService.checkSubscriptionStatus(userId);
   }

@@ -96,11 +96,7 @@ export class PackageServiceUsageService {
 
   async update(id: string, updateDto: UpdatePackageServiceUsageDto) {
     const packageServiceUsage = await this.findOne(id);
-
-    if (updateDto.usageDate) {
-      packageServiceUsage.usageDate = new Date(updateDto.usageDate);
-    }
-
+    this.packageServiceUsageRepository.merge(packageServiceUsage, updateDto);
     return await this.packageServiceUsageRepository.save(packageServiceUsage);
   }
 

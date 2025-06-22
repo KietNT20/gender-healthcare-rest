@@ -101,11 +101,11 @@ export class Blog {
     reviewedByUser: User;
 
     @ManyToOne(() => User, (user) => user.publishedBlogs, { nullable: true })
-    publishedByUser: User; 
+    publishedByUser: User;
 
     @ManyToMany(() => Service, (service) => service.blogs)
     @JoinTable()
-    services: Service[]; 
+    services: Service[];
 
     @OneToMany(() => Image, (image) => image.blog)
     images: Image[];

@@ -25,12 +25,11 @@ import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @ApiBearerAuth()
 @Controller('blogs')
-
 export class BlogsController {
     constructor(private readonly blogsService: BlogsService) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard,RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Create a new blog' })
     @ApiResponse({ status: 201, description: 'Blog created successfully' })
@@ -58,7 +57,7 @@ export class BlogsController {
     @ApiOperation({ summary: 'Get blog by slug' })
     @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
     @ResponseMessage('Blog retrieved successfully')
-    findBySlug(@Param('slug') slug: string){
+    findBySlug(@Param('slug') slug: string) {
         return this.blogsService.findBySlug(slug);
     }
 
@@ -73,7 +72,7 @@ export class BlogsController {
     @ApiOperation({ summary: 'Get blog by ID' })
     @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
     @ResponseMessage('Blog retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string){
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.blogsService.findOne(id);
     }
 
@@ -85,8 +84,8 @@ export class BlogsController {
     @ResponseMessage('Blog updated successfully')
     update(
         @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateBlogDto: UpdateBlogDto,
-    ){
+        @Body() updateBlogDto: UpdateBlogDto,
+    ) {
         return this.blogsService.update(id, updateBlogDto);
     }
 

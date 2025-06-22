@@ -136,8 +136,6 @@ export class Appointment {
     )
     stiTestProcess: StiTestProcess;
 
-
-
     @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable()
     services: Service[];

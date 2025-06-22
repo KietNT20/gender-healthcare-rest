@@ -33,62 +33,73 @@ export class ServicesService {
      * @param createServiceDto Dữ liệu đầu vào để tạo dịch vụ
      * @returns Dịch vụ đã được tạo
      */
-    private async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
-    let slug = baseSlug;
-    let counter = 1;
+    private async generateUniqueSlug(
+        baseSlug: string,
+        excludeId?: string,
+    ): Promise<string> {
+        let slug = baseSlug;
+        let counter = 1;
 
-    while (await this.isSlugExists(slug, excludeId)) {
-        slug = `${baseSlug}-${counter}`;
-        counter++;
+        while (await this.isSlugExists(slug, excludeId)) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
+        return slug;
     }
 
-    return slug;
-}
+    private async isSlugExists(
+        slug: string,
+        excludeId?: string,
+    ): Promise<boolean> {
+        const queryBuilder = this.serviceRepo
+            .createQueryBuilder('service')
+            .where('service.slug = :slug', { slug })
+            .andWhere('service.deletedAt IS NULL');
 
-private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
-    const queryBuilder = this.serviceRepo
-        .createQueryBuilder('service')
-        .where('service.slug = :slug', { slug })
-        .andWhere('service.deletedAt IS NULL');
+        if (excludeId) {
+            queryBuilder.andWhere('service.id != :excludeId', { excludeId });
+        }
 
-    if (excludeId) {
-        queryBuilder.andWhere('service.id != :excludeId', { excludeId });
+        const count = await queryBuilder.getCount();
+        return count > 0;
     }
+    async create(
+        createServiceDto: CreateServiceDto,
+    ): Promise<ServiceResponseDto> {
+        // Tạo slug từ name
 
-    const count = await queryBuilder.getCount();
-    return count > 0;
-}
-    async create(createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
-    // Tạo slug từ name
-    
-    const baseSlug = slugify(createServiceDto.name, { lower: true, strict: true });
-    const slug = await this.generateUniqueSlug(baseSlug);
+        const baseSlug = slugify(createServiceDto.name, {
+            lower: true,
+            strict: true,
+        });
+        const slug = await this.generateUniqueSlug(baseSlug);
 
-    // Kiểm tra categoryId
-    if (createServiceDto.categoryId) {
-        const category = await this.categoryRepo.findOne({
-            where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
+        // Kiểm tra categoryId
+        if (createServiceDto.categoryId) {
+            const category = await this.categoryRepo.findOne({
+                where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
+            });
+
+            if (!category) {
+                throw new NotFoundException(
+                    `Danh mục với ID '${createServiceDto.categoryId}' không tồn tại`,
+                );
+            }
+        }
+
+        const newService = this.serviceRepo.create({
+            ...createServiceDto,
+            slug, // Gán slug tự động
+            category: { id: createServiceDto.categoryId },
+            isActive: createServiceDto.isActive ?? true,
+            featured: createServiceDto.featured ?? false,
         });
 
-        if (!category) {
-            throw new NotFoundException(
-                `Danh mục với ID '${createServiceDto.categoryId}' không tồn tại`,
-            );
-        }
+        const savedService = await this.serviceRepo.save(newService);
+        this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
+        return this.toServiceResponse(savedService);
     }
-
-    const newService = this.serviceRepo.create({
-        ...createServiceDto,
-        slug, // Gán slug tự động
-        category: { id: createServiceDto.categoryId },
-        isActive: createServiceDto.isActive ?? true,
-        featured: createServiceDto.featured ?? false,
-    });
-
-    const savedService = await this.serviceRepo.save(newService);
-    this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
-    return this.toServiceResponse(savedService);
-}
     /**
      * Lấy danh sách dịch vụ với phân trang, lọc và sắp xếp
      * @param serviceQueryDto Tham số truy vấn bao gồm phân trang, lọc và sắp xếp
@@ -219,52 +230,55 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
      * @returns Dịch vụ đã được cập nhật
      */
     async update(
-  id: string,
-  updateDto: UpdateServiceDto,
-): Promise<ServiceResponseDto> {
-  // 1. Lấy entity gốc
-  const service = await this.serviceRepo.findOne({
-    where: { id, deletedAt: IsNull() },
-    relations: ['category'],
-  });
-  if (!service) {
-    throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
-  }
+        id: string,
+        updateDto: UpdateServiceDto,
+    ): Promise<ServiceResponseDto> {
+        // 1. Lấy entity gốc
+        const service = await this.serviceRepo.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['category'],
+        });
+        if (!service) {
+            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+        }
 
-  // 2. Tạo slug mới (nếu tên thay đổi)
-  let slug = service.slug;
-  if (updateDto.name && updateDto.name !== service.name) {
-    const baseSlug = slugify(updateDto.name, { lower: true, strict: true });
-    slug = await this.generateUniqueSlug(baseSlug, id);
-  }
+        // 2. Tạo slug mới (nếu tên thay đổi)
+        let slug = service.slug;
+        if (updateDto.name && updateDto.name !== service.name) {
+            const baseSlug = slugify(updateDto.name, {
+                lower: true,
+                strict: true,
+            });
+            slug = await this.generateUniqueSlug(baseSlug, id);
+        }
 
-  // 3. Xác thực category (nếu có)
-  let categoryRef = service.category;
-  if (updateDto.categoryId && updateDto.categoryId !== categoryRef?.id) {
-    const category = await this.categoryRepo.findOne({
-      where: { id: updateDto.categoryId, deletedAt: IsNull() },
-    });
-    if (!category) {
-      throw new NotFoundException(
-        `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
-      );
+        // 3. Xác thực category (nếu có)
+        let categoryRef = service.category;
+        if (updateDto.categoryId && updateDto.categoryId !== categoryRef?.id) {
+            const category = await this.categoryRepo.findOne({
+                where: { id: updateDto.categoryId, deletedAt: IsNull() },
+            });
+            if (!category) {
+                throw new NotFoundException(
+                    `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
+                );
+            }
+            categoryRef = category;
+        }
+
+        // 4. Sử dụng merge để hợp nhất các thay đổi
+        const updatedService = this.serviceRepo.merge(service, {
+            ...updateDto,
+            slug,
+            category: categoryRef ? { id: categoryRef.id } : IsNull(),
+            updatedAt: new Date(), // Thêm dòng này để ép cập nhật updatedAt
+        });
+
+        // 5. Lưu và trả về DTO
+        const savedService = await this.serviceRepo.save(updatedService);
+        this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
+        return this.toServiceResponse(savedService);
     }
-    categoryRef = category;
-  }
-
-  // 4. Sử dụng merge để hợp nhất các thay đổi
-  const updatedService = this.serviceRepo.merge(service, {
-    ...updateDto,
-    slug,
-    category: categoryRef ? { id: categoryRef.id } : IsNull(),
-    updatedAt: new Date(), // Thêm dòng này để ép cập nhật updatedAt
-  });
-
-  // 5. Lưu và trả về DTO
-  const savedService = await this.serviceRepo.save(updatedService);
-  this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
-  return this.toServiceResponse(savedService);
-}
 
     /**
      * Xóa mềm một dịch vụ
@@ -295,16 +309,18 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
     }
 
     // Thêm phương thức findBySlug
-  async findBySlug(slug: string): Promise<ServiceResponseDto> {
-    const service = await this.serviceRepo.findOne({
-      where: { slug, deletedAt: IsNull() },
-      relations: ['category'],
-    });
+    async findBySlug(slug: string): Promise<ServiceResponseDto> {
+        const service = await this.serviceRepo.findOne({
+            where: { slug, deletedAt: IsNull() },
+            relations: ['category'],
+        });
 
-    if (!service) {
-      throw new NotFoundException(`Dịch vụ với slug '${slug}' không tồn tại`);
+        if (!service) {
+            throw new NotFoundException(
+                `Dịch vụ với slug '${slug}' không tồn tại`,
+            );
+        }
+
+        return this.toServiceResponse(service);
     }
-
-    return this.toServiceResponse(service);
-  }
 }

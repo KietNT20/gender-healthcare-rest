@@ -9,13 +9,13 @@ import { AppointmentsModule } from '../appointments/appointments.module';
 import { ServicePackagesModule } from '../service-packages/service-packages.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Payment, Appointment, User]),
-    AppointmentsModule,
-    ServicePackagesModule, // Thêm ServicePackagesModule
-  ],
-  controllers: [PaymentsController],
-  providers: [PaymentsService],
-  exports: [PaymentsService],
+    imports: [
+        TypeOrmModule.forFeature([Payment, Appointment, User]),
+        AppointmentsModule,
+        ServicePackagesModule, // Thêm ServicePackagesModule
+    ],
+    controllers: [PaymentsController],
+    providers: [PaymentsService],
+    exports: [PaymentsService],
 })
 export class PaymentsModule {}

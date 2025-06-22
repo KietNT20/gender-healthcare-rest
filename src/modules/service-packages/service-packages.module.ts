@@ -7,9 +7,15 @@ import { PackageService } from '../package-services/entities/package-service.ent
 import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServicePackage, PackageService, UserPackageSubscription])],
-  controllers: [ServicePackagesController],
-  providers: [ServicePackagesService],
-  exports: [ServicePackagesService, TypeOrmModule], // Thêm TypeOrmModule vào exports
+    imports: [
+        TypeOrmModule.forFeature([
+            ServicePackage,
+            PackageService,
+            UserPackageSubscription,
+        ]),
+    ],
+    controllers: [ServicePackagesController],
+    providers: [ServicePackagesService],
+    exports: [ServicePackagesService, TypeOrmModule], // Thêm TypeOrmModule vào exports
 })
 export class ServicePackagesModule {}

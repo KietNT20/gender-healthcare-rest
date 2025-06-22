@@ -30,7 +30,7 @@ import {
 @Controller('appointments')
 export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
-  
+
     @Post()
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
@@ -44,7 +44,7 @@ export class AppointmentsController {
             currentUser,
         );
     }
-  
+
     @Get()
     @ApiOperation({
         summary: 'Get a list of appointments (role-based access)',

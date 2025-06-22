@@ -80,7 +80,10 @@ export class ConsultantAvailabilityController {
         RolesNameEnum.CONSULTANT,
     ])
     @ApiOperation({ summary: 'Consultant get availability by id' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Get availability successfully.' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Get availability successfully.',
+    })
     findOne(
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,

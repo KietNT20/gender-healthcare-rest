@@ -1,28 +1,39 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
 import { Service } from '../../services/entities/service.entity';
 import { ServicePackage } from '../../service-packages/entities/service-package.entity';
 
 @Entity()
 export class PackageService {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ type: 'integer', default: 1 })
-  quantityLimit?: number;
+    @Column({ type: 'integer', default: 1 })
+    quantityLimit?: number;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
-  deletedAt?: Date;
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 
-  // Relations
-  @ManyToOne(() => ServicePackage, (servicePackage) => servicePackage.packageServices)
-  package: ServicePackage;
+    // Relations
+    @ManyToOne(
+        () => ServicePackage,
+        (servicePackage) => servicePackage.packageServices,
+    )
+    package: ServicePackage;
 
-  @ManyToOne(() => Service, (service) => service.packageServices)
-  service: Service;
+    @ManyToOne(() => Service, (service) => service.packageServices)
+    service: Service;
 }

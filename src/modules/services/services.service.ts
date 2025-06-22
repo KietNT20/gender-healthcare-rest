@@ -15,6 +15,7 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Category } from '../categories/entities/category.entity';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ServiceResponseDto } from './dto/service-response.dto';
+import { Service } from './entities/service.entity';
 
 @Injectable()
 export class ServicesService {

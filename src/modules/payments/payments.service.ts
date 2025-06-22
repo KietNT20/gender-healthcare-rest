@@ -47,15 +47,21 @@ export class PaymentsService {
     }
 
     async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, packageId, appointmentId } =
-            createPaymentDto;
+        const { description, userId, packageId, appointmentId } = createPaymentDto;
+
+        // Kiểm tra ít nhất một trong packageId hoặc appointmentId được cung cấp
+        if (!packageId && !appointmentId) {
+            throw new BadRequestException(
+                'Phải cung cấp ít nhất một trong packageId hoặc appointmentId',
+            );
+        }
 
         // Kiểm tra userId
         const user = await this.userRepository.findOne({
             where: { id: userId, deletedAt: IsNull() },
         });
         if (!user) {
-            throw new NotFoundException(`User with ID '${userId}' not found`);
+            throw new NotFoundException(`User với id '${userId}' không tồn tại`);
         }
 
         let finalAmount: number;
@@ -65,18 +71,21 @@ export class PaymentsService {
         if (packageId) {
             const servicePackage = await this.packageRepository.findOne({
                 where: { id: packageId, deletedAt: IsNull() },
-                select: ['id', 'price', 'name'], // Chỉ tải các trường cần thiết
+                select: ['id', 'price', 'name'],
             });
             if (!servicePackage) {
                 throw new NotFoundException(
-                    `Service package with ID '${packageId}' not found`,
+                    `Service package với '${packageId}' không tồn tại`,
                 );
             }
             finalAmount = servicePackage.price;
             itemName = (servicePackage.name || 'Gói dịch vụ').slice(0, 25);
-        }
-        // Nếu không có packageId, lấy giá từ Appointment
-        else if (appointmentId) {
+        } else {
+            // Kiểm tra appointmentId trước khi sử dụng
+            if (!appointmentId) {
+                throw new BadRequestException('Appointment ID is required');
+            }
+            // Lấy giá từ Appointment
             const appointment = await this.appointmentRepository.findOne({
                 where: { id: appointmentId, deletedAt: IsNull() },
             });
@@ -92,10 +101,6 @@ export class PaymentsService {
                     user,
                 ));
             itemName = (appointment.notes || 'Cuộc hẹn').slice(0, 25);
-        } else {
-            throw new BadRequestException(
-                'Phải cung cấp ít nhất một trong packageId hoặc appointmentId',
-            );
         }
 
         // Chuyển đổi finalAmount thành số và chuẩn hóa
@@ -105,7 +110,7 @@ export class PaymentsService {
                 'Invalid amount: Unable to parse amount as a number.',
             );
         }
-        finalAmount = Number(finalAmount.toFixed(2)); // Làm tròn đến 2 chữ số thập phân
+        finalAmount = Number(finalAmount.toFixed(2));
 
         // Kiểm tra giới hạn của PayOS
         if (finalAmount < 0.01 || finalAmount > 10000000000) {
@@ -114,7 +119,7 @@ export class PaymentsService {
             );
         }
 
-        // Rút ngắn description (tối đa 25 ký tự)
+        // Rút ngắn description
         const shortDescription = (
             description || `Thanh toán: ${itemName}`
         ).slice(0, 25);
@@ -154,9 +159,7 @@ export class PaymentsService {
                 invoiceNumber: orderCode.toString(),
                 user: { id: userId } as any,
                 ...(packageId && { servicePackage: { id: packageId } as any }),
-                ...(appointmentId && {
-                    appointment: { id: appointmentId } as any,
-                }),
+                ...(appointmentId && { appointment: { id: appointmentId } as any }),
                 gatewayResponse: paymentLink,
             });
 

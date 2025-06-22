@@ -1,3 +1,4 @@
+import { CurrentUser } from './../../decorators/current-user.decorator';
 import {
     BadRequestException,
     Injectable,
@@ -46,8 +47,9 @@ export class PaymentsService {
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    async create(createPaymentDto: CreatePaymentDto) {
-        const { description, userId, packageId, appointmentId } =
+    async create(createPaymentDto: CreatePaymentDto, userId:string) {
+
+        const { description, packageId, appointmentId } =
             createPaymentDto;
 
         // Kiểm tra userId
@@ -218,7 +220,7 @@ export class PaymentsService {
                 throw new BadRequestException(
                     `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi PAID`,
                 );
-            }
+        }
 
             return payment;
         } catch (error) {

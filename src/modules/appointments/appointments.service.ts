@@ -340,6 +340,11 @@ export class AppointmentsService {
         if (!appointment.services || appointment.services.length === 0) {
             return appointment.fixedPrice || 0;
         }
-        return appointment.fixedPrice || 0; // Trả về fixedPrice đã lưu
+
+        const servicePrices = appointment.services.reduce((total, service) => {
+            return total + (service.price || 0);
+        }, 0);
+
+        return (appointment.fixedPrice || 0) + servicePrices;
     }
 }

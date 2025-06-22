@@ -49,6 +49,8 @@ export class UsersService {
         actorId: string,
     ): Promise<UserResponseDto> {
         // Check if email already exists
+        console.log("catch", createUserDto)
+
         const existingUser = await this.userRepository.findOne({
             where: { email: createUserDto.email },
         });

@@ -136,8 +136,7 @@ export class Appointment {
     )
     stiTestProcess: StiTestProcess;
 
-    @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
-    packageServiceUsages: PackageServiceUsage[];
+
 
     @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable()

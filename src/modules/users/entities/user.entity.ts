@@ -171,6 +171,9 @@ export class User {
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
+    @Column({ type: 'uuid', nullable: true })
+    roleId?: string;
+
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {
         cascade: true,

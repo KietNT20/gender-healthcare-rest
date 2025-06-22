@@ -1,9 +1,12 @@
 import {
+    Body,
     Controller,
     Delete,
     Get,
     Param,
     ParseUUIDPipe,
+    Patch,
+    Post,
     Query,
     UseGuards,
 } from '@nestjs/common';
@@ -17,26 +20,27 @@ import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
 import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
-import { BlogResponseDto } from './dto/blog-response.dto';
+import { CreateBlogDto } from './dto/create-blog.dto';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @ApiBearerAuth()
 @Controller('blogs')
-@UseGuards(JwtAuthGuard)
+
 export class BlogsController {
     constructor(private readonly blogsService: BlogsService) {}
 
-    // @Post()
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    // @ApiOperation({ summary: 'Create a new blog' })
-    // @ApiResponse({ status: 201, description: 'Blog created successfully' })
-    // @ResponseMessage('Blog created successfully')
-    // create(@Body() createBlogDto: CreateBlogDto): Promise<BlogResponseDto> {
-    //     return this.blogsService.create(createBlogDto);
-    // }
+    @Post()
+    @UseGuards(JwtAuthGuard,RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Create a new blog' })
+    @ApiResponse({ status: 201, description: 'Blog created successfully' })
+    @ResponseMessage('Blog created successfully')
+    create(@Body() createBlogDto: CreateBlogDto) {
+        return this.blogsService.create(createBlogDto);
+    }
 
     @Get()
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([
         RolesNameEnum.ADMIN,
         RolesNameEnum.MANAGER,
@@ -54,12 +58,12 @@ export class BlogsController {
     @ApiOperation({ summary: 'Get blog by slug' })
     @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
     @ResponseMessage('Blog retrieved successfully')
-    findBySlug(@Param('slug') slug: string): Promise<BlogResponseDto> {
+    findBySlug(@Param('slug') slug: string){
         return this.blogsService.findBySlug(slug);
     }
 
     @Get(':id')
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([
         RolesNameEnum.ADMIN,
         RolesNameEnum.MANAGER,
@@ -69,25 +73,25 @@ export class BlogsController {
     @ApiOperation({ summary: 'Get blog by ID' })
     @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
     @ResponseMessage('Blog retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string): Promise<BlogResponseDto> {
+    findOne(@Param('id', ParseUUIDPipe) id: string){
         return this.blogsService.findOne(id);
     }
 
-    // @Patch(':id')
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    // @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
-    // @ApiResponse({ status: 200, description: 'Blog updated successfully' })
-    // @ResponseMessage('Blog updated successfully')
-    // update(
-    //     @Param('id', ParseUUIDPipe) id: string,
-    //     @Body() updateBlogDto: UpdateBlogDto,
-    // ): Promise<BlogResponseDto> {
-    //     return this.blogsService.update(id, updateBlogDto);
-    // }
+    @Patch(':id')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
+    @ApiResponse({ status: 200, description: 'Blog updated successfully' })
+    @ResponseMessage('Blog updated successfully')
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateBlogDto: UpdateBlogDto,
+    ){
+        return this.blogsService.update(id, updateBlogDto);
+    }
 
     @Delete(':id')
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Soft delete blog (Admin only)' })
     @ApiResponse({ status: 200, description: 'Blog deleted successfully' })

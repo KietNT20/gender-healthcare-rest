@@ -1,3 +1,4 @@
+import { CurrentUser } from './../../decorators/current-user.decorator';
 import {
     BadRequestException,
     Injectable,
@@ -221,7 +222,7 @@ export class PaymentsService {
                 throw new BadRequestException(
                     `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi PAID`,
                 );
-            }
+        }
 
             return payment;
         } catch (error) {

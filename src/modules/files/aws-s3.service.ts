@@ -12,6 +12,7 @@ import {
     Inject,
     Injectable,
     Logger,
+    NotFoundException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import awsConfig from './config/aws.config';
@@ -297,7 +298,7 @@ export class AwsS3Service {
 
         // If not found in any bucket
         this.logger.error(`File not found in any bucket: ${key}`);
-        throw new Error(`File not found: ${key}`);
+        throw new NotFoundException(`File not found: ${key}`);
     }
 
     /**
@@ -333,7 +334,7 @@ export class AwsS3Service {
 
         if (!deleted) {
             this.logger.error(`Failed to delete file from any bucket: ${key}`);
-            throw new Error(`File not found for deletion: ${key}`);
+            throw new NotFoundException(`File not found for deletion: ${key}`);
         }
     }
 
@@ -388,7 +389,7 @@ export class AwsS3Service {
 
         // If not found in any bucket
         this.logger.error(`File metadata not found in any bucket: ${key}`);
-        throw new Error(`File not found: ${key}`);
+        throw new NotFoundException(`File not found: ${key}`);
     }
 
     /**

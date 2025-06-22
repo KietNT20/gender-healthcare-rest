@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { MessageType, QuestionStatusType, RolesNameEnum } from 'src/enums';
+import {
+    MessageType,
+    QuestionStatusType,
+    RolesNameEnum,
+    SortOrder,
+} from 'src/enums';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { FilesService } from '../files/files.service';
@@ -43,7 +48,7 @@ export class ChatService {
     ): Promise<boolean> {
         const question = await this.questionRepository.findOne({
             where: { id: questionId },
-            relations: ['user'],
+            relations: ['user', 'appointment', 'appointment.consultant'],
         });
 
         if (!question) {
@@ -59,17 +64,17 @@ export class ChatService {
             throw new NotFoundException('User not found');
         }
 
-        // Question owner always has access
+        // Question owner (customer) always has access
         if (question.user.id === userId) {
             return true;
         }
 
-        // Consultants can access all questions
-        if (user.role?.name === RolesNameEnum.CONSULTANT) {
+        // Only the assigned consultant of the appointment can access the question
+        if (question.appointment?.consultant?.id === userId) {
             return true;
         }
 
-        // Staff, managers, and admins can access all questions
+        // Staff, managers, and admins can access all questions (for moderation purposes)
         if (
             [
                 RolesNameEnum.STAFF,
@@ -80,6 +85,7 @@ export class ChatService {
             return true;
         }
 
+        // All other users (including other consultants) are denied access
         return false;
     }
 
@@ -226,7 +232,7 @@ export class ChatService {
     }
 
     /**
-     * Get unread message count for a user across all questions
+     * Get unread message count for a user across all questions they have access to
      */
     async getUnreadMessageCount(userId: string): Promise<number> {
         const user = await this.userRepository.findOne({
@@ -242,12 +248,33 @@ export class ChatService {
             .createQueryBuilder('message')
             .leftJoin('message.question', 'question')
             .leftJoin('message.sender', 'sender')
+            .leftJoin('question.appointment', 'appointment')
             .where('message.isRead = false')
             .andWhere('sender.id != :userId', { userId });
 
         // For customers, only count messages from their own questions
         if (user.role?.name === RolesNameEnum.CUSTOMER) {
             query = query.andWhere('question.user.id = :userId', { userId });
+        }
+        // For consultants, only count messages from questions where they are the assigned consultant
+        else if (user.role?.name === RolesNameEnum.CONSULTANT) {
+            query = query.andWhere('appointment.consultant.id = :userId', {
+                userId,
+            });
+        }
+        // For staff, managers, and admins, count messages from all questions (they have access to all)
+        else if (
+            [
+                RolesNameEnum.STAFF,
+                RolesNameEnum.MANAGER,
+                RolesNameEnum.ADMIN,
+            ].includes(user.role?.name)
+        ) {
+            // No additional filter needed - they can see all questions
+        }
+        // For other roles, no access to any questions
+        else {
+            return 0;
         }
 
         return query.getCount();
@@ -411,7 +438,7 @@ export class ChatService {
         const lastMessage = await this.messageRepository.findOne({
             where: { question: { id: questionId } },
             relations: ['sender', 'sender.role'],
-            order: { createdAt: 'DESC' },
+            order: { createdAt: SortOrder.DESC },
         });
 
         // Get unread count
@@ -445,6 +472,8 @@ export class ChatService {
     async createQuestion(
         createQuestionDto: CreateQuestionDto,
         userId: string,
+        appointmentId?: string,
+        entityManager?: any,
     ): Promise<Question> {
         const user = await this.userRepository.findOneBy({ id: userId });
         if (!user) {
@@ -458,14 +487,27 @@ export class ChatService {
         });
         const slug = `${baseSlug}-${uuidv4().substring(0, 8)}`;
 
-        const question = this.questionRepository.create({
+        const questionData: any = {
             ...createQuestionDto,
             user,
             slug,
             status: QuestionStatusType.PENDING,
-        });
+        };
 
-        return this.questionRepository.save(question);
+        // Nếu có appointmentId, gắn với appointment
+        if (appointmentId) {
+            questionData.appointment = { id: appointmentId };
+        }
+
+        const question = this.questionRepository.create(questionData);
+
+        // Sử dụng entityManager nếu được truyền vào (để dùng chung transaction)
+        if (entityManager) {
+            const savedQuestion = await entityManager.save(Question, question);
+            return savedQuestion as Question;
+        }
+
+        return this.questionRepository.save(question) as unknown as Question;
     }
 
     /**
@@ -491,5 +533,70 @@ export class ChatService {
                 );
             }
         }
+    }
+
+    /**
+     * Get questions that a user has access to
+     */
+    async getUserAccessibleQuestions(userId: string): Promise<Question[]> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['role'],
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        let query = this.questionRepository
+            .createQueryBuilder('question')
+            .leftJoinAndSelect('question.user', 'user')
+            .leftJoinAndSelect('question.appointment', 'appointment')
+            .leftJoinAndSelect('appointment.consultant', 'consultant')
+            .orderBy('question.updatedAt', 'DESC');
+
+        // For customers, only their own questions
+        if (user.role?.name === RolesNameEnum.CUSTOMER) {
+            query = query.where('question.user.id = :userId', { userId });
+        }
+        // For consultants, only questions where they are the assigned consultant
+        else if (user.role?.name === RolesNameEnum.CONSULTANT) {
+            query = query.where('appointment.consultant.id = :userId', {
+                userId,
+            });
+        }
+        // For staff, managers, and admins, all questions
+        else if (
+            [
+                RolesNameEnum.STAFF,
+                RolesNameEnum.MANAGER,
+                RolesNameEnum.ADMIN,
+            ].includes(user.role?.name)
+        ) {
+            // No additional filter needed - they can see all questions
+        }
+        // For other roles, no access to any questions
+        else {
+            return [];
+        }
+
+        return query.getMany();
+    }
+
+    /**
+     * Get question by appointment ID
+     */
+    async getQuestionByAppointmentId(
+        appointmentId: string,
+    ): Promise<Question | null> {
+        return this.questionRepository.findOne({
+            where: { appointment: { id: appointmentId } },
+            relations: [
+                'user',
+                'appointment',
+                'appointment.consultant',
+                'category',
+            ],
+        });
     }
 }

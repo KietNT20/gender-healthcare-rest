@@ -33,39 +33,3 @@ export class WorkingHours {
 
     notes?: string; // Ghi chú thêm về lịch làm việc
 }
-
-/**
- * Thông tin chứng chỉ chuyên môn
- */
-export class Certificate {
-    name: string; // Tên chứng chỉ
-
-    issuer: string; // Tổ chức cấp chứng chỉ
-
-    issueDate: Date; // Ngày cấp
-
-    expiryDate?: Date; // Ngày hết hạn (nếu có)
-
-    certificateNumber?: string; // Số chứng chỉ
-
-    description?: string; // Mô tả chi tiết về chứng chỉ
-
-    imageUrl?: string; // URL hình ảnh chứng chỉ
-
-    isVerified: boolean; // Đã được xác minh chưa
-
-    verifiedAt?: Date; // Ngày xác minh
-
-    verificationNotes?: string; // Ghi chú xác minh
-}
-
-/**
- * Tập hợp các chứng chỉ của tư vấn viên
- */
-export class Certificates {
-    items: Certificate[]; // Danh sách chứng chỉ
-
-    lastUpdated?: Date; // Lần cập nhật cuối
-
-    notes?: string; // Ghi chú chung về chứng chỉ
-}

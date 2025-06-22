@@ -8,15 +8,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
-import { Service } from './entities/service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
-import {
-    UpdateServiceProfileDto,
-    ServiceResponseDto,
-} from './dto/service-response.dto';
+
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Category } from '../categories/entities/category.entity';
+import { UpdateServiceDto } from './dto/update-service.dto';
+import { ServiceResponseDto } from './dto/service-response.dto';
+import { Service } from './entities/service.entity';
 
 @Injectable()
 export class ServicesService {
@@ -85,8 +84,7 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
         isActive: createServiceDto.isActive ?? true,
         featured: createServiceDto.featured ?? false,
     });
-
-    const savedService = await this.serviceRepo.save(newService);
+const savedService = await this.serviceRepo.save(newService);
     this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
     return this.toServiceResponse(savedService);
 }
@@ -169,8 +167,7 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
                 categoryId,
             });
         }
-
-        if (minPrice !== undefined) {
+if (minPrice !== undefined) {
             queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
         }
 
@@ -221,7 +218,7 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
      */
     async update(
   id: string,
-  updateDto: UpdateServiceProfileDto,
+  updateDto: UpdateServiceDto,
 ): Promise<ServiceResponseDto> {
   // 1. Lấy entity gốc
   const service = await this.serviceRepo.findOne({
@@ -263,7 +260,7 @@ private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
 
   // 5. Lưu và trả về DTO
   const savedService = await this.serviceRepo.save(updatedService);
-  this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
+this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
   return this.toServiceResponse(savedService);
 }
 

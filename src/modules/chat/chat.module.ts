@@ -14,6 +14,12 @@ import { Question } from './entities/question.entity';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
 import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
+import {
+    ConnectionHandler,
+    MessageHandler,
+    RoomHandler,
+    TypingHandler,
+} from './handlers';
 import { RedisHealthService } from './redis-healthcheck.service';
 import { RedisHelperService } from './redis-helper.service';
 
@@ -95,6 +101,10 @@ import { RedisHelperService } from './redis-helper.service';
         RedisWsThrottleGuard,
         WsJwtGuard,
         WsRoomAccessGuard,
+        ConnectionHandler,
+        RoomHandler,
+        MessageHandler,
+        TypingHandler,
     ],
     exports: [ChatGateway, ChatService],
 })

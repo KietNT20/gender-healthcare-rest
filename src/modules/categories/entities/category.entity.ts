@@ -1,5 +1,4 @@
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
-import { Question } from 'src/modules/chat/entities/question.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { Symptom } from 'src/modules/symptoms/entities/symptom.entity';
 import {
@@ -61,9 +60,6 @@ export class Category {
 
     @OneToMany(() => Blog, (blog) => blog.category)
     blogs: Blog[];
-
-    @OneToMany(() => Question, (question) => question.category)
-    questions: Question[];
 
     @OneToMany(() => Symptom, (symptom) => symptom.category)
     symptoms: Symptom[];

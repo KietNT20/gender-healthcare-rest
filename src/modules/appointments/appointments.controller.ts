@@ -67,6 +67,30 @@ export class AppointmentsController {
         return this.appointmentsService.findOne(id, currentUser);
     }
 
+    @Get(':id/chat-room')
+    @ApiOperation({ summary: 'Get chat room for an appointment' })
+    @ResponseMessage('Successfully retrieved chat room.')
+    async getChatRoom(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        const appointment = await this.appointmentsService.findOne(
+            id,
+            currentUser,
+        );
+        const chatRoom =
+            await this.appointmentsService.getChatRoomByAppointmentId(id);
+
+        return {
+            success: true,
+            data: {
+                appointment,
+                chatRoom,
+            },
+            message: 'Chat room retrieved successfully',
+        };
+    }
+
     @Patch(':id/status')
     @UseGuards(RoleGuard)
     @Roles([

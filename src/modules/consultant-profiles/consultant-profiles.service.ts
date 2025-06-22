@@ -10,6 +10,7 @@ import { MailService } from 'src/modules/mail/mail.service';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
 import { User } from 'src/modules/users/entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
+import { ConsultantScheduleGeneratorService } from './consultant-schedule-generator.service';
 import { CreateConsultantProfileDto } from './dto/create-consultant-profile.dto';
 import { QueryConsultantProfileDto } from './dto/query-consultant-profile.dto';
 import { RejectProfileDto } from './dto/review-profile.dto';
@@ -25,6 +26,7 @@ export class ConsultantProfilesService {
         private readonly userRepository: Repository<User>,
         private readonly mailService: MailService,
         private readonly notificationsService: NotificationsService,
+        private readonly scheduleGeneratorService: ConsultantScheduleGeneratorService,
     ) {}
 
     async create(
@@ -260,5 +262,67 @@ export class ConsultantProfilesService {
         });
 
         return updatedProfile;
+    }
+
+    /**
+     * Cập nhật workingHours và tự động tạo lịch khả dụng
+     */
+    async updateWorkingHoursAndGenerateSchedule(
+        id: string,
+        workingHours: any,
+        weeksToGenerate: number = 4,
+    ): Promise<ConsultantProfile> {
+        const profile = await this.findOne(id);
+
+        // Cập nhật workingHours
+        profile.workingHours = workingHours;
+        const updatedProfile = await this.profileRepository.save(profile);
+
+        // Tự động tạo lịch khả dụng
+        try {
+            await this.scheduleGeneratorService.regenerateAvailabilityFromWorkingHours(
+                updatedProfile,
+                weeksToGenerate,
+            );
+        } catch (error) {
+            console.error('Lỗi khi tạo lịch tự động:', error);
+            // Không throw error để không ảnh hưởng đến việc cập nhật workingHours
+        }
+
+        return updatedProfile;
+    }
+
+    /**
+     * Tự động tạo lịch khả dụng từ workingHours hiện tại
+     */
+    async generateScheduleFromWorkingHours(
+        id: string,
+        weeksToGenerate: number = 4,
+    ): Promise<void> {
+        const profile = await this.findOne(id);
+
+        if (!profile.workingHours) {
+            throw new ConflictException(
+                'Consultant chưa thiết lập workingHours',
+            );
+        }
+
+        await this.scheduleGeneratorService.generateAvailabilityFromWorkingHours(
+            profile,
+            weeksToGenerate,
+        );
+    }
+
+    /**
+     * Đảm bảo luôn có lịch cho 4 tuần tới
+     */
+    async ensureUpcomingSchedule(id: string): Promise<void> {
+        const profile = await this.findOne(id);
+
+        if (profile.workingHours) {
+            await this.scheduleGeneratorService.ensureUpcomingWeeksAvailability(
+                profile,
+            );
+        }
     }
 }

@@ -7,6 +7,7 @@ import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 import { QueryAuditLogDto } from './dto/query-audit-log.dto';
 import { UpdateAuditLogDto } from './dto/update-audit-log.dto';
 import { AuditLog } from './entities/audit-log.entity';
+import { SortOrder } from 'src/enums';
 
 @Injectable()
 export class AuditLogsService {
@@ -55,7 +56,7 @@ export class AuditLogsService {
             page = 1,
             limit = 10,
             sortBy = 'createdAt',
-            sortOrder = 'DESC',
+            sortOrder = SortOrder.DESC,
             ...filters
         } = queryDto;
 

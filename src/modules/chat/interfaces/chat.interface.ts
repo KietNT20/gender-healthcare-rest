@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { MessageType } from 'src/enums';
 import { Message } from 'src/modules/chat/entities/message.entity';
 
@@ -21,4 +22,31 @@ export interface MessageWithSender extends Omit<Message, 'sender'> {
         role: string;
         profilePicture?: string;
     };
+}
+
+export interface AuthenticatedSocket extends Socket {
+    user?: {
+        id: string;
+        email: string;
+        role: string;
+        fullName: string;
+    };
+    questionId?: string;
+}
+
+export interface UserPresence {
+    userId: string;
+    socketId: string;
+    fullName: string;
+    role: string;
+    lastSeen: number;
+}
+
+export interface TypingData {
+    questionId: string;
+    isTyping: boolean;
+}
+
+export interface JoinRoomData {
+    questionId: string;
 }

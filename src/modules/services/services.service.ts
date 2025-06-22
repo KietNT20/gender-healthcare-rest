@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
-import { Service } from './entities/service.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 
 import { ServiceQueryDto } from './dto/service-query.dto';

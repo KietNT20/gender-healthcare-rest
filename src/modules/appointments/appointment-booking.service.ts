@@ -123,7 +123,7 @@ export class AppointmentBookingService {
     ) {
         const profiles = await manager.find(ConsultantProfile, {
             where: {
-                profileStatus: ProfileStatusType.ACTIVE, // FIX: Sử dụng enum thay vì string
+                profileStatus: ProfileStatusType.ACTIVE,
                 specialties: In(specialties),
             },
             relations: ['user', 'user.role'],

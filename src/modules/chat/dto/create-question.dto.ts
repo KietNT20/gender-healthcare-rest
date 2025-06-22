@@ -4,7 +4,6 @@ import {
     IsNotEmpty,
     IsOptional,
     IsString,
-    IsUUID,
     MaxLength,
 } from 'class-validator';
 
@@ -19,11 +18,6 @@ export class CreateQuestionDto {
     @IsString()
     @IsNotEmpty()
     content: string;
-
-    @ApiProperty({ description: 'ID của danh mục liên quan' })
-    @IsUUID()
-    @IsNotEmpty()
-    categoryId: string;
 
     @ApiProperty({ description: 'Gửi câu hỏi ẩn danh', default: false })
     @IsBoolean()

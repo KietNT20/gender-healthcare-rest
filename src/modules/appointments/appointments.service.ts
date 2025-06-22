@@ -15,6 +15,7 @@ import {
     IsNull,
     Repository,
 } from 'typeorm';
+import { ChatService } from '../chat/chat.service';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { AppointmentBookingService } from './appointment-booking.service';
@@ -42,6 +43,7 @@ export class AppointmentsService {
         private readonly bookingService: AppointmentBookingService,
         private readonly notificationService: AppointmentNotificationService,
         private readonly validationService: AppointmentValidationService,
+        private readonly chatService: ChatService,
     ) {}
 
     /**
@@ -51,7 +53,7 @@ export class AppointmentsService {
      * @returns Cuộc hẹn đã được tạo.
      */
     async create(
-        createDto: CreateAppointmentDto,
+        createAppointmentDto: CreateAppointmentDto,
         currentUser: User,
     ): Promise<Appointment> {
         const queryRunner = this.dataSource.createQueryRunner();
@@ -59,8 +61,36 @@ export class AppointmentsService {
         await queryRunner.startTransaction();
 
         try {
-            const { serviceIds, appointmentDate, appointmentLocation, notes } =
-                createDto;
+            const {
+                serviceIds,
+                appointmentDate,
+                appointmentLocation,
+                notes,
+                consultantId,
+            } = createAppointmentDto;
+
+            // 1. Kiểm tra trùng lịch: cùng user, cùng consultant, cùng thời điểm hoặc trùng khoảng thời gian
+            const appointmentStart = new Date(appointmentDate);
+            const appointmentEnd = new Date(
+                appointmentDate.getTime() + 60 * 60 * 1000,
+            ); // Giả sử mỗi lịch hẹn kéo dài 1 giờ
+
+            const existing = await queryRunner.manager.findOne(Appointment, {
+                where: {
+                    user: { id: currentUser.id },
+                    consultant: consultantId ? { id: consultantId } : undefined,
+                    appointmentDate: Between(appointmentStart, appointmentEnd),
+                    status: In([
+                        AppointmentStatusType.PENDING,
+                        AppointmentStatusType.CONFIRMED,
+                    ]),
+                },
+            });
+            if (existing) {
+                throw new Error(
+                    'Bạn đã có lịch tư vấn với tư vấn viên này tại thời điểm này.',
+                );
+            }
 
             const services = await queryRunner.manager.find(Service, {
                 where: { id: In(serviceIds) },
@@ -96,7 +126,7 @@ export class AppointmentsService {
             if (isConsultation) {
                 const bookingDetails =
                     await this.bookingService.findAndValidateSlotForConsultation(
-                        createDto.consultantId,
+                        consultantId,
                         appointmentDate,
                         services,
                         queryRunner.manager,
@@ -113,6 +143,30 @@ export class AppointmentsService {
             );
             const savedAppointment =
                 await queryRunner.manager.save(appointment);
+
+            // 2. Nếu là consultation, tự động tạo phòng chat (Question) gắn với appointment
+            if (isConsultation) {
+                // Kiểm tra đã có Question chưa
+                const existQuestion = await queryRunner.manager.findOne(
+                    'Question',
+                    {
+                        where: { appointment: { id: savedAppointment.id } },
+                    },
+                );
+                if (!existQuestion) {
+                    // Tạo phòng chat
+                    await this.chatService.createQuestion(
+                        {
+                            title: `Tư vấn với ${savedAppointment.consultant?.firstName || ''} ${savedAppointment.consultant?.lastName || ''}`.trim(),
+                            content:
+                                'Phòng chat tư vấn tự động tạo khi đặt lịch.',
+                        },
+                        currentUser.id,
+                        savedAppointment.id,
+                        queryRunner.manager,
+                    );
+                }
+            }
 
             await queryRunner.commitTransaction();
 
@@ -274,11 +328,11 @@ export class AppointmentsService {
 
         return savedAppointment;
     }
-    async calculateTotalPrice(id: string, currentUser: User): Promise<number> {
-        const appointment = await this.findOne(id, currentUser);
-        if (!appointment.services || appointment.services.length === 0) {
-          return appointment.fixedPrice || 0;
-        }
-        return appointment.fixedPrice || 0; // Trả về fixedPrice đã lưu
+
+    /**
+     * Get chat room by appointment ID
+     */
+    async getChatRoomByAppointmentId(appointmentId: string): Promise<any> {
+        return this.chatService.getQuestionByAppointmentId(appointmentId);
     }
 }

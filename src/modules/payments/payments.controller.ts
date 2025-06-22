@@ -1,18 +1,18 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    Query,
     BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
 } from '@nestjs/common';
-import { ParseUUIDPipe } from '@nestjs/common';
-import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { PaymentsService } from './payments.service';
 
 @Controller('payments')
 export class PaymentsController {
@@ -51,7 +51,7 @@ export class PaymentsController {
         }
     }
 
-    @Get('cancel/*')
+    @Get('cancel/*path')
     async handleInvalidCancel() {
         throw new BadRequestException(
             'Yêu cầu hủy không hợp lệ. Vui lòng sử dụng đúng URL /payments/cancel với các tham số query hợp lệ.',

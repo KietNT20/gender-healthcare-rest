@@ -38,8 +38,10 @@ export class BlogImageService {
         await this.blogRepository.save(blog);
     }
 
-    async addImageToBlog(createBlogImageDTO:CreateBlogImageDTO): Promise<void> {
-        const {blogId,imageId} = createBlogImageDTO
+    async addImageToBlog(
+        createBlogImageDTO: CreateBlogImageDTO,
+    ): Promise<void> {
+        const { blogId, imageId } = createBlogImageDTO;
         // Find the blog
 
         const blog = await this.blogRepository.findOne({
@@ -61,18 +63,22 @@ export class BlogImageService {
         });
 
         if (!image) {
-            throw new NotFoundException(`Image with ID ${imageId} not found or not associated with blog`);
+            throw new NotFoundException(
+                `Image with ID ${imageId} not found or not associated with blog`,
+            );
         }
 
         // Add image to blog's images array if not already present
-        if (!blog.images.some(img => img.id === imageId)) {
+        if (!blog.images.some((img) => img.id === imageId)) {
             blog.images.push(image);
             await this.blogRepository.save(blog);
         }
     }
 
-    async removeImageFromBlog(createBlogImageDTO: CreateBlogImageDTO): Promise<void> {
-        const {blogId,imageId} = createBlogImageDTO
+    async removeImageFromBlog(
+        createBlogImageDTO: CreateBlogImageDTO,
+    ): Promise<void> {
+        const { blogId, imageId } = createBlogImageDTO;
         // Find the blog
         const blog = await this.blogRepository.findOne({
             where: { id: blogId },
@@ -84,7 +90,7 @@ export class BlogImageService {
         }
 
         // Filter out the image
-        blog.images = blog.images.filter(img => img.id !== imageId);
+        blog.images = blog.images.filter((img) => img.id !== imageId);
         await this.blogRepository.save(blog);
     }
 }

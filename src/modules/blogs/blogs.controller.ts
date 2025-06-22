@@ -118,5 +118,4 @@ export class BlogsController {
     async removeImageFromBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
         return this.blogImageService.removeImageFromBlog(createBlogImageDTO);
     }
-
 }

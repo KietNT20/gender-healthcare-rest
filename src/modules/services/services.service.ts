@@ -179,7 +179,7 @@ export class ServicesService {
                 categoryId,
             });
         }
-if (minPrice !== undefined) {
+        if (minPrice !== undefined) {
             queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
         }
 

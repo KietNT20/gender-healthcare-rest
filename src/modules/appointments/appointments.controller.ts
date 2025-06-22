@@ -82,12 +82,8 @@ export class AppointmentsController {
             await this.appointmentsService.getChatRoomByAppointmentId(id);
 
         return {
-            success: true,
-            data: {
-                appointment,
-                chatRoom,
-            },
-            message: 'Chat room retrieved successfully',
+            appointment,
+            chatRoom,
         };
     }
 

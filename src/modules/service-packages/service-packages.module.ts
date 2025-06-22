@@ -1,21 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServicePackagesService } from './service-packages.service';
-import { ServicePackagesController } from './service-packages.controller';
 import { ServicePackage } from './entities/service-package.entity';
-import { PackageService } from '../package-services/entities/package-service.entity';
-import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
+import { ServicePackagesController } from './service-packages.controller';
+import { ServicePackagesService } from './service-packages.service';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            ServicePackage,
-            PackageService,
-            UserPackageSubscription,
-        ]),
-    ],
+    imports: [TypeOrmModule.forFeature([ServicePackage])],
     controllers: [ServicePackagesController],
     providers: [ServicePackagesService],
-    exports: [ServicePackagesService, TypeOrmModule], // Thêm TypeOrmModule vào exports
+    exports: [ServicePackagesService],
 })
 export class ServicePackagesModule {}

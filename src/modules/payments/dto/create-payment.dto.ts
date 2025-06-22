@@ -1,5 +1,16 @@
-import { IsOptional, IsString, IsUUID } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsUUID, Validate } from 'class-validator';
+
+export class AtLeastOneIdValidator {
+    static validate(value: any, args: any): boolean {
+        const { packageId, appointmentId, serviceId } = args.object;
+        return !!(packageId || appointmentId || serviceId); // Đảm bảo ít nhất một trong ba được cung cấp
+    }
+
+    static defaultMessage(): string {
+        return 'Phải cung cấp ít nhất một trong packageId, appointmentId hoặc serviceId';
+    }
+}
 
 export class CreatePaymentDto {
     @ApiPropertyOptional({
@@ -9,8 +20,6 @@ export class CreatePaymentDto {
     @IsOptional()
     @IsString()
     description?: string;
-
-   
 
     @ApiPropertyOptional({
         description: 'ID của gói dịch vụ liên quan đến thanh toán',
@@ -29,4 +38,18 @@ export class CreatePaymentDto {
     @IsOptional()
     @IsUUID()
     appointmentId?: string;
+
+    @ApiPropertyOptional({
+        description: 'ID của dịch vụ cần thanh toán',
+        required: false,
+    })
+    @IsOptional()
+    @IsUUID()
+    serviceId?: string;
+
+    @Validate(AtLeastOneIdValidator, {
+        message:
+            'Phải cung cấp ít nhất một trong packageId, appointmentId hoặc serviceId',
+    })
+    atLeastOneId?: boolean;
 }

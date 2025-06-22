@@ -1,19 +1,17 @@
 import {
+    BadRequestException,
     Injectable,
     NotFoundException,
-    BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PaymentStatusType, SubscriptionStatusType } from 'src/enums';
+import { IsNull, Repository } from 'typeorm';
+import { Payment } from '../payments/entities/payment.entity';
+import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateUserPackageSubscriptionDto } from './dto/create-user-package-subscription.dto';
 import { UpdateUserPackageSubscriptionDto } from './dto/update-user-package-subscription.dto';
 import { UserPackageSubscription } from './entities/user-package-subscription.entity';
-import { User } from '../users/entities/user.entity';
-import { ServicePackage } from '../service-packages/entities/service-package.entity';
-import { Payment } from '../payments/entities/payment.entity';
-import { PaymentStatusType, SubscriptionStatusType } from 'src/enums';
-import { IsNull } from 'typeorm';
-import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class UserPackageSubscriptionsService {
@@ -26,7 +24,6 @@ export class UserPackageSubscriptionsService {
         private packageRepository: Repository<ServicePackage>,
         @InjectRepository(Payment)
         private paymentRepository: Repository<Payment>,
-        private paymentsService: PaymentsService,
     ) {}
 
     async create(createDto: CreateUserPackageSubscriptionDto) {

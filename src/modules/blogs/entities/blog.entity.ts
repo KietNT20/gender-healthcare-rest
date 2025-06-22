@@ -107,7 +107,7 @@ export class Blog {
     @JoinTable()
     services: Service[];
 
-    @OneToMany(() => Image, (image) => image.blog, {eager: true})
+    @OneToMany(() => Image, (image) => image.blog, { eager: true })
     images: Image[];
 
     @ManyToMany(() => Tag, (tag) => tag.blogs)

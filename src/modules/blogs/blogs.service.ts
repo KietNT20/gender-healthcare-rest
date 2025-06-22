@@ -75,53 +75,52 @@ export class BlogsService {
         return this.blogRepository.save(blog);
     }
 
-  async findAll(blogQueryDto: BlogQueryDto): Promise<Paginated<Blog>> {
-    const queryBuilder = this.blogRepository
-        .createQueryBuilder('blog')
-        .leftJoinAndSelect('blog.category', 'category')
-        .leftJoinAndSelect('blog.tags', 'tag')
-        .leftJoinAndSelect('blog.images', 'images')
-        .where('blog.deletedAt IS NULL');
+    async findAll(blogQueryDto: BlogQueryDto): Promise<Paginated<Blog>> {
+        const queryBuilder = this.blogRepository
+            .createQueryBuilder('blog')
+            .leftJoinAndSelect('blog.category', 'category')
+            .leftJoinAndSelect('blog.tags', 'tag')
+            .leftJoinAndSelect('blog.images', 'images')
+            .where('blog.deletedAt IS NULL');
 
-    // Áp dụng bộ lọc theo tags nếu có
-    if (blogQueryDto.tags && blogQueryDto.tags.length > 0) {
-        queryBuilder.andWhere('tag.name IN (:...tags)', { tags: blogQueryDto.tags });
+        // Áp dụng bộ lọc theo tags nếu có
+        if (blogQueryDto.tags && blogQueryDto.tags.length > 0) {
+            queryBuilder.andWhere('tag.name IN (:...tags)', {
+                tags: blogQueryDto.tags,
+            });
+        }
+
+        this.applyBlogFilters(queryBuilder, blogQueryDto);
+
+        // Đặt offset và limit tương tự UsersService
+        const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
+        queryBuilder.skip(offset).take(blogQueryDto.limit!);
+
+        // Xử lý sortBy và sortOrder giống UsersService
+        const allowedSortFields = ['createdAt', 'updatedAt', 'views', 'title'];
+        if (!blogQueryDto.sortBy) {
+            blogQueryDto.sortBy = 'createdAt';
+        }
+        const sortField = allowedSortFields.includes(blogQueryDto.sortBy)
+            ? blogQueryDto.sortBy
+            : 'createdAt';
+        queryBuilder.orderBy(`blog.${sortField}`, blogQueryDto.sortOrder);
+
+        // Thực thi và định dạng response
+        const [blogs, totalItems] = await queryBuilder.getManyAndCount();
+
+        return {
+            data: blogs,
+            meta: {
+                itemsPerPage: blogQueryDto.limit!,
+                totalItems,
+                currentPage: blogQueryDto.page!,
+                totalPages: Math.ceil(totalItems / blogQueryDto.limit!),
+            },
+        };
     }
 
-    this.applyBlogFilters(queryBuilder, blogQueryDto);
-
-    // Đặt offset và limit tương tự UsersService
-    const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
-    queryBuilder.skip(offset).take(blogQueryDto.limit!);
-
-    // Xử lý sortBy và sortOrder giống UsersService
-    const allowedSortFields = ['createdAt', 'updatedAt', 'views', 'title'];
-    if (!blogQueryDto.sortBy) {
-        blogQueryDto.sortBy = 'createdAt';
-    }
-    const sortField = allowedSortFields.includes(blogQueryDto.sortBy)
-        ? blogQueryDto.sortBy
-        : 'createdAt';
-    queryBuilder.orderBy(`blog.${sortField}`, blogQueryDto.sortOrder);
-
-    // Thực thi và định dạng response
-    const [blogs, totalItems] = await queryBuilder.getManyAndCount();
-
-    return {
-        data: blogs,
-        meta: {
-            itemsPerPage: blogQueryDto.limit!,
-            totalItems,
-            currentPage: blogQueryDto.page!,
-            totalPages: Math.ceil(totalItems / blogQueryDto.limit!),
-        },
-    };
-}
-
-
-    
-
-    async findOne(id: string){
+    async findOne(id: string) {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: ['category'],
@@ -151,7 +150,7 @@ export class BlogsService {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
 
-        //     // Validate category if provided
+        // Validate category if provided
         if (updateBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
                 where: { id: updateBlogDto.categoryId },

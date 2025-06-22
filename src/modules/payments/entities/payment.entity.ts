@@ -1,3 +1,9 @@
+import { PaymentStatusType } from 'src/enums';
+import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
+import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import {
     Column,
     CreateDateColumn,
@@ -8,11 +14,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
-import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
-import { PaymentStatusType } from 'src/enums';
-import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
-import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 
 @Entity()
 export class Payment {
@@ -82,6 +83,9 @@ export class Payment {
         { nullable: true },
     )
     servicePackage?: ServicePackage;
+
+    @ManyToOne(() => Service, { nullable: true })
+    service?: Service;
 
     @OneToMany(
         () => UserPackageSubscription,

@@ -1,68 +1,92 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like, Between, IsNull } from 'typeorm';
 import { CreateServicePackageDto } from './dto/create-service-package.dto';
 import { UpdateServicePackageDto } from './dto/update-service-package.dto';
+import { ServicePackageQueryDto } from './dto/service-package-query.dto';
 import { ServicePackage } from './entities/service-package.entity';
-import { PackageService } from '../package-services/entities/package-service.entity';
-import { IsNull } from 'typeorm';
-import slugify from 'slugify';
 
 @Injectable()
 export class ServicePackagesService {
   constructor(
     @InjectRepository(ServicePackage)
     private packageRepository: Repository<ServicePackage>,
-    @InjectRepository(PackageService)
-    private packageServiceRepository: Repository<PackageService>,
   ) {}
 
   async create(createDto: CreateServicePackageDto) {
-  const { name, ...packageData } = createDto;
-
-  const slug = slugify(name, { lower: true, strict: true });
-  const existingPackage = await this.packageRepository.findOne({ where: { slug, deletedAt: IsNull() } });
-  if (existingPackage) {
-    throw new NotFoundException(`Package with name '${name}' already exists`);
+    const servicePackage = this.packageRepository.create(createDto);
+    return this.packageRepository.save(servicePackage);
   }
 
-  const packageEntity = this.packageRepository.create({
-    ...packageData,
-    name,
-    slug,
-    isActive: createDto.isActive ?? true,
-  });
+  async findAll(queryDto: ServicePackageQueryDto) {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+      search,
+      minPrice,
+      maxPrice,
+      isActive,
+    } = queryDto;
 
-  // Lưu entity vào database
-  return await this.packageRepository.save(packageEntity);
-}
+    // Validate sortBy
+    const validSortFields = ['name', 'price', 'durationMonths', 'createdAt', 'updatedAt'];
+    if (sortBy && !validSortFields.includes(sortBy)) {
+      throw new BadRequestException(`Invalid sortBy field. Must be one of: ${validSortFields.join(', ')}`);
+    }
 
-  async findAll() {
-    return this.packageRepository.find({
-      where: { deletedAt: IsNull() },
-      relations: ['packageServices', 'subscriptions'],
+    // Build where conditions
+    const where: any = { deletedAt: IsNull() };
+    if (search) {
+      where.name = Like(`%${search}%`);
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = Between(minPrice ?? 0, maxPrice ?? Number.MAX_SAFE_INTEGER);
+    }
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Execute query
+    const [data, total] = await this.packageRepository.findAndCount({
+      where,
+      order: { [sortBy]: sortOrder },
+      skip,
+      take: limit,
+      relations: ['packageServices', 'packageServices.service'],
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string) {
-    const packageEntity = await this.packageRepository.findOne({
+    const servicePackage = await this.packageRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['packageServices', 'subscriptions'],
+      relations: ['packageServices', 'packageServices.service'],
     });
-    if (!packageEntity) {
-      throw new NotFoundException(`Package with ID '${id}' not found`);
+    if (!servicePackage) {
+      throw new NotFoundException(`Service package with ID '${id}' not found`);
     }
-    return packageEntity;
+    return servicePackage;
   }
 
   async update(id: string, updateDto: UpdateServicePackageDto) {
-    const packageEntity = await this.findOne(id);
-    const updatedPackage = this.packageRepository.merge(packageEntity, updateDto);
-    return await this.packageRepository.save(updatedPackage);
+    const servicePackage = await this.findOne(id);
+    this.packageRepository.merge(servicePackage, updateDto);
+    return this.packageRepository.save(servicePackage);
   }
 
   async remove(id: string) {
-    const packageEntity = await this.findOne(id);
+    const servicePackage = await this.findOne(id);
     await this.packageRepository.softDelete(id);
   }
 }

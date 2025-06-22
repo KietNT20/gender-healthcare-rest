@@ -1,21 +1,22 @@
 import {
-    Injectable,
-    NotFoundException,
     BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
-import PayOS = require('@payos/node');
-import { validate as isUUID } from 'uuid';
 import * as crypto from 'crypto';
+import { PaymentStatusType } from 'src/enums';
+import { IsNull, Repository } from 'typeorm';
+import { validate as isUUID } from 'uuid';
+import { AppointmentsService } from '../appointments/appointments.service';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment } from './entities/payment.entity';
-import { PaymentStatusType } from 'src/enums';
-import { ServicePackage } from '../service-packages/entities/service-package.entity';
-import { Appointment } from '../appointments/entities/appointment.entity';
-import { User } from '../users/entities/user.entity';
-import { AppointmentsService } from '../appointments/appointments.service';
+import PayOS = require('@payos/node');
 
 @Injectable()
 export class PaymentsService {
@@ -37,7 +38,9 @@ export class PaymentsService {
         const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
 
         if (!clientId || !apiKey || !checksumKey) {
-            throw new Error('Missing PayOS credentials in .env file');
+            throw new InternalServerErrorException(
+                'Missing PayOS credentials',
+            );
         }
 
         this.payOS = new PayOS(clientId, apiKey, checksumKey);

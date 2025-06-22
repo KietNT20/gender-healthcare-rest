@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
   @ApiPropertyOptional({ description: 'Số trang, mặc định là 1' })
@@ -22,7 +23,7 @@ export class ServiceQueryDto {
 
   @ApiPropertyOptional({ enum: ['ASC', 'DESC'], description: 'Thứ tự sắp xếp, mặc định là DESC', default: 'DESC' })
   @IsOptional()
-  @IsEnum(['ASC', 'DESC'])
+  @IsEnum(SortOrder)
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
 
   @ApiPropertyOptional({ description: 'Từ khóa tìm kiếm trong tên hoặc mô tả' })

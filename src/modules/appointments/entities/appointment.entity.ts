@@ -19,13 +19,13 @@ import {
     Entity,
     Index,
     JoinColumn,
+    JoinTable,
     ManyToMany,
     ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-    JoinTable,
 } from 'typeorm';
 
 @Entity()
@@ -136,10 +136,9 @@ export class Appointment {
     )
     stiTestProcess: StiTestProcess;
 
-    @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
-    packageServiceUsages: PackageServiceUsage[];
 
-    @ManyToMany(() => Service)
+
+    @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable()
     services: Service[];
 

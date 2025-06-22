@@ -13,9 +13,4 @@ export class CreateUserPackageSubscriptionDto {
   @ApiProperty({ description: 'ID of the payment', example: '550e8400-e29b-41d4-a716-446655440002', required: true })
   @IsUUID()
   paymentId: string;
-
-  @ApiPropertyOptional({ description: 'Auto-renew flag', example: false, required: false })
-  @IsBoolean()
-  @IsOptional()
-  autoRenew?: boolean;
 }

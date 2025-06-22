@@ -8,7 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
 import { Payment } from '../payments/entities/payment.entity';
 import { PaymentStatusType, SubscriptionStatusType } from 'src/enums';
-import { IsNull, MoreThan } from 'typeorm';
+import { IsNull } from 'typeorm';
 import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
@@ -55,7 +55,6 @@ export class UserPackageSubscriptionsService {
       startDate,
       endDate,
       status: SubscriptionStatusType.ACTIVE,
-      autoRenew: createDto.autoRenew ?? false,
       user: { id: userId },
       package: { id: packageId },
       payment: { id: paymentId },
@@ -90,17 +89,9 @@ export class UserPackageSubscriptionsService {
       throw new BadRequestException(`Cannot update expired or cancelled subscription`);
     }
 
-    // Cập nhật endDate nếu autoRenew được bật và gói còn hiệu lực
-    if (updateDto.autoRenew && subscription.autoRenew !== updateDto.autoRenew) {
-      const packageEntity = await this.packageRepository.findOne({ where: { id: subscription.package.id } });
-      if (packageEntity) {
-        const newEndDate = new Date(subscription.endDate);
-        newEndDate.setMonth(newEndDate.getMonth() + packageEntity.durationMonths);
-        subscription.endDate = newEndDate;
-      }
-    }
+    // Sử dụng repository.merge để gộp các thay đổi từ DTO vào entity
+    this.subscriptionRepository.merge(subscription, updateDto);
 
-    Object.assign(subscription, updateDto);
     return await this.subscriptionRepository.save(subscription);
   }
 

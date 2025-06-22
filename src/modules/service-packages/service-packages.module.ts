@@ -10,6 +10,6 @@ import { UserPackageSubscription } from '../user-package-subscriptions/entities/
   imports: [TypeOrmModule.forFeature([ServicePackage, PackageService, UserPackageSubscription])],
   controllers: [ServicePackagesController],
   providers: [ServicePackagesService],
-  exports: [ServicePackagesService],
+  exports: [ServicePackagesService, TypeOrmModule], // Thêm TypeOrmModule vào exports
 })
 export class ServicePackagesModule {}

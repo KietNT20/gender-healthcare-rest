@@ -1,4 +1,5 @@
 import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
   Column,
@@ -54,4 +55,7 @@ export class ServicePackage {
     (subscription) => subscription.package,
   )
   subscriptions: UserPackageSubscription[];
+
+  @OneToMany(() => Payment, (payment) => payment.servicePackage)
+  payments: Payment[];
 }

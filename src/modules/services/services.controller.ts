@@ -21,17 +21,15 @@ import {
 } from '@nestjs/swagger';
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceProfileDto, ServiceResponseDto } from './dto/service-response.dto';
+import { ServiceResponseDto } from './dto/service-response.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { RolesNameEnum } from 'src/enums';
+import { UpdateServiceDto } from './dto/update-service.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiTags('Services')
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
@@ -42,8 +40,9 @@ export class ServicesController {
    * @returns Created service
    */
   @Post()
-  @UseGuards(RoleGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new service' })
   @ApiResponse({ status: 201, description: 'Service created successfully', type: ServiceResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid data' })
@@ -108,20 +107,19 @@ export class ServicesController {
    * @returns Updated service
    */
   @Patch(':id')
-  @UseGuards(RoleGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a service by ID' })
   @ApiResponse({ status: 200, description: 'Service updated successfully', type: ServiceResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid service ID format' })
   @ApiResponse({ status: 404, description: 'Service not found' })
   @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can perform this action' })
-  @ApiBody({ type: UpdateServiceProfileDto })
+  @ApiBody({ type: UpdateServiceDto })
   @ResponseMessage('Service updated successfully')
   async update(
-    @Param('id', new ParseUUIDPipe({
-      exceptionFactory: () => new BadRequestException('Invalid service ID'),
-    })) id: string,
-    @Body() updateServiceDto: UpdateServiceProfileDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateServiceDto: UpdateServiceDto,
   ): Promise<ServiceResponseDto> {
     return this.servicesService.update(id, updateServiceDto);
   }
@@ -132,8 +130,9 @@ export class ServicesController {
    * @returns Success message
    */
   @Delete(':id')
-  @UseGuards(RoleGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Soft delete a service by ID' })
   @ApiResponse({ status: 200, description: 'Service deleted successfully' })
   @ApiResponse({ status: 400, description: 'Invalid service ID format' })
@@ -141,9 +140,7 @@ export class ServicesController {
   @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can perform this action' })
   @ResponseMessage('Service deleted successfully')
   async remove(
-    @Param('id', new ParseUUIDPipe({
-      exceptionFactory: () => new BadRequestException('Invalid service ID'),
-    })) id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
     await this.servicesService.remove(id);
     return { message: 'Service deleted successfully' };

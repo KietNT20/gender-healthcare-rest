@@ -51,15 +51,6 @@ export enum PaymentStatusType {
     CANCELLED = 'cancelled',
 }
 
-
-// export enum WebhookDataType {
-//     CREATED = 'CREATED',
-//     PAID = 'PAID',
-//     CANCELLED = 'CANCELLED',
-//     EXPIRED = 'EXPIRED',
-//     REFUNDED = 'REFUNDED',
-// }
-
 export enum PriorityType {
     LOW = 'low',
     NORMAL = 'normal',

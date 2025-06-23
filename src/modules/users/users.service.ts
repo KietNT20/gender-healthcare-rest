@@ -109,6 +109,58 @@ export class UsersService {
         return this.toUserResponse(savedUser);
     }
 
+    async registerAccountCustomer(
+        createUserDto: CreateUserDto,
+    ): Promise<UserResponseDto> {
+        const existingUser = await this.userRepository.findOne({
+            where: { email: createUserDto.email },
+        });
+
+        if (existingUser) {
+            throw new ConflictException('Email này đã tồn tại trong hệ thống');
+        }
+
+        // Hash password
+        const hashedPassword = await this.hashingProvider.hashPassword(
+            createUserDto.password,
+        );
+
+        const genSlug = `${createUserDto.firstName} ${createUserDto.email}`;
+
+        // Generate unique slug
+        const baseSlug = slugify(genSlug, {
+            lower: true,
+            strict: true,
+        });
+        const slug = await this.generateUniqueSlug(baseSlug);
+
+        const userRole = await this.roleRepository.findOneBy({
+            id: createUserDto.roleId,
+        });
+
+        if (!userRole) {
+            throw new BadRequestException('Invalid role ID');
+        }
+
+        // Create user
+        const user = this.userRepository.create({
+            ...createUserDto,
+            password: hashedPassword,
+            slug,
+            dateOfBirth: createUserDto.dateOfBirth
+                ? new Date(createUserDto.dateOfBirth)
+                : undefined,
+            role: userRole,
+            emailVerified: false,
+            phoneVerified: true,
+        });
+
+        const savedUser = await this.userRepository.save(user);
+
+        // Return user without password
+        return this.toUserResponse(savedUser);
+    }
+
     /**
      * Creates multiple users in a single transaction for better performance and data integrity.
      * @param createManyUsersDto The DTO containing an array of user data.
@@ -635,8 +687,9 @@ export class UsersService {
         updateProfileDto: UpdateProfileDto,
     ): Promise<UserResponseDto> {
         const user = await this.findOne(id);
+
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Người dùng không tồn tại');
         }
 
         // Update slug if firstName or lastName is being updated
@@ -661,9 +714,10 @@ export class UsersService {
             dateOfBirth = new Date(updateProfileDto.dateOfBirth);
         }
 
-        const updatedUser = await this.userRepository.findOneBy({
-            id,
-            deletedAt: IsNull(),
+        const updatedUser = this.userRepository.merge(user, {
+            ...updateProfileDto,
+            slug,
+            dateOfBirth,
         });
 
         if (!updatedUser) {
@@ -673,12 +727,7 @@ export class UsersService {
         }
 
         // Update user profile
-        await this.userRepository.save({
-            ...updatedUser,
-            slug,
-            dateOfBirth,
-            updatedAt: new Date(),
-        });
+        await this.userRepository.save(updatedUser);
 
         return this.toUserResponse(updatedUser);
     }

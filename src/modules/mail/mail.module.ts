@@ -11,16 +11,16 @@ import { MailService } from './mail.service';
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({
                 transport: {
-                    host: configService.get<string>('MAIL_HOST'),
-                    port: configService.get<number>('MAIL_PORT'),
+                    host: configService.get('MAIL_HOST'),
+                    port: +configService.get('MAIL_PORT'),
                     secure: false,
                     auth: {
-                        user: configService.get<string>('MAIL_USER'),
-                        pass: configService.get<string>('MAIL_PASSWORD'),
+                        user: configService.get('MAIL_USER'),
+                        pass: configService.get('MAIL_PASSWORD'),
                     },
                 },
                 defaults: {
-                    from: `${configService.get<string>('MAIL_FROM_NAME')} <${configService.get<string>('MAIL_FROM_EMAIL')}>`,
+                    from: `${configService.get('MAIL_FROM_NAME')} <${configService.get('MAIL_FROM_EMAIL')}>`,
                 },
                 template: {
                     dir: join(__dirname, 'templates'),

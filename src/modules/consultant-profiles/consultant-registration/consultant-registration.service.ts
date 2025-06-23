@@ -170,7 +170,9 @@ export class ConsultantRegistrationService {
                     },
                 });
 
-                const reviewUrl = `${process.env.FRONTEND_URL}/admin/profiles/${savedProfile.id}`;
+                const reviewUrl =
+                    `${process.env.FRONTEND_URL}/admin/profiles/${savedProfile.id}` ||
+                    `http://localhost:3000/admin/profiles/${savedProfile.id}`;
 
                 for (const admin of adminsAndManagers) {
                     // Gửi thông báo trong ứng dụng

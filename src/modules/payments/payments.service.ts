@@ -14,7 +14,6 @@ import {
 } from '@payos/node/lib/type';
 import { PaymentStatusType, SortOrder } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
-import { validate as isUUID } from 'uuid';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
@@ -506,10 +505,6 @@ export class PaymentsService {
     }
 
     async findOne(id: string) {
-        console.log(`Gọi findOne với id: ${id}`);
-        if (!isUUID(id)) {
-            throw new BadRequestException(`UUID không hợp lệ: ${id}`);
-        }
         const payment = await this.paymentRepository.findOne({
             where: { id },
             relations: [

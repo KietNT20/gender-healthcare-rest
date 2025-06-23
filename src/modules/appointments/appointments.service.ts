@@ -6,6 +6,7 @@ import {
     ConsultantSelectionType,
     RolesNameEnum,
     ServiceCategoryType,
+    SortOrder,
 } from 'src/enums';
 import {
     Between,
@@ -199,7 +200,7 @@ export class AppointmentsService {
             page = 1,
             limit = 10,
             sortBy = 'appointmentDate',
-            sortOrder = 'ASC',
+            sortOrder = SortOrder.DESC,
             ...filters
         } = queryDto;
 

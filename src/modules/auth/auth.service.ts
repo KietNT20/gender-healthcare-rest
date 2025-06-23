@@ -66,7 +66,7 @@ export class AuthService {
         const user = await this.usersService.registerAccountCustomer(userData);
 
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Người dùng không được tìm thấy');
         }
 
         const fullName = `${user.firstName} ${user.lastName}`;

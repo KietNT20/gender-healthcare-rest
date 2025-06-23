@@ -117,7 +117,7 @@ export class UsersService {
         });
 
         if (existingUser) {
-            throw new ConflictException('Email này đã tồn tại');
+            throw new ConflictException('Email này đã tồn tại trong hệ thống');
         }
 
         // Hash password
@@ -151,7 +151,7 @@ export class UsersService {
                 ? new Date(createUserDto.dateOfBirth)
                 : undefined,
             role: userRole,
-            emailVerified: true,
+            emailVerified: false,
             phoneVerified: true,
         });
 

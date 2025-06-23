@@ -16,6 +16,7 @@ export class MailService {
         token: string,
         userName: string,
     ): Promise<void> {
+        // Sử dụng backend URL để xử lý redirect
         const url = `${this.configService.get('APP_URL')}/auth/verify-email?token=${token}`;
 
         try {
@@ -45,6 +46,7 @@ export class MailService {
         token: string,
         userName: string,
     ): Promise<void> {
+        // Sử dụng backend URL để xử lý redirect đến frontend
         const url = `${this.configService.get('APP_URL')}/auth/reset-password?token=${token}`;
 
         try {

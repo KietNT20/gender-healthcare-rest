@@ -280,6 +280,27 @@ export class AuthService {
         };
     }
 
+    async validateResetToken(token: string) {
+        const user = await this.usersService.findByPasswordResetToken(token);
+        if (!user) {
+            throw new BadRequestException(
+                'Token đặt lại mật khẩu không hợp lệ',
+            );
+        }
+
+        if (
+            user.passwordResetExpires &&
+            user.passwordResetExpires < new Date()
+        ) {
+            throw new BadRequestException('Token đặt lại mật khẩu đã hết hạn');
+        }
+
+        return {
+            valid: true,
+            userId: user.id,
+        };
+    }
+
     async resetPassword(token: string, newPassword: string) {
         const user = await this.usersService.findByPasswordResetToken(token);
         if (!user) {

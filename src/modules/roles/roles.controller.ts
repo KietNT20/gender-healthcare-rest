@@ -19,7 +19,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
 
 @ApiBearerAuth()
-@UseGuards(RoleGuard, JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Roles([RolesNameEnum.ADMIN])
 @Controller('roles')
 export class RolesController {

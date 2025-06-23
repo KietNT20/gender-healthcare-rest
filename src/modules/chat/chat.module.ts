@@ -34,9 +34,9 @@ import { RedisHelperService } from './redis-helper.service';
         {
             provide: 'REDIS_CLIENT',
             useFactory: async (configService: ConfigService) => {
-                const host = configService.get<string>('REDIS_HOST');
-                const port = configService.get<number>('REDIS_PORT');
-                const password = configService.get<string>('REDIS_PASSWORD');
+                const host = configService.get('REDIS_HOST');
+                const port = configService.get('REDIS_PORT');
+                const password = configService.get('REDIS_PASSWORD');
 
                 const client = createClient({
                     socket: {

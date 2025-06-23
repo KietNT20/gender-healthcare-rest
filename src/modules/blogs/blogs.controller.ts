@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -19,12 +20,12 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
+import { BlogImageService } from './blogs-image.service';
 import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
+import { CreateBlogImageDTO } from './dto/create-blog-image.dto';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { BlogImageService } from './blogs-image.service';
-import { CreateBlogImageDTO } from './dto/create-blog-image.dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -34,7 +35,7 @@ export class BlogsController {
     ) {}
 
     @Post()
-    @UseGuards(RoleGuard, JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @ApiBearerAuth()
     @Roles([
         RolesNameEnum.ADMIN,
@@ -42,7 +43,10 @@ export class BlogsController {
         RolesNameEnum.CONSULTANT,
     ])
     @ApiOperation({ summary: 'Create a new blog' })
-    @ApiResponse({ status: 201, description: 'Blog created successfully' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Blog created successfully',
+    })
     @ResponseMessage('Blog created successfully')
     create(@Body() createBlogDto: CreateBlogDto) {
         return this.blogsService.create(createBlogDto);
@@ -50,7 +54,10 @@ export class BlogsController {
 
     @Get()
     @ApiOperation({ summary: 'Get all blogs with pagination and filters' })
-    @ApiResponse({ status: 200, description: 'Blogs retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blogs retrieved successfully',
+    })
     @ResponseMessage('Blogs retrieved successfully')
     findAll(@Query() queryDto: BlogQueryDto) {
         return this.blogsService.findAll(queryDto);
@@ -58,7 +65,10 @@ export class BlogsController {
 
     @Get('slug/:slug')
     @ApiOperation({ summary: 'Get blog by slug' })
-    @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog retrieved successfully',
+    })
     @ResponseMessage('Blog retrieved successfully')
     findBySlug(@Param('slug') slug: string) {
         return this.blogsService.findBySlug(slug);
@@ -66,18 +76,24 @@ export class BlogsController {
 
     @Get(':id')
     @ApiOperation({ summary: 'Get blog by ID' })
-    @ApiResponse({ status: 200, description: 'Blog retrieved successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog retrieved successfully',
+    })
     @ResponseMessage('Blog retrieved successfully')
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.blogsService.findOne(id);
     }
 
     @Patch(':id')
-    @UseGuards(RoleGuard, JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @ApiBearerAuth()
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
-    @ApiResponse({ status: 200, description: 'Blog updated successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog updated successfully',
+    })
     @ResponseMessage('Blog updated successfully')
     update(
         @Param('id', ParseUUIDPipe) id: string,
@@ -87,11 +103,14 @@ export class BlogsController {
     }
 
     @Delete(':id')
-    @UseGuards(RoleGuard, JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @ApiBearerAuth()
     @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Soft delete blog (Admin only)' })
-    @ApiResponse({ status: 200, description: 'Blog deleted successfully' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog deleted successfully',
+    })
     @ResponseMessage('Blog deleted successfully')
     async remove(
         @Param('id', ParseUUIDPipe) id: string,

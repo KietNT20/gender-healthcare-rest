@@ -6,10 +6,12 @@ import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import * as dotenv from 'dotenv'
 
-// dotenv.config();
+
 
 async function bootstrap() {
+    // dotenv.config();
     const app = await NestFactory.create(AppModule);
     app.useGlobalPipes(
         new ValidationPipe({

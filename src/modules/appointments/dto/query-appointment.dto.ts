@@ -49,10 +49,10 @@ class Sorting {
     @IsOptional()
     sortBy?: string = 'appointmentDate';
 
-    @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.ASC })
+    @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })
     @IsEnum(SortOrder)
     @IsOptional()
-    sortOrder?: SortOrder = SortOrder.ASC;
+    sortOrder?: SortOrder = SortOrder.DESC;
 }
 
 export class FiltersAndSorting extends IntersectionType(Filters, Sorting) {}

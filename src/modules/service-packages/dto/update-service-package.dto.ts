@@ -42,4 +42,8 @@ export class UpdateServicePackageDto {
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
+
+    @IsOptional()
+    @IsString()
+    slug?: string;
 }

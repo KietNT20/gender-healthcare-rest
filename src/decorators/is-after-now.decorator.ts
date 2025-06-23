@@ -18,7 +18,7 @@ export class IsAfterNowConstraint implements ValidatorConstraintInterface {
      * @param args - Các đối số validation.
      * @returns `true` nếu hợp lệ, `false` nếu không hợp lệ.
      */
-    validate(value: any, args: ValidationArguments) {
+    validate(value: any, _args: ValidationArguments) {
         // Chỉ thực hiện kiểm tra nếu giá trị là một đối tượng Date hợp lệ
         if (!(value instanceof Date)) {
             return false;

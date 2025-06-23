@@ -50,7 +50,7 @@ export class AuthController {
         description: 'Email already exists',
     })
     @ResponseMessage('User registered successfully')
-    async register(@Body() registerDto: RegisterDto) {
+    register(@Body() registerDto: RegisterDto) {
         return this.authService.register(registerDto);
     }
 
@@ -65,7 +65,7 @@ export class AuthController {
         description: 'Invalid credentials or account locked',
     })
     @ResponseMessage('Login successful')
-    async login(@Body() loginDto: LoginDto) {
+    login(@Body() loginDto: LoginDto) {
         return this.authService.login(loginDto);
     }
 
@@ -89,12 +89,14 @@ export class AuthController {
     async verifyEmail(@Query('token') token: string, @Res() res: Response) {
         try {
             await this.authService.verifyEmail(token);
-            const frontendUrl = process.env.FRONTEND_BASE_URL;
+            const frontendUrl =
+                process.env.FRONTEND_URL || 'http://localhost:3000';
             return res.redirect(
                 `${frontendUrl}/auth/verify-success?message=Email verified successfully`,
             );
         } catch (error) {
-            const frontendUrl = process.env.FRONTEND_BASE_URL;
+            const frontendUrl =
+                process.env.FRONTEND_URL || 'http://localhost:3000';
             const errorMessage = encodeURIComponent(
                 error.message || 'Email verification failed',
             );
@@ -115,9 +117,7 @@ export class AuthController {
         description: 'Email not found',
     })
     @ResponseMessage('Verification email sent')
-    async resendVerification(
-        @Body() resendVerificationDto: ResendVerificationDto,
-    ) {
+    resendVerification(@Body() resendVerificationDto: ResendVerificationDto) {
         return this.authService.resendVerificationEmail(
             resendVerificationDto.email,
         );
@@ -143,7 +143,7 @@ export class AuthController {
         description: 'Password reset email sent (or message for security)',
     })
     @ResponseMessage('Password reset instructions sent')
-    async forgotPassword(@Body('email') email: string) {
+    forgotPassword(@Body('email') email: string) {
         return this.authService.forgotPassword(email);
     }
 
@@ -163,7 +163,7 @@ export class AuthController {
         description: 'Invalid or expired reset token',
     })
     @ResponseMessage('Password reset successful')
-    async resetPassword(
+    resetPassword(
         @Param('token') token: string,
         @Body() resetPasswordDto: ResetPasswordDto,
     ) {
@@ -193,13 +193,15 @@ export class AuthController {
             await this.authService.validateResetToken(token);
 
             // Chuyển hướng đến frontend với token hợp lệ
-            const frontendUrl = process.env.FRONTEND_URL;
+            const frontendUrl =
+                process.env.FRONTEND_URL || 'http://localhost:3000';
             return res.redirect(
                 `${frontendUrl}/auth/reset-password?token=${token}`,
             );
         } catch (error) {
             // Chuyển hướng đến frontend với thông báo lỗi
-            const frontendUrl = process.env.FRONTEND_URL;
+            const frontendUrl =
+                process.env.FRONTEND_URL || 'http://localhost:3000';
             const errorMessage = encodeURIComponent(
                 error.message || 'Invalid or expired reset token',
             );

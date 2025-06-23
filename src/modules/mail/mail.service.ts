@@ -17,7 +17,7 @@ export class MailService {
         userName: string,
     ): Promise<void> {
         // Sử dụng backend URL để xử lý redirect
-        const url = `${this.configService.get('APP_URL')}/auth/verify-email?token=${token}`;
+        const url = `${this.configService.get<string>('APP_URL')}/auth/verify-email?token=${token}`;
 
         try {
             await this.mailerService.sendMail({
@@ -47,7 +47,7 @@ export class MailService {
         userName: string,
     ): Promise<void> {
         // Sử dụng backend URL để xử lý redirect đến frontend
-        const url = `${this.configService.get('APP_URL')}/auth/reset-password?token=${token}`;
+        const url = `${this.configService.get<string>('APP_URL')}/auth/reset-password?token=${token}`;
 
         try {
             await this.mailerService.sendMail({
@@ -154,7 +154,7 @@ export class MailService {
                 context: {
                     ...testDetails,
                     appName: 'Dịch vụ Y tế Giới tính',
-                    loginUrl: `${this.configService.get('APP_URL')}/login`,
+                    loginUrl: `${this.configService.get<string>('APP_URL')}/login`,
                 },
             });
 
@@ -241,8 +241,8 @@ export class MailService {
                 context: {
                     userName,
                     appName: 'Dịch vụ Y tế Giới tính',
-                    loginUrl: `${this.configService.get('FRONTEND_URL')}/login`,
-                    supportEmail: this.configService.get('MAIL_FROM'),
+                    loginUrl: `${this.configService.get<string>('FRONTEND_URL')}/login`,
+                    supportEmail: this.configService.get<string>('MAIL_FROM'),
                 },
             });
 
@@ -265,7 +265,7 @@ export class MailService {
         email: string,
         userName: string,
     ): Promise<void> {
-        const loginUrl = `${this.configService.get('FRONTEND_URL')}/login`;
+        const loginUrl = `${this.configService.get<string>('FRONTEND_URL')}/login`;
 
         try {
             await this.mailerService.sendMail({

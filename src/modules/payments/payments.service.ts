@@ -68,7 +68,8 @@ export class PaymentsService {
             );
         }
         // Default frontend domain for redirects
-        this.defaultFrontendDomain = process.env.FRONTEND_BASE_URL as string;
+        this.defaultFrontendDomain =
+            (process.env.FRONTEND_URL as string) || 'http://localhost:3000';
 
         if (!this.defaultFrontendDomain) {
             throw new InternalServerErrorException('Missing Front-end URL');

@@ -9,29 +9,31 @@ import {
     Patch,
     Post,
     Query,
-    Req,
     UploadedFile,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+    ApiBearerAuth,
     ApiBody,
     ApiConsumes,
     ApiOperation,
     ApiResponse,
-    ApiTags,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { MessageType, RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from '../users/entities/user.entity';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
 
-@ApiTags('Chat')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
     constructor(private readonly chatService: ChatService) {}
@@ -46,9 +48,9 @@ export class ChatController {
     })
     async createQuestion(
         @Body() createQuestionDto: CreateQuestionDto,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user.id;
+        const userId = user.id;
         const question = await this.chatService.createQuestion(
             createQuestionDto,
             userId,
@@ -74,10 +76,9 @@ export class ChatController {
     async sendMessage(
         @Param('questionId') questionId: string,
         @Body() createMessageDto: CreateChatDto,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        // Extract user ID from request (assuming middleware adds user info)
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         const message = await this.chatService.createMessage({
             content: createMessageDto.content,
@@ -121,9 +122,9 @@ export class ChatController {
         @Param('questionId') questionId: string,
         @UploadedFile() file: Express.Multer.File,
         @Body() body: { content?: string; type?: MessageType },
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
         const content = body.content || file.originalname;
         const type = body.type || MessageType.FILE;
 
@@ -151,9 +152,9 @@ export class ChatController {
     async getMessages(
         @Param('questionId') questionId: string,
         @Query() query: GetMessagesDto,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         // Verify user has access to this question
         const hasAccess = await this.chatService.verifyQuestionAccess(
@@ -189,9 +190,9 @@ export class ChatController {
     })
     async markMessageAsRead(
         @Param('messageId') messageId: string,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         await this.chatService.markMessageAsRead(messageId, userId);
 
@@ -209,9 +210,9 @@ export class ChatController {
     })
     async markAllMessagesAsRead(
         @Param('questionId') questionId: string,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         await this.chatService.markAllMessagesAsRead(questionId, userId);
 
@@ -237,9 +238,9 @@ export class ChatController {
     })
     async deleteMessage(
         @Param('messageId') messageId: string,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         await this.chatService.deleteMessage(messageId, userId);
 
@@ -257,9 +258,9 @@ export class ChatController {
     })
     async getQuestionSummary(
         @Param('questionId') questionId: string,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         // Verify access
         const hasAccess = await this.chatService.verifyQuestionAccess(
@@ -285,8 +286,8 @@ export class ChatController {
         status: HttpStatus.OK,
         description: 'Unread count retrieved successfully',
     })
-    async getUnreadCount(@Req() req: Request) {
-        const userId = (req as any).user?.id;
+    async getUnreadCount(@CurrentUser() user: User) {
+        const userId = user.id;
 
         const count = await this.chatService.getUnreadMessageCount(userId);
 
@@ -308,9 +309,9 @@ export class ChatController {
     })
     async getMessageFile(
         @Param('messageId') messageId: string,
-        @Req() req: Request,
+        @CurrentUser() user: User,
     ) {
-        const userId = (req as any).user?.id;
+        const userId = user.id;
 
         const fileUrl = await this.chatService.getMessageFileUrl(
             messageId,
@@ -331,8 +332,8 @@ export class ChatController {
         status: HttpStatus.OK,
         description: 'Questions retrieved successfully',
     })
-    async getUserQuestions(@Req() req: Request) {
-        const userId = (req as any).user?.id;
+    async getUserQuestions(@CurrentUser() user: User) {
+        const userId = user.id;
 
         const questions =
             await this.chatService.getUserAccessibleQuestions(userId);

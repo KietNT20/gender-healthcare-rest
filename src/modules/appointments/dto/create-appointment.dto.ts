@@ -20,7 +20,7 @@ export class CreateAppointmentDto {
     })
     @IsArray()
     @ArrayMinSize(1)
-    @IsUUID('all', { each: true })
+    @IsUUID('4', { each: true })
     @IsNotEmpty()
     serviceIds: string[];
 
@@ -28,7 +28,7 @@ export class CreateAppointmentDto {
         description:
             'ID của tư vấn viên. Bỏ trống nếu muốn hệ thống tự động chọn.',
     })
-    @IsUUID()
+    @IsUUID('4')
     @IsOptional()
     consultantId?: string;
 

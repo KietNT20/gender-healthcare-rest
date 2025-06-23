@@ -1,9 +1,29 @@
-import { Module } from '@nestjs/common';
-import { UserPackageSubscriptionsService } from './user-package-subscriptions.service';
+import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PackageServiceUsage } from '../package-service-usage/entities/package-service-usage.entity';
+import { Payment } from '../payments/entities/payment.entity';
+import { PaymentsModule } from '../payments/payments.module';
+import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { User } from '../users/entities/user.entity';
+import { UserPackageSubscription } from './entities/user-package-subscription.entity';
 import { UserPackageSubscriptionsController } from './user-package-subscriptions.controller';
+import { UserPackageSubscriptionsService } from './user-package-subscriptions.service';
 
 @Module({
+    imports: [
+        ScheduleModule.forRoot(),
+        TypeOrmModule.forFeature([
+            UserPackageSubscription,
+            User,
+            ServicePackage,
+            Payment,
+            PackageServiceUsage,
+        ]),
+        forwardRef(() => PaymentsModule),
+    ],
     controllers: [UserPackageSubscriptionsController],
     providers: [UserPackageSubscriptionsService],
+    exports: [UserPackageSubscriptionsService],
 })
 export class UserPackageSubscriptionsModule {}

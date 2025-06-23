@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
     IsString,
     IsOptional,
@@ -9,9 +10,11 @@ import {
 import { ContentStatusType } from 'src/enums';
 
 export class CreateBlogDto {
+    @ApiProperty()
     @IsString()
     title: string;
 
+    @ApiProperty()
     @IsString()
     slug: string;
 
@@ -29,6 +32,7 @@ export class CreateBlogDto {
     @IsString()
     featuredImage?: string;
 
+    @ApiProperty()
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
@@ -42,6 +46,7 @@ export class CreateBlogDto {
     @IsString()
     seoTitle?: string;
 
+    @ApiProperty()
     @IsOptional()
     @IsString()
     seoDescription?: string;

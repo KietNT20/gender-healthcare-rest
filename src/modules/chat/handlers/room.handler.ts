@@ -59,7 +59,7 @@ export class RoomHandler {
 
             // Leave previous room if any
             if (client.questionId && client.questionId !== questionId) {
-                await this.leaveQuestionRoom(client, client.questionId, server);
+                await this.leaveQuestionRoom(client, client.questionId);
             }
 
             // Join new room
@@ -127,14 +127,10 @@ export class RoomHandler {
         if (!client.user) return;
 
         const { questionId } = data;
-        await this.leaveQuestionRoom(client, questionId, server);
+        await this.leaveQuestionRoom(client, questionId);
     }
 
-    async leaveQuestionRoom(
-        client: AuthenticatedSocket,
-        questionId: string,
-        server: Server,
-    ) {
+    async leaveQuestionRoom(client: AuthenticatedSocket, questionId: string) {
         if (!client.user) return;
 
         try {

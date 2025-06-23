@@ -1,5 +1,7 @@
 import { PaymentStatusType } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
+import { ServicePackage } from 'src/modules/service-packages/entities/service-package.entity';
+import { Service } from 'src/modules/services/entities/service.entity';
 import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -55,7 +57,7 @@ export class Payment {
     refundReason: string;
 
     @Column({ length: 50, nullable: true })
-    invoiceNumber: string;
+    invoiceNumber?: string;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -70,8 +72,20 @@ export class Payment {
     @ManyToOne(() => User, (user) => user.payments)
     user: User;
 
-    @ManyToOne(() => Appointment, (appointment) => appointment.payments)
-    appointment: Appointment;
+    @ManyToOne(() => Appointment, (appointment) => appointment.payments, {
+        nullable: true,
+    })
+    appointment?: Appointment;
+
+    @ManyToOne(
+        () => ServicePackage,
+        (servicePackage) => servicePackage.payments,
+        { nullable: true },
+    )
+    servicePackage?: ServicePackage;
+
+    @ManyToOne(() => Service, { nullable: true })
+    service?: Service;
 
     @OneToMany(
         () => UserPackageSubscription,

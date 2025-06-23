@@ -1,26 +1,608 @@
-import { Injectable } from '@nestjs/common';
+
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    NotFoundException,
+    forwardRef,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PaymentStatusType } from 'src/enums';
+import { IsNull, Repository } from 'typeorm';
+import { validate as isUUID } from 'uuid';
+import { AppointmentsService } from '../appointments/appointments.service';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { Service } from '../services/entities/service.entity';
+import { UserPackageSubscriptionsService } from '../user-package-subscriptions/user-package-subscriptions.service';
+import { User } from '../users/entities/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { Payment } from './entities/payment.entity';
+import PayOS = require('@payos/node');
+import { PayOSPaymentStatus } from './enums/payos.enum';
+import { WebhookType } from '@payos/node/lib/type';
 
 @Injectable()
 export class PaymentsService {
-    create(createPaymentDto: CreatePaymentDto) {
-        return 'This action adds a new payment';
+    private payOS: PayOS;
+
+    constructor(
+        @InjectRepository(Payment)
+        private paymentRepository: Repository<Payment>,
+        @InjectRepository(ServicePackage)
+        private packageRepository: Repository<ServicePackage>,
+        @InjectRepository(Appointment)
+        private appointmentRepository: Repository<Appointment>,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
+        @InjectRepository(Service)
+        private serviceRepository: Repository<Service>,
+        private appointmentsService: AppointmentsService,
+        @Inject(forwardRef(() => UserPackageSubscriptionsService))
+        private userPackageSubscriptionsService: UserPackageSubscriptionsService,
+    ) {
+        const clientId = process.env.PAYOS_CLIENT_ID;
+        const apiKey = process.env.PAYOS_API_KEY;
+        const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
+
+        if (!clientId || !apiKey || !checksumKey) {
+            throw new InternalServerErrorException('Missing PayOS credentials');
+        }
+
+        this.payOS = new PayOS(clientId, apiKey, checksumKey);
     }
 
-    findAll() {
-        return `This action returns all payments`;
+    async create(createPaymentDto: CreatePaymentDto, userId: string) {
+        const { description, packageId, appointmentId, serviceId } =
+            createPaymentDto;
+
+        const user = await this.userRepository.findOne({
+            where: { id: userId, deletedAt: IsNull() },
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID '${userId}' not found`);
+        }
+
+        let finalAmount: number;
+        let itemName: string;
+
+        if (packageId) {
+            const servicePackage = await this.packageRepository.findOne({
+                where: { id: packageId, deletedAt: IsNull() },
+                select: ['id', 'price', 'name'],
+            });
+            if (!servicePackage) {
+                throw new NotFoundException(
+                    `Service package with ID '${packageId}' not found`,
+                );
+            }
+            finalAmount = servicePackage.price;
+            itemName = (servicePackage.name || 'Gói dịch vụ').slice(0, 25);
+        } else if (appointmentId) {
+            const appointment = await this.appointmentRepository.findOne({
+                where: { id: appointmentId, deletedAt: IsNull() },
+            });
+            if (!appointment) {
+                throw new NotFoundException(
+                    `Appointment with ID '${appointmentId}' not found`,
+                );
+            }
+            finalAmount =
+                appointment.fixedPrice ||
+                (await this.appointmentsService.calculateTotalPrice(
+                    appointmentId,
+                    user,
+                ));
+            itemName = (appointment.notes || 'Cuộc hẹn').slice(0, 25);
+        } else if (serviceId) {
+            const service = await this.serviceRepository.findOne({
+                where: { id: serviceId, deletedAt: IsNull(), isActive: true },
+                select: ['id', 'price', 'name'],
+            });
+            if (!service) {
+                throw new NotFoundException(
+                    `Service with ID '${serviceId}' not found or inactive`,
+                );
+            }
+            finalAmount = service.price;
+            itemName = (service.name || 'Dịch vụ').slice(0, 25);
+        } else {
+            throw new BadRequestException(
+                'Phải cung cấp ít nhất một trong packageId, appointmentId hoặc serviceId',
+            );
+        }
+
+        finalAmount = parseFloat(finalAmount.toString());
+        if (isNaN(finalAmount)) {
+            throw new BadRequestException(
+                'Invalid amount: Unable to parse amount as a number.',
+            );
+        }
+        finalAmount = Number(finalAmount.toFixed(2));
+
+        if (finalAmount < 0.01 || finalAmount > 10000000000) {
+            throw new BadRequestException(
+                `Invalid amount: ${finalAmount}. Amount must be between 0.01 and 10,000,000,000 VND.`,
+            );
+        }
+
+        const shortDescription = (
+            description || `Thanh toán: ${itemName}`
+        ).slice(0, 25);
+
+        const orderCode = Math.floor(Math.random() * 1000000);
+
+        const paymentData = {
+            orderCode,
+            amount: finalAmount,
+            description: shortDescription,
+            returnUrl: process.env.RETURN_URL as string,
+            cancelUrl: process.env.CANCEL_URL as string,
+            items: [
+                {
+                    name: itemName,
+                    quantity: 1,
+                    price: finalAmount,
+                },
+            ],
+        };
+
+        try {
+            const paymentLink = await this.payOS.createPaymentLink(paymentData);
+
+            const payment = this.paymentRepository.create({
+                amount: finalAmount,
+                paymentMethod: 'PayOS',
+                status: PaymentStatusType.PENDING,
+                invoiceNumber: orderCode.toString(),
+                user: { id: userId } as any,
+                ...(packageId && { servicePackage: { id: packageId } as any }),
+                ...(appointmentId && {
+                    appointment: { id: appointmentId } as any,
+                }),
+                ...(serviceId && { service: { id: serviceId } as any }),
+                gatewayResponse: paymentLink,
+            });
+
+            await this.paymentRepository.save(payment);
+
+            return {
+                paymentId: payment.id,
+                checkoutUrl: paymentLink.checkoutUrl,
+                returnUrl: process.env.RETURN_URL,
+                cancelUrl: process.env.CANCEL_URL,
+            };
+        } catch (error) {
+            throw new BadRequestException(
+                `Failed to create payment link: ${error.message}`,
+            );
+        }
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} payment`;
+    async handleSuccessCallback(orderCode: string) {
+        console.log(`Xử lý callback thành công cho orderCode: ${orderCode}`);
+        try {
+            const payment = await this.paymentRepository.findOne({
+                where: { invoiceNumber: orderCode.toString() },
+                relations: [
+                    'user',
+                    'servicePackage',
+                    'appointment',
+                    'service',
+                    'packageSubscriptions',
+                ],
+            });
+
+            if (!payment) {
+                throw new NotFoundException(
+                    `Không tìm thấy thanh toán với orderCode '${orderCode}'`,
+                );
+            }
+
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}, không thể xử lý lại`,
+                );
+            }
+
+            const paymentInfo =
+                await this.payOS.getPaymentLinkInformation(orderCode);
+
+            if (paymentInfo.status === PayOSPaymentStatus.PAID) {
+                payment.status = PaymentStatusType.COMPLETED;
+                payment.paymentDate = new Date();
+                payment.gatewayResponse = {
+                    ...payment.gatewayResponse,
+                    payosStatus: PayOSPaymentStatus.PAID,
+                    paymentConfirmedAt: new Date().toISOString(),
+                };
+                await this.paymentRepository.save(payment);
+
+                await this.processSuccessfulPayment(payment);
+
+                console.log(
+                    `Cập nhật thanh toán ${orderCode} thành completed thành công`,
+                );
+            } else {
+                throw new BadRequestException(
+                    `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi ${PayOSPaymentStatus.PAID}`,
+                );
+            }
+
+            return payment;
+        } catch (error) {
+            console.error(
+                'Lỗi xử lý callback thành công:',
+                error.message,
+                error.stack,
+            );
+            throw new BadRequestException(
+                `Không thể xử lý callback thành công: ${error.message}`,
+            );
+        }
     }
 
-    update(id: number, updatePaymentDto: UpdatePaymentDto) {
-        return `This action updates a #${id} payment`;
+    /**
+     * Xử lý logic business sau khi thanh toán thành công
+     */
+    private async processSuccessfulPayment(payment: Payment) {
+        try {
+            // 1. Nếu thanh toán cho gói dịch vụ
+            if (payment.servicePackage) {
+                await this.createUserPackageSubscription(payment);
+            }
+
+            // 2. Nếu thanh toán cho cuộc hẹn
+            if (payment.appointment) {
+                await this.updateAppointmentStatus(payment);
+            }
+        } catch (error) {
+            console.error('Lỗi xử lý business logic sau thanh toán:', error);
+            // Log lỗi nhưng không throw để không ảnh hưởng đến việc cập nhật trạng thái thanh toán
+        }
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} payment`;
+    /**
+     * Tạo subscription cho user khi thanh toán gói thành công
+     */
+    private async createUserPackageSubscription(payment: Payment) {
+        if (!payment.servicePackage) return;
+
+        try {
+            const subscriptionData = {
+                userId: payment.user.id,
+                packageId: payment.servicePackage.id,
+                paymentId: payment.id,
+            };
+
+            // Tạo subscription tự động
+            const subscription =
+                await this.userPackageSubscriptionsService.create(
+                    subscriptionData,
+                );
+            console.log('Đã tạo subscription thành công:', subscription.id);
+        } catch (error) {
+            console.error('Lỗi tạo subscription:', error.message);
+            // Không throw error để tránh ảnh hưởng đến flow thanh toán
+        }
     }
+
+    /**
+     * Cập nhật trạng thái appointment khi thanh toán thành công
+     */
+    private async updateAppointmentStatus(payment: Payment) {
+        if (!payment.appointment) return;
+
+        if (payment.appointment.status === 'pending') {
+            payment.appointment.status = 'confirmed' as any;
+            await this.appointmentRepository.save(payment.appointment);
+            console.log(
+                `Xác nhận appointment ${payment.appointment.id} sau thanh toán thành công`,
+            );
+        }
+    }
+
+    async handleCancelCallback(orderCode: string) {
+        console.log(`Xử lý callback hủy cho orderCode: ${orderCode}`);
+        try {
+            const payment = await this.paymentRepository.findOne({
+                where: { invoiceNumber: orderCode.toString() },
+                relations: [
+                    'user',
+                    'servicePackage',
+                    'appointment',
+                    'service',
+                    'packageSubscriptions',
+                ],
+            });
+
+            if (!payment) {
+                throw new NotFoundException(
+                    `Không tìm thấy thanh toán với orderCode '${orderCode}'`,
+                );
+            }
+
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}`,
+                );
+            }
+
+            const paymentInfo =
+                await this.payOS.getPaymentLinkInformation(orderCode);
+
+            if (paymentInfo.status !== PayOSPaymentStatus.CANCELLED) {
+                throw new BadRequestException(
+                    `Trạng thái thanh toán trên PayOS là ${paymentInfo.status}, mong đợi ${PayOSPaymentStatus.CANCELLED}`,
+                );
+            }
+
+            payment.status = PaymentStatusType.CANCELLED;
+            payment.gatewayResponse = {
+                ...paymentInfo,
+                payosStatus: PayOSPaymentStatus.CANCELLED,
+                cancelledAt: new Date().toISOString(),
+                cancellationReason: paymentInfo.cancellationReason || 'Hủy bởi người dùng qua giao diện PayOS',
+            };
+            await this.paymentRepository.save(payment);
+
+            console.log(`Hủy thanh toán ${orderCode} thành công`);
+            return payment;
+        } catch (error) {
+            console.error(
+                'Lỗi xử lý callback hủy:',
+                error.message,
+                error.stack,
+            );
+            throw new BadRequestException(
+                `Không thể xử lý callback hủy: ${error.message}`,
+            );
+        }
+    }
+
+    async findAll() {
+        return this.paymentRepository.find({
+            relations: [
+                'user',
+                'servicePackage',
+                'appointment',
+                'service',
+                'packageSubscriptions',
+            ],
+        });
+    }
+
+    async findOne(id: string) {
+        console.log(`Gọi findOne với id: ${id}`);
+        if (!isUUID(id)) {
+            throw new BadRequestException(`UUID không hợp lệ: ${id}`);
+        }
+        const payment = await this.paymentRepository.findOne({
+            where: { id },
+            relations: [
+                'user',
+                'servicePackage',
+                'appointment',
+                'service',
+                'packageSubscriptions',
+            ],
+        });
+        if (!payment) {
+            throw new NotFoundException(
+                `Không tìm thấy thanh toán với ID '${id}'`,
+            );
+        }
+        return payment;
+    }
+
+    async update(id: string, updatePaymentDto: UpdatePaymentDto) {
+        const payment = await this.paymentRepository.findOne({ where: { id } });
+        if (!payment) {
+            throw new Error('Payment not found');
+        }
+        Object.assign(payment, updatePaymentDto);
+        return this.paymentRepository.save(payment);
+    }
+
+    async remove(id: string) {
+        const payment = await this.paymentRepository.findOne({ where: { id } });
+        if (!payment) {
+            throw new Error('Payment not found');
+        }
+        return this.paymentRepository.softDelete({ id });
+    }
+
+    async findOneByInvoiceNumber(invoiceNumber: string) {
+        return this.paymentRepository.findOne({
+            where: { invoiceNumber },
+            relations: [
+                'user',
+                'servicePackage',
+                'appointment',
+                'service',
+                'packageSubscriptions',
+            ],
+        });
+    }
+
+    /**
+     * Lấy danh sách cuộc hẹn chờ thanh toán của user
+     */
+    async getPendingAppointments(userId: string) {
+        const appointments = await this.appointmentRepository.find({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                // Chỉ lấy các appointment chưa có payment hoặc payment chưa thành công
+            },
+            relations: ['services', 'consultant'],
+            select: [
+                'id',
+                'appointmentDate',
+                'appointmentLocation',
+                'notes',
+                'fixedPrice',
+                'status',
+            ],
+            order: { appointmentDate: 'ASC' },
+        });
+
+        // Filter appointments that need payment
+        const pendingPaymentAppointments: Appointment[] = [];
+        for (const appointment of appointments) {
+            const existingPayment = await this.paymentRepository.findOne({
+                where: {
+                    appointment: { id: appointment.id },
+                    status: PaymentStatusType.COMPLETED,
+                },
+            });
+
+            if (!existingPayment) {
+                pendingPaymentAppointments.push(appointment);
+            }
+        }
+
+        return {
+            success: true,
+            data: pendingPaymentAppointments,
+            message: 'Lấy danh sách cuộc hẹn chờ thanh toán thành công',
+        };
+    }
+
+    /**
+     * Thống kê thanh toán của user
+     */
+    async getUserPaymentStats(userId: string) {
+        // Tổng số tiền đã thanh toán
+        const totalPaidResult = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .select('SUM(payment.amount)', 'total')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .getRawOne();
+
+        // Số lượng thanh toán theo trạng thái
+        const paymentsByStatus = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .select('payment.status', 'status')
+            .addSelect('COUNT(*)', 'count')
+            .where('payment.user.id = :userId', { userId })
+            .groupBy('payment.status')
+            .getRawMany();
+
+        // Số gói đã mua
+        const packagesPurchased = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .leftJoin('payment.servicePackage', 'package')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .andWhere('payment.servicePackage IS NOT NULL')
+            .getCount();
+
+        // Số cuộc hẹn đã thanh toán
+        const appointmentsPaid = await this.paymentRepository
+            .createQueryBuilder('payment')
+            .leftJoin('payment.appointment', 'appointment')
+            .where('payment.user.id = :userId', { userId })
+            .andWhere('payment.status = :status', {
+                status: PaymentStatusType.COMPLETED,
+            })
+            .andWhere('payment.appointment IS NOT NULL')
+            .getCount();
+
+        return {
+            success: true,
+            data: {
+                totalAmountPaid: Number(totalPaidResult?.total) || 0,
+                paymentsByStatus: paymentsByStatus.reduce((acc, item) => {
+                    acc[item.status] = Number(item.count);
+                    return acc;
+                }, {}),
+                packagesPurchased,
+                appointmentsPaid,
+            },
+            message: 'Thống kê thanh toán thành công',
+        };
+    }
+
+
+
+
+    // payments.service.ts
+async verifyWebhook(webhookData: WebhookType) {
+    try {
+        const isValid = this.payOS.verifyPaymentWebhookData(webhookData);
+        if (!isValid) {
+            throw new BadRequestException('Chữ ký webhook không hợp lệ');
+        }
+
+        const { orderCode } = webhookData.data;
+
+        const payment = await this.paymentRepository.findOne({
+            where: { invoiceNumber: orderCode.toString() },
+            relations: [
+                'user',
+                'servicePackage',
+                'appointment',
+                'service',
+                'packageSubscriptions',
+            ],
+        });
+
+        if (!payment) {
+            throw new NotFoundException(
+                `Không tìm thấy thanh toán với orderCode '${orderCode}'`,
+            );
+        }
+
+        // Lấy thông tin thanh toán từ PayOS
+        const paymentInfo = await this.payOS.getPaymentLinkInformation(orderCode.toString());
+        const payosStatus = paymentInfo.status as PayOSPaymentStatus;
+
+        if (payosStatus === PayOSPaymentStatus.PAID) {
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}`,
+                );
+            }
+            payment.status = PaymentStatusType.COMPLETED;
+            payment.paymentDate = new Date();
+            payment.gatewayResponse = {
+                ...payment.gatewayResponse,
+                payosStatus: PayOSPaymentStatus.PAID,
+                paymentConfirmedAt: new Date().toISOString(),
+            };
+            await this.paymentRepository.save(payment);
+            await this.processSuccessfulPayment(payment);
+        } else if (payosStatus === PayOSPaymentStatus.CANCELLED) {
+            if (payment.status !== PaymentStatusType.PENDING) {
+                throw new BadRequestException(
+                    `Thanh toán đã ở trạng thái ${payment.status}`,
+                );
+            }
+            payment.status = PaymentStatusType.CANCELLED;
+            payment.gatewayResponse = {
+                ...payment.gatewayResponse,
+                payosStatus: PayOSPaymentStatus.CANCELLED,
+                cancelledAt: new Date().toISOString(),
+                cancellationReason: 'Hủy bởi webhook PayOS',
+            };
+            await this.paymentRepository.save(payment);
+        }
+
+        return payment;
+    } catch (error) {
+        console.error('Lỗi xử lý webhook:', error.message, error.stack);
+        throw new BadRequestException(
+            `Không thể xử lý webhook: ${error.message}`,
+        );
+    }
+}
 }

@@ -335,4 +335,16 @@ export class AppointmentsService {
     async getChatRoomByAppointmentId(appointmentId: string): Promise<any> {
         return this.chatService.getQuestionByAppointmentId(appointmentId);
     }
+    async calculateTotalPrice(id: string, currentUser: User): Promise<number> {
+        const appointment = await this.findOne(id, currentUser);
+        if (!appointment.services || appointment.services.length === 0) {
+            return appointment.fixedPrice || 0;
+        }
+
+        const servicePrices = appointment.services.reduce((total, service) => {
+            return total + (service.price || 0);
+        }, 0);
+
+        return (appointment.fixedPrice || 0) + servicePrices;
+    }
 }

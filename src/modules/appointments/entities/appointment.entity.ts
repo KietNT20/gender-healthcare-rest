@@ -6,7 +6,6 @@ import {
 import { Question } from 'src/modules/chat/entities/question.entity';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
-import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { StiTestProcess } from 'src/modules/sti-test-processes/entities/sti-test-process.entity';
@@ -127,6 +126,7 @@ export class Appointment {
 
     @OneToMany(() => Feedback, (feedback) => feedback.appointment)
     feedbacks: Feedback[];
+
     @OneToOne(() => TestResult, (testResult) => testResult.appointment)
     testResult: TestResult;
 
@@ -135,9 +135,6 @@ export class Appointment {
         (stiTestProcess) => stiTestProcess.appointment,
     )
     stiTestProcess: StiTestProcess;
-
-    @OneToMany(() => PackageServiceUsage, (usage) => usage.appointment)
-    packageServiceUsages: PackageServiceUsage[];
 
     @ManyToMany(() => Service, (service) => service.appointments)
     @JoinTable()

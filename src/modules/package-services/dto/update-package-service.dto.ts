@@ -1,6 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePackageServiceDto } from './create-package-service.dto';
+import { IsOptional, IsNumber } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdatePackageServiceDto extends PartialType(
-    CreatePackageServiceDto,
-) {}
+export class UpdatePackageServiceDto {
+    @ApiPropertyOptional({ description: 'Quantity limit', example: 10 })
+    @IsOptional()
+    @IsNumber()
+    quantityLimit?: number;
+
+    @ApiPropertyOptional({ description: 'Discount percentage', example: 0 })
+    @IsOptional()
+    @IsNumber()
+    discountPercentage?: number;
+}

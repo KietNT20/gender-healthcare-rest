@@ -26,7 +26,6 @@ export class Service {
     @Column({ length: 255 })
     name: string;
 
-    @Index({ unique: true })
     @Column({ length: 255, unique: true })
     slug: string;
 

@@ -9,6 +9,7 @@ import { CreateServicePackageDto } from './dto/create-service-package.dto';
 import { UpdateServicePackageDto } from './dto/update-service-package.dto';
 import { ServicePackageQueryDto } from './dto/service-package-query.dto';
 import { ServicePackage } from './entities/service-package.entity';
+import slugify from 'slugify';
 
 @Injectable()
 export class ServicePackagesService {
@@ -18,7 +19,16 @@ export class ServicePackagesService {
     ) {}
 
     async create(createDto: CreateServicePackageDto) {
-        const servicePackage = this.packageRepository.create(createDto);
+        // Tạo slug từ tên gói dịch vụ bằng slugify
+        const slug = slugify(createDto.name, {
+            lower: true, // Chuyển thành chữ thường
+            strict: true, // Loại bỏ ký tự đặc biệt
+            locale: 'vi', // Hỗ trợ xử lý dấu tiếng Việt
+        });
+        const servicePackage = this.packageRepository.create({
+            ...createDto,
+            slug,
+        });
         return this.packageRepository.save(servicePackage);
     }
 
@@ -98,6 +108,14 @@ export class ServicePackagesService {
 
     async update(id: string, updateDto: UpdateServicePackageDto) {
         const servicePackage = await this.findOne(id);
+        // Nếu có cập nhật tên, tạo slug mới
+        if (updateDto.name) {
+            updateDto.slug = slugify(updateDto.name, {
+                lower: true,
+                strict: true,
+                locale: 'vi',
+            });
+        }
         this.packageRepository.merge(servicePackage, updateDto);
         return this.packageRepository.save(servicePackage);
     }

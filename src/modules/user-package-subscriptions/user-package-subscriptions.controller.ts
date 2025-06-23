@@ -26,8 +26,8 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('user-package-subscriptions')
 export class UserPackageSubscriptionsController {
     constructor(
@@ -40,8 +40,8 @@ export class UserPackageSubscriptionsController {
      * @returns Created subscription
      */
     @Post()
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Create a new user package subscription' })
     @ApiResponse({
         status: 201,
@@ -65,8 +65,8 @@ export class UserPackageSubscriptionsController {
      * @returns List of subscriptions
      */
     @Get()
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Get a list of all user package subscriptions' })
     @ApiResponse({
         status: 200,
@@ -88,13 +88,13 @@ export class UserPackageSubscriptionsController {
      * @returns Subscription details
      */
     @Get(':id')
-    // @UseGuards(RoleGuard)
-    // @Roles([
-    //     RolesNameEnum.CUSTOMER,
-    //     RolesNameEnum.STAFF,
-    //     RolesNameEnum.MANAGER,
-    //     RolesNameEnum.ADMIN,
-    // ])
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.ADMIN,
+    ])
     @ApiOperation({ summary: 'Get a user package subscription by ID' })
     @ApiResponse({
         status: 200,
@@ -133,8 +133,8 @@ export class UserPackageSubscriptionsController {
      * @returns Updated subscription
      */
     @Patch(':id')
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.MANAGER, RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Update a user package subscription by ID' })
     @ApiResponse({
         status: 200,

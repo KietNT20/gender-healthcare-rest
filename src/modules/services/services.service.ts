@@ -1,20 +1,15 @@
-import {
-    Injectable,
-    NotFoundException,
-    ConflictException,
-    Logger,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
 
-import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Category } from '../categories/entities/category.entity';
-import { UpdateServiceDto } from './dto/update-service.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { ServiceResponseDto } from './dto/service-response.dto';
+import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 
 @Injectable()
@@ -33,42 +28,10 @@ export class ServicesService {
      * @param createServiceDto Dữ liệu đầu vào để tạo dịch vụ
      * @returns Dịch vụ đã được tạo
      */
-    private async generateUniqueSlug(
-        baseSlug: string,
-        excludeId?: string,
-    ): Promise<string> {
-        let slug = baseSlug;
-        let counter = 1;
-
-        while (await this.isSlugExists(slug, excludeId)) {
-            slug = `${baseSlug}-${counter}`;
-            counter++;
-        }
-
-        return slug;
-    }
-
-    private async isSlugExists(
-        slug: string,
-        excludeId?: string,
-    ): Promise<boolean> {
-        const queryBuilder = this.serviceRepo
-            .createQueryBuilder('service')
-            .where('service.slug = :slug', { slug })
-            .andWhere('service.deletedAt IS NULL');
-
-        if (excludeId) {
-            queryBuilder.andWhere('service.id != :excludeId', { excludeId });
-        }
-
-        const count = await queryBuilder.getCount();
-        return count > 0;
-    }
     async create(
         createServiceDto: CreateServiceDto,
     ): Promise<ServiceResponseDto> {
         // Tạo slug từ name
-
         const baseSlug = slugify(createServiceDto.name, {
             lower: true,
             strict: true,
@@ -321,5 +284,37 @@ export class ServicesService {
         }
 
         return this.toServiceResponse(service);
+    }
+
+    private async generateUniqueSlug(
+        baseSlug: string,
+        excludeId?: string,
+    ): Promise<string> {
+        let slug = baseSlug;
+        let counter = 1;
+
+        while (await this.isSlugExists(slug, excludeId)) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
+        return slug;
+    }
+
+    private async isSlugExists(
+        slug: string,
+        excludeId?: string,
+    ): Promise<boolean> {
+        const queryBuilder = this.serviceRepo
+            .createQueryBuilder('service')
+            .where('service.slug = :slug', { slug })
+            .andWhere('service.deletedAt IS NULL');
+
+        if (excludeId) {
+            queryBuilder.andWhere('service.id != :excludeId', { excludeId });
+        }
+
+        const count = await queryBuilder.getCount();
+        return count > 0;
     }
 }

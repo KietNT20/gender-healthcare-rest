@@ -12,6 +12,12 @@ import { PaymentServicesService } from './payment-services.service';
 import { PaymentSubscriptionService } from './payment-subscription.service';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
+import { PaymentCallbackService } from './providers/payment-callback.service';
+import { PaymentLinkService } from './providers/payment-link.service';
+import { PaymentRepositoryService } from './providers/payment-repository.service';
+import { PaymentValidationService } from './providers/payment-validation.service';
+import { PayOSService } from './providers/payos.service';
+import { UserPaymentService } from './providers/user-payment.service';
 
 @Module({
     imports: [
@@ -22,8 +28,8 @@ import { PaymentsService } from './payments.service';
             ServicePackage,
             Service,
         ]),
-        AppointmentsModule,
         ServicePackagesModule,
+        forwardRef(() => AppointmentsModule),
         forwardRef(() => UserPackageSubscriptionsModule),
     ],
     controllers: [PaymentsController],
@@ -31,11 +37,23 @@ import { PaymentsService } from './payments.service';
         PaymentsService,
         PaymentServicesService,
         PaymentSubscriptionService,
+        PaymentCallbackService,
+        PaymentLinkService,
+        PaymentRepositoryService,
+        PaymentValidationService,
+        PayOSService,
+        UserPaymentService,
     ],
     exports: [
         PaymentsService,
         PaymentServicesService,
         PaymentSubscriptionService,
+        PaymentCallbackService,
+        PaymentLinkService,
+        PaymentRepositoryService,
+        PaymentValidationService,
+        PayOSService,
+        UserPaymentService,
     ],
 })
 export class PaymentsModule {}

@@ -1,8 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PackageServiceUsage } from '../package-service-usage/entities/package-service-usage.entity';
 import { Payment } from '../payments/entities/payment.entity';
-import { PaymentsModule } from '../payments/payments.module'; // Import PaymentsModule
+import { PaymentsModule } from '../payments/payments.module';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
 import { User } from '../users/entities/user.entity';
 import { UserPackageSubscription } from './entities/user-package-subscription.entity';
@@ -11,6 +12,7 @@ import { UserPackageSubscriptionsService } from './user-package-subscriptions.se
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         TypeOrmModule.forFeature([
             UserPackageSubscription,
             User,
@@ -18,7 +20,7 @@ import { UserPackageSubscriptionsService } from './user-package-subscriptions.se
             Payment,
             PackageServiceUsage,
         ]),
-        forwardRef(() => PaymentsModule), // Sử dụng forwardRef để tránh circular dependency
+        forwardRef(() => PaymentsModule),
     ],
     controllers: [UserPackageSubscriptionsController],
     providers: [UserPackageSubscriptionsService],

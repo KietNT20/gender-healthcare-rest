@@ -1,3 +1,4 @@
+import { Cron } from '@nestjs/schedule';
 import {
     BadRequestException,
     Injectable,
@@ -12,9 +13,15 @@ import { User } from '../users/entities/user.entity';
 import { CreateUserPackageSubscriptionDto } from './dto/create-user-package-subscription.dto';
 import { UpdateUserPackageSubscriptionDto } from './dto/update-user-package-subscription.dto';
 import { UserPackageSubscription } from './entities/user-package-subscription.entity';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server } from 'socket.io';
 
 @Injectable()
+@WebSocketGateway({ cors: { origin: '*' } })
 export class UserPackageSubscriptionsService {
+    @WebSocketServer()
+    server: Server;
+
     constructor(
         @InjectRepository(UserPackageSubscription)
         private subscriptionRepository: Repository<UserPackageSubscription>,
@@ -27,27 +34,25 @@ export class UserPackageSubscriptionsService {
     ) {}
 
     async create(createDto: CreateUserPackageSubscriptionDto) {
-        const { userId, packageId, paymentId, ...subscriptionData } = createDto;
+        const { userId, packageId, paymentId } = createDto;
 
-        // Kiểm tra người dùng
         const user = await this.userRepository.findOne({
             where: { id: userId, deletedAt: IsNull() },
         });
-        if (!user) {
-            throw new NotFoundException(`User with ID '${userId}' not found`);
-        }
+        if (!user)
+            throw new NotFoundException(
+                `Người dùng với ID '${userId}' không tìm thấy`,
+            );
 
-        // Kiểm tra gói dịch vụ
         const packageEntity = await this.packageRepository.findOne({
             where: { id: packageId, deletedAt: IsNull(), isActive: true },
         });
         if (!packageEntity) {
             throw new NotFoundException(
-                `Service package with ID '${packageId}' not found or inactive`,
+                `Gói dịch vụ với ID '${packageId}' không tìm thấy hoặc không hoạt động`,
             );
         }
 
-        // Kiểm tra thanh toán
         const payment = await this.paymentRepository.findOne({
             where: {
                 id: paymentId,
@@ -57,7 +62,7 @@ export class UserPackageSubscriptionsService {
         });
         if (!payment) {
             throw new NotFoundException(
-                `Payment with ID '${paymentId}' not found or not completed`,
+                `Thanh toán với ID '${paymentId}' không tìm thấy hoặc chưa hoàn tất`,
             );
         }
 
@@ -66,7 +71,6 @@ export class UserPackageSubscriptionsService {
         endDate.setMonth(endDate.getMonth() + packageEntity.durationMonths);
 
         const subscription = this.subscriptionRepository.create({
-            ...subscriptionData,
             startDate,
             endDate,
             status: SubscriptionStatusType.ACTIVE,
@@ -79,6 +83,7 @@ export class UserPackageSubscriptionsService {
     }
 
     async findAll() {
+        await this.updateExpiredSubscriptions();
         return this.subscriptionRepository.find({
             where: { deletedAt: IsNull() },
             relations: ['user', 'package', 'payment'],
@@ -86,54 +91,101 @@ export class UserPackageSubscriptionsService {
     }
 
     async findOne(id: string) {
+        await this.updateExpiredSubscriptions();
         const subscription = await this.subscriptionRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: ['user', 'package', 'payment'],
         });
-        if (!subscription) {
+        if (!subscription)
             throw new NotFoundException(
-                `Subscription with ID '${id}' not found`,
+                `Đăng ký với ID '${id}' không tìm thấy`,
             );
-        }
         return subscription;
     }
 
     async update(id: string, updateDto: UpdateUserPackageSubscriptionDto) {
         const subscription = await this.findOne(id);
-
-        // Kiểm tra trạng thái trước khi cập nhật
         if (
             subscription.status === SubscriptionStatusType.EXPIRED ||
             subscription.status === SubscriptionStatusType.CANCELLED
         ) {
             throw new BadRequestException(
-                `Cannot update expired or cancelled subscription`,
+                `Không thể cập nhật đăng ký đã hết hạn hoặc bị hủy`,
             );
         }
-
-        // Sử dụng repository.merge để gộp các thay đổi từ DTO vào entity
         this.subscriptionRepository.merge(subscription, updateDto);
-
         return await this.subscriptionRepository.save(subscription);
     }
 
     async remove(id: string) {
         const subscription = await this.findOne(id);
         if (subscription.status === SubscriptionStatusType.ACTIVE) {
-            throw new BadRequestException(`Cannot delete active subscription`);
+            throw new BadRequestException(
+                `Không thể xóa đăng ký đang hoạt động`,
+            );
         }
         await this.subscriptionRepository.softDelete(id);
     }
 
-    // Phương thức bổ sung: Kiểm tra trạng thái gói
     async checkSubscriptionStatus(userId: string) {
+        await this.updateExpiredSubscriptions();
         const subscriptions = await this.subscriptionRepository.find({
             where: { user: { id: userId }, deletedAt: IsNull() },
+            relations: ['package'],
         });
         return subscriptions.map((sub) => ({
             id: sub.id,
             status: sub.status,
             endDate: sub.endDate,
+            packageName: sub.package.name,
         }));
+    }
+
+    async updateExpiredSubscriptions() {
+        try {
+            const subscriptions = await this.subscriptionRepository.find({
+                where: {
+                    status: SubscriptionStatusType.ACTIVE,
+                    deletedAt: IsNull(),
+                },
+                relations: ['user', 'package'],
+            });
+
+            const now = new Date();
+            for (const sub of subscriptions) {
+                try {
+                    if (
+                        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+                            sub.id,
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    if (new Date(sub.endDate) < now) {
+                        sub.status = SubscriptionStatusType.EXPIRED;
+                        await this.subscriptionRepository.save(sub);
+                        this.server.emit(`subscriptionUpdate_${sub.user.id}`, {
+                            subscriptionId: sub.id,
+                            status: sub.status,
+                            packageName: sub.package.name,
+                            message: `Gói ${sub.package.name} của bạn đã hết hạn vào ngày ${sub.endDate.toISOString()}.`,
+                        });
+                    }
+                } catch (error) {
+                    // Lỗi riêng lẻ cho từng đăng ký sẽ bị bỏ qua
+                }
+            }
+        } catch (error) {
+            throw new BadRequestException(
+                'Lỗi khi cập nhật trạng thái đăng ký',
+            );
+        }
+    }
+
+    @Cron('0 0 * * *')
+    async handleCron() {
+        await this.updateExpiredSubscriptions();
+        console.log('Đã kiểm tra và cập nhật trạng thái đăng ký hết hạn');
     }
 }

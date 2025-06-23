@@ -7,6 +7,7 @@ import {
     Post,
     Put,
     Query,
+    Res,
     UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,6 +18,7 @@ import {
     ApiQuery,
     ApiResponse,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { User } from '../users/entities/user.entity';
@@ -41,7 +43,11 @@ export class AuthController {
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Email already exists or validation failed',
+        description: 'Email validation failed',
+    })
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
+        description: 'Email already exists',
     })
     @ResponseMessage('User registered successfully')
     async register(@Body() registerDto: RegisterDto) {
@@ -64,23 +70,38 @@ export class AuthController {
     }
 
     @Get('verify-email')
-    @ApiOperation({ summary: 'Verify user email with token' })
+    @ApiOperation({
+        summary: 'Verify user email with token and redirect to frontend',
+    })
     @ApiQuery({
         name: 'token',
         description: 'Email verification token',
         type: String,
     })
     @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Email verified successfully',
+        status: HttpStatus.FOUND,
+        description: 'Email verified successfully, redirecting to frontend',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
         description: 'Invalid or expired verification token',
     })
-    @ResponseMessage('Email verified successfully')
-    async verifyEmail(@Query('token') token: string) {
-        return this.authService.verifyEmail(token);
+    async verifyEmail(@Query('token') token: string, @Res() res: Response) {
+        try {
+            await this.authService.verifyEmail(token);
+            const frontendUrl = process.env.FRONTEND_BASE_URL;
+            return res.redirect(
+                `${frontendUrl}/auth/verify-success?message=Email verified successfully`,
+            );
+        } catch (error) {
+            const frontendUrl = process.env.FRONTEND_BASE_URL;
+            const errorMessage = encodeURIComponent(
+                error.message || 'Email verification failed',
+            );
+            return res.redirect(
+                `${frontendUrl}/auth/verify-error?message=${errorMessage}`,
+            );
+        }
     }
 
     @Post('resend-verification')
@@ -90,8 +111,8 @@ export class AuthController {
         description: 'Verification email sent',
     })
     @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Email already verified or not found',
+        status: HttpStatus.NOT_FOUND,
+        description: 'Email not found',
     })
     @ResponseMessage('Verification email sent')
     async resendVerification(
@@ -147,6 +168,45 @@ export class AuthController {
         @Body() resetPasswordDto: ResetPasswordDto,
     ) {
         return this.authService.resetPassword(token, resetPasswordDto.password);
+    }
+
+    @Get('reset-password')
+    @ApiOperation({
+        summary:
+            'Handle password reset link from email and redirect to frontend',
+    })
+    @ApiQuery({
+        name: 'token',
+        description: 'Password reset token',
+        type: String,
+    })
+    @ApiResponse({
+        status: HttpStatus.FOUND,
+        description: 'Redirecting to frontend password reset page',
+    })
+    async handlePasswordResetRedirect(
+        @Query('token') token: string,
+        @Res() res: Response,
+    ) {
+        try {
+            // Validate token (không reset password, chỉ validate)
+            await this.authService.validateResetToken(token);
+
+            // Chuyển hướng đến frontend với token hợp lệ
+            const frontendUrl = process.env.FRONTEND_URL;
+            return res.redirect(
+                `${frontendUrl}/auth/reset-password?token=${token}`,
+            );
+        } catch (error) {
+            // Chuyển hướng đến frontend với thông báo lỗi
+            const frontendUrl = process.env.FRONTEND_URL;
+            const errorMessage = encodeURIComponent(
+                error.message || 'Invalid or expired reset token',
+            );
+            return res.redirect(
+                `${frontendUrl}/auth/reset-error?message=${errorMessage}`,
+            );
+        }
     }
 
     @Post('refresh-token')

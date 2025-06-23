@@ -51,8 +51,8 @@ export class AppointmentsController {
     })
     @ResponseMessage('Successfully retrieved appointment list.')
     findAll(
-        @CurrentUser() currentUser: User,
         @Query() queryDto: QueryAppointmentDto,
+        @CurrentUser() currentUser: User,
     ) {
         return this.appointmentsService.findAll(currentUser, queryDto);
     }

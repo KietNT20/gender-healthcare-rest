@@ -116,8 +116,10 @@ export class GoogleAuthenticationService implements OnModuleInit {
         const payload = { sub: user.id, email: user.email };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, {
-            secret: this.configService.get('JWT_REFRESH_SECRET'),
-            expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+            expiresIn: this.configService.get<string>(
+                'JWT_REFRESH_EXPIRATION_TIME',
+            ),
         });
 
         // Save refresh token

@@ -46,7 +46,7 @@ export class UsersService {
      */
     async create(
         createUserDto: CreateUserDto,
-        currentUserId: string,
+        actorId: string,
     ): Promise<UserResponseDto> {
         // Check if email already exists
         console.log('catch', createUserDto);
@@ -98,7 +98,7 @@ export class UsersService {
 
         // Write audit log
         await this.auditLogsService.create({
-            userId: currentUserId,
+            userId: actorId,
             action: ActionType.CREATE,
             entityType: 'User',
             entityId: savedUser.id,
@@ -687,8 +687,9 @@ export class UsersService {
         updateProfileDto: UpdateProfileDto,
     ): Promise<UserResponseDto> {
         const user = await this.findOne(id);
+
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Người dùng không tồn tại');
         }
 
         // Update slug if firstName or lastName is being updated
@@ -713,9 +714,10 @@ export class UsersService {
             dateOfBirth = new Date(updateProfileDto.dateOfBirth);
         }
 
-        const updatedUser = await this.userRepository.findOneBy({
-            id,
-            deletedAt: IsNull(),
+        const updatedUser = this.userRepository.merge(user, {
+            ...updateProfileDto,
+            slug,
+            dateOfBirth,
         });
 
         if (!updatedUser) {
@@ -725,12 +727,7 @@ export class UsersService {
         }
 
         // Update user profile
-        await this.userRepository.save({
-            ...updatedUser,
-            slug,
-            dateOfBirth,
-            updatedAt: new Date(),
-        });
+        await this.userRepository.save(updatedUser);
 
         return this.toUserResponse(updatedUser);
     }

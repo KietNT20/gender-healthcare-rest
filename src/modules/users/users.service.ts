@@ -46,7 +46,7 @@ export class UsersService {
      */
     async create(
         createUserDto: CreateUserDto,
-        actorId: string,
+        currentUserId: string,
     ): Promise<UserResponseDto> {
         // Check if email already exists
         console.log('catch', createUserDto);
@@ -98,12 +98,64 @@ export class UsersService {
 
         // Write audit log
         await this.auditLogsService.create({
-            userId: actorId,
+            userId: currentUserId,
             action: ActionType.CREATE,
             entityType: 'User',
             entityId: savedUser.id,
             newValues: savedUser,
         });
+
+        // Return user without password
+        return this.toUserResponse(savedUser);
+    }
+
+    async registerAccountCustomer(
+        createUserDto: CreateUserDto,
+    ): Promise<UserResponseDto> {
+        const existingUser = await this.userRepository.findOne({
+            where: { email: createUserDto.email },
+        });
+
+        if (existingUser) {
+            throw new ConflictException('Email này đã tồn tại');
+        }
+
+        // Hash password
+        const hashedPassword = await this.hashingProvider.hashPassword(
+            createUserDto.password,
+        );
+
+        const genSlug = `${createUserDto.firstName} ${createUserDto.email}`;
+
+        // Generate unique slug
+        const baseSlug = slugify(genSlug, {
+            lower: true,
+            strict: true,
+        });
+        const slug = await this.generateUniqueSlug(baseSlug);
+
+        const userRole = await this.roleRepository.findOneBy({
+            id: createUserDto.roleId,
+        });
+
+        if (!userRole) {
+            throw new BadRequestException('Invalid role ID');
+        }
+
+        // Create user
+        const user = this.userRepository.create({
+            ...createUserDto,
+            password: hashedPassword,
+            slug,
+            dateOfBirth: createUserDto.dateOfBirth
+                ? new Date(createUserDto.dateOfBirth)
+                : undefined,
+            role: userRole,
+            emailVerified: true,
+            phoneVerified: true,
+        });
+
+        const savedUser = await this.userRepository.save(user);
 
         // Return user without password
         return this.toUserResponse(savedUser);

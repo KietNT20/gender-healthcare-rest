@@ -22,7 +22,6 @@ import {
 import { WebhookType } from '@payos/node/lib/type';
 import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
-import { Public } from 'src/decorators/public.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { PaymentStatusType } from 'src/enums';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -35,8 +34,6 @@ import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
     constructor(
@@ -45,6 +42,8 @@ export class PaymentsController {
     ) {}
 
     @Get('available-packages')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({
         summary: 'Get a list of available service packages for payment',
     })
@@ -53,12 +52,16 @@ export class PaymentsController {
     }
 
     @Get('available-services')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Get a list of available services for payment' })
     getAvailableServices(@Query() query: GetPayablePackagesDto) {
         return this.paymentServicesService.getAvailableServices(query);
     }
 
     @Get('pending-appointments')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({
         summary: 'Get a list of pending appointments for the current user',
     })
@@ -67,12 +70,16 @@ export class PaymentsController {
     }
 
     @Get('user-stats')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Get user payment statistics' })
     getUserPaymentStats(@CurrentUser() currentUser: User) {
         return this.paymentsService.getUserPaymentStats(currentUser.id);
     }
 
     @Post('packages')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create payment for service package' })
     createPackagePayment(
         @Body() createDto: CreatePackagePaymentDto,
@@ -85,6 +92,8 @@ export class PaymentsController {
     }
 
     @Post('appointments')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create payment for appointment' })
     createAppointmentPayment(
         @Body() createDto: CreateAppointmentPaymentDto,
@@ -97,6 +106,8 @@ export class PaymentsController {
     }
 
     @Post('services')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Create payment for service' })
     createServicePayment(
         @Body() createDto: CreateServicePaymentDto,
@@ -109,11 +120,12 @@ export class PaymentsController {
     }
 
     @Get()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     findAll() {
         return this.paymentsService.findAll();
     }
 
-    @Public()
     @Get('callback/success')
     async handleSuccessCallback(
         @Query('orderCode') orderCode: string,
@@ -124,7 +136,6 @@ export class PaymentsController {
         return res.redirect(result.redirectUrl);
     }
 
-    @Public()
     @Get('callback/cancel')
     async handleCancelCallback(
         @Query('orderCode') orderCode: string,
@@ -142,7 +153,6 @@ export class PaymentsController {
         );
     }
 
-    @Public()
     @Post('webhook')
     @ApiOperation({
         summary: 'PayOS webhook',
@@ -152,7 +162,29 @@ export class PaymentsController {
         return this.paymentsService.verifyWebhook(webhookData);
     }
 
+    @Get('my-payments')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Get current user payments',
+    })
+    @ApiQuery({
+        name: 'status',
+        enum: PaymentStatusType,
+        required: false,
+        description: 'Filter by payment status',
+    })
+    @ResponseMessage('Lấy danh sách thanh toán thành công')
+    getMyPayments(
+        @CurrentUser() currentUser: User,
+        @Query('status') status?: PaymentStatusType,
+    ) {
+        return this.paymentsService.getUserPayments(currentUser.id, status);
+    }
+
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     findOne(
         @Param('id', ParseUUIDPipe)
         id: string,
@@ -161,6 +193,8 @@ export class PaymentsController {
     }
 
     @Delete(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     remove(
         @Param('id', ParseUUIDPipe)
         id: string,
@@ -169,10 +203,10 @@ export class PaymentsController {
     }
 
     @Patch(':id/cancel')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({
         summary: 'Cancel a pending payment',
-        description:
-            'Hủy thanh toán đang chờ xử lý. Chỉ có thể hủy payment với status PENDING.',
     })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -210,29 +244,11 @@ export class PaymentsController {
         );
     }
 
-    @Get('my-payments')
-    @ApiOperation({
-        summary: 'Get current user payments',
-        description: 'Lấy danh sách thanh toán của user hiện tại',
-    })
-    @ApiQuery({
-        name: 'status',
-        enum: PaymentStatusType,
-        required: false,
-        description: 'Filter by payment status',
-    })
-    @ResponseMessage('Lấy danh sách thanh toán thành công')
-    getMyPayments(
-        @CurrentUser() currentUser: User,
-        @Query('status') status?: PaymentStatusType,
-    ) {
-        return this.paymentsService.getUserPayments(currentUser.id, status);
-    }
-
     @Get(':id/details')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({
         summary: 'Get payment details for current user',
-        description: 'Lấy chi tiết thanh toán (chỉ payment của user hiện tại)',
     })
     @ResponseMessage('Lấy chi tiết thanh toán thành công')
     getMyPaymentDetails(

@@ -63,14 +63,10 @@ export class AuthService {
             roleId: await this.usersService.getCustomerRoleId(),
         };
 
-        const actorIdForNewUser = 'SYSTEM';
-        const user = await this.usersService.create(
-            userData,
-            actorIdForNewUser,
-        );
+        const user = await this.usersService.registerAccountCustomer(userData);
 
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Người dùng không được tìm thấy');
         }
 
         const fullName = `${user.firstName} ${user.lastName}`;

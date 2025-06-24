@@ -12,7 +12,7 @@ export class CreateNotificationDto {
     @ApiProperty({
         description: 'User ID getting the notification',
     })
-    @IsUUID()
+    @IsUUID('4')
     @IsNotEmpty()
     userId: string;
 

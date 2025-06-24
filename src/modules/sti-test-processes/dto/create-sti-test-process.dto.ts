@@ -19,14 +19,14 @@ export class CreateStiTestProcessDto {
         description: 'ID của dịch vụ xét nghiệm STI',
     })
     @IsNotEmpty()
-    @IsUUID()
+    @IsUUID('4')
     serviceId: string;
 
     @ApiProperty({
         description: 'ID của bệnh nhân',
     })
     @IsNotEmpty()
-    @IsUUID()
+    @IsUUID('4')
     patientId: string;
 
     @ApiProperty({
@@ -49,7 +49,7 @@ export class CreateStiTestProcessDto {
         description: 'ID cuộc hẹn lấy mẫu',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     appointmentId?: string;
 
     @ApiPropertyOptional({
@@ -78,7 +78,7 @@ export class CreateStiTestProcessDto {
         description: 'ID bác sĩ tư vấn',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     consultantDoctorId?: string;
 
     @ApiPropertyOptional({

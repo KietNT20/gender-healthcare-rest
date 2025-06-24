@@ -2,6 +2,7 @@ import { Appointment } from 'src/modules/appointments/entities/appointment.entit
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
 import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
+import { Image } from 'src/modules/images/entities/image.entity';
 import { PackageServiceUsage } from 'src/modules/package-service-usage/entities/package-service-usage.entity';
 import { PackageService } from 'src/modules/package-services/entities/package-service.entity';
 import {
@@ -9,14 +10,12 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    Index,
     ManyToMany,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Image } from 'src/modules/images/entities/image.entity';
 
 @Entity()
 export class Service {
@@ -55,6 +54,9 @@ export class Service {
 
     @Column({ type: 'text', array: true, nullable: true })
     specialties?: string[];
+
+    @Column({ default: false })
+    requiresConsultant: boolean;
 
     @Column({ default: 0 })
     version: number;

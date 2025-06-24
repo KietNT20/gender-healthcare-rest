@@ -26,6 +26,7 @@ import { UpdateBlogDto } from './dto/update-blog.dto';
 import { BlogImageService } from './blogs-image.service';
 import { CreateBlogImageDTO } from './dto/create-blog-image.dto';
 
+@ApiBearerAuth()
 @Controller('blogs')
 export class BlogsController {
     constructor(
@@ -34,8 +35,7 @@ export class BlogsController {
     ) {}
 
     @Post()
-    @UseGuards(RoleGuard, JwtAuthGuard)
-    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard,RoleGuard)
     @Roles([
         RolesNameEnum.ADMIN,
         RolesNameEnum.MANAGER,
@@ -73,8 +73,7 @@ export class BlogsController {
     }
 
     @Patch(':id')
-    @UseGuards(RoleGuard, JwtAuthGuard)
-    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard,RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
     @ApiResponse({ status: 200, description: 'Blog updated successfully' })
@@ -87,8 +86,7 @@ export class BlogsController {
     }
 
     @Delete(':id')
-    @UseGuards(RoleGuard, JwtAuthGuard)
-    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard,RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Soft delete blog (Admin only)' })
     @ApiResponse({ status: 200, description: 'Blog deleted successfully' })

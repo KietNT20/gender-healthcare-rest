@@ -120,6 +120,24 @@ export class BlogsController {
         return this.blogsService.findAllPendingReview(queryDto);
     }
 
+    @Patch('/image/:id')
+    @ApiOperation({ summary: 'Synchronize image to blog' })
+    async syncBlogImages(@Param('id', ParseUUIDPipe) id: string) {
+        return this.blogImageService.syncBlogImages(id);
+    }
+
+    @Post('/image')
+    @ApiOperation({ summary: 'Add image to blog' })
+    async addImageToBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
+        return this.blogImageService.addImageToBlog(createBlogImageDTO);
+    }
+
+    @Put('/image')
+    @ApiOperation({ summary: 'Delete image from blog' })
+    async removeImageFromBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
+        return this.blogImageService.removeImageFromBlog(createBlogImageDTO);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get blog by ID' })
     @ApiResponse({
@@ -174,24 +192,6 @@ export class BlogsController {
     ): Promise<{ message: string }> {
         await this.blogsService.remove(id, currentUser.id);
         return { message: 'Blog deleted successfully' };
-    }
-
-    @Patch('/image/:id')
-    @ApiOperation({ summary: 'Synchronize image to blog' })
-    async syncBlogImages(@Param('id', ParseUUIDPipe) id: string) {
-        return this.blogImageService.syncBlogImages(id);
-    }
-
-    @Post('/image')
-    @ApiOperation({ summary: 'Add image to blog' })
-    async addImageToBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
-        return this.blogImageService.addImageToBlog(createBlogImageDTO);
-    }
-
-    @Put('/image')
-    @ApiOperation({ summary: 'Delete image from blog' })
-    async removeImageFromBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
-        return this.blogImageService.removeImageFromBlog(createBlogImageDTO);
     }
 
     @Patch(':id/view')

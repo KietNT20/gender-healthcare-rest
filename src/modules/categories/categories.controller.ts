@@ -10,7 +10,7 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
@@ -26,6 +26,8 @@ export class CategoriesController {
     @Post()
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Create a new category' })
     @ApiResponse({
         status: HttpStatus.CREATED,
         description: 'Category created successfully.',
@@ -35,12 +37,12 @@ export class CategoriesController {
         description:
             'Forbidden: You do not have permission (Admin or Manager only).',
     })
-    @ApiBearerAuth()
     create(@Body() createCategoryDto: CreateCategoryDto) {
         return this.categoriesService.create(createCategoryDto);
     }
 
     @Get()
+    @ApiOperation({ summary: 'Get all categories' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of all categories.',
@@ -50,6 +52,7 @@ export class CategoriesController {
     }
 
     @Get(':id')
+    @ApiOperation({ summary: 'Get category by ID' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Category found successfully.',
@@ -62,6 +65,7 @@ export class CategoriesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update a category by ID' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Category updated successfully.',
@@ -82,6 +86,7 @@ export class CategoriesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
+    @ApiOperation({ summary: 'Delete a category by ID' })
     @ApiResponse({
         status: HttpStatus.NO_CONTENT,
         description: 'Category deleted successfully.',

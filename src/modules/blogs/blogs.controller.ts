@@ -63,6 +63,20 @@ export class BlogsController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get all published blogs (Admin/Manager only)' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Published blogs retrieved successfully',
+    })
+    @ResponseMessage('Published blogs retrieved successfully')
+    findAll(@Query() queryDto: BlogQueryDto) {
+        return this.blogsService.findAll(queryDto);
+    }
+
+    @Get('published')
     @ApiOperation({ summary: 'Get all published blogs (Public access)' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -84,6 +98,22 @@ export class BlogsController {
     @ResponseMessage('Published blog retrieved successfully')
     findPublishedBySlug(@Param('slug') slug: string) {
         return this.blogsService.findBySlug(slug, true);
+    }
+
+    @Get('pending-review')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Get all blogs pending review (Admin/Manager only)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Pending review blogs retrieved successfully',
+    })
+    @ResponseMessage('Pending review blogs retrieved successfully')
+    findAllPendingReview(@Query() queryDto: BlogQueryDto) {
+        return this.blogsService.findAllPendingReview(queryDto);
     }
 
     @Get(':id')

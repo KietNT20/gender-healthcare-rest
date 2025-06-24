@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -9,7 +10,7 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -35,6 +36,14 @@ export class AppointmentsController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
     @ApiOperation({ summary: 'Book an appointment' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Appointment created successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: You do not have permission ( Customer only ).',
+    })
     create(
         @Body() createAppointmentDto: CreateAppointmentDto,
         @CurrentUser() currentUser: User,
@@ -97,6 +106,15 @@ export class AppointmentsController {
     @ApiOperation({
         summary: 'Update appointment status (e.g., confirm, complete)',
     })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Appointment status updated successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission ( Admin, Manager, Consultant only ).',
+    })
     @ResponseMessage('Successfully updated appointment status.')
     updateStatus(
         @Param('id', ParseUUIDPipe) id: string,
@@ -114,6 +132,15 @@ export class AppointmentsController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Cancel an appointment' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Appointment canceled successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission ( Customer, Admin, Manager only ).',
+    })
     @ResponseMessage('Successfully canceled appointment.')
     cancel(
         @Param('id', ParseUUIDPipe) id: string,

@@ -728,7 +728,7 @@ export class BlogsService {
         await this.blogRepository.update(id, {
             status: ContentStatusType.PUBLISHED,
             publishedAt: new Date(),
-            publishedByUser: { id: publisherId } as any,
+            publishedByUser: { id: publisherId },
             updatedAt: new Date(),
             ...publishBlogDto,
         });

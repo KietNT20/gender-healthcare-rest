@@ -1,4 +1,5 @@
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
+import { Feedback } from 'src/modules/feedbacks/entities/feedback.entity';
 import { Service } from 'src/modules/services/entities/service.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -67,4 +68,9 @@ export class Image {
         onDelete: 'CASCADE',
     })
     service: Service;
+
+    @ManyToOne(() => Feedback, (feedback) => feedback.images, {
+        onDelete: 'CASCADE',
+    })
+    feedback: Feedback;
 }

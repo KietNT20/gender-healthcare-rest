@@ -59,7 +59,7 @@ export class CreateFeedbackDto {
     comment?: string;
 
     @ApiProperty({
-        description: 'List of image URLs related to the feedback',
+        description: 'Feedback is anonymous or not',
         required: false,
     })
     @IsOptional()

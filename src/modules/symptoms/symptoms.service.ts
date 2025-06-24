@@ -75,7 +75,7 @@ export class SymptomsService {
         };
     }
 
-    async findOne(id: string): Promise<Symptom | null> {
+    async findOne(id: string): Promise<Symptom> {
         const data = await this.symptomRepository.findOneBy({ id });
 
         if (!data) {
@@ -90,7 +90,7 @@ export class SymptomsService {
     async update(
         id: string,
         updateSymptomDto: UpdateSymptomDto,
-    ): Promise<Symptom | null> {
+    ): Promise<Symptom> {
         const checkSymptom = await this.symptomRepository.findOneBy({ id });
 
         if (!checkSymptom) {

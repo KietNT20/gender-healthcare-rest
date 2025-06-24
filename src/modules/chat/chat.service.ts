@@ -586,10 +586,12 @@ export class ChatService {
     /**
      * Get question by appointment ID
      */
-    async getQuestionByAppointmentId(
-        appointmentId: string,
-    ): Promise<Question | null> {
-        return this.questionRepository.findOne({
+    async getQuestionByAppointmentId(appointmentId: string): Promise<Question> {
+        if (!appointmentId) {
+            throw new BadRequestException('Appointment ID is required');
+        }
+
+        const appointment = await this.questionRepository.findOne({
             where: { appointment: { id: appointmentId } },
             relations: [
                 'user',
@@ -598,5 +600,11 @@ export class ChatService {
                 'category',
             ],
         });
+
+        if (!appointment) {
+            throw new NotFoundException('Question not found');
+        }
+
+        return appointment;
     }
 }

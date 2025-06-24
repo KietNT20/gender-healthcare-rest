@@ -71,7 +71,7 @@ export class ServicesService {
      */
     async findAll(
         serviceQueryDto: ServiceQueryDto,
-    ): Promise<Paginated<ServiceResponseDto>> {
+    ): Promise<Paginated<Service>> {
         const queryBuilder = this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
@@ -107,7 +107,7 @@ export class ServicesService {
         });
 
         return {
-            data: services.map((service) => this.toServiceResponse(service)),
+            data: services,
             meta: {
                 itemsPerPage: serviceQueryDto.limit!,
                 totalItems,
@@ -171,10 +171,12 @@ export class ServicesService {
      * @param id ID của dịch vụ
      * @returns Dịch vụ được tìm thấy
      */
-    async findOne(id: string): Promise<ServiceResponseDto> {
+    async findOne(id: string): Promise<Service> {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: {
+                category : true,
+            },
         });
 
         if (!service) {
@@ -189,7 +191,7 @@ export class ServicesService {
             `Service ID: ${service.id}, Category ID: ${service.category?.id}`,
         );
 
-        return this.toServiceResponse(service);
+        return service;
     }
 
     /**

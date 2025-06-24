@@ -16,7 +16,6 @@ export class ServiceQueryDto {
     @ApiPropertyOptional({ description: 'Số trang, mặc định là 1' })
     @IsOptional()
     @IsPositive()
-    @Type(() => Number)
     page?: number = 1;
 
     @ApiPropertyOptional({
@@ -24,7 +23,6 @@ export class ServiceQueryDto {
     })
     @IsOptional()
     @IsPositive()
-    @Type(() => Number)
     limit?: number = 10;
 
     @ApiPropertyOptional({
@@ -36,13 +34,13 @@ export class ServiceQueryDto {
     sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({
-        enum: ['ASC', 'DESC'],
+        enum: SortOrder,
         description: 'Thứ tự sắp xếp, mặc định là DESC',
-        default: 'DESC',
+        default: SortOrder.DESC,
     })
     @IsOptional()
     @IsEnum(SortOrder)
-    sortOrder?: 'ASC' | 'DESC' = 'DESC';
+    sortOrder?: SortOrder = SortOrder.DESC;
 
     @ApiPropertyOptional({
         description: 'Từ khóa tìm kiếm trong tên hoặc mô tả',
@@ -58,14 +56,12 @@ export class ServiceQueryDto {
 
     @ApiPropertyOptional({ description: 'Giá tối thiểu' })
     @IsOptional()
-    @Type(() => Number)
     @IsNumber()
     @Min(0)
     minPrice?: number;
 
     @ApiPropertyOptional({ description: 'Giá tối đa' })
     @IsOptional()
-    @Type(() => Number)
     @IsNumber()
     @Min(0)
     maxPrice?: number;
@@ -73,7 +69,6 @@ export class ServiceQueryDto {
     @ApiPropertyOptional({ description: 'Trạng thái hoạt động của dịch vụ' })
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
     isActive?: boolean;
 
     @ApiPropertyOptional({
@@ -81,7 +76,6 @@ export class ServiceQueryDto {
     })
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
     featured?: boolean;
 
     @ApiPropertyOptional({
@@ -89,6 +83,5 @@ export class ServiceQueryDto {
     })
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
-    requiresConsultant?: boolean; // Thêm trường này
+    requiresConsultant?: boolean; 
 }

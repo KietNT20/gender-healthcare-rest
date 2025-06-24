@@ -7,10 +7,17 @@ import { Feedback } from './entities/feedback.entity';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
+import { FeedbackImageService } from './feedbacks-image.service';
+import { ImagesModule } from '../images/images.module';
+import { Image } from '../images/entities/image.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Feedback, User, Service, Appointment])],
+    imports: [
+        TypeOrmModule.forFeature([Feedback, User, Service, Appointment,Image]),
+        ImagesModule,
+    ],
     controllers: [FeedbacksController],
-    providers: [FeedbacksService],
+    providers: [FeedbacksService, FeedbackImageService],
+    exports: [FeedbacksService, FeedbackImageService],
 })
 export class FeedbacksModule {}

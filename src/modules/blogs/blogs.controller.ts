@@ -20,7 +20,6 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { User } from 'src/modules/users/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { BlogAdminNotificationService } from './blog-admin-notification.service';
 import { BlogImageService } from './blogs-image.service';
 import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
@@ -35,7 +34,6 @@ export class BlogsController {
     constructor(
         private readonly blogsService: BlogsService,
         private readonly blogImageService: BlogImageService,
-        private readonly blogAdminNotificationService: BlogAdminNotificationService,
     ) {}
 
     @Post()

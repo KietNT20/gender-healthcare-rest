@@ -50,8 +50,8 @@ import { UsersModule } from './modules/users/users.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            // envFilePath: ['.env'],
-            envFilePath: ['.env.development.local'],
+            envFilePath: ['.env'],
+            // envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),

@@ -81,8 +81,7 @@ import { UsersModule } from './modules/users/users.module';
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                // logging: true,
-                // logging: true,
+                logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,

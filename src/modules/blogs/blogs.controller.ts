@@ -65,25 +65,27 @@ export class BlogsController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all blogs with pagination and filters' })
+    @ApiOperation({ summary: 'Get all published blogs (Public access)' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Blogs retrieved successfully',
+        description: 'Published blogs retrieved successfully',
     })
-    @ResponseMessage('Blogs retrieved successfully')
-    findAll(@Query() queryDto: BlogQueryDto) {
-        return this.blogsService.findAll(queryDto);
+    @ResponseMessage('Published blogs retrieved successfully')
+    findAllPublished(@Query() queryDto: BlogQueryDto) {
+        return this.blogsService.findAllPublished(queryDto);
     }
 
     @Get('slug/:slug')
-    @ApiOperation({ summary: 'Get blog by slug' })
+    @ApiOperation({
+        summary: 'Get published blog by slug (Public access with view count)',
+    })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Blog retrieved successfully',
+        description: 'Published blog retrieved successfully',
     })
-    @ResponseMessage('Blog retrieved successfully')
-    findBySlug(@Param('slug') slug: string) {
-        return this.blogsService.findBySlug(slug);
+    @ResponseMessage('Published blog retrieved successfully')
+    findPublishedBySlug(@Param('slug') slug: string) {
+        return this.blogsService.findBySlug(slug, true);
     }
 
     @Get(':id')
@@ -257,27 +259,5 @@ export class BlogsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.blogsService.archiveBlog(id, currentUser.id);
-    }
-
-    @Get('public')
-    @ApiOperation({ summary: 'Get all published blogs (Public access)' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Published blogs retrieved successfully',
-    })
-    @ResponseMessage('Published blogs retrieved successfully')
-    findAllPublished(@Query() queryDto: BlogQueryDto) {
-        return this.blogsService.findAllPublished(queryDto);
-    }
-
-    @Get('public/slug/:slug')
-    @ApiOperation({ summary: 'Get published blog by slug (Public access)' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Published blog retrieved successfully',
-    })
-    @ResponseMessage('Published blog retrieved successfully')
-    findPublishedBySlug(@Param('slug') slug: string) {
-        return this.blogsService.findBySlug(slug, true);
     }
 }

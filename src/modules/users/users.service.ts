@@ -718,13 +718,9 @@ export class UsersService {
             ...updateProfileDto,
             slug,
             dateOfBirth,
+            emailVerified: true,
+            phoneVerified: true,
         });
-
-        if (!updatedUser) {
-            throw new InternalServerErrorException(
-                'Failed to update user, user not found after update',
-            );
-        }
 
         // Update user profile
         await this.userRepository.save(updatedUser);

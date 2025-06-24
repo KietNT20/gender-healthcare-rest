@@ -18,12 +18,15 @@ import {
     ApiOperation,
     ApiQuery,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { WebhookType } from '@payos/node/lib/type';
 import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
-import { PaymentStatusType } from 'src/enums';
+import { Roles } from 'src/decorators/roles.decorator';
+import { PaymentStatusType, RolesNameEnum } from 'src/enums';
+import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { CancelPaymentDto } from './dto/cancel-payment.dto';
@@ -34,6 +37,7 @@ import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
 
+@ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
     constructor(
@@ -41,12 +45,68 @@ export class PaymentsController {
         private readonly paymentServicesService: PaymentServicesService,
     ) {}
 
+    @Post('webhook')
+    @ApiOperation({
+        summary: 'PayOS webhook endpoint',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Webhook processed successfully',
+    })
+    async handleWebhook(@Body() webhookData: WebhookType) {
+        return this.paymentsService.verifyWebhook(webhookData);
+    }
+
+    @Get('callback/success')
+    @ApiOperation({
+        summary: 'Payment success callback',
+        description: 'Callback từ PayOS khi thanh toán thành công',
+    })
+    async handleSuccessCallback(
+        @Query('orderCode') orderCode: string,
+        @Res() res: Response,
+    ) {
+        if (!orderCode) {
+            throw new BadRequestException('Missing orderCode parameter');
+        }
+        const result =
+            await this.paymentsService.handleSuccessCallback(orderCode);
+        return res.redirect(result.redirectUrl);
+    }
+
+    @Get('callback/cancel')
+    @ApiOperation({
+        summary: 'Payment cancel callback',
+        description: 'Callback từ PayOS khi thanh toán bị hủy',
+    })
+    async handleCancelCallback(
+        @Query('orderCode') orderCode: string,
+        @Res() res: Response,
+    ) {
+        if (!orderCode) {
+            throw new BadRequestException('Missing orderCode parameter');
+        }
+        const result =
+            await this.paymentsService.handleCancelCallback(orderCode);
+        return res.redirect(result.redirectUrl);
+    }
+
     @Get('available-packages')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Get a list of available service packages for payment',
+        summary: 'Get available service packages',
     })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Available packages retrieved successfully',
+        type: GetPayablePackagesDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Lấy danh sách gói dịch vụ thành công')
     getAvailablePackages(@Query() query: GetPayablePackagesDto) {
         return this.paymentServicesService.getAvailablePackages(query);
     }
@@ -54,7 +114,19 @@ export class PaymentsController {
     @Get('available-services')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Get a list of available services for payment' })
+    @ApiOperation({
+        summary: 'Get available services',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Available services retrieved successfully',
+        type: GetPayablePackagesDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Lấy danh sách dịch vụ thành công')
     getAvailableServices(@Query() query: GetPayablePackagesDto) {
         return this.paymentServicesService.getAvailableServices(query);
     }
@@ -63,8 +135,18 @@ export class PaymentsController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Get a list of pending appointments for the current user',
+        summary: 'Get pending appointments',
+        description: 'Lấy danh sách cuộc hẹn chờ thanh toán của tài khoản này',
     })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Pending appointments retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Lấy danh sách cuộc hẹn chờ thanh toán thành công')
     getPendingAppointments(@CurrentUser() currentUser: User) {
         return this.paymentsService.getPendingAppointments(currentUser.id);
     }
@@ -72,15 +154,94 @@ export class PaymentsController {
     @Get('user-stats')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Get user payment statistics' })
+    @ApiOperation({
+        summary: 'Get user payment statistics',
+        description: 'Lấy thống kê thanh toán của tài khoản này',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User payment statistics retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Lấy thống kê thanh toán thành công')
     getUserPaymentStats(@CurrentUser() currentUser: User) {
         return this.paymentsService.getUserPaymentStats(currentUser.id);
+    }
+
+    @Get('my-payments')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Get my payments',
+        description: 'Lấy danh sách thanh toán của tài khoản này',
+    })
+    @ApiQuery({
+        name: 'status',
+        enum: PaymentStatusType,
+        required: false,
+        description: 'Lọc theo trạng thái thanh toán',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User payments retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Lấy danh sách thanh toán thành công')
+    getMyPayments(
+        @CurrentUser() currentUser: User,
+        @Query('status') status?: PaymentStatusType,
+    ) {
+        return this.paymentsService.getUserPayments(currentUser.id, status);
+    }
+
+    @Get('admin/all')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Get all payments',
+        description:
+            'Lấy tất cả thanh toán trong hệ thống - chỉ dành cho admin, manager',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'All payments retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access - admin or manager only',
+    })
+    @ResponseMessage('Lấy danh sách tất cả thanh toán thành công')
+    findAll() {
+        return this.paymentsService.findAll();
     }
 
     @Post('packages')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Create payment for service package' })
+    @ApiOperation({
+        summary: 'Create package payment',
+        description: 'Tạo thanh toán cho gói dịch vụ',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Payment link created successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ResponseMessage('Tạo thanh toán gói dịch vụ thành công')
     createPackagePayment(
         @Body() createDto: CreatePackagePaymentDto,
         @CurrentUser() currentUser: User,
@@ -94,7 +255,15 @@ export class PaymentsController {
     @Post('appointments')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Create payment for appointment' })
+    @ApiOperation({
+        summary: 'Create appointment payment',
+        description: 'Tạo thanh toán cho cuộc hẹn',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Payment link created successfully',
+    })
+    @ResponseMessage('Tạo thanh toán cuộc hẹn thành công')
     createAppointmentPayment(
         @Body() createDto: CreateAppointmentPaymentDto,
         @CurrentUser() currentUser: User,
@@ -108,7 +277,15 @@ export class PaymentsController {
     @Post('services')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: 'Create payment for service' })
+    @ApiOperation({
+        summary: 'Create service payment',
+        description: 'Tạo thanh toán cho dịch vụ đơn lẻ',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Payment link created successfully',
+    })
+    @ResponseMessage('Tạo thanh toán dịch vụ thành công')
     createServicePayment(
         @Body() createDto: CreateServicePaymentDto,
         @CurrentUser() currentUser: User,
@@ -119,94 +296,79 @@ export class PaymentsController {
         );
     }
 
-    @Get()
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    findAll() {
-        return this.paymentsService.findAll();
-    }
-
-    @Get('callback/success')
-    async handleSuccessCallback(
-        @Query('orderCode') orderCode: string,
-        @Res() res: Response,
-    ) {
-        const result =
-            await this.paymentsService.handleSuccessCallback(orderCode);
-        return res.redirect(result.redirectUrl);
-    }
-
-    @Get('callback/cancel')
-    async handleCancelCallback(
-        @Query('orderCode') orderCode: string,
-        @Res() res: Response,
-    ) {
-        const result =
-            await this.paymentsService.handleCancelCallback(orderCode);
-        return res.redirect(result.redirectUrl);
-    }
-
-    @Get('cancel/*path')
-    async handleInvalidCancel() {
-        throw new BadRequestException(
-            'Yêu cầu hủy không hợp lệ. Vui lòng sử dụng đúng URL /payments/cancel với các tham số query hợp lệ.',
-        );
-    }
-
-    @Post('webhook')
-    @ApiOperation({
-        summary: 'PayOS webhook',
-        description: 'Endpoint cho PayOS webhook notifications',
-    })
-    async handleWebhook(@Body() webhookData: WebhookType) {
-        return this.paymentsService.verifyWebhook(webhookData);
-    }
-
-    @Get('my-payments')
+    @Get(':id/details')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Get current user payments',
+        summary: 'Get payment details',
+        description: 'Lấy chi tiết thanh toán của tài khoản này',
     })
-    @ApiQuery({
-        name: 'status',
-        enum: PaymentStatusType,
-        required: false,
-        description: 'Filter by payment status',
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment details retrieved successfully',
     })
-    @ResponseMessage('Lấy danh sách thanh toán thành công')
-    getMyPayments(
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Payment not found or access denied',
+    })
+    @ResponseMessage('Lấy chi tiết thanh toán thành công')
+    getMyPaymentDetails(
+        @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
-        @Query('status') status?: PaymentStatusType,
     ) {
-        return this.paymentsService.getUserPayments(currentUser.id, status);
+        return this.paymentsService.getUserPaymentDetails(id, currentUser.id);
+    }
+
+    @Get(':id/status')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Check payment status',
+        description: 'Kiểm tra trạng thái thanh toán của tài khoản này',
+    })
+    @ResponseMessage('Kiểm tra trạng thái thanh toán thành công')
+    checkMyPaymentStatus(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.paymentsService.checkUserPaymentStatus(id, currentUser.id);
     }
 
     @Get(':id')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    findOne(
-        @Param('id', ParseUUIDPipe)
-        id: string,
-    ) {
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Get payment by ID (Admin, Manager only)',
+        description: 'Lấy thanh toán theo ID - chỉ dành cho admin, manager',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment details retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Payment not found or access denied',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access - admin or manager only',
+    })
+    @ResponseMessage('Lấy thông tin thanh toán thành công')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.paymentsService.findOne(id);
-    }
-
-    @Delete(':id')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    remove(
-        @Param('id', ParseUUIDPipe)
-        id: string,
-    ) {
-        return this.paymentsService.remove(id);
     }
 
     @Patch(':id/cancel')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({
-        summary: 'Cancel a pending payment',
+        summary: 'Cancel payment',
+        description: 'Hủy thanh toán đang chờ xử lý',
     })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -219,7 +381,7 @@ export class PaymentsController {
                     type: 'string',
                     example: 'Hủy thanh toán thành công',
                 },
-                payment: { type: 'object' },
+                data: { type: 'object' },
             },
         },
     })
@@ -231,11 +393,15 @@ export class PaymentsController {
         status: HttpStatus.NOT_FOUND,
         description: 'Payment not found or access denied',
     })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
     @ResponseMessage('Hủy thanh toán thành công')
     cancelPayment(
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
-        @Body() cancelDto?: CancelPaymentDto,
+        @Body() cancelDto: CancelPaymentDto,
     ) {
         return this.paymentsService.cancelPaymentByUser(
             id,
@@ -244,17 +410,75 @@ export class PaymentsController {
         );
     }
 
-    @Get(':id/details')
+    @Patch('admin/:id/cancel')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({
-        summary: 'Get payment details for current user',
+        summary: 'Cancel payment (Admin)',
+        description: 'Admin hủy thanh toán bất kỳ',
     })
-    @ResponseMessage('Lấy chi tiết thanh toán thành công')
-    getMyPaymentDetails(
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment cancelled successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Payment not found',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access - admin only',
+    })
+    @ResponseMessage('Admin hủy thanh toán thành công')
+    adminCancelPayment(
         @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() currentUser: User,
+        @Body() cancelDto: CancelPaymentDto,
     ) {
-        return this.paymentsService.findPaymentByIdAndUser(id, currentUser.id);
+        return this.paymentsService.cancelPayment(id, cancelDto);
+    }
+
+    @Delete(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment deleted successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Payment not found',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access - admin only',
+    })
+    @ApiOperation({
+        summary: 'Delete payment (Admin only)',
+        description: 'Xóa thanh toán - chỉ dành cho admin',
+    })
+    @ResponseMessage('Xóa thanh toán thành công')
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.paymentsService.remove(id);
+    }
+
+    @Get('*path')
+    @ApiOperation({
+        summary: 'Catch invalid routes',
+        description: 'Bắt các route không hợp lệ',
+    })
+    handleInvalidRoutes() {
+        throw new BadRequestException(
+            'Endpoint không hợp lệ. Vui lòng kiểm tra lại URL và tham số.',
+        );
     }
 }

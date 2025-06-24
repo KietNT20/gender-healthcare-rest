@@ -130,6 +130,19 @@ export class UsersController {
         status: HttpStatus.OK,
         description: 'User retrieved successfully',
     })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden access to this resource (only Admin/Manager/Staff can access)',
+    })
     @ResponseMessage('User retrieved successfully')
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.usersService.findOne(id);

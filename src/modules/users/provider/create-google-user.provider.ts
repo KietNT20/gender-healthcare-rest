@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { RolesNameEnum } from 'src/enums';
@@ -98,7 +102,7 @@ export class CreateGoogleUserProvider {
     async findExistingGoogleUser(
         googleId: string,
         email: string,
-    ): Promise<User | null> {
+    ): Promise<User> {
         // Tìm theo googleId trước
         let user = await this.usersRepository.findOne({
             where: { googleId },
@@ -111,6 +115,10 @@ export class CreateGoogleUserProvider {
                 where: { email: email.toLowerCase() },
                 relations: ['role'],
             });
+        }
+
+        if (!user) {
+            throw new NotFoundException('Không tìm thấy người dùng');
         }
 
         return user;

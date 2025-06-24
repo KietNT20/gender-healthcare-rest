@@ -23,10 +23,8 @@ export class Blog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'uuid', nullable: true })
-    deletedByUserId?: string;
-
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, unique: true })
+    @Index()
     title: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
@@ -59,9 +57,6 @@ export class Blog {
     @Column({ type: 'text', nullable: true })
     excerpt?: string;
 
-    @Column({ type: 'int', nullable: true })
-    readTime?: number;
-
     @Column({
         type: 'timestamp with time zone',
         nullable: true,
@@ -81,6 +76,9 @@ export class Blog {
     @Index()
     publishedAt?: Date;
 
+    @Column({ type: 'uuid', nullable: true })
+    deletedByUserId?: string;
+
     @CreateDateColumn()
     createdAt: Date;
 
@@ -94,23 +92,32 @@ export class Blog {
     @ManyToOne(() => User, (user) => user.authoredBlogs)
     author: User;
 
-    @ManyToOne(() => Category, (category) => category.blogs, { nullable: true })
+    @ManyToOne(() => Category, (category) => category.blogs, {
+        nullable: true,
+        eager: true,
+    })
     category: Category;
 
     @ManyToOne(() => User, (user) => user.reviewedBlogs, { nullable: true })
     reviewedByUser: User;
 
-    @ManyToOne(() => User, (user) => user.publishedBlogs, { nullable: true })
+    @ManyToOne(() => User, (user) => user.publishedBlogs, {
+        nullable: true,
+        eager: true,
+    })
     publishedByUser: User;
 
-    @ManyToMany(() => Service, (service) => service.blogs)
+    @ManyToMany(() => Service, (service) => service.blogs, { eager: true })
     @JoinTable()
     services: Service[];
 
-    @OneToMany(() => Image, (image) => image.blog, { eager: true })
+    @OneToMany(() => Image, (image) => image.blog, {
+        eager: true,
+        cascade: true,
+    })
     images: Image[];
 
-    @ManyToMany(() => Tag, (tag) => tag.blogs)
+    @ManyToMany(() => Tag, (tag) => tag.blogs, { eager: true, cascade: true })
     @JoinTable()
     tags: Tag[];
 }

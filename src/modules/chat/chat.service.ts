@@ -586,10 +586,8 @@ export class ChatService {
     /**
      * Get question by appointment ID
      */
-    async getQuestionByAppointmentId(
-        appointmentId: string,
-    ): Promise<Question | null> {
-        return this.questionRepository.findOne({
+    async getQuestionByAppointmentId(appointmentId: string): Promise<Question> {
+        const question = await this.questionRepository.findOne({
             where: { appointment: { id: appointmentId } },
             relations: [
                 'user',
@@ -598,5 +596,13 @@ export class ChatService {
                 'category',
             ],
         });
+
+        if (!question) {
+            throw new NotFoundException(
+                'Không tìm thấy câu hỏi của buổi tư vấn này',
+            );
+        }
+
+        return question;
     }
 }

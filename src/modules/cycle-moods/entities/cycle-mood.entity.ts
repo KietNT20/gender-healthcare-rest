@@ -31,9 +31,15 @@ export class CycleMood {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods)
+    @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleMoods, {
+        eager: true,
+        cascade: true,
+    })
     cycle: MenstrualCycle;
 
-    @ManyToOne(() => Mood, (mood) => mood.cycleMoods)
+    @ManyToOne(() => Mood, (mood) => mood.cycleMoods, {
+        eager: true,
+        cascade: true,
+    })
     mood: Mood;
 }

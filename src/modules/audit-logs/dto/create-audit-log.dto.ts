@@ -10,7 +10,7 @@ import {
 
 export class CreateAuditLogDto {
     @ApiProperty({ description: 'The user who performed the action.' })
-    @IsUUID()
+    @IsUUID('4')
     @IsNotEmpty()
     userId: string;
 
@@ -33,7 +33,7 @@ export class CreateAuditLogDto {
     entityType: string;
 
     @ApiProperty({ description: 'The ID of the affected entity.' })
-    @IsUUID()
+    @IsUUID('4')
     @IsNotEmpty()
     entityId: string;
 

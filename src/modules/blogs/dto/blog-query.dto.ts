@@ -32,7 +32,7 @@ export class GetBlogQueryDto {
         description: 'Filter by category ID',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     categoryId?: string;
 
     @ApiPropertyOptional({

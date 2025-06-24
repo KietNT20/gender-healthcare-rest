@@ -12,7 +12,7 @@ import { SortOrder } from 'src/enums';
 class AuditLogFilters {
     @ApiPropertyOptional({ description: 'Filter by user ID' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     userId?: string;
 
     @ApiPropertyOptional({

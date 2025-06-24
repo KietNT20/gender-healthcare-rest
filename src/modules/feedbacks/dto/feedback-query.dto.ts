@@ -46,26 +46,26 @@ export class FeedbackQueryDto {
 
     @ApiPropertyOptional({ description: 'ID of the user providing feedback' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     userId?: string;
 
     @ApiPropertyOptional({ description: 'ID of the service being reviewed' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     serviceId?: string;
 
     @ApiPropertyOptional({
         description: 'ID of the appointment related to the feedback',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     appointmentId?: string;
 
     @ApiPropertyOptional({
         description: 'ID of the consultant providing the service',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     consultantId?: string;
 
     @ApiPropertyOptional({

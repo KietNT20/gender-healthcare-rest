@@ -32,7 +32,7 @@ export class ValidationDataDto {
     // Cho SAMPLE_COLLECTION_SCHEDULED
     @ApiPropertyOptional({ description: 'ID của cuộc hẹn lấy mẫu' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     appointmentId?: string;
 
     // Cho SAMPLE_COLLECTED
@@ -72,7 +72,7 @@ export class ValidationDataDto {
     // Cho RESULT_READY
     @ApiPropertyOptional({ description: 'ID kết quả xét nghiệm' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     testResultId?: string;
 
     @ApiPropertyOptional({ description: 'Người validate kết quả' })
@@ -114,7 +114,7 @@ export class ValidationDataDto {
     // Cho CONSULTATION_REQUIRED
     @ApiPropertyOptional({ description: 'ID bác sĩ tư vấn' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     consultantDoctorId?: string;
 
     @ApiPropertyOptional({ description: 'Lý do cần tư vấn' })
@@ -133,7 +133,7 @@ export class ValidationDataDto {
     // Cho FOLLOW_UP_SCHEDULED
     @ApiPropertyOptional({ description: 'ID cuộc hẹn theo dõi' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     followUpAppointmentId?: string;
 
     @ApiPropertyOptional({
@@ -180,6 +180,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'ID người dùng' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     userId?: string;
 }

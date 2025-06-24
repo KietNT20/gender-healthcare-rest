@@ -7,8 +7,6 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 
-// dotenv.config();
-
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.useGlobalPipes(

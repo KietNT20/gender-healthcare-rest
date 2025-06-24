@@ -23,15 +23,12 @@ export class MenstrualPredictionsService {
         @InjectQueue('notification-queue') private notificationQueue: Queue,
     ) {}
 
-    async predictAndUpdate(
-        userId: string,
-    ): Promise<MenstrualPrediction | null> {
+    async predictAndUpdate(userId: string): Promise<MenstrualPrediction> {
         this.logger.log(`Bắt đầu dự đoán chu kỳ cho người dùng ${userId}`);
 
         const user = await this.userRepository.findOneBy({ id: userId });
         if (!user) {
-            this.logger.warn(`Không tìm thấy người dùng ${userId}`);
-            return null;
+            throw new NotFoundException(`Không tìm thấy người dùng ${userId}`);
         }
 
         const cycles = await this.cycleRepository.find({
@@ -40,12 +37,11 @@ export class MenstrualPredictionsService {
         });
 
         if (cycles.length < 1) {
-            this.logger.warn(
-                `Không có dữ liệu chu kỳ cho người dùng ${userId}. Hủy dự đoán.`,
-            );
             await this.predictionRepository.delete({ user: { id: userId } });
             await this.removeOldPredictionJobs(userId);
-            return null;
+            throw new NotFoundException(
+                `Không có dữ liệu chu kỳ cho người dùng ${userId}`,
+            );
         }
 
         const avgCycleLength = this.calculateAverage(

@@ -107,7 +107,7 @@ export class CycleSymptomsService {
         };
     }
 
-    async findOne(id: string): Promise<CycleSymptom | null> {
+    async findOne(id: string): Promise<CycleSymptom> {
         const cycleSymptom = await this.cycleSymptomRepository.findOne({
             where: { id },
             relations: ['symptom', 'cycle'],

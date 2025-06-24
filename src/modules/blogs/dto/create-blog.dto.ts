@@ -14,10 +14,8 @@ export class CreateBlogDto {
     @IsString()
     title: string;
 
-    @ApiProperty()
-    @IsString()
-    slug: string;
 
+    @ApiProperty()
     @IsString()
     content: string;
 
@@ -25,6 +23,7 @@ export class CreateBlogDto {
     @IsUUID()
     authorId?: string;
 
+    @ApiProperty()
     @IsEnum(ContentStatusType)
     status: ContentStatusType;
 

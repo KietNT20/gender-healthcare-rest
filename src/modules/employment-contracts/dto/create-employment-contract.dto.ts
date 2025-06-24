@@ -12,7 +12,7 @@ import { ContractStatusType } from 'src/enums';
 
 export class CreateEmploymentContractDto {
     @ApiProperty({ description: 'ID of the user (employee)' })
-    @IsUUID()
+    @IsUUID('4')
     @IsNotEmpty()
     userId: string;
 

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import {
@@ -17,12 +22,17 @@ import {
     Repository,
 } from 'typeorm';
 import { ChatService } from '../chat/chat.service';
+import { Question } from '../chat/entities/question.entity';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { AppointmentBookingService } from './appointment-booking.service';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import { AppointmentValidationService } from './appointment-validation.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import {
+    FindAvailableSlotsDto,
+    FindAvailableSlotsResponseDto,
+} from './dto/find-available-slots.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import {
     CancelAppointmentDto,
@@ -88,7 +98,7 @@ export class AppointmentsService {
                 },
             });
             if (existing) {
-                throw new Error(
+                throw new ConflictException(
                     'Bạn đã có lịch tư vấn với tư vấn viên này tại thời điểm này.',
                 );
             }
@@ -103,15 +113,25 @@ export class AppointmentsService {
                     'Một hoặc nhiều dịch vụ không tồn tại.',
                 );
             }
-
             const totalPrice = services.reduce(
                 (sum, service) => sum + Number(service.price),
                 0,
             );
-            const isConsultation = services.some(
-                (s) => s.category.type === ServiceCategoryType.CONSULTATION,
-            );
+            // Phân loại dịch vụ sử dụng helper method
+            // Logic: Nếu có ít nhất 1 dịch vụ cần tư vấn viên thì toàn bộ cuộc hẹn sẽ cần tư vấn viên
+            // Điều này đảm bảo tính nhất quán trong quy trình và đơn giản hóa logic booking
+            const {
+                servicesRequiringConsultant,
+                servicesNotRequiringConsultant,
+                needsConsultant,
+            } = this.categorizeServices(services);
 
+            // Validate dịch vụ hỗn hợp và consultant requirement
+            this.validateMixedServices(
+                servicesRequiringConsultant,
+                servicesNotRequiringConsultant,
+                consultantId,
+            );
             const appointmentData: Partial<Appointment> = {
                 user: currentUser,
                 services,
@@ -119,23 +139,39 @@ export class AppointmentsService {
                 appointmentLocation,
                 notes,
                 fixedPrice: totalPrice,
-                status: isConsultation
+                status: needsConsultant
                     ? AppointmentStatusType.PENDING
                     : AppointmentStatusType.CONFIRMED,
             };
-
-            if (isConsultation) {
+            if (needsConsultant) {
                 const bookingDetails =
                     await this.bookingService.findAndValidateSlotForConsultation(
-                        consultantId,
+                        consultantId!,
                         appointmentDate,
                         services,
                         queryRunner.manager,
                     );
                 Object.assign(appointmentData, bookingDetails);
             } else {
+                // Dịch vụ không yêu cầu tư vấn viên (xét nghiệm, kiểm tra sức khỏe, etc.)
                 appointmentData.consultantSelectionType =
                     ConsultantSelectionType.SERVICE_BOOKING;
+                // Nếu có consultantId được cung cấp, có thể gán nhưng không bắt buộc
+                if (consultantId) {
+                    // Validate consultant tồn tại và active
+                    const consultant = await queryRunner.manager.findOne(User, {
+                        where: {
+                            id: consultantId,
+                            role: { name: RolesNameEnum.CONSULTANT },
+                            isActive: true,
+                        },
+                        relations: ['role', 'consultantProfile'],
+                    });
+
+                    if (consultant && consultant.consultantProfile) {
+                        appointmentData.consultant = consultant;
+                    }
+                }
             }
 
             const appointment = queryRunner.manager.create(
@@ -144,9 +180,8 @@ export class AppointmentsService {
             );
             const savedAppointment =
                 await queryRunner.manager.save(appointment);
-
-            // 2. Nếu là consultation, tự động tạo phòng chat (Question) gắn với appointment
-            if (isConsultation) {
+            // 2. Nếu cần tư vấn viên, tự động tạo phòng chat (Question) gắn với appointment
+            if (needsConsultant && savedAppointment.consultant) {
                 // Kiểm tra đã có Question chưa
                 const existQuestion = await queryRunner.manager.findOne(
                     'Question',
@@ -168,10 +203,9 @@ export class AppointmentsService {
                     );
                 }
             }
-
             await queryRunner.commitTransaction();
 
-            if (isConsultation) {
+            if (needsConsultant && savedAppointment.consultant) {
                 this.notificationService.sendConsultantConfirmationNotification(
                     savedAppointment,
                 );
@@ -294,8 +328,11 @@ export class AppointmentsService {
         currentUser: User,
     ): Promise<Appointment> {
         const appointment = await this.findOne(id, currentUser);
-        Object.assign(appointment, updateDto);
-        return this.appointmentRepository.save(appointment);
+        const updatedAppointment = this.appointmentRepository.merge(
+            appointment,
+            updateDto,
+        );
+        return this.appointmentRepository.save(updatedAppointment);
     }
 
     /**
@@ -333,7 +370,7 @@ export class AppointmentsService {
     /**
      * Get chat room by appointment ID
      */
-    async getChatRoomByAppointmentId(appointmentId: string): Promise<any> {
+    async getChatRoomByAppointmentId(appointmentId: string): Promise<Question> {
         return this.chatService.getQuestionByAppointmentId(appointmentId);
     }
     async calculateTotalPrice(id: string, currentUser: User): Promise<number> {
@@ -342,10 +379,152 @@ export class AppointmentsService {
             return appointment.fixedPrice || 0;
         }
 
-        const servicePrices = appointment.services.reduce((total, service) => {
-            return total + (service.price || 0);
-        }, 0);
+        // Sử dụng calculateDetailedPricing để có thông tin chi tiết
+        const { servicesRequiringConsultant, servicesNotRequiringConsultant } =
+            this.categorizeServices(appointment.services);
 
-        return (appointment.fixedPrice || 0) + servicePrices;
+        const { totalPrice } = this.calculateDetailedPricing(
+            servicesRequiringConsultant,
+            servicesNotRequiringConsultant,
+        );
+
+        return totalPrice;
+    }
+
+    /**
+     * Lấy thông tin chi tiết về giá cả của cuộc hẹn
+     */
+    async getDetailedPricing(id: string, currentUser: User) {
+        const appointment = await this.findOne(id, currentUser);
+        if (!appointment.services || appointment.services.length === 0) {
+            return {
+                consultantServicePrice: 0,
+                nonConsultantServicePrice: 0,
+                totalPrice: appointment.fixedPrice || 0,
+                serviceBreakdown: {
+                    consultantServices: [],
+                    nonConsultantServices: [],
+                },
+            };
+        }
+
+        const { servicesRequiringConsultant, servicesNotRequiringConsultant } =
+            this.categorizeServices(appointment.services);
+
+        return this.calculateDetailedPricing(
+            servicesRequiringConsultant,
+            servicesNotRequiringConsultant,
+        );
+    }
+
+    /**
+     * Tính toán chi phí chi tiết cho cuộc hẹn hỗn hợp
+     */
+    private calculateDetailedPricing(
+        servicesRequiringConsultant: Service[],
+        servicesNotRequiringConsultant: Service[],
+    ) {
+        const consultantServicePrice = servicesRequiringConsultant.reduce(
+            (sum, service) => sum + Number(service.price),
+            0,
+        );
+
+        const nonConsultantServicePrice = servicesNotRequiringConsultant.reduce(
+            (sum, service) => sum + Number(service.price),
+            0,
+        );
+
+        const totalPrice = consultantServicePrice + nonConsultantServicePrice;
+
+        return {
+            consultantServicePrice,
+            nonConsultantServicePrice,
+            totalPrice,
+            serviceBreakdown: {
+                consultantServices: servicesRequiringConsultant.map((s) => ({
+                    id: s.id,
+                    name: s.name,
+                    price: s.price,
+                })),
+                nonConsultantServices: servicesNotRequiringConsultant.map(
+                    (s) => ({
+                        id: s.id,
+                        name: s.name,
+                        price: s.price,
+                    }),
+                ),
+            },
+        };
+    }
+
+    /**
+     * Phân loại dịch vụ thành những dịch vụ cần và không cần tư vấn viên
+     */
+    private categorizeServices(services: Service[]) {
+        const servicesRequiringConsultant = services.filter(
+            (s) =>
+                s.requiresConsultant === true ||
+                s.category.type === ServiceCategoryType.CONSULTATION,
+        );
+        const servicesNotRequiringConsultant = services.filter(
+            (s) =>
+                s.requiresConsultant !== true &&
+                s.category.type !== ServiceCategoryType.CONSULTATION,
+        );
+
+        return {
+            servicesRequiringConsultant,
+            servicesNotRequiringConsultant,
+            needsConsultant: servicesRequiringConsultant.length > 0,
+        };
+    }
+
+    /**
+     * Validate dịch vụ hỗn hợp và consultant requirement
+     */
+    private validateMixedServices(
+        servicesRequiringConsultant: Service[],
+        servicesNotRequiringConsultant: Service[],
+        consultantId?: string,
+    ) {
+        const hasMixedServices =
+            servicesRequiringConsultant.length > 0 &&
+            servicesNotRequiringConsultant.length > 0;
+
+        // Log thông báo khi có dịch vụ hỗn hợp để theo dõi
+        if (hasMixedServices) {
+            console.log(
+                `[Mixed Services] Cuộc hẹn bao gồm ${servicesRequiringConsultant.length} dịch vụ cần tư vấn viên và ${servicesNotRequiringConsultant.length} dịch vụ không cần tư vấn viên. Toàn bộ cuộc hẹn sẽ được thực hiện với tư vấn viên.`,
+            );
+        }
+
+        // Chỉ throw error khi thiếu consultant cho dịch vụ cần tư vấn viên
+        if (servicesRequiringConsultant.length > 0 && !consultantId) {
+            const consultantServiceNames = servicesRequiringConsultant
+                .map((s) => s.name)
+                .join(', ');
+            throw new BadRequestException(
+                `Các dịch vụ: ${consultantServiceNames} yêu cầu chọn tư vấn viên. Vui lòng chọn tư vấn viên từ danh sách slot khả dụng.`,
+            );
+        }
+    }
+
+    /**
+     * Tìm kiếm các slot tư vấn khả dụng
+     */
+    async findAvailableSlots(
+        findSlotsDto: FindAvailableSlotsDto,
+    ): Promise<FindAvailableSlotsResponseDto> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+            return await this.bookingService.findAvailableSlots(
+                findSlotsDto,
+                queryRunner.manager,
+            );
+        } finally {
+            await queryRunner.release();
+        }
     }
 }

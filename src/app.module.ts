@@ -96,11 +96,11 @@ import { UsersModule } from './modules/users/users.module';
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
                 connection: {
-                    host: configService.get<string>('REDIS_HOST'),
-                    port: configService.get<number>('REDIS_PORT') || 6379,
-                    password: configService.get<string>('REDIS_PASSWORD'),
+                    host: configService.get('REDIS_HOST'),
+                    port: +configService.get('REDIS_PORT') || 6379,
+                    password: configService.get('REDIS_PASSWORD'),
                     tls:
-                        configService.get<string>('NODE_ENV') === 'production'
+                        configService.get('NODE_ENV') === 'production'
                             ? {}
                             : undefined,
                 },

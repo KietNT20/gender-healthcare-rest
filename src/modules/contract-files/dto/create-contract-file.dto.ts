@@ -4,7 +4,7 @@ export class CreateContractFileDto {
     @IsUUID()
     contractId: string;
 
-    @IsUUID()
+    @IsUUID('4')
     fileId: string;
 
     @IsOptional()

@@ -63,4 +63,9 @@ export class CreateServiceDto {
     @IsUUID()
     @IsNotEmpty()
     categoryId: string;
+
+    @ApiPropertyOptional({ description: 'Required Consultant' })
+    @IsBoolean()
+    @IsOptional()
+    requiresConsultant?: boolean; // Thêm trường này
 }

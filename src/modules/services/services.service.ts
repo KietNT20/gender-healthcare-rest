@@ -57,6 +57,7 @@ export class ServicesService {
             category: { id: createServiceDto.categoryId },
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
+            requiresConsultant: createServiceDto.requiresConsultant ?? false, // Thêm trường này
         });
 
         const savedService = await this.serviceRepo.save(newService);
@@ -122,42 +123,48 @@ export class ServicesService {
      * @param serviceQueryDto DTO chứa các tiêu chí lọc
      */
     private applyServiceFilters(
-        queryBuilder: any,
-        serviceQueryDto: ServiceQueryDto,
-    ): void {
-        const { search, categoryId, minPrice, maxPrice, isActive, featured } =
-            serviceQueryDto;
+    queryBuilder: any,
+    serviceQueryDto: ServiceQueryDto,
+): void {
+    const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
+        serviceQueryDto;
 
-        if (search) {
-            queryBuilder.andWhere(
-                'service.name ILIKE :search OR service.description ILIKE :search',
-                {
-                    search: `%${search}%`,
-                },
-            );
-        }
-
-        if (categoryId) {
-            queryBuilder.andWhere('service.categoryId = :categoryId', {
-                categoryId,
-            });
-        }
-        if (minPrice !== undefined) {
-            queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
-        }
-
-        if (maxPrice !== undefined) {
-            queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
-        }
-
-        if (isActive !== undefined) {
-            queryBuilder.andWhere('service.isActive = :isActive', { isActive });
-        }
-
-        if (featured !== undefined) {
-            queryBuilder.andWhere('service.featured = :featured', { featured });
-        }
+    if (search) {
+        queryBuilder.andWhere(
+            'service.name ILIKE :search OR service.description ILIKE :search',
+            {
+                search: `%${search}%`,
+            },
+        );
     }
+
+    if (categoryId) {
+        queryBuilder.andWhere('service.categoryId = :categoryId', {
+            categoryId,
+        });
+    }
+    if (minPrice !== undefined) {
+        queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
+    }
+
+    if (maxPrice !== undefined) {
+        queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
+    }
+
+    if (isActive !== undefined) {
+        queryBuilder.andWhere('service.isActive = :isActive', { isActive });
+    }
+
+    if (featured !== undefined) {
+        queryBuilder.andWhere('service.featured = :featured', { featured });
+    }
+
+    if (requiresConsultant !== undefined) {
+        queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
+            requiresConsultant,
+        });
+    }
+}
 
     /**
      * Tìm một dịch vụ theo ID
@@ -233,7 +240,9 @@ export class ServicesService {
             ...updateDto,
             slug,
             category: categoryRef ? { id: categoryRef.id } : IsNull(),
-            updatedAt: new Date(), // Thêm dòng này để ép cập nhật updatedAt
+            requiresConsultant:
+                updateDto.requiresConsultant ?? service.requiresConsultant, // Thêm trường này
+            updatedAt: new Date(),
         });
 
         // 5. Lưu và trả về DTO
@@ -264,6 +273,7 @@ export class ServicesService {
             {
                 ...service,
                 categoryId: service.category?.id || null,
+                requiresConsultant: service.requiresConsultant, // Thêm trường này
             },
             { excludeExtraneousValues: true },
         );
@@ -317,4 +327,6 @@ export class ServicesService {
         const count = await queryBuilder.getCount();
         return count > 0;
     }
+    
+
 }

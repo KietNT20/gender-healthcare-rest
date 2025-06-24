@@ -17,7 +17,7 @@ class Filters {
         description: 'Filter by consultant ID (Admin/Manager)',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     consultantId?: string;
 
     @ApiPropertyOptional({ description: 'Filter by day of the week (0-6)' })

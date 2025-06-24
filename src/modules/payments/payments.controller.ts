@@ -36,6 +36,7 @@ import { CreateServicePaymentDto } from './dto/create-service-payment.dto';
 import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
+import { WebhookTypeDTO } from './dto/webhook-type.dto';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -53,7 +54,7 @@ export class PaymentsController {
         status: HttpStatus.OK,
         description: 'Webhook processed successfully',
     })
-    async handleWebhook(@Body() webhookData: WebhookType) {
+    async handleWebhook(@Body() webhookData: WebhookTypeDTO) {
         return this.paymentsService.verifyWebhook(webhookData);
     }
 

@@ -9,6 +9,7 @@ import { PaymentCallbackService } from './providers/payment-callback.service';
 import { PaymentLinkService } from './providers/payment-link.service';
 import { PaymentRepositoryService } from './providers/payment-repository.service';
 import { UserPaymentService } from './providers/user-payment.service';
+import { WebhookTypeDTO } from './dto/webhook-type.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -81,7 +82,7 @@ export class PaymentsService {
     /**
      * Xác thực và xử lý webhook từ PayOS
      */
-    async verifyWebhook(webhookData: WebhookType) {
+    async verifyWebhook(webhookData: WebhookTypeDTO) {
         return this.paymentCallbackService.verifyWebhook(webhookData);
     }
 

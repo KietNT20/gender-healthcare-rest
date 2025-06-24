@@ -29,23 +29,23 @@ export class CreateBlogDto {
 
     @ApiProperty()
     @IsEnum(ContentStatusType)
-    status: ContentStatusType;
+    status: ContentStatusType = ContentStatusType.DRAFT;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     featuredImage?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
+    @ApiProperty()
+    @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
-    tags?: string[];
+    tags: string[];
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
-    views?: number;
+    views?: number = 0;
 
     @ApiPropertyOptional()
     @IsOptional()
@@ -68,35 +68,11 @@ export class CreateBlogDto {
     @IsString()
     excerpt?: string;
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsInt()
-    readTime?: number;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsUUID('4')
-    reviewedById?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    rejectionReason?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    revisionNotes?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsUUID('4')
-    publishedById?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
+    @ApiProperty()
+    @IsNotEmpty()
     @IsUUID('4')
     categoryId: string;
+
     @ApiPropertyOptional({
         description:
             'Auto publish for Admin/Manager (bypasses review workflow)',
@@ -104,5 +80,5 @@ export class CreateBlogDto {
     })
     @IsOptional()
     @IsBoolean()
-    autoPublish?: boolean;
+    autoPublish?: boolean = false;
 }

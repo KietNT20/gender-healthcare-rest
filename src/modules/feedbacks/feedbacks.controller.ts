@@ -1,3 +1,5 @@
+import { Image } from 'src/modules/images/entities/image.entity';
+
 import {
     Controller,
     Get,
@@ -12,6 +14,7 @@ import {
     BadRequestException,
     UploadedFile,
     UseInterceptors,
+    Put,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -30,10 +33,15 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { CreateFeedbackImageDTO } from './dto/create-feedback-image.dto';
+import { FeedbackImageService } from './feedbacks-image.service'; 
 
 @Controller('feedbacks')
 export class FeedbacksController {
-    constructor(private readonly feedbacksService: FeedbacksService) {}
+    constructor(
+        private readonly feedbacksService: FeedbacksService,
+        private readonly feedbackImageService: FeedbackImageService, // Thêm dependency
+    ) {}
 
     /**
      * Create a new feedback
@@ -185,5 +193,48 @@ export class FeedbacksController {
     ) {
         await this.feedbacksService.remove(id);
         return { message: 'Feedback deleted successfully' };
+    }
+
+
+
+    @Patch('/image/:id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Synchronize images to feedback' })
+    @ApiResponse({ status: 200, description: 'Images synchronized successfully' })
+    @ResponseMessage('Images synchronized successfully')
+    async syncFeedbackImages(@Param('id', ParseUUIDPipe) id: string) {
+        await this.feedbackImageService.syncFeedbackImages(id);
+        return { message: 'Images synchronized successfully' };
+    }
+
+    @Post('/image')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.ADMIN,
+    ])
+    @ApiOperation({ summary: 'Add image to feedback' })
+    @ApiResponse({ status: 200, description: 'Image added successfully' })
+    @ResponseMessage('Image added successfully')
+    async addImageToFeedback(@Body() createFeedbackImageDTO: CreateFeedbackImageDTO) {
+        await this.feedbackImageService.addImageToFeedback(createFeedbackImageDTO);
+        return { message: 'Image added successfully' };
+    }
+
+    @Put('/image')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Remove image from feedback' })
+    @ApiResponse({ status: 200, description: 'Image removed successfully' })
+    @ResponseMessage('Image removed successfully')
+    async removeImageFromFeedback(@Body() createFeedbackImageDTO: CreateFeedbackImageDTO) {
+        await this.feedbackImageService.removeImageFromFeedback(createFeedbackImageDTO);
+        return { message: 'Image removed successfully' };
     }
 }

@@ -6,7 +6,7 @@ export class CreateAppointmentPaymentDto {
         description: 'ID của cuộc hẹn cần thanh toán',
         example: '550e8400-e29b-41d4-a716-446655440004',
     })
-    @IsUUID()
+    @IsUUID('4')
     appointmentId: string;
 
     @ApiPropertyOptional({

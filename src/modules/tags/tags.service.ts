@@ -26,18 +26,12 @@ export class TagsService {
             throw new ConflictException('Tag name already exists');
         }
 
-        // Generate slug if not provided
-        const slug =
-            createTagDto.slug ||
-            slugify(createTagDto.name, { lower: true, strict: true });
-
-        // Check if slug is unique
-        const existingSlug = await this.tagRepository.findOne({
-            where: { slug },
+        // Generate unique slug
+        const baseSlug = slugify(createTagDto.name, {
+            lower: true,
+            strict: true,
         });
-        if (existingSlug) {
-            throw new ConflictException('Tag slug already exists');
-        }
+        const slug = await this.generateUniqueSlug(baseSlug);
 
         const tag = this.tagRepository.create({
             name: createTagDto.name,
@@ -82,21 +76,14 @@ export class TagsService {
             }
         }
 
-        // Generate new slug if name changed or slug provided
+        // Generate new slug if name changed
         let slug = tag.slug;
-        if (updateTagDto.name || updateTagDto.slug) {
-            slug =
-                updateTagDto.slug ||
-                slugify(updateTagDto.name || tag.name, {
-                    lower: true,
-                    strict: true,
-                });
-            const existingSlug = await this.tagRepository.findOne({
-                where: { slug, id: Not(id) },
+        if (updateTagDto.name) {
+            const baseSlug = slugify(updateTagDto.name, {
+                lower: true,
+                strict: true,
             });
-            if (existingSlug) {
-                throw new ConflictException('Tag slug already exists');
-            }
+            slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
         await this.tagRepository.update(id, {
@@ -113,5 +100,27 @@ export class TagsService {
             throw new NotFoundException(`Tag with ID ${id} not found`);
         }
         await this.tagRepository.remove(tag);
+    }
+
+    private async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+        let slug = baseSlug;
+        let counter = 1;
+
+        while (await this.isSlugExists(slug, excludeId)) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
+        return slug;
+    }
+
+    private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
+        const queryBuilder = this.tagRepository
+            .createQueryBuilder('tag')
+            .where('tag.slug = :slug', { slug })
+            .andWhere('tag.id != :excludeId', { excludeId });
+
+        const count = await queryBuilder.getCount();
+        return count > 0;
     }
 }

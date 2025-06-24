@@ -82,6 +82,7 @@ import { UsersModule } from './modules/users/users.module';
                 synchronize: true,
                 autoLoadEntities: true,
                 // logging: true,
+                // logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,

@@ -17,7 +17,7 @@ export class CreateCategoryDto {
     @IsString()
     description?: string;
 
-    @ApiProperty({description: 'Category slug', example: 'health', required: true})
+    @ApiPropertyOptional()
     @IsString()
     slug: string;
 

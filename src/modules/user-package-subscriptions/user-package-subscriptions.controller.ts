@@ -174,8 +174,8 @@ export class UserPackageSubscriptionsController {
      * @returns Success message
      */
     @Delete(':id')
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
     @ApiOperation({ summary: 'Soft delete a user package subscription by ID' })
     @ApiResponse({
         status: 200,
@@ -212,13 +212,13 @@ export class UserPackageSubscriptionsController {
      * @returns Subscription status
      */
     @Get('status/:userId')
-    // @UseGuards(RoleGuard)
-    // @Roles([
-    //     RolesNameEnum.CUSTOMER,
-    //     RolesNameEnum.STAFF,
-    //     RolesNameEnum.MANAGER,
-    //     RolesNameEnum.ADMIN,
-    // ])
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.ADMIN,
+    ])
     @ApiOperation({ summary: 'Get subscription status for a user' })
     @ApiResponse({
         status: 200,

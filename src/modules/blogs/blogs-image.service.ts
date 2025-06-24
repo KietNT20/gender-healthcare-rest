@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Blog } from './entities/blog.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../images/entities/image.entity';
 import { CreateBlogImageDTO } from './dto/create-blog-image.dto';
+import { Blog } from './entities/blog.entity';
 
 @Injectable()
 export class BlogImageService {
@@ -18,7 +18,9 @@ export class BlogImageService {
         // Find the blog
         const blog = await this.blogRepository.findOne({
             where: { id: blogId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!blog) {
@@ -46,7 +48,9 @@ export class BlogImageService {
 
         const blog = await this.blogRepository.findOne({
             where: { id: blogId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!blog) {
@@ -82,7 +86,9 @@ export class BlogImageService {
         // Find the blog
         const blog = await this.blogRepository.findOne({
             where: { id: blogId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!blog) {

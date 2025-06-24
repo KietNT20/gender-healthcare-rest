@@ -20,7 +20,6 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { User } from 'src/modules/users/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { BlogAdminNotificationService } from './blog-admin-notification.service';
 import { BlogImageService } from './blogs-image.service';
 import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
@@ -35,7 +34,6 @@ export class BlogsController {
     constructor(
         private readonly blogsService: BlogsService,
         private readonly blogImageService: BlogImageService,
-        private readonly blogAdminNotificationService: BlogAdminNotificationService,
     ) {}
 
     @Post()
@@ -65,6 +63,20 @@ export class BlogsController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get all published blogs (Admin/Manager only)' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Published blogs retrieved successfully',
+    })
+    @ResponseMessage('Published blogs retrieved successfully')
+    findAll(@Query() queryDto: BlogQueryDto) {
+        return this.blogsService.findAll(queryDto);
+    }
+
+    @Get('published')
     @ApiOperation({ summary: 'Get all published blogs (Public access)' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -86,6 +98,22 @@ export class BlogsController {
     @ResponseMessage('Published blog retrieved successfully')
     findPublishedBySlug(@Param('slug') slug: string) {
         return this.blogsService.findBySlug(slug, true);
+    }
+
+    @Get('pending-review')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Get all blogs pending review (Admin/Manager only)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Pending review blogs retrieved successfully',
+    })
+    @ResponseMessage('Pending review blogs retrieved successfully')
+    findAllPendingReview(@Query() queryDto: BlogQueryDto) {
+        return this.blogsService.findAllPendingReview(queryDto);
     }
 
     @Get(':id')

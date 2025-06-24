@@ -20,6 +20,7 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -32,6 +33,7 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
 
+@ApiTags('Chat')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('chat')

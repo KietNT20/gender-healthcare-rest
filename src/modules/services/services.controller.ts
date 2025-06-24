@@ -30,7 +30,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { CreateServiceImageDto } from './dto/create-service-image.dto';
 import { ServicesService } from './services.service';
 import { ServiceImageService } from './service-image.service';
-import { Service } from './entities/service.entity';
+import { ServiceResponseDto } from './dto/service-response.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Controller('services')
@@ -53,7 +53,7 @@ export class ServicesController {
     @ApiResponse({
         status: 201,
         description: 'Service created successfully',
-        type: Service,
+        type: ServiceResponseDto,
     })
     @ApiResponse({ status: 400, description: 'Invalid data' })
     @ApiResponse({
@@ -62,7 +62,7 @@ export class ServicesController {
     })
     @ApiBody({ type: CreateServiceDto })
     @ResponseMessage('Service created successfully')
-    async create(@Body() createServiceDto: CreateServiceDto): Promise<Service> {
+    async create(@Body() createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
         return this.servicesService.create(createServiceDto);
     }
 
@@ -78,9 +78,10 @@ export class ServicesController {
     @ApiResponse({
         status: 200,
         description: 'Services retrieved successfully',
+        type: [ServiceResponseDto],
     })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<Service>> {
+    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
         return this.servicesService.findAll(query);
     }
 
@@ -94,12 +95,12 @@ export class ServicesController {
     @ApiResponse({
         status: 200,
         description: 'Service retrieved successfully',
-        type: Service,
+        type: ServiceResponseDto,
     })
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ApiParam({ name: 'slug', description: 'Service slug', type: String })
     @ResponseMessage('Service retrieved successfully')
-    async findBySlug(@Param('slug') slug: string): Promise<Service> {
+    async findBySlug(@Param('slug') slug: string): Promise<ServiceResponseDto> {
         return this.servicesService.findBySlug(slug);
     }
 
@@ -113,18 +114,14 @@ export class ServicesController {
     @ApiResponse({
         status: 200,
         description: 'Service retrieved successfully',
-        type: Service,
+        type: ServiceResponseDto,
     })
     @ApiResponse({ status: 400, description: 'Invalid service ID format' })
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ResponseMessage('Service retrieved successfully')
     async findOne(
-        @Param(
-            'id',
-            ParseUUIDPipe,
-        )
-        id: string,
-    ){
+        @Param('id', ParseUUIDPipe) id: string,
+    ): Promise<ServiceResponseDto> {
         return this.servicesService.findOne(id);
     }
 
@@ -142,7 +139,7 @@ export class ServicesController {
     @ApiResponse({
         status: 200,
         description: 'Service updated successfully',
-        type: Service,
+        type: ServiceResponseDto,
     })
     @ApiResponse({ status: 400, description: 'Invalid service ID format' })
     @ApiResponse({ status: 404, description: 'Service not found' })
@@ -155,7 +152,7 @@ export class ServicesController {
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateServiceDto: UpdateServiceDto,
-    ): Promise<Service> {
+    ): Promise<ServiceResponseDto> {
         return this.servicesService.update(id, updateServiceDto);
     }
 

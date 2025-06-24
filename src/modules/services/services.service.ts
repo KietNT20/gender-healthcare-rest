@@ -8,6 +8,8 @@ import { Category } from '../categories/entities/category.entity';
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
+import { ServiceResponseDto } from './dto/service-response.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class ServicesService {
@@ -25,7 +27,7 @@ export class ServicesService {
      * @param createServiceDto Input data to create a service
      * @returns Created service
      */
-    async create(createServiceDto: CreateServiceDto): Promise<Service> {
+    async create(createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
         // Generate slug from name
         const baseSlug = slugify(createServiceDto.name, {
             lower: true,
@@ -34,8 +36,9 @@ export class ServicesService {
         const slug = await this.generateUniqueSlug(baseSlug);
 
         // Validate categoryId
+        let category: Category | null = null;
         if (createServiceDto.categoryId) {
-            const category = await this.categoryRepo.findOne({
+            category = await this.categoryRepo.findOne({
                 where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
             });
 
@@ -49,7 +52,7 @@ export class ServicesService {
         const newService = this.serviceRepo.create({
             ...createServiceDto,
             slug, // Assign auto-generated slug
-            category: { id: createServiceDto.categoryId },
+            category: createServiceDto.categoryId ? { id: createServiceDto.categoryId } : undefined,
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
             requiresConsultant: createServiceDto.requiresConsultant ?? false,
@@ -57,7 +60,11 @@ export class ServicesService {
 
         const savedService = await this.serviceRepo.save(newService);
         this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
-        return savedService;
+        return plainToClass(ServiceResponseDto, {
+            ...savedService,
+            category: savedService.category || category,
+            images: savedService.images || [],
+        });
     }
 
     /**
@@ -67,10 +74,11 @@ export class ServicesService {
      */
     async findAll(
         serviceQueryDto: ServiceQueryDto,
-    ): Promise<Paginated<Service>> {
+    ): Promise<Paginated<ServiceResponseDto>> {
         const queryBuilder = this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
+            .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL');
 
         this.applyServiceFilters(queryBuilder, serviceQueryDto);
@@ -95,15 +103,24 @@ export class ServicesService {
 
         const [services, totalItems] = await queryBuilder.getManyAndCount();
 
-        // Debug categoryId
-        services.forEach((service) => {
+        // Map to ServiceResponseDto
+        const mappedServices = services.map((service) =>
+            plainToClass(ServiceResponseDto, {
+                ...service,
+                category: service.category,
+                images: service.images || [],
+            }),
+        );
+
+        // Debug category and requiresConsultant
+        mappedServices.forEach((service) => {
             this.logger.debug(
-                `Service ID: ${service.id}, Category ID: ${service.category?.id}`,
+                `Service ID: ${service.id}, Category: ${JSON.stringify(service.category)}, Images: ${JSON.stringify(service.images)}, RequiresConsultant: ${service.requiresConsultant}`,
             );
         });
 
         return {
-            data: services,
+            data: mappedServices,
             meta: {
                 itemsPerPage: serviceQueryDto.limit!,
                 totalItems,
@@ -125,6 +142,8 @@ export class ServicesService {
         const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
             serviceQueryDto;
 
+        this.logger.debug(`Received requiresConsultant filter: ${requiresConsultant}, type: ${typeof requiresConsultant}`);
+
         if (search) {
             queryBuilder.andWhere(
                 'service.name ILIKE :search OR service.description ILIKE :search',
@@ -142,20 +161,17 @@ export class ServicesService {
         if (minPrice !== undefined) {
             queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
         }
-
         if (maxPrice !== undefined) {
             queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
         }
-
         if (isActive !== undefined) {
             queryBuilder.andWhere('service.isActive = :isActive', { isActive });
         }
-
         if (featured !== undefined) {
             queryBuilder.andWhere('service.featured = :featured', { featured });
         }
-
         if (requiresConsultant !== undefined) {
+            this.logger.debug(`Applying filter requiresConsultant: ${requiresConsultant}`);
             queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
                 requiresConsultant,
             });
@@ -167,11 +183,12 @@ export class ServicesService {
      * @param id Service ID
      * @returns Found service
      */
-    async findOne(id: string): Promise<Service> {
+    async findOne(id: string): Promise<ServiceResponseDto> {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
-                category : true,
+                category: true,
+                images: true,
             },
         });
 
@@ -179,12 +196,16 @@ export class ServicesService {
             throw new NotFoundException(`Service with ID '${id}' not found`);
         }
 
-        // Debug categoryId
+        // Debug category and requiresConsultant
         this.logger.debug(
-            `Service ID: ${service.id}, Category ID: ${service.category?.id}`,
+            `Service ID: ${service.id}, Category: ${JSON.stringify(service.category)}, Images: ${JSON.stringify(service.images)}, RequiresConsultant: ${service.requiresConsultant}`,
         );
 
-        return service;
+        return plainToClass(ServiceResponseDto, {
+            ...service,
+            category: service.category,
+            images: service.images || [],
+        });
     }
 
     /**
@@ -193,11 +214,11 @@ export class ServicesService {
      * @param updateDto Update data
      * @returns Updated service
      */
-    async update(id: string, updateDto: UpdateServiceDto): Promise<Service> {
+    async update(id: string, updateDto: UpdateServiceDto): Promise<ServiceResponseDto> {
         // Fetch original entity
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: ['category', 'images'],
         });
         if (!service) {
             throw new NotFoundException(`Service with ID '${id}' not found`);
@@ -214,24 +235,23 @@ export class ServicesService {
         }
 
         // Validate category if provided
-        let categoryRef = service.category;
+        let categoryRef: Category | null = service.category;
         if (updateDto.categoryId && updateDto.categoryId !== categoryRef?.id) {
-            const category = await this.categoryRepo.findOne({
+            categoryRef = await this.categoryRepo.findOne({
                 where: { id: updateDto.categoryId, deletedAt: IsNull() },
             });
-            if (!category) {
+            if (!categoryRef) {
                 throw new NotFoundException(
                     `Category with ID '${updateDto.categoryId}' not found`,
                 );
             }
-            categoryRef = category;
         }
 
         // Merge changes
         const updatedService = this.serviceRepo.merge(service, {
             ...updateDto,
             slug,
-            category: categoryRef ? { id: categoryRef.id } : IsNull(),
+            category: categoryRef ? { id: categoryRef.id } : undefined,
             requiresConsultant:
                 updateDto.requiresConsultant ?? service.requiresConsultant,
             updatedAt: new Date(),
@@ -240,7 +260,11 @@ export class ServicesService {
         // Save and return entity
         const savedService = await this.serviceRepo.save(updatedService);
         this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
-        return savedService;
+        return plainToClass(ServiceResponseDto, {
+            ...savedService,
+            category: savedService.category || categoryRef,
+            images: savedService.images || [],
+        });
     }
 
     /**
@@ -264,17 +288,21 @@ export class ServicesService {
      * @param slug Service slug
      * @returns Found service
      */
-    async findBySlug(slug: string): Promise<Service> {
+    async findBySlug(slug: string): Promise<ServiceResponseDto> {
         const service = await this.serviceRepo.findOne({
             where: { slug, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: ['category', 'images'],
         });
 
         if (!service) {
             throw new NotFoundException(`Service with slug '${slug}' not found`);
         }
 
-        return service;
+        return plainToClass(ServiceResponseDto, {
+            ...service,
+            category: service.category,
+            images: service.images || [],
+        });
     }
 
     /**

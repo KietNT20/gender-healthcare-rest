@@ -2,10 +2,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 
 // dotenv.config();
 
@@ -44,6 +44,7 @@ async function bootstrap() {
         .setDescription('API documentation for the project')
         .setVersion('1.0')
         .addBearerAuth()
+        .addOAuth2()
         .build();
     const documentFactory = () =>
         SwaggerModule.createDocument(app, swaggerConfig);

@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -9,7 +10,7 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -19,6 +20,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import {
+    FindAvailableSlotsDto,
+    FindAvailableSlotsResponseDto,
+} from './dto/find-available-slots.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import {
     CancelAppointmentDto,
@@ -30,11 +35,26 @@ import {
 @Controller('appointments')
 export class AppointmentsController {
     constructor(private readonly appointmentsService: AppointmentsService) {}
-
     @Post()
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
-    @ApiOperation({ summary: 'Book an appointment' })
+    @ApiOperation({
+        summary: 'Book an appointment with selected consultant',
+        description:
+            'Đặt cuộc hẹn với tư vấn viên đã được chọn từ danh sách available slots',
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Appointment created successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Consultant not available or specialty mismatch.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: You do not have permission ( Customer only ).',
+    })
     create(
         @Body() createAppointmentDto: CreateAppointmentDto,
         @CurrentUser() currentUser: User,
@@ -97,6 +117,15 @@ export class AppointmentsController {
     @ApiOperation({
         summary: 'Update appointment status (e.g., confirm, complete)',
     })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Appointment status updated successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission ( Admin, Manager, Consultant only ).',
+    })
     @ResponseMessage('Successfully updated appointment status.')
     updateStatus(
         @Param('id', ParseUUIDPipe) id: string,
@@ -114,6 +143,15 @@ export class AppointmentsController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Cancel an appointment' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Appointment canceled successfully.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission ( Customer, Admin, Manager only ).',
+    })
     @ResponseMessage('Successfully canceled appointment.')
     cancel(
         @Param('id', ParseUUIDPipe) id: string,
@@ -121,5 +159,26 @@ export class AppointmentsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.appointmentsService.cancel(id, cancelDto, currentUser);
+    }
+
+    @Get('available-slots')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    @ApiOperation({
+        summary: 'Find available consultation slots',
+        description:
+            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Available slots retrieved successfully.',
+        type: FindAvailableSlotsResponseDto,
+    })
+    @ResponseMessage('Available slots retrieved successfully.')
+    findAvailableSlots(
+        @Query() findSlotsDto: FindAvailableSlotsDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 }

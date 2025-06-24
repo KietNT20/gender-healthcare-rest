@@ -44,21 +44,21 @@ export class FilterQueryStiTestProcessDto {
         description: 'ID bệnh nhân',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     patientId?: string;
 
     @ApiPropertyOptional({
         description: 'ID bác sĩ tư vấn',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     consultantDoctorId?: string;
 
     @ApiPropertyOptional({
         description: 'ID dịch vụ',
     })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
     serviceId?: string;
 
     @ApiPropertyOptional({

@@ -14,7 +14,7 @@ export class CreateTestResultDto {
     @ApiProperty({
         description: 'ID of the appointment this result belongs to',
     })
-    @IsUUID()
+    @IsUUID('4')
     @IsNotEmpty()
     appointmentId: string;
 

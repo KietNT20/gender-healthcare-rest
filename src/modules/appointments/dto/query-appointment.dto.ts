@@ -11,12 +11,12 @@ import { AppointmentStatusType, SortOrder } from 'src/enums';
 
 class Filters {
     @ApiPropertyOptional({ description: 'Lọc theo ID của khách hàng.' })
-    @IsUUID()
+    @IsUUID('4')
     @IsOptional()
     userId?: string;
 
     @ApiPropertyOptional({ description: 'Lọc theo ID của tư vấn viên.' })
-    @IsUUID()
+    @IsUUID('4')
     @IsOptional()
     consultantId?: string;
 

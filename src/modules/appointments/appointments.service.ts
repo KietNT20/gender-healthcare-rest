@@ -23,6 +23,10 @@ import { AppointmentBookingService } from './appointment-booking.service';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import { AppointmentValidationService } from './appointment-validation.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import {
+    FindAvailableSlotsDto,
+    FindAvailableSlotsResponseDto,
+} from './dto/find-available-slots.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import {
     CancelAppointmentDto,
@@ -103,15 +107,22 @@ export class AppointmentsService {
                     'Một hoặc nhiều dịch vụ không tồn tại.',
                 );
             }
-
             const totalPrice = services.reduce(
                 (sum, service) => sum + Number(service.price),
                 0,
             );
+
+            // Kiểm tra xem có dịch vụ nào yêu cầu tư vấn viên không
+            const requiresConsultant = services.some(
+                (s) => s.requiresConsultant === true,
+            );
+
+            // Kiểm tra legacy: nếu service thuộc category CONSULTATION
             const isConsultation = services.some(
                 (s) => s.category.type === ServiceCategoryType.CONSULTATION,
             );
 
+            const needsConsultant = requiresConsultant || isConsultation;
             const appointmentData: Partial<Appointment> = {
                 user: currentUser,
                 services,
@@ -119,12 +130,19 @@ export class AppointmentsService {
                 appointmentLocation,
                 notes,
                 fixedPrice: totalPrice,
-                status: isConsultation
+                status: needsConsultant
                     ? AppointmentStatusType.PENDING
                     : AppointmentStatusType.CONFIRMED,
             };
 
-            if (isConsultation) {
+            if (needsConsultant) {
+                // Dịch vụ yêu cầu tư vấn viên: phải có consultantId
+                if (!consultantId) {
+                    throw new Error(
+                        'Dịch vụ này yêu cầu chọn tư vấn viên. Vui lòng chọn tư vấn viên từ danh sách slot khả dụng.',
+                    );
+                }
+
                 const bookingDetails =
                     await this.bookingService.findAndValidateSlotForConsultation(
                         consultantId,
@@ -134,8 +152,25 @@ export class AppointmentsService {
                     );
                 Object.assign(appointmentData, bookingDetails);
             } else {
+                // Dịch vụ không yêu cầu tư vấn viên (xét nghiệm, kiểm tra sức khỏe, etc.)
                 appointmentData.consultantSelectionType =
                     ConsultantSelectionType.SERVICE_BOOKING;
+                // Nếu có consultantId được cung cấp, có thể gán nhưng không bắt buộc
+                if (consultantId) {
+                    // Validate consultant tồn tại và active
+                    const consultant = await queryRunner.manager.findOne(User, {
+                        where: {
+                            id: consultantId,
+                            role: { name: RolesNameEnum.CONSULTANT },
+                            isActive: true,
+                        },
+                        relations: ['role', 'consultantProfile'],
+                    });
+
+                    if (consultant && consultant.consultantProfile) {
+                        appointmentData.consultant = consultant;
+                    }
+                }
             }
 
             const appointment = queryRunner.manager.create(
@@ -143,10 +178,8 @@ export class AppointmentsService {
                 appointmentData,
             );
             const savedAppointment =
-                await queryRunner.manager.save(appointment);
-
-            // 2. Nếu là consultation, tự động tạo phòng chat (Question) gắn với appointment
-            if (isConsultation) {
+                await queryRunner.manager.save(appointment); // 2. Nếu cần tư vấn viên, tự động tạo phòng chat (Question) gắn với appointment
+            if (needsConsultant && savedAppointment.consultant) {
                 // Kiểm tra đã có Question chưa
                 const existQuestion = await queryRunner.manager.findOne(
                     'Question',
@@ -168,10 +201,9 @@ export class AppointmentsService {
                     );
                 }
             }
-
             await queryRunner.commitTransaction();
 
-            if (isConsultation) {
+            if (needsConsultant && savedAppointment.consultant) {
                 this.notificationService.sendConsultantConfirmationNotification(
                     savedAppointment,
                 );
@@ -294,8 +326,11 @@ export class AppointmentsService {
         currentUser: User,
     ): Promise<Appointment> {
         const appointment = await this.findOne(id, currentUser);
-        Object.assign(appointment, updateDto);
-        return this.appointmentRepository.save(appointment);
+        const updatedAppointment = this.appointmentRepository.merge(
+            appointment,
+            updateDto,
+        );
+        return this.appointmentRepository.save(updatedAppointment);
     }
 
     /**
@@ -347,5 +382,24 @@ export class AppointmentsService {
         }, 0);
 
         return (appointment.fixedPrice || 0) + servicePrices;
+    }
+
+    /**
+     * Tìm kiếm các slot tư vấn khả dụng
+     */
+    async findAvailableSlots(
+        findSlotsDto: FindAvailableSlotsDto,
+    ): Promise<FindAvailableSlotsResponseDto> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+            return await this.bookingService.findAvailableSlots(
+                findSlotsDto,
+                queryRunner.manager,
+            );
+        } finally {
+            await queryRunner.release();
+        }
     }
 }

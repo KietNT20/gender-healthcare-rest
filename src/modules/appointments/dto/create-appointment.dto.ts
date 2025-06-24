@@ -23,10 +23,10 @@ export class CreateAppointmentDto {
     @IsUUID('4', { each: true })
     @IsNotEmpty()
     serviceIds: string[];
-
     @ApiPropertyOptional({
         description:
-            'ID của tư vấn viên. Bỏ trống nếu muốn hệ thống tự động chọn.',
+            'ID của tư vấn viên. Bắt buộc cho dịch vụ tư vấn, không cần thiết cho dịch vụ khác.',
+        example: 'consultant-uuid-123',
     })
     @IsUUID('4')
     @IsOptional()

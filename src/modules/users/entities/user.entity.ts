@@ -177,6 +177,7 @@ export class User {
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {
         cascade: true,
+        eager: true,
     })
     role: Role;
 
@@ -241,7 +242,9 @@ export class User {
 
     // Notification relations
     @OneToMany(() => Notification, (notification) => notification.user)
-    notifications: Notification[]; // Test result relations
+    notifications: Notification[];
+
+    // Test result relations
     @OneToMany(() => TestResult, (testResult) => testResult.user)
     testResults: TestResult[];
 

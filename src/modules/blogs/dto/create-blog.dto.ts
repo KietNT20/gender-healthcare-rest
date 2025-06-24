@@ -1,85 +1,84 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsString,
-    IsOptional,
-    IsEnum,
     IsArray,
+    IsBoolean,
+    IsEnum,
     IsInt,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
     IsUUID,
 } from 'class-validator';
 import { ContentStatusType } from 'src/enums';
 
 export class CreateBlogDto {
     @ApiProperty()
-    @IsString()
-    title: string;
-
+    @IsNotEmpty()
+    @IsUUID('4')
+    authorId: string;
 
     @ApiProperty()
     @IsString()
-    content: string;
+    @IsNotEmpty()
+    title: string;
 
-    @IsOptional()
-    @IsUUID()
-    authorId?: string;
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    content: string;
 
     @ApiProperty()
     @IsEnum(ContentStatusType)
-    status: ContentStatusType;
+    status: ContentStatusType = ContentStatusType.DRAFT;
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     featuredImage?: string;
 
     @ApiProperty()
-    @IsOptional()
+    @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
-    tags?: string[];
+    tags: string[];
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
-    views?: number;
+    views?: number = 0;
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     seoTitle?: string;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     seoDescription?: string;
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsArray()
     @IsUUID('all', { each: true })
     relatedServicesIds?: string[];
 
+    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     excerpt?: string;
 
-    @IsOptional()
-    @IsInt()
-    readTime?: number;
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsUUID('4')
+    categoryId: string;
 
+    @ApiPropertyOptional({
+        description:
+            'Auto publish for Admin/Manager (bypasses review workflow)',
+        default: false,
+    })
     @IsOptional()
-    @IsUUID()
-    reviewedById?: string;
-
-    @IsOptional()
-    @IsString()
-    rejectionReason?: string;
-
-    @IsOptional()
-    @IsString()
-    revisionNotes?: string;
-
-    @IsOptional()
-    @IsUUID()
-    publishedById?: string;
-
-    @IsOptional()
-    @IsUUID()
-    categoryId?: string;
+    @IsBoolean()
+    autoPublish?: boolean = false;
 }

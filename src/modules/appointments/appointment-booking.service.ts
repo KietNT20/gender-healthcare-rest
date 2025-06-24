@@ -150,7 +150,7 @@ export class AppointmentBookingService {
         time: string,
         date: Date,
         manager: EntityManager,
-    ): Promise<ConsultantAvailability | null> {
+    ): Promise<ConsultantAvailability> {
         const availability = await manager.findOne(ConsultantAvailability, {
             where: {
                 consultantProfile: { id: profileId },
@@ -162,7 +162,9 @@ export class AppointmentBookingService {
         });
 
         if (!availability) {
-            return null;
+            throw new NotFoundException(
+                'Không tìm thấy lịch làm việc cho tư vấn viên.',
+            );
         }
 
         const existingCount = await manager.count(Appointment, {
@@ -175,10 +177,15 @@ export class AppointmentBookingService {
                 ]),
             },
         });
+        const remainingSlots = availability.maxAppointments - existingCount;
+        // Kiểm tra xem còn slot trống không
+        if (remainingSlots <= 0) {
+            throw new BadRequestException(
+                'Tư vấn viên đã hết lịch trống vào thời gian này.',
+            );
+        }
 
-        return existingCount >= availability.maxAppointments
-            ? null
-            : availability;
+        return availability;
     }
 
     /**

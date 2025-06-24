@@ -68,13 +68,16 @@ export class MoodsService {
         };
     }
 
-    findOne(id: string): Promise<Mood | null> {
-        const data = this.moodRepository.findOneBy({ id });
-
-        if (!data) {
-            throw new NotFoundException('Không tìm thấy ID là ' + id);
+    async findOne(id: string): Promise<Mood> {
+        if (!id) {
+            throw new NotFoundException('ID không được để trống');
         }
-
+        const data = await this.moodRepository.findOneBy({ id });
+        if (!data) {
+            throw new NotFoundException(
+                'Không tìm thấy tâm trạng với ID là ' + id,
+            );
+        }
         return data;
     }
 

@@ -170,7 +170,9 @@ export class ServicesService {
     async findOne(id: string): Promise<Service> {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: {
+                category : true,
+            },
         });
 
         if (!service) {

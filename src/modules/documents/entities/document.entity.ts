@@ -75,7 +75,9 @@ export class Document {
     @ManyToOne(() => TestResult, (testResult) => testResult.documents, {
         onDelete: 'CASCADE',
     })
+    @Index()
     testResult: TestResult;
+
     @ManyToOne(() => User, (user) => user.documents)
     user: User;
 

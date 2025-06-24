@@ -121,13 +121,10 @@ export class ServicesController {
     async findOne(
         @Param(
             'id',
-            new ParseUUIDPipe({
-                exceptionFactory: () =>
-                    new BadRequestException('Invalid service ID format'),
-            }),
+            ParseUUIDPipe,
         )
         id: string,
-    ): Promise<Service> {
+    ){
         return this.servicesService.findOne(id);
     }
 

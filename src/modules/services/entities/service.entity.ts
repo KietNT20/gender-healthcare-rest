@@ -71,7 +71,7 @@ export class Service {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => Category, (category) => category.services)
+    @ManyToOne(() => Category, (category) => category.services, { eager: true })
     category: Category;
 
     @OneToMany(() => Feedback, (feedback) => feedback.service)

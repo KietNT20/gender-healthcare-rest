@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { readFileSync } from 'fs';
@@ -55,6 +56,7 @@ import { UsersModule } from './modules/users/users.module';
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),
+        ScheduleModule.forRoot(),
         ThrottlerModule.forRoot({
             throttlers: [
                 {
@@ -81,8 +83,7 @@ import { UsersModule } from './modules/users/users.module';
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                // logging: true,
-                // logging: true,
+                logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,

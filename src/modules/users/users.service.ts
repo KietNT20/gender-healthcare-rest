@@ -391,15 +391,23 @@ export class UsersService {
         return this.toUserResponse(user);
     }
 
-    async findByEmail(email: string): Promise<User | null> {
-        return this.userRepository.findOneBy({
+    async findByEmail(email: string): Promise<User> {
+        const user = await this.userRepository.findOneBy({
             email,
         });
+
+        if (!user) {
+            throw new NotFoundException(
+                'Không tìm thấy người dùng với email này',
+            );
+        }
+
+        return user;
     }
 
     // Auth-related methods
-    async findByEmailWithPassword(email: string): Promise<User | null> {
-        return this.userRepository.findOne({
+    async findByEmailWithPassword(email: string): Promise<User> {
+        const user = await this.userRepository.findOne({
             where: { email: email.toLowerCase(), deletedAt: IsNull() },
             relations: ['role'],
             select: [
@@ -413,30 +421,52 @@ export class UsersService {
                 'loginAttempts',
             ],
         });
+
+        if (!user) {
+            throw new NotFoundException(
+                'Không tìm thấy người dùng với email này',
+            );
+        }
+
+        return user;
     }
 
-    async findByEmailVerificationToken(token: string): Promise<User | null> {
-        return this.userRepository.findOne({
+    async findByEmailVerificationToken(token: string): Promise<User> {
+        const user = await this.userRepository.findOne({
             where: {
                 emailVerificationToken: token,
                 deletedAt: IsNull(),
             },
         });
+        if (!user) {
+            throw new NotFoundException(
+                'Không tìm thấy người dùng với mã xác thực email này',
+            );
+        }
+        return user;
     }
 
-    async findByPasswordResetToken(token: string): Promise<User | null> {
-        return this.userRepository.findOne({
+    async findByPasswordResetToken(token: string): Promise<User> {
+        const user = await this.userRepository.findOne({
             where: {
                 passwordResetToken: token,
                 deletedAt: IsNull(),
             },
         });
+
+        if (!user) {
+            throw new NotFoundException(
+                'Không tìm thấy người dùng với mã xác thực mật khẩu này',
+            );
+        }
+
+        return user;
     }
 
     async findByIdAndRefreshToken(
         id: string,
         refreshToken: string,
-    ): Promise<User | null> {
+    ): Promise<User> {
         const user = await this.userRepository.findOne({
             where: {
                 id,
@@ -454,7 +484,9 @@ export class UsersService {
         });
 
         if (!user || !user.refreshToken) {
-            return null;
+            throw new NotFoundException(
+                'Không tìm thấy người dùng hoặc mã làm mới không hợp lệ',
+            );
         }
 
         // Compare the provided refresh token with the hashed one in database
@@ -463,7 +495,11 @@ export class UsersService {
             user.refreshToken,
         );
 
-        return isValidRefreshToken ? user : null;
+        if (!isValidRefreshToken) {
+            throw new NotFoundException('Mã làm mới không hợp lệ');
+        }
+
+        return user;
     }
 
     async findOneByGoogleId(googleId: string) {

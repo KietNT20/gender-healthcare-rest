@@ -63,14 +63,10 @@ export class AuthService {
             roleId: await this.usersService.getCustomerRoleId(),
         };
 
-        const actorIdForNewUser = 'SYSTEM';
-        const user = await this.usersService.create(
-            userData,
-            actorIdForNewUser,
-        );
+        const user = await this.usersService.registerAccountCustomer(userData);
 
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Người dùng không được tìm thấy');
         }
 
         const fullName = `${user.firstName} ${user.lastName}`;
@@ -155,8 +151,10 @@ export class AuthService {
         const payload = { sub: user.id, email: user.email };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, {
-            secret: this.configService.get('JWT_REFRESH_SECRET'),
-            expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+            expiresIn: this.configService.get<string>(
+                'JWT_REFRESH_EXPIRATION_TIME',
+            ),
         });
 
         // Save refresh token
@@ -284,6 +282,27 @@ export class AuthService {
         };
     }
 
+    async validateResetToken(token: string) {
+        const user = await this.usersService.findByPasswordResetToken(token);
+        if (!user) {
+            throw new BadRequestException(
+                'Token đặt lại mật khẩu không hợp lệ',
+            );
+        }
+
+        if (
+            user.passwordResetExpires &&
+            user.passwordResetExpires < new Date()
+        ) {
+            throw new BadRequestException('Token đặt lại mật khẩu đã hết hạn');
+        }
+
+        return {
+            valid: true,
+            userId: user.id,
+        };
+    }
+
     async resetPassword(token: string, newPassword: string) {
         const user = await this.usersService.findByPasswordResetToken(token);
         if (!user) {
@@ -322,7 +341,7 @@ export class AuthService {
     async refreshToken(refreshToken: string) {
         try {
             const payload = this.jwtService.verify(refreshToken, {
-                secret: this.configService.get('JWT_REFRESH_SECRET'),
+                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
             });
 
             const user = await this.usersService.findByIdAndRefreshToken(

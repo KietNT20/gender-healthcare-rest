@@ -7,6 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { User } from '../users/entities/user.entity';
 import { ChatCleanupService } from './chat-cleanup.service';
+import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { Message } from './entities/message.entity';
@@ -30,13 +31,14 @@ import { RedisHelperService } from './redis-helper.service';
         FilesModule,
         AuthModule,
     ],
+    controllers: [ChatController],
     providers: [
         {
             provide: 'REDIS_CLIENT',
             useFactory: async (configService: ConfigService) => {
-                const host = configService.get<string>('REDIS_HOST');
-                const port = configService.get<number>('REDIS_PORT');
-                const password = configService.get<string>('REDIS_PASSWORD');
+                const host = configService.get('REDIS_HOST');
+                const port = configService.get('REDIS_PORT');
+                const password = configService.get('REDIS_PASSWORD');
 
                 const client = createClient({
                     socket: {
@@ -106,6 +108,6 @@ import { RedisHelperService } from './redis-helper.service';
         MessageHandler,
         TypingHandler,
     ],
-    exports: [ChatGateway, ChatService],
+    exports: [ChatService],
 })
 export class ChatModule {}

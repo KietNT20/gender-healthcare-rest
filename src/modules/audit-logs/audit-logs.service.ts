@@ -1,13 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { SortOrder } from 'src/enums';
 import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 import { QueryAuditLogDto } from './dto/query-audit-log.dto';
 import { UpdateAuditLogDto } from './dto/update-audit-log.dto';
 import { AuditLog } from './entities/audit-log.entity';
-import { SortOrder } from 'src/enums';
 
 @Injectable()
 export class AuditLogsService {

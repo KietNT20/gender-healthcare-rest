@@ -59,15 +59,17 @@ export class UsersController {
         return this.usersService.findAll(userQueryDto);
     }
 
-    @Get('me')
-    @ApiOperation({ summary: 'Get current user profile' })
+    @Post('bulk')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiOperation({ summary: 'Create multiple users' })
     @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Current user profile retrieved successfully',
+        status: HttpStatus.CREATED,
+        description: 'Users created successfully',
     })
-    @ResponseMessage('Current user profile retrieved successfully')
-    getProfile(@CurrentUser() user: User) {
-        return this.usersService.findOne(user.id);
+    @ResponseMessage('Users created successfully')
+    createMany(@Body() createManyUsersDto: CreateManyUsersDto) {
+        return this.usersService.createMany(createManyUsersDto);
     }
 
     @Get('slug/:slug')
@@ -81,26 +83,24 @@ export class UsersController {
         return this.usersService.findBySlug(slug);
     }
 
-    @Get(':id')
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Get user by ID' })
+    @Get('me')
+    @ApiOperation({ summary: 'Get current user profile' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'User retrieved successfully',
+        description: 'Current user profile retrieved successfully',
     })
-    @ResponseMessage('User retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.usersService.findOne(id);
+    @ResponseMessage('Current user profile retrieved successfully')
+    getProfile(@CurrentUser() user: User) {
+        return this.usersService.findOne(user.id);
     }
 
     @Patch('me')
     @ApiOperation({ summary: 'Update current user profile' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Profile updated successfully',
+        description: 'Cập nhật thông tin cá nhân thành công',
     })
-    @ResponseMessage('Profile updated successfully')
+    @ResponseMessage('Cập nhật thông tin cá nhân thành công')
     updateProfile(
         @CurrentUser() user: User,
         @Body() updateProfileDto: UpdateProfileDto,
@@ -112,15 +112,40 @@ export class UsersController {
     @ApiOperation({ summary: 'Change current user password' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Password changed successfully',
+        description: 'Cập nhật mật khẩu thành công',
     })
-    @ResponseMessage('Password changed successfully')
-    async changePassword(
+    @ResponseMessage('Cập nhật mật khẩu thành công')
+    changePassword(
         @CurrentUser() user: User,
         @Body() changePasswordDto: ChangePasswordDto,
-    ): Promise<{ message: string }> {
-        await this.usersService.changePassword(user.id, changePasswordDto);
-        return { message: 'Password changed successfully' };
+    ) {
+        return this.usersService.changePassword(user.id, changePasswordDto);
+    }
+
+    @Get(':id')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Get user by ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User not found',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden access to this resource (only Admin/Manager/Staff can access)',
+    })
+    @ResponseMessage('User retrieved successfully')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.usersService.findOne(id);
     }
 
     @Patch(':id')
@@ -184,18 +209,5 @@ export class UsersController {
     ): Promise<{ message: string }> {
         await this.usersService.remove(id, currentUser.id);
         return { message: 'User deleted successfully' };
-    }
-
-    @Post('bulk')
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.ADMIN])
-    @ApiOperation({ summary: 'Create multiple users' })
-    @ApiResponse({
-        status: HttpStatus.CREATED,
-        description: 'Users created successfully',
-    })
-    @ResponseMessage('Users created successfully')
-    createMany(@Body() createManyUsersDto: CreateManyUsersDto) {
-        return this.usersService.createMany(createManyUsersDto);
     }
 }

@@ -58,6 +58,10 @@ export class ServiceResponseDto {
     @ApiProperty({ description: 'Update date' })
     updatedAt: Date;
 
+    @Expose()
+    @ApiProperty({ description: 'Required Consultant' })
+    requiresConsultant: boolean; // Thêm trường này
+
     constructor(partial: Partial<ServiceResponseDto>) {
         Object.assign(this, partial);
     }

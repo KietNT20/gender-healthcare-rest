@@ -11,13 +11,5 @@ export class CreateTagDto {
     @Length(1, 255)
     name: string;
 
-    @ApiProperty({
-        description:
-            'Slug of the tag (optional, auto-generated if not provided)',
-        example: 'tech',
-        required: false,
-    })
-    @IsString()
-    @Length(1, 255)
-    slug?: string;
+    
 }

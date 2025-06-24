@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsArray,
+    IsBoolean,
     IsEnum,
     IsInt,
     IsNotEmpty,
@@ -96,4 +97,12 @@ export class CreateBlogDto {
     @IsOptional()
     @IsUUID('4')
     categoryId: string;
+    @ApiPropertyOptional({
+        description:
+            'Auto publish for Admin/Manager (bypasses review workflow)',
+        default: false,
+    })
+    @IsOptional()
+    @IsBoolean()
+    autoPublish?: boolean;
 }

@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import slugify from 'slugify';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
-import slugify from 'slugify';
 
 @Injectable()
 export class CategoriesService {
@@ -13,7 +13,7 @@ export class CategoriesService {
         private categoryRepository: Repository<Category>,
     ) {}
 
-    async create(createCategoryDto: CreateCategoryDto) {
+    async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
         const slug = slugify(createCategoryDto.name, {
             lower: true,
             strict: true,
@@ -40,16 +40,22 @@ export class CategoriesService {
         return this.categoryRepository.save(category);
     }
 
-    async findAll() {
+    async findAll(): Promise<Category[]> {
         return this.categoryRepository.find({
-            relations: ['children', 'parent'],
+            relations: {
+                children: true,
+                parent: true,
+            },
         });
     }
 
-    async findOne(id: string) {
+    async findOne(id: string): Promise<Category> {
         const category = await this.categoryRepository.findOne({
             where: { id },
-            relations: ['children', 'parent'],
+            relations: {
+                children: true,
+                parent: true,
+            },
         });
         if (!category) {
             throw new NotFoundException(`Category with ID ${id} not found`);
@@ -57,7 +63,10 @@ export class CategoriesService {
         return category;
     }
 
-    async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    async update(
+        id: string,
+        updateCategoryDto: UpdateCategoryDto,
+    ): Promise<Category> {
         const category = await this.categoryRepository.findOne({
             where: { id },
         });
@@ -86,17 +95,18 @@ export class CategoriesService {
             category.parent = null;
         }
 
-        Object.assign(category, updateCategoryDto);
-        return this.categoryRepository.save(category);
+        const updatedCategory = this.categoryRepository.merge(
+            category,
+            updateCategoryDto,
+        );
+
+        return this.categoryRepository.save(updatedCategory);
     }
 
-    async remove(id: string) {
-        const category = await this.categoryRepository.findOne({
-            where: { id },
-        });
-        if (!category) {
+    async remove(id: string): Promise<void> {
+        const result = await this.categoryRepository.softDelete(id);
+        if (result.affected === 0) {
             throw new NotFoundException(`Category with ID ${id} not found`);
         }
-        return this.categoryRepository.remove(category);
     }
 }

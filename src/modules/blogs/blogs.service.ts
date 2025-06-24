@@ -1,22 +1,23 @@
 import {
-    ConflictException,
+    BadRequestException,
     Injectable,
     NotFoundException,
-    InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { plainToClass } from 'class-transformer';
-import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { IsNull, Repository } from 'typeorm';
-import { BlogQueryDto } from './dto/blog-query.dto';
-import { Blog } from './entities/blog.entity';
-import { Category } from 'src/modules/categories/entities/category.entity';
-import { SortOrder } from 'src/enums';
-import { CreateBlogDto } from './dto/create-blog.dto';
 import slugify from 'slugify';
-import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { ContentStatusType } from 'src/enums';
+import { Category } from 'src/modules/categories/entities/category.entity';
+import { IsNull, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
+import { BlogNotificationService } from './blog-notification.service';
+import { BlogQueryDto } from './dto/blog-query.dto';
+import { CreateBlogDto } from './dto/create-blog.dto';
+import { PublishBlogDto } from './dto/publish-blog.dto';
+import { ReviewBlogDto } from './dto/review-blog.dto';
+import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Blog } from './entities/blog.entity';
 
 @Injectable()
 export class BlogsService {
@@ -26,9 +27,12 @@ export class BlogsService {
         @InjectRepository(Category)
         private readonly categoryRepository: Repository<Category>,
         private readonly tagsService: TagsService,
+        private readonly blogNotificationService: BlogNotificationService,
     ) {}
-
-    async create(createBlogDto: CreateBlogDto) {
+    async create(
+        createBlogDto: CreateBlogDto,
+        authorId: string,
+    ): Promise<Blog> {
         // Validate category if provided
         if (createBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({
@@ -70,6 +74,7 @@ export class BlogsService {
             ...blogData,
             slug,
             tags,
+            author: { id: authorId } as any,
         });
 
         return this.blogRepository.save(blog);
@@ -94,10 +99,14 @@ export class BlogsService {
 
         // Đặt offset và limit tương tự UsersService
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
-        queryBuilder.skip(offset).take(blogQueryDto.limit!);
-
-        // Xử lý sortBy và sortOrder giống UsersService
-        const allowedSortFields = ['createdAt', 'updatedAt', 'views', 'title'];
+        queryBuilder.skip(offset).take(blogQueryDto.limit!); // Xử lý sortBy và sortOrder giống UsersService
+        const allowedSortFields = [
+            'createdAt',
+            'updatedAt',
+            'views',
+            'title',
+            'publishedAt',
+        ];
         if (!blogQueryDto.sortBy) {
             blogQueryDto.sortBy = 'createdAt';
         }
@@ -119,26 +128,100 @@ export class BlogsService {
             },
         };
     }
+    async findAllPublished(
+        blogQueryDto: BlogQueryDto,
+    ): Promise<Paginated<Blog>> {
+        const queryBuilder = this.blogRepository
+            .createQueryBuilder('blog')
+            .leftJoinAndSelect('blog.category', 'category')
+            .leftJoinAndSelect('blog.tags', 'tag')
+            .leftJoinAndSelect('blog.images', 'images')
+            .leftJoinAndSelect('blog.author', 'author')
+            .where('blog.deletedAt IS NULL')
+            .andWhere('blog.status = :status', {
+                status: ContentStatusType.PUBLISHED,
+            });
+
+        // Áp dụng bộ lọc theo tags nếu có
+        if (blogQueryDto.tags && blogQueryDto.tags.length > 0) {
+            queryBuilder.andWhere('tag.name IN (:...tags)', {
+                tags: blogQueryDto.tags,
+            });
+        }
+
+        this.applyBlogFilters(queryBuilder, blogQueryDto);
+
+        // Đặt offset và limit
+        const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
+        queryBuilder.skip(offset).take(blogQueryDto.limit!);
+
+        // Sắp xếp
+        const allowedSortFields = [
+            'createdAt',
+            'updatedAt',
+            'views',
+            'title',
+            'publishedAt',
+        ];
+        if (!blogQueryDto.sortBy) {
+            blogQueryDto.sortBy = 'publishedAt';
+        }
+        const sortField = allowedSortFields.includes(blogQueryDto.sortBy)
+            ? blogQueryDto.sortBy
+            : 'publishedAt';
+        queryBuilder.orderBy(`blog.${sortField}`, blogQueryDto.sortOrder);
+
+        // Thực thi và định dạng response
+        const [blogs, totalItems] = await queryBuilder.getManyAndCount();
+
+        return {
+            data: blogs,
+            meta: {
+                itemsPerPage: blogQueryDto.limit!,
+                totalItems,
+                currentPage: blogQueryDto.page!,
+                totalPages: Math.ceil(totalItems / blogQueryDto.limit!),
+            },
+        };
+    }
 
     async findOne(id: string) {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: [
+                'category',
+                'author',
+                'tags',
+                'reviewedByUser',
+                'publishedByUser',
+            ],
         });
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
         return blog;
     }
-
-    async findBySlug(slug: string) {
+    async findBySlug(slug: string, incrementView: boolean = true) {
         const blog = await this.blogRepository.findOne({
-            where: { slug, deletedAt: IsNull() },
-            relations: ['category'],
+            where: {
+                slug,
+                deletedAt: IsNull(),
+                status: ContentStatusType.PUBLISHED,
+            },
+            relations: ['category', 'author', 'tags'],
         });
         if (!blog) {
-            throw new NotFoundException(`Blog with slug ${slug} not found`);
+            throw new NotFoundException(
+                `Published blog with slug ${slug} not found`,
+            );
         }
+
+        // Increment view count if requested
+        if (incrementView) {
+            await this.blogRepository.increment({ id: blog.id }, 'views', 1);
+            blog.views += 1;
+        }
+
         return blog;
     }
 
@@ -194,6 +277,279 @@ export class BlogsService {
             deletedByUserId,
             updatedAt: new Date(),
         });
+    }
+
+    async review(id: string, reviewBlogDto: ReviewBlogDto) {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+        });
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        const { status } = reviewBlogDto;
+        if (status === ContentStatusType.PUBLISHED) {
+            // Nếu trạng thái là PUBLISHED, cần đảm bảo rằng blog đã có slug
+            if (!blog.slug) {
+                throw new BadRequestException(
+                    'Cannot publish blog without a slug',
+                );
+            }
+        }
+
+        await this.blogRepository.update(id, {
+            ...reviewBlogDto,
+            updatedAt: new Date(),
+        });
+
+        return this.findOne(id);
+    }
+
+    async increaseViewCount(id: string) {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+        });
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        blog.views = (blog.views || 0) + 1;
+        await this.blogRepository.save(blog);
+    }
+
+    async publish(id: string, publishBlogDto: PublishBlogDto) {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+        });
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        // Chỉ cho phép publish nếu blog đang ở trạng thái DRAFT
+        if (blog.status !== ContentStatusType.DRAFT) {
+            throw new BadRequestException(
+                `Blog with ID ${id} is not in draft status`,
+            );
+        }
+
+        // Cập nhật trạng thái và thông tin publish
+        await this.blogRepository.update(id, {
+            status: ContentStatusType.PUBLISHED,
+            publishedAt: new Date(),
+            ...publishBlogDto,
+        });
+
+        return this.findOne(id);
+    }
+    async incrementViewCount(id: string): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        const oldViews = blog.views || 0;
+        await this.blogRepository.increment({ id }, 'views', 1);
+        const newViews = oldViews + 1;
+
+        // Check for view milestones (100, 500, 1000, 5000, 10000, 50000, 100000)
+        const milestones = [100, 500, 1000, 5000, 10000, 50000, 100000];
+        const reachedMilestone = milestones.find(
+            (milestone) => oldViews < milestone && newViews >= milestone,
+        );
+
+        if (reachedMilestone) {
+            const updatedBlog = await this.findOne(id);
+            await this.blogNotificationService.notifyBlogViewsMilestone(
+                updatedBlog,
+                reachedMilestone,
+            );
+        }
+
+        return this.findOne(id);
+    }
+    async reviewBlog(
+        id: string,
+        reviewBlogDto: ReviewBlogDto,
+        reviewerId: string,
+    ): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        // Validate workflow
+        if (blog.status === ContentStatusType.PUBLISHED) {
+            throw new BadRequestException('Cannot review a published blog');
+        }
+
+        if (blog.status === ContentStatusType.DRAFT) {
+            throw new BadRequestException(
+                'Blog must be submitted for review first',
+            );
+        }
+
+        // Validate rejection reason
+        if (
+            reviewBlogDto.status === ContentStatusType.REJECTED &&
+            !reviewBlogDto.rejectionReason
+        ) {
+            throw new BadRequestException(
+                'Rejection reason is required when rejecting a blog',
+            );
+        }
+
+        // Validate revision notes
+        if (
+            reviewBlogDto.status === ContentStatusType.NEEDS_REVISION &&
+            !reviewBlogDto.revisionNotes
+        ) {
+            throw new BadRequestException(
+                'Revision notes are required when requesting revision',
+            );
+        }
+
+        const updateData: Partial<Blog> = {
+            status: reviewBlogDto.status,
+            reviewDate: new Date(),
+            reviewedByUser: { id: reviewerId } as any,
+            updatedAt: new Date(),
+        };
+
+        if (reviewBlogDto.rejectionReason) {
+            updateData.rejectionReason = reviewBlogDto.rejectionReason;
+        }
+
+        if (reviewBlogDto.revisionNotes) {
+            updateData.revisionNotes = reviewBlogDto.revisionNotes;
+        }
+
+        await this.blogRepository.update(id, updateData);
+        const updatedBlog = await this.findOne(id);
+
+        // Send notifications based on status
+        switch (reviewBlogDto.status) {
+            case ContentStatusType.APPROVED:
+                await this.blogNotificationService.notifyBlogApproved(
+                    updatedBlog,
+                    reviewerId,
+                );
+                break;
+            case ContentStatusType.REJECTED:
+                await this.blogNotificationService.notifyBlogRejected(
+                    updatedBlog,
+                    reviewerId,
+                    reviewBlogDto.rejectionReason,
+                );
+                break;
+            case ContentStatusType.NEEDS_REVISION:
+                await this.blogNotificationService.notifyBlogNeedsRevision(
+                    updatedBlog,
+                    reviewerId,
+                    reviewBlogDto.revisionNotes,
+                );
+                break;
+        }
+
+        return updatedBlog;
+    }
+    async publishBlog(
+        id: string,
+        publishBlogDto: PublishBlogDto,
+        publisherId: string,
+    ): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        if (blog.status !== ContentStatusType.APPROVED) {
+            throw new BadRequestException(
+                'Only approved blogs can be published',
+            );
+        }
+
+        await this.blogRepository.update(id, {
+            status: ContentStatusType.PUBLISHED,
+            publishedAt: new Date(),
+            publishedByUser: { id: publisherId } as any,
+            updatedAt: new Date(),
+        });
+
+        const updatedBlog = await this.findOne(id);
+
+        // Send notification
+        await this.blogNotificationService.notifyBlogPublished(
+            updatedBlog,
+            publisherId,
+        );
+
+        return updatedBlog;
+    }
+    async submitForReview(id: string, authorId: string): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        if (blog.status !== ContentStatusType.DRAFT) {
+            throw new BadRequestException(
+                'Only draft blogs can be submitted for review',
+            );
+        }
+
+        await this.blogRepository.update(id, {
+            status: ContentStatusType.PENDING_REVIEW,
+            updatedAt: new Date(),
+        });
+
+        const updatedBlog = await this.findOne(id);
+
+        // Send notification
+        await this.blogNotificationService.notifyBlogSubmittedForReview(
+            updatedBlog,
+        );
+
+        return updatedBlog;
+    }
+    async archiveBlog(id: string, userId: string): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        await this.blogRepository.update(id, {
+            status: ContentStatusType.ARCHIVED,
+            updatedAt: new Date(),
+        });
+
+        const updatedBlog = await this.findOne(id);
+
+        // Send notification
+        await this.blogNotificationService.notifyBlogArchived(
+            updatedBlog,
+            userId,
+        );
+
+        return updatedBlog;
     }
 
     private async generateUniqueSlug(baseSlug: string, excludeId?: string) {

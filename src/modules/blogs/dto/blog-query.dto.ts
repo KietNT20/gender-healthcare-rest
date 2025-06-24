@@ -1,16 +1,14 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
-    IsBoolean,
+    IsArray,
     IsEnum,
+    IsIn,
     IsOptional,
     IsString,
-    IsIn,
     IsUUID,
-    IsArray,
 } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { SortOrder } from 'src/enums';
-import { ContentStatusType } from 'src/enums';
+import { ContentStatusType, SortOrder } from 'src/enums';
 
 export class GetBlogQueryDto {
     @ApiPropertyOptional({
@@ -44,15 +42,15 @@ export class GetBlogQueryDto {
     @IsArray()
     @IsString({ each: true })
     tags?: string[];
-
     @ApiPropertyOptional({
-        enum: ['createdAt', 'updatedAt', 'views', 'title'],
+        enum: ['createdAt', 'updatedAt', 'views', 'title', 'publishedAt'],
         default: 'createdAt',
     })
     @IsOptional()
     @IsString()
-    @IsIn(['createdAt', 'updatedAt', 'views', 'title'], {
-        message: 'sortBy must be one of: createdAt, updatedAt, views, title',
+    @IsIn(['createdAt', 'updatedAt', 'views', 'title', 'publishedAt'], {
+        message:
+            'sortBy must be one of: createdAt, updatedAt, views, title, publishedAt',
     })
     sortBy?: string = 'createdAt';
 

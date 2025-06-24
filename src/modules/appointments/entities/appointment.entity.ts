@@ -47,7 +47,7 @@ export class Appointment {
     @Column({ type: 'text', nullable: true })
     notes?: string;
 
-    @Column({ length: 255, nullable: true })
+    @Column({ length: 1024, nullable: true })
     meetingLink?: string;
 
     @Column({ default: false })

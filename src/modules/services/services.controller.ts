@@ -116,13 +116,10 @@ export class ServicesController {
     async findOne(
         @Param(
             'id',
-            new ParseUUIDPipe({
-                exceptionFactory: () =>
-                    new BadRequestException('Invalid service ID'),
-            }),
+            ParseUUIDPipe,
         )
         id: string,
-    ): Promise<ServiceResponseDto> {
+    ){
         return this.servicesService.findOne(id);
     }
 

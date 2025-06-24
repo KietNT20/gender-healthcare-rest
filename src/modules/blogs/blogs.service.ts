@@ -32,6 +32,7 @@ export class BlogsService {
     async create(
         createBlogDto: CreateBlogDto,
         authorId: string,
+        userRole?: string,
     ): Promise<Blog> {
         // Validate category if provided
         if (createBlogDto.categoryId) {
@@ -64,20 +65,48 @@ export class BlogsService {
             );
         }
 
+        // Determine status and handle auto-publish for Admin/Manager
+        let finalStatus = createBlogDto.status || ContentStatusType.DRAFT;
+        let publishedAt: Date | undefined;
+        let publishedByUser: any;
+
+        // Auto-publish logic for Admin/Manager
+        if (
+            createBlogDto.autoPublish &&
+            (userRole === 'ADMIN' || userRole === 'MANAGER')
+        ) {
+            finalStatus = ContentStatusType.PUBLISHED;
+            publishedAt = new Date();
+            publishedByUser = { id: authorId };
+        }
+
         // Create blog with proper type handling
         const {
             tags: tagNames,
             relatedServicesIds,
+            autoPublish,
             ...blogData
         } = createBlogDto;
         const blog = this.blogRepository.create({
             ...blogData,
             slug,
             tags,
+            status: finalStatus,
+            publishedAt,
+            publishedByUser,
             author: { id: authorId } as any,
         });
 
-        return this.blogRepository.save(blog);
+        const savedBlog = await this.blogRepository.save(blog);
+
+        // Send notification if auto-published
+        if (finalStatus === ContentStatusType.PUBLISHED) {
+            await this.blogNotificationService.notifyBlogPublished(
+                savedBlog,
+                authorId,
+            );
+        }
+        return savedBlog;
     }
 
     async findAll(blogQueryDto: BlogQueryDto): Promise<Paginated<Blog>> {
@@ -669,5 +698,49 @@ export class BlogsService {
                 categoryId,
             });
         }
+    }
+
+    /**
+     * Direct publish blog from DRAFT (Admin/Manager only)
+     * Allows bypassing the review workflow for high-privilege users
+     */
+    async directPublishBlog(
+        id: string,
+        publishBlogDto: PublishBlogDto,
+        publisherId: string,
+    ): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: ['author'],
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        // Allow publishing from DRAFT status for Admin/Manager
+        if (blog.status !== ContentStatusType.DRAFT) {
+            throw new BadRequestException(
+                'Only draft blogs can be published directly',
+            );
+        }
+
+        await this.blogRepository.update(id, {
+            status: ContentStatusType.PUBLISHED,
+            publishedAt: new Date(),
+            publishedByUser: { id: publisherId } as any,
+            updatedAt: new Date(),
+            ...publishBlogDto,
+        });
+
+        const updatedBlog = await this.findOne(id);
+
+        // Send notification
+        await this.blogNotificationService.notifyBlogPublished(
+            updatedBlog,
+            publisherId,
+        );
+
+        return updatedBlog;
     }
 }

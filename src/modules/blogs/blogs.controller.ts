@@ -59,7 +59,11 @@ export class BlogsController {
         @Body() createBlogDto: CreateBlogDto,
         @CurrentUser() currentUser: User,
     ) {
-        return this.blogsService.create(createBlogDto, currentUser.id);
+        return this.blogsService.create(
+            createBlogDto,
+            currentUser.id,
+            currentUser.role?.name,
+        );
     }
 
     @Get()
@@ -266,6 +270,35 @@ export class BlogsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.blogsService.publishBlog(
+            id,
+            publishBlogDto,
+            currentUser.id,
+        );
+    }
+
+    @Patch(':id/direct-publish')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Directly publish blog from DRAFT (Admin/Manager only)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog published directly from draft successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin or Manager only).',
+    })
+    @ResponseMessage('Blog published directly successfully')
+    async directPublishBlog(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() publishBlogDto: PublishBlogDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.blogsService.directPublishBlog(
             id,
             publishBlogDto,
             currentUser.id,

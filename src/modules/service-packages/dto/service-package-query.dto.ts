@@ -1,14 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsBoolean,
     IsEnum,
     IsNumber,
     IsOptional,
     IsPositive,
     IsString,
     Min,
+    IsIn,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class ServicePackageQueryDto {
@@ -37,13 +37,13 @@ export class ServicePackageQueryDto {
     sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({
-        enum: ['ASC', 'DESC'],
+        enum: SortOrder,
         description: 'Thứ tự sắp xếp, mặc định là DESC',
-        default: 'DESC',
+        default: SortOrder.DESC,
     })
     @IsOptional()
     @IsEnum(SortOrder)
-    sortOrder?: 'ASC' | 'DESC' = 'DESC';
+    sortOrder?: SortOrder = SortOrder.DESC;
 
     @ApiPropertyOptional({
         description: 'Từ khóa tìm kiếm trong tên',
@@ -69,10 +69,12 @@ export class ServicePackageQueryDto {
 
     @ApiPropertyOptional({
         description: 'Trạng thái hoạt động của gói dịch vụ',
-        example: true,
+        type: Number,
+        enum: [0, 1],
+        example: 1,
     })
     @IsOptional()
-    @IsBoolean()
-    @Type(() => Boolean)
-    isActive?: boolean;
+    @IsIn([0, 1])
+    @Transform(({ value }) => (value === 1 || value === '1' ? 1 : 0), { toClassOnly: true })
+    isActive?: number;
 }

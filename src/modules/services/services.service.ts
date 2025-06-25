@@ -139,7 +139,27 @@ export class ServicesService {
             featured,
             requiresConsultant,
         } = serviceQueryDto;
+        queryBuilder: any,
+        serviceQueryDto: ServiceQueryDto,
+    ): void {
+        const {
+            search,
+            categoryId,
+            minPrice,
+            maxPrice,
+            isActive,
+            featured,
+            requiresConsultant,
+        } = serviceQueryDto;
 
+        if (search) {
+            queryBuilder.andWhere(
+                'service.name ILIKE :search OR service.description ILIKE :search',
+                {
+                    search: `%${search}%`,
+                },
+            );
+        }
         if (search) {
             queryBuilder.andWhere(
                 'service.name ILIKE :search OR service.description ILIKE :search',

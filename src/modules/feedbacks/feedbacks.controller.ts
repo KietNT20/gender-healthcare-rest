@@ -34,7 +34,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { CreateFeedbackImageDTO } from './dto/create-feedback-image.dto';
-import { FeedbackImageService } from './feedbacks-image.service'; 
+import { FeedbackImageService } from './feedbacks-image.service';
 
 @Controller('feedbacks')
 export class FeedbacksController {
@@ -195,14 +195,15 @@ export class FeedbacksController {
         return { message: 'Feedback deleted successfully' };
     }
 
-
-
     @Patch('/image/:id')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Synchronize images to feedback' })
-    @ApiResponse({ status: 200, description: 'Images synchronized successfully' })
+    @ApiResponse({
+        status: 200,
+        description: 'Images synchronized successfully',
+    })
     @ResponseMessage('Images synchronized successfully')
     async syncFeedbackImages(@Param('id', ParseUUIDPipe) id: string) {
         await this.feedbackImageService.syncFeedbackImages(id);
@@ -221,8 +222,12 @@ export class FeedbacksController {
     @ApiOperation({ summary: 'Add image to feedback' })
     @ApiResponse({ status: 200, description: 'Image added successfully' })
     @ResponseMessage('Image added successfully')
-    async addImageToFeedback(@Body() createFeedbackImageDTO: CreateFeedbackImageDTO) {
-        await this.feedbackImageService.addImageToFeedback(createFeedbackImageDTO);
+    async addImageToFeedback(
+        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ) {
+        await this.feedbackImageService.addImageToFeedback(
+            createFeedbackImageDTO,
+        );
         return { message: 'Image added successfully' };
     }
 
@@ -233,8 +238,12 @@ export class FeedbacksController {
     @ApiOperation({ summary: 'Remove image from feedback' })
     @ApiResponse({ status: 200, description: 'Image removed successfully' })
     @ResponseMessage('Image removed successfully')
-    async removeImageFromFeedback(@Body() createFeedbackImageDTO: CreateFeedbackImageDTO) {
-        await this.feedbackImageService.removeImageFromFeedback(createFeedbackImageDTO);
+    async removeImageFromFeedback(
+        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ) {
+        await this.feedbackImageService.removeImageFromFeedback(
+            createFeedbackImageDTO,
+        );
         return { message: 'Image removed successfully' };
     }
 }

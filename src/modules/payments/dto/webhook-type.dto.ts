@@ -16,9 +16,8 @@ export class WebhookTypeDTO {
     success: boolean;
 
     @ApiProperty({
-        description: "Kiểu dữ liệu WebhookDataType của PayOS"
-    }
-    )
+        description: 'Kiểu dữ liệu WebhookDataType của PayOS',
+    })
     data: WebhookDataType;
 
     @ApiProperty()

@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { WebhookType } from '@payos/node/lib/type';
 import { PaymentStatusType } from 'src/enums';
 import { CancelPaymentDto } from './dto/cancel-payment.dto';
 import { CreateAppointmentPaymentDto } from './dto/create-appointment-payment.dto';
 import { CreatePackagePaymentDto } from './dto/create-package-payment.dto';
 import { CreateServicePaymentDto } from './dto/create-service-payment.dto';
+import { WebhookTypeDTO } from './dto/webhook-type.dto';
 import { PaymentCallbackService } from './providers/payment-callback.service';
 import { PaymentLinkService } from './providers/payment-link.service';
 import { PaymentRepositoryService } from './providers/payment-repository.service';
 import { UserPaymentService } from './providers/user-payment.service';
-import { WebhookTypeDTO } from './dto/webhook-type.dto';
 
 @Injectable()
 export class PaymentsService {

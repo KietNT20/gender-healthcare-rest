@@ -8,6 +8,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType } from 'src/enums';
 import { In, Repository } from 'typeorm';
+import { PaymentRefundService } from '../payments/providers/payment-refund.service';
 import { Service } from '../services/entities/service.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import {
@@ -31,6 +32,7 @@ export class AppointmentAttendanceService {
         @InjectRepository(Service)
         private readonly serviceRepository: Repository<Service>,
         private readonly notificationService: AppointmentNotificationService,
+        private readonly paymentRefundService: PaymentRefundService,
     ) {}
 
     /**
@@ -118,6 +120,23 @@ export class AppointmentAttendanceService {
         }
 
         await this.appointmentRepository.save(appointment);
+
+        // Process refund for no-show (usually no refund or full penalty)
+        let refundResult: any = null;
+        try {
+            refundResult = await this.paymentRefundService.processNoShowRefund(
+                appointmentId,
+                100, // 100% penalty for no-show
+            );
+            this.logger.log(
+                `No-show refund processed: ${JSON.stringify(refundResult)}`,
+            );
+        } catch (error) {
+            this.logger.warn(
+                `Failed to process no-show refund: ${error.message}`,
+            );
+            // Continue with no-show processing even if refund fails
+        }
 
         // Gửi thông báo no-show
         await this.notificationService.sendNoShowNotification(appointment);

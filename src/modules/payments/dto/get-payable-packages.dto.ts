@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBooleanString, IsOptional, IsString } from 'class-validator';
 
 export class GetPayablePackagesDto {
     @ApiPropertyOptional({
@@ -16,6 +16,6 @@ export class GetPayablePackagesDto {
         default: true,
     })
     @IsOptional()
-    @IsBoolean()
-    isActive?: boolean = true;
+    @IsBooleanString()
+    isActive?: string = 'true';
 }

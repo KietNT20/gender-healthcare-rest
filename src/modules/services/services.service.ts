@@ -1,16 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { plainToClass } from 'class-transformer';
 import slugify from 'slugify';
 import { IsNull, Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto';
-
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { Category } from '../categories/entities/category.entity';
 import { ServiceQueryDto } from './dto/service-query.dto';
-import { ServiceResponseDto } from './dto/service-response.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
+import { ServiceResponseDto } from './dto/service-response.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class ServicesService {
@@ -24,57 +23,65 @@ export class ServicesService {
     ) {}
 
     /**
-     * Tạo mới một dịch vụ
-     * @param createServiceDto Dữ liệu đầu vào để tạo dịch vụ
-     * @returns Dịch vụ đã được tạo
+     * Create a new service
+     * @param createServiceDto Input data to create a service
+     * @returns Created service
      */
     async create(
         createServiceDto: CreateServiceDto,
     ): Promise<ServiceResponseDto> {
-        // Tạo slug từ name
+        // Generate slug from name
         const baseSlug = slugify(createServiceDto.name, {
             lower: true,
             strict: true,
         });
         const slug = await this.generateUniqueSlug(baseSlug);
 
-        // Kiểm tra categoryId
+        // Validate categoryId
+        let category: Category | null = null;
         if (createServiceDto.categoryId) {
-            const category = await this.categoryRepo.findOne({
+            category = await this.categoryRepo.findOne({
                 where: { id: createServiceDto.categoryId, deletedAt: IsNull() },
             });
 
             if (!category) {
                 throw new NotFoundException(
-                    `Danh mục với ID '${createServiceDto.categoryId}' không tồn tại`,
+                    `Category with ID '${createServiceDto.categoryId}' not found`,
                 );
             }
         }
 
         const newService = this.serviceRepo.create({
             ...createServiceDto,
-            slug, // Gán slug tự động
-            category: { id: createServiceDto.categoryId },
+            slug, // Assign auto-generated slug
+            category: createServiceDto.categoryId
+                ? { id: createServiceDto.categoryId }
+                : undefined,
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
-            requiresConsultant: createServiceDto.requiresConsultant ?? false, // Thêm trường này
+            requiresConsultant: createServiceDto.requiresConsultant ?? false,
         });
 
         const savedService = await this.serviceRepo.save(newService);
-        this.logger.debug(`Created Service: ${JSON.stringify(savedService)}`);
-        return this.toServiceResponse(savedService);
+        return plainToClass(ServiceResponseDto, {
+            ...savedService,
+            category: savedService.category || category,
+            images: savedService.images || [],
+        });
     }
+
     /**
-     * Lấy danh sách dịch vụ với phân trang, lọc và sắp xếp
-     * @param serviceQueryDto Tham số truy vấn bao gồm phân trang, lọc và sắp xếp
-     * @returns Danh sách dịch vụ và thông tin phân trang
+     * Retrieve a list of services with pagination, filtering, and sorting
+     * @param serviceQueryDto Query parameters for pagination, filtering, and sorting
+     * @returns List of services with pagination metadata
      */
     async findAll(
         serviceQueryDto: ServiceQueryDto,
-    ): Promise<Paginated<Service>> {
+    ): Promise<Paginated<ServiceResponseDto>> {
         const queryBuilder = this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
+            .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL');
 
         this.applyServiceFilters(queryBuilder, serviceQueryDto);
@@ -99,15 +106,17 @@ export class ServicesService {
 
         const [services, totalItems] = await queryBuilder.getManyAndCount();
 
-        // Debug categoryId
-        services.forEach((service) => {
-            this.logger.debug(
-                `Service ID: ${service.id}, Category ID: ${service.category?.id}`,
-            );
-        });
+        // Map to ServiceResponseDto
+        const mappedServices = services.map((service) =>
+            plainToClass(ServiceResponseDto, {
+                ...service,
+                category: service.category,
+                images: service.images || [],
+            }),
+        );
 
         return {
-            data: services,
+            data: mappedServices,
             meta: {
                 itemsPerPage: serviceQueryDto.limit!,
                 totalItems,
@@ -117,103 +126,109 @@ export class ServicesService {
         };
     }
 
-    /**
-     * Áp dụng các bộ lọc cho truy vấn dịch vụ
-     * @param queryBuilder QueryBuilder để áp dụng bộ lọc
-     * @param serviceQueryDto DTO chứa các tiêu chí lọc
-     */
     private applyServiceFilters(
-    queryBuilder: any,
-    serviceQueryDto: ServiceQueryDto,
-): void {
-    const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
-        serviceQueryDto;
-
-    if (search) {
-        queryBuilder.andWhere(
-            'service.name ILIKE :search OR service.description ILIKE :search',
-            {
-                search: `%${search}%`,
-            },
-        );
-    }
-
-    if (categoryId) {
-        queryBuilder.andWhere('service.categoryId = :categoryId', {
+        queryBuilder: any,
+        serviceQueryDto: ServiceQueryDto,
+    ): void {
+        const {
+            search,
             categoryId,
-        });
-    }
-    if (minPrice !== undefined) {
-        queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
-    }
-
-    if (maxPrice !== undefined) {
-        queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
-    }
-
-    if (isActive !== undefined) {
-        queryBuilder.andWhere('service.isActive = :isActive', { isActive });
-    }
-
-    if (featured !== undefined) {
-        queryBuilder.andWhere('service.featured = :featured', { featured });
-    }
-
-    if (requiresConsultant !== undefined) {
-        queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
+            minPrice,
+            maxPrice,
+            isActive,
+            featured,
             requiresConsultant,
-        });
+        } = serviceQueryDto;
+
+        if (search) {
+            queryBuilder.andWhere(
+                'service.name ILIKE :search OR service.description ILIKE :search',
+                {
+                    search: `%${search}%`,
+                },
+            );
+        }
+        if (search) {
+            queryBuilder.andWhere(
+                'service.name ILIKE :search OR service.description ILIKE :search',
+                {
+                    search: `%${search}%`,
+                },
+            );
+        }
+
+        if (categoryId) {
+            queryBuilder.andWhere('service.categoryId = :categoryId', {
+                categoryId,
+            });
+        }
+        if (minPrice !== undefined) {
+            queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
+        }
+        if (maxPrice !== undefined) {
+            queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
+        }
+        if (isActive !== undefined) {
+            queryBuilder.andWhere('service.isActive = :isActive', { isActive });
+        }
+        if (featured !== undefined) {
+            queryBuilder.andWhere('service.featured = :featured', { featured });
+        }
+        if (requiresConsultant !== undefined) {
+            queryBuilder.andWhere(
+                'service.requiresConsultant = :requiresConsultant',
+                { requiresConsultant },
+            );
+        }
     }
-}
 
     /**
-     * Tìm một dịch vụ theo ID
-     * @param id ID của dịch vụ
-     * @returns Dịch vụ được tìm thấy
+     * Find a service by ID
+     * @param id Service ID
+     * @returns Found service
      */
-    async findOne(id: string): Promise<Service> {
+    async findOne(id: string): Promise<ServiceResponseDto> {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
-                category : true,
+                category: true,
+                images: true,
             },
         });
 
         if (!service) {
-            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
-        }
-        if (!service) {
-            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+            throw new NotFoundException(`Service with ID '${id}' not found`);
         }
 
-        // Debug categoryId
-        this.logger.debug(
-            `Service ID: ${service.id}, Category ID: ${service.category?.id}`,
-        );
 
-        return service;
+
+        return plainToClass(ServiceResponseDto, {
+            ...service,
+            category: service.category,
+            images: service.images || [],
+        });
     }
 
     /**
-     * Cập nhật thông tin dịch vụ
-     * @param id ID của dịch vụ
-     * @param updateDto Dữ liệu cập nhật
-     * @returns Dịch vụ đã được cập nhật
+     * Update service information
+     * @param id Service ID
+     * @param updateDto Update data
+     * @returns Updated service
      */
     async update(
         id: string,
         updateDto: UpdateServiceDto,
     ): Promise<ServiceResponseDto> {
-        // 1. Lấy entity gốc
+        // Fetch original entity
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: ['category', 'images'],
         });
         if (!service) {
-            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+            throw new NotFoundException(`Service with ID '${id}' not found`);
         }
 
-        // 2. Tạo slug mới (nếu tên thay đổi)
+        // Generate new slug if name changed
         let slug = service.slug;
         if (updateDto.name && updateDto.name !== service.name) {
             const baseSlug = slugify(updateDto.name, {
@@ -223,39 +238,41 @@ export class ServicesService {
             slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
-        // 3. Xác thực category (nếu có)
-        let categoryRef = service.category;
+        // Validate category if provided
+        let categoryRef: Category | null = service.category;
         if (updateDto.categoryId && updateDto.categoryId !== categoryRef?.id) {
-            const category = await this.categoryRepo.findOne({
+            categoryRef = await this.categoryRepo.findOne({
                 where: { id: updateDto.categoryId, deletedAt: IsNull() },
             });
-            if (!category) {
+            if (!categoryRef) {
                 throw new NotFoundException(
-                    `Danh mục với ID '${updateDto.categoryId}' không tồn tại`,
+                    `Category with ID '${updateDto.categoryId}' not found`,
                 );
             }
-            categoryRef = category;
         }
 
-        // 4. Sử dụng merge để hợp nhất các thay đổi
+        // Merge changes
         const updatedService = this.serviceRepo.merge(service, {
             ...updateDto,
             slug,
-            category: categoryRef ? { id: categoryRef.id } : IsNull(),
+            category: categoryRef ? { id: categoryRef.id } : undefined,
             requiresConsultant:
-                updateDto.requiresConsultant ?? service.requiresConsultant, // Thêm trường này
+                updateDto.requiresConsultant ?? service.requiresConsultant,
             updatedAt: new Date(),
         });
 
-        // 5. Lưu và trả về DTO
+        // Save and return entity
         const savedService = await this.serviceRepo.save(updatedService);
-        this.logger.debug(`Updated Service: ${JSON.stringify(savedService)}`);
-        return this.toServiceResponse(savedService);
+        return plainToClass(ServiceResponseDto, {
+            ...savedService,
+            category: savedService.category || categoryRef,
+            images: savedService.images || [],
+        });
     }
 
     /**
-     * Xóa mềm một dịch vụ
-     * @param id ID của dịch vụ
+     * Soft delete a service
+     * @param id Service ID
      */
     async remove(id: string): Promise<void> {
         const service = await this.serviceRepo.findOne({
@@ -263,41 +280,42 @@ export class ServicesService {
         });
 
         if (!service) {
-            throw new NotFoundException(`Dịch vụ với ID '${id}' không tồn tại`);
+            throw new NotFoundException(`Service with ID '${id}' not found`);
         }
 
         await this.serviceRepo.softRemove(service);
     }
 
-    private toServiceResponse(service: Service): ServiceResponseDto {
-        const response = plainToClass(
-            ServiceResponseDto,
-            {
-                ...service,
-                categoryId: service.category?.id || null,
-                requiresConsultant: service.requiresConsultant, // Thêm trường này
-            },
-            { excludeExtraneousValues: true },
-        );
-        return response;
-    }
-
-    // Thêm phương thức findBySlug
+    /**
+     * Find a service by slug
+     * @param slug Service slug
+     * @returns Found service
+     */
     async findBySlug(slug: string): Promise<ServiceResponseDto> {
         const service = await this.serviceRepo.findOne({
             where: { slug, deletedAt: IsNull() },
-            relations: ['category'],
+            relations: ['category', 'images'],
         });
 
         if (!service) {
             throw new NotFoundException(
-                `Dịch vụ với slug '${slug}' không tồn tại`,
+                `Service with slug '${slug}' not found`,
             );
         }
 
-        return this.toServiceResponse(service);
+        return plainToClass(ServiceResponseDto, {
+            ...service,
+            category: service.category,
+            images: service.images || [],
+        });
     }
 
+    /**
+     * Generate a unique slug
+     * @param baseSlug Base slug
+     * @param excludeId ID to exclude from uniqueness check
+     * @returns Unique slug
+     */
     private async generateUniqueSlug(
         baseSlug: string,
         excludeId?: string,
@@ -313,6 +331,12 @@ export class ServicesService {
         return slug;
     }
 
+    /**
+     * Check if a slug exists
+     * @param slug Slug to check
+     * @param excludeId ID to exclude from check
+     * @returns True if slug exists
+     */
     private async isSlugExists(
         slug: string,
         excludeId?: string,
@@ -329,6 +353,4 @@ export class ServicesService {
         const count = await queryBuilder.getCount();
         return count > 0;
     }
-    
-
 }

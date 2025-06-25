@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export class CreateFeedbackImageDTO {
+export class CreateServiceImageDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
     @IsUUID('4')
-    feedbackId: string;
+    serviceId: string;
 
     @ApiProperty()
     @IsNotEmpty()

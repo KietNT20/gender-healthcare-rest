@@ -8,6 +8,7 @@ import {
     ParseUUIDPipe,
     Patch,
     Post,
+    Put,
     Query,
     UseGuards,
 } from '@nestjs/common';
@@ -25,13 +26,19 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
-import { ServiceResponseDto } from './dto/service-response.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { CreateServiceImageDto } from './dto/create-service-image.dto';
 import { ServicesService } from './services.service';
+import { ServiceImageService } from './service-image.service';
+import { ServiceResponseDto } from './dto/service-response.dto';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Controller('services')
 export class ServicesController {
-    constructor(private readonly servicesService: ServicesService) {}
+    constructor(
+        private readonly servicesService: ServicesService,
+        private readonly serviceImageService: ServiceImageService,
+    ) {}
 
     /**
      * Create a new service
@@ -55,9 +62,7 @@ export class ServicesController {
     })
     @ApiBody({ type: CreateServiceDto })
     @ResponseMessage('Service created successfully')
-    async create(
-        @Body() createServiceDto: CreateServiceDto,
-    ): Promise<ServiceResponseDto> {
+    async create(@Body() createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
         return this.servicesService.create(createServiceDto);
     }
 
@@ -73,9 +78,10 @@ export class ServicesController {
     @ApiResponse({
         status: 200,
         description: 'Services retrieved successfully',
+        type: [ServiceResponseDto],
     })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto) {
+    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
         return this.servicesService.findAll(query);
     }
 
@@ -114,12 +120,8 @@ export class ServicesController {
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ResponseMessage('Service retrieved successfully')
     async findOne(
-        @Param(
-            'id',
-            ParseUUIDPipe,
-        )
-        id: string,
-    ){
+        @Param('id', ParseUUIDPipe) id: string,
+    ): Promise<ServiceResponseDto> {
         return this.servicesService.findOne(id);
     }
 
@@ -177,5 +179,61 @@ export class ServicesController {
     ): Promise<{ message: string }> {
         await this.servicesService.remove(id);
         return { message: 'Service deleted successfully' };
+    }
+
+    /**
+     * Synchronize images with a service
+     * @param id Service ID
+     */
+    @Patch('image/:id')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Synchronize images with a service' })
+    @ApiResponse({ status: 200, description: 'Images synchronized successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid service ID format' })
+    @ApiResponse({ status: 404, description: 'Service not found' })
+    @ResponseMessage('Images synchronized successfully')
+    async syncServiceImages(@Param('id', ParseUUIDPipe) id: string) {
+        await this.serviceImageService.syncServiceImages(id);
+        return { message: 'Images synchronized successfully' };
+    }
+
+    /**
+     * Add an image to a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
+    @Post('image')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Add an image to a service' })
+    @ApiResponse({ status: 201, description: 'Image added successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid data' })
+    @ApiResponse({ status: 404, description: 'Service or image not found' })
+    @ApiBody({ type: CreateServiceImageDto })
+    @ResponseMessage('Image added successfully')
+    async addImageToService(@Body() createServiceImageDto: CreateServiceImageDto) {
+        await this.serviceImageService.addImageToService(createServiceImageDto);
+        return { message: 'Image added successfully' };
+    }
+
+    /**
+     * Remove an image from a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
+    @Put('image')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Remove an image from a service' })
+    @ApiResponse({ status: 200, description: 'Image removed successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid data' })
+    @ApiResponse({ status: 404, description: 'Service or image not found' })
+    @ApiBody({ type: CreateServiceImageDto })
+    @ResponseMessage('Image removed successfully')
+    async removeImageFromService(@Body() createServiceImageDto: CreateServiceImageDto) {
+        await this.serviceImageService.removeImageFromService(createServiceImageDto);
+        return { message: 'Image removed successfully' };
     }
 }

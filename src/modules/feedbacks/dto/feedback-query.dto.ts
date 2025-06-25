@@ -9,6 +9,7 @@ import {
     IsUUID,
     Min,
     Max,
+    IsBooleanString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
@@ -17,7 +18,6 @@ export class FeedbackQueryDto {
     @ApiPropertyOptional({ description: 'Page number, default is 1' })
     @IsOptional()
     @IsPositive()
-    @Type(() => Number)
     page?: number = 1;
 
     @ApiPropertyOptional({
@@ -25,7 +25,6 @@ export class FeedbackQueryDto {
     })
     @IsOptional()
     @IsPositive()
-    @Type(() => Number)
     limit?: number = 10;
 
     @ApiPropertyOptional({
@@ -77,7 +76,6 @@ export class FeedbackQueryDto {
     @IsNumber()
     @Min(1)
     @Max(5)
-    @Type(() => Number)
     minRating?: number;
 
     @ApiPropertyOptional({
@@ -89,7 +87,6 @@ export class FeedbackQueryDto {
     @IsNumber()
     @Min(1)
     @Max(5)
-    @Type(() => Number)
     maxRating?: number;
 
     @ApiPropertyOptional({
@@ -97,9 +94,8 @@ export class FeedbackQueryDto {
         example: true,
     })
     @IsOptional()
-    @IsBoolean()
-    @Type(() => Boolean)
-    isAnonymous?: boolean;
+    @IsBooleanString()
+    isAnonymous?: string;
 
     @ApiPropertyOptional({ description: 'Search keyword in comment' })
     @IsOptional()

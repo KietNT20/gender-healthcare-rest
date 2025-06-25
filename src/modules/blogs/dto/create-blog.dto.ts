@@ -27,7 +27,10 @@ export class CreateBlogDto {
     @IsNotEmpty()
     content: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        enum: ContentStatusType,
+        default: ContentStatusType.DRAFT,
+    })
     @IsEnum(ContentStatusType)
     status: ContentStatusType = ContentStatusType.DRAFT;
 

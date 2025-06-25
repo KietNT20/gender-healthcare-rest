@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
 import { StiTestProcessStatus } from '../entities/sti-test-process.entity';
 import { StiTestProcessesService } from '../sti-test-processes.service';
@@ -221,7 +222,7 @@ export class StiTestWorkflowService {
         processId: string,
         newStatus: StiTestProcessStatus,
         validationData?: ValidationDataDto,
-    ): Promise<any> {
+    ): Promise<StiTestProcessResponseDto> {
         // Lấy thông tin process hiện tại
         const currentProcess =
             await this.stiTestProcessesService.findById(processId);

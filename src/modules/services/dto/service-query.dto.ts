@@ -83,5 +83,5 @@ export class ServiceQueryDto {
     })
     @IsOptional()
     @IsBoolean()
-    requiresConsultant?: boolean; 
+    requiresConsultant?: boolean;
 }

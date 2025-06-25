@@ -1,8 +1,9 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
-    IsBoolean,
+    IsBooleanString,
     IsDateString,
     IsEnum,
+    IsIn,
     IsOptional,
     IsString,
     IsUUID,
@@ -89,31 +90,33 @@ export class FilterQueryStiTestProcessDto {
         example: true,
     })
     @IsOptional()
-    @IsBoolean()
-    requiresConsultation?: boolean;
+    @IsBooleanString()
+    requiresConsultation?: string = 'false';
 
     @ApiPropertyOptional({
         description: 'Đã thông báo bệnh nhân',
         example: true,
     })
     @IsOptional()
-    @IsBoolean()
-    patientNotified?: boolean;
+    @IsBooleanString()
+    patientNotified?: string = 'false';
 
     @ApiPropertyOptional({
         description: 'Chỉ hiển thị các xét nghiệm có kết quả',
         example: false,
     })
     @IsOptional()
-    @IsBoolean()
-    hasResults?: boolean;
+    @IsBooleanString()
+    hasResults?: string = 'false';
 
     @ApiPropertyOptional({
         description: 'Sắp xếp theo trường',
-        example: 'createdAt',
+        enum: ['createdAt', 'updatedAt', 'status', 'priority'],
+        default: 'createdAt',
     })
     @IsOptional()
     @IsString()
+    @IsIn(['createdAt', 'updatedAt', 'status', 'priority'])
     sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({

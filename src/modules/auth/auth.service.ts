@@ -245,6 +245,7 @@ export class AuthService {
 
     async forgotPassword(email: string) {
         const user = await this.usersService.findByEmail(email);
+
         if (!user) {
             // Don't reveal that user doesn't exist
             return {
@@ -256,7 +257,7 @@ export class AuthService {
         // Generate password reset token
         const passwordResetToken = randomBytes(32).toString('hex');
         const passwordResetExpires = new Date();
-        passwordResetExpires.setHours(passwordResetExpires.getHours() + 1); // 1 hour
+        passwordResetExpires.setHours(passwordResetExpires.getHours() + 24); // 24 hours
 
         // Update user with reset token
         await this.usersService.updatePasswordResetToken(

@@ -114,12 +114,9 @@ export class ServicesController {
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ResponseMessage('Service retrieved successfully')
     async findOne(
-        @Param(
-            'id',
-            ParseUUIDPipe,
-        )
+        @Param('id', ParseUUIDPipe)
         id: string,
-    ){
+    ) {
         return this.servicesService.findOne(id);
     }
 

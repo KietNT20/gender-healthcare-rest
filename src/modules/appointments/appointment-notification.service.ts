@@ -217,4 +217,176 @@ export class AppointmentNotificationService {
             });
         }
     }
+
+    /**
+     * Gửi thông báo check-in thành công
+     */
+    public async sendCheckInNotification(
+        appointment: Appointment,
+    ): Promise<void> {
+        const customerName = `${appointment.user.firstName} ${appointment.user.lastName}`;
+        const appointmentTime = new Date(
+            appointment.appointmentDate,
+        ).toLocaleString('vi-VN');
+
+        // Thông báo cho staff/consultant
+        if (appointment.consultant?.id) {
+            this.notificationsService.create({
+                userId: appointment.consultant.id,
+                title: 'Bệnh nhân đã check-in',
+                content: `${customerName} đã check-in cho cuộc hẹn lúc ${appointmentTime}`,
+                type: 'PATIENT_CHECKED_IN',
+                actionUrl: `/consultant/appointments/${appointment.id}`,
+            });
+        }
+
+        this.logger.log(
+            `Check-in notification sent for appointment ${appointment.id}`,
+        );
+    }
+
+    /**
+     * Gửi thông báo no-show
+     */
+    public async sendNoShowNotification(
+        appointment: Appointment,
+    ): Promise<void> {
+        const customerName = `${appointment.user.firstName} ${appointment.user.lastName}`;
+        const appointmentTime = new Date(
+            appointment.appointmentDate,
+        ).toLocaleString('vi-VN');
+
+        // Thông báo cho khách hàng
+        this.notificationsService.create({
+            userId: appointment.user.id,
+            title: 'Lịch hẹn bị đánh dấu No-Show',
+            content: `Cuộc hẹn của bạn lúc ${appointmentTime} đã bị đánh dấu no-show do không có mặt. Vui lòng liên hệ để đặt lại lịch.`,
+            type: 'APPOINTMENT_NO_SHOW',
+            actionUrl: `/appointments/${appointment.id}`,
+        });
+
+        // Gửi email no-show với link đặt lại lịch
+        this.mailService
+            .sendEmail(
+                appointment.user.email,
+                'Thông báo: Lịch hẹn No-Show',
+                'appointment-no-show',
+                {
+                    userName: customerName,
+                    appointmentTime,
+                    reason: appointment.cancellationReason,
+                    rescheduleLink: `${process.env.FRONTEND_URL}/appointments/reschedule/${appointment.id}`,
+                },
+            )
+            .catch((err) =>
+                this.logger.error(
+                    `Failed to send no-show email for appointment ${appointment.id}`,
+                    err,
+                ),
+            );
+
+        this.logger.log(
+            `No-show notification sent for appointment ${appointment.id}`,
+        );
+    }
+
+    /**
+     * Gửi thông báo đến trễ
+     */
+    public async sendLateArrivalNotification(
+        appointment: Appointment,
+    ): Promise<void> {
+        const customerName = `${appointment.user.firstName} ${appointment.user.lastName}`;
+        const appointmentTime = new Date(
+            appointment.appointmentDate,
+        ).toLocaleString('vi-VN');
+        const lateMinutes = Math.floor(
+            (appointment.checkInTime!.getTime() -
+                appointment.appointmentDate.getTime()) /
+                (1000 * 60),
+        );
+
+        // Thông báo cho consultant
+        if (appointment.consultant?.id) {
+            this.notificationsService.create({
+                userId: appointment.consultant.id,
+                title: 'Bệnh nhân đến trễ',
+                content: `${customerName} đã check-in trễ ${lateMinutes} phút cho cuộc hẹn lúc ${appointmentTime}`,
+                type: 'PATIENT_LATE_ARRIVAL',
+                actionUrl: `/consultant/appointments/${appointment.id}`,
+            });
+        }
+
+        this.logger.log(
+            `Late arrival notification sent for appointment ${appointment.id}`,
+        );
+    }
+
+    /**
+     * Gửi reminder trước appointment với timeframe cụ thể
+     */
+    public async sendAppointmentReminder(
+        appointment: Appointment,
+        minutesBefore: number,
+    ): Promise<void> {
+        const customerName = `${appointment.user.firstName} ${appointment.user.lastName}`;
+        const consultantName = appointment.consultant
+            ? `${appointment.consultant.firstName} ${appointment.consultant.lastName}`
+            : 'N/A';
+        const appointmentTime = new Date(
+            appointment.appointmentDate,
+        ).toLocaleString('vi-VN');
+
+        let reminderType = '';
+        let reminderMessage = '';
+
+        if (minutesBefore >= 24 * 60) {
+            reminderType = '24h';
+            reminderMessage = '24 giờ';
+        } else if (minutesBefore >= 2 * 60) {
+            reminderType = '2h';
+            reminderMessage = '2 giờ';
+        } else {
+            reminderType = '30min';
+            reminderMessage = '30 phút';
+        }
+
+        // Thông báo in-app
+        this.notificationsService.create({
+            userId: appointment.user.id,
+            title: `Nhắc nhở lịch hẹn (${reminderMessage})`,
+            content: `Bạn có cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
+            type: 'APPOINTMENT_REMINDER',
+            actionUrl: `/appointments/${appointment.id}`,
+        });
+
+        // Gửi email reminder
+        this.mailService
+            .sendAppointmentReminder(appointment.user.email, {
+                userName: customerName,
+                consultantName,
+                appointmentDate: new Date(
+                    appointment.appointmentDate,
+                ).toLocaleDateString('vi-VN'),
+                appointmentTime: new Date(
+                    appointment.appointmentDate,
+                ).toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }),
+                meetingLink: appointment.meetingLink,
+                serviceName:
+                    appointment.services?.map((s) => s.name).join(', ') || '',
+            })
+            .catch((err) =>
+                this.logger.error(
+                    `Failed to send ${reminderType} reminder email for appointment ${appointment.id}`,
+                    err,
+                ),
+            );
+
+        this.logger.log(
+            `${reminderType} reminder sent for appointment ${appointment.id}`,
+        );
+    }
 }

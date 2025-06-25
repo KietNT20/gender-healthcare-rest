@@ -11,6 +11,7 @@ import { Category } from 'src/modules/categories/entities/category.entity';
 import { IsNull, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
+import { User } from '../users/entities/user.entity';
 import { BlogNotificationService } from './blog-notification.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
 import { CreateBlogDto } from './dto/create-blog.dto';
@@ -94,7 +95,7 @@ export class BlogsService {
             status: finalStatus,
             publishedAt,
             publishedByUser,
-            author: { id: authorId } as any,
+            author: { id: authorId } as User,
         });
 
         const savedBlog = await this.blogRepository.save(blog);

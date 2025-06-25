@@ -10,6 +10,4 @@ export class CreateTagDto {
     @IsNotEmpty()
     @Length(1, 255)
     name: string;
-
-    
 }

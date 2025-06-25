@@ -8,6 +8,8 @@ export class UpdateAppointmentDto {
             'Cập nhật trạng thái của cuộc hẹn (chỉ dành cho Tư vấn viên/Admin).',
         enum: [
             AppointmentStatusType.CONFIRMED,
+            AppointmentStatusType.CHECKED_IN,
+            AppointmentStatusType.IN_PROGRESS,
             AppointmentStatusType.COMPLETED,
             AppointmentStatusType.NO_SHOW,
         ],

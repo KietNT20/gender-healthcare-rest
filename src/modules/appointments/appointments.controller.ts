@@ -10,7 +10,12 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -18,23 +23,37 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
+import { AppointmentAttendanceService } from './appointment-attendance.service';
 import { AppointmentsService } from './appointments.service';
+import {
+    CheckInAppointmentDto,
+    CheckInResponseDto,
+} from './dto/check-in-appointment.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import {
     FindAvailableSlotsDto,
     FindAvailableSlotsResponseDto,
 } from './dto/find-available-slots.dto';
+import {
+    LateCheckInDto,
+    LateCheckInResponseDto,
+} from './dto/late-check-in.dto';
+import { MarkNoShowDto, NoShowProcessResult } from './dto/mark-no-show.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import {
     CancelAppointmentDto,
     UpdateAppointmentDto,
 } from './dto/update-appointment.dto';
 
+@ApiTags('Appointments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
 export class AppointmentsController {
-    constructor(private readonly appointmentsService: AppointmentsService) {}
+    constructor(
+        private readonly appointmentsService: AppointmentsService,
+        private readonly attendanceService: AppointmentAttendanceService,
+    ) {}
     @Post()
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
@@ -75,6 +94,24 @@ export class AppointmentsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.appointmentsService.findAll(currentUser, queryDto);
+    }
+
+    @Get('available-slots')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    @ApiOperation({
+        summary: 'Find available consultation slots',
+        description:
+            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Available slots retrieved successfully.',
+        type: FindAvailableSlotsResponseDto,
+    })
+    @ResponseMessage('Available slots retrieved successfully.')
+    findAvailableSlots(@Query() findSlotsDto: FindAvailableSlotsDto) {
+        return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 
     @Get(':id')
@@ -161,24 +198,98 @@ export class AppointmentsController {
         return this.appointmentsService.cancel(id, cancelDto, currentUser);
     }
 
-    @Get('available-slots')
+    @Post(':id/check-in')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.CUSTOMER])
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
-        summary: 'Find available consultation slots',
+        summary: 'Check-in patient for appointment',
         description:
-            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+            'Check-in bệnh nhân tại cơ sở y tế (Staff/Admin/Manager only)',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Available slots retrieved successfully.',
-        type: FindAvailableSlotsResponseDto,
+        description: 'Patient checked in successfully.',
+        type: CheckInResponseDto,
     })
-    @ResponseMessage('Available slots retrieved successfully.')
-    findAvailableSlots(
-        @Query() findSlotsDto: FindAvailableSlotsDto,
-        @CurrentUser() currentUser: User,
-    ) {
-        return this.appointmentsService.findAvailableSlots(findSlotsDto);
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description:
+            'Appointment cannot be checked in (invalid status, already checked in, etc.)',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Staff/Admin/Manager only)',
+    })
+    @ResponseMessage('Patient checked in successfully.')
+    async checkInPatient(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @Body() checkInDto: CheckInAppointmentDto,
+    ): Promise<CheckInResponseDto> {
+        return this.attendanceService.checkInPatient(appointmentId, checkInDto);
+    }
+
+    @Post(':id/mark-no-show')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Mark appointment as no-show',
+        description:
+            'Đánh dấu appointment là no-show (Staff/Admin/Manager only)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Appointment marked as no-show successfully.',
+        type: NoShowProcessResult,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Appointment cannot be marked as no-show (invalid status)',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Staff/Admin/Manager only)',
+    })
+    @ResponseMessage('Appointment marked as no-show successfully.')
+    async markNoShow(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @Body() noShowDto: MarkNoShowDto,
+    ): Promise<NoShowProcessResult> {
+        return this.attendanceService.markNoShow(appointmentId, noShowDto);
+    }
+
+    @Post(':id/late-check-in')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Process late check-in for appointment',
+        description:
+            'Xử lý check-in trễ cho appointment (Staff/Admin/Manager only)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Late check-in processed successfully.',
+        type: LateCheckInResponseDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description:
+            'Late check-in cannot be processed (too late, invalid status, etc.)',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Staff/Admin/Manager only)',
+    })
+    @ResponseMessage('Late check-in processed successfully.')
+    async processLateCheckIn(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @Body() lateCheckInDto: LateCheckInDto,
+    ): Promise<LateCheckInResponseDto> {
+        return this.attendanceService.processLateCheckIn(
+            appointmentId,
+            lateCheckInDto,
+        );
     }
 }

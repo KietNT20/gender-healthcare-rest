@@ -293,11 +293,47 @@ export class UsersService {
     async findAll(
         userQueryDto: UserQueryDto,
     ): Promise<Paginated<UserResponseDto>> {
+        console.log('userQueryDto', userQueryDto);
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
             .where('user.deletedAt IS NULL');
 
-        this.applyUserFilters(queryBuilder, userQueryDto);
+        const { firstName, lastName, email, phone, roleId, isActive } =
+            userQueryDto;
+
+        if (firstName) {
+            queryBuilder.andWhere('user.firstName ILIKE :firstName', {
+                firstName: `%${firstName}%`,
+            });
+        }
+
+        if (lastName) {
+            queryBuilder.andWhere('user.lastName ILIKE :lastName', {
+                lastName: `%${lastName}%`,
+            });
+        }
+
+        if (email) {
+            queryBuilder.andWhere('user.email ILIKE :email', {
+                email: `%${email}%`,
+            });
+        }
+
+        if (phone) {
+            queryBuilder.andWhere('user.phone ILIKE :phone', {
+                phone: `%${phone}%`,
+            });
+        }
+
+        if (roleId) {
+            queryBuilder.andWhere('user.roleId = :roleId', { roleId });
+        }
+
+        if (isActive !== undefined) {
+            queryBuilder.andWhere('user.isActive = :isActive', {
+                isActive,
+            });
+        }
 
         const offset = (userQueryDto.page! - 1) * userQueryDto.limit!;
         queryBuilder.skip(offset).take(userQueryDto.limit!);
@@ -331,51 +367,6 @@ export class UsersService {
                 totalPages: Math.ceil(totalItems / (userQueryDto.limit || 10)),
             },
         };
-    }
-
-    /**
-     * Applies user filters to the query builder.
-     * @param queryBuilder The query builder to apply filters to.
-     * @param userQueryDto The DTO containing filter criteria.
-     */
-    private applyUserFilters(
-        queryBuilder: any,
-        userQueryDto: UserQueryDto,
-    ): void {
-        const { firstName, lastName, email, phone, roleId, isActive } =
-            userQueryDto;
-
-        if (firstName) {
-            queryBuilder.andWhere('user.firstName ILIKE :firstName', {
-                firstName: `%${firstName}%`,
-            });
-        }
-
-        if (lastName) {
-            queryBuilder.andWhere('user.lastName ILIKE :lastName', {
-                lastName: `%${lastName}%`,
-            });
-        }
-
-        if (email) {
-            queryBuilder.andWhere('user.email ILIKE :email', {
-                email: `%${email}%`,
-            });
-        }
-
-        if (phone) {
-            queryBuilder.andWhere('user.phone ILIKE :phone', {
-                phone: `%${phone}%`,
-            });
-        }
-
-        if (roleId) {
-            queryBuilder.andWhere('user.roleId = :roleId', { roleId });
-        }
-
-        if (isActive !== undefined) {
-            queryBuilder.andWhere('user.isActive = :isActive', { isActive });
-        }
     }
 
     async findOne(id: string): Promise<UserResponseDto> {

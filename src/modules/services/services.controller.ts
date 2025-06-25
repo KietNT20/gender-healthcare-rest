@@ -1,5 +1,4 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -24,14 +23,13 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateServiceImageDto } from './dto/create-service-image.dto';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
-import { CreateServiceImageDto } from './dto/create-service-image.dto';
-import { ServicesService } from './services.service';
-import { ServiceImageService } from './service-image.service';
 import { ServiceResponseDto } from './dto/service-response.dto';
-import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { UpdateServiceDto } from './dto/update-service.dto';
+import { ServiceImageService } from './service-image.service';
+import { ServicesService } from './services.service';
 
 @Controller('services')
 export class ServicesController {
@@ -62,7 +60,7 @@ export class ServicesController {
     })
     @ApiBody({ type: CreateServiceDto })
     @ResponseMessage('Service created successfully')
-    async create(@Body() createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
+    async create(@Body() createServiceDto: CreateServiceDto) {
         return this.servicesService.create(createServiceDto);
     }
 
@@ -81,7 +79,7 @@ export class ServicesController {
         type: [ServiceResponseDto],
     })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
+    async findAll(@Query() query: ServiceQueryDto) {
         return this.servicesService.findAll(query);
     }
 
@@ -100,7 +98,7 @@ export class ServicesController {
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ApiParam({ name: 'slug', description: 'Service slug', type: String })
     @ResponseMessage('Service retrieved successfully')
-    async findBySlug(@Param('slug') slug: string): Promise<ServiceResponseDto> {
+    async findBySlug(@Param('slug') slug: string) {
         return this.servicesService.findBySlug(slug);
     }
 
@@ -119,9 +117,7 @@ export class ServicesController {
     @ApiResponse({ status: 400, description: 'Invalid service ID format' })
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ResponseMessage('Service retrieved successfully')
-    async findOne(
-        @Param('id', ParseUUIDPipe) id: string,
-    ): Promise<ServiceResponseDto> {
+    async findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.servicesService.findOne(id);
     }
 
@@ -152,7 +148,7 @@ export class ServicesController {
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateServiceDto: UpdateServiceDto,
-    ): Promise<ServiceResponseDto> {
+    ) {
         return this.servicesService.update(id, updateServiceDto);
     }
 
@@ -190,7 +186,10 @@ export class ServicesController {
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Synchronize images with a service' })
-    @ApiResponse({ status: 200, description: 'Images synchronized successfully' })
+    @ApiResponse({
+        status: 200,
+        description: 'Images synchronized successfully',
+    })
     @ApiResponse({ status: 400, description: 'Invalid service ID format' })
     @ApiResponse({ status: 404, description: 'Service not found' })
     @ResponseMessage('Images synchronized successfully')
@@ -213,7 +212,9 @@ export class ServicesController {
     @ApiResponse({ status: 404, description: 'Service or image not found' })
     @ApiBody({ type: CreateServiceImageDto })
     @ResponseMessage('Image added successfully')
-    async addImageToService(@Body() createServiceImageDto: CreateServiceImageDto) {
+    async addImageToService(
+        @Body() createServiceImageDto: CreateServiceImageDto,
+    ) {
         await this.serviceImageService.addImageToService(createServiceImageDto);
         return { message: 'Image added successfully' };
     }
@@ -232,8 +233,12 @@ export class ServicesController {
     @ApiResponse({ status: 404, description: 'Service or image not found' })
     @ApiBody({ type: CreateServiceImageDto })
     @ResponseMessage('Image removed successfully')
-    async removeImageFromService(@Body() createServiceImageDto: CreateServiceImageDto) {
-        await this.serviceImageService.removeImageFromService(createServiceImageDto);
+    async removeImageFromService(
+        @Body() createServiceImageDto: CreateServiceImageDto,
+    ) {
+        await this.serviceImageService.removeImageFromService(
+            createServiceImageDto,
+        );
         return { message: 'Image removed successfully' };
     }
 }

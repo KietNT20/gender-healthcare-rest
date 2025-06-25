@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsBooleanString,
+    IsBoolean,
     IsEnum,
     IsIn,
     IsNumber,
@@ -13,13 +13,15 @@ import {
 import { SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
-    @ApiPropertyOptional({ description: 'Số trang, mặc định là 1' })
+    @ApiPropertyOptional({ description: 'Số trang', default: 1, example: 1 })
     @IsOptional()
     @IsPositive()
     page?: number = 1;
 
     @ApiPropertyOptional({
-        description: 'Số bản ghi mỗi trang, mặc định là 10',
+        description: 'Số bản ghi mỗi trang',
+        default: 10,
+        example: 10,
     })
     @IsOptional()
     @IsPositive()
@@ -29,6 +31,7 @@ export class ServiceQueryDto {
         description:
             'Trường sắp xếp (name, price, duration, createdAt, updatedAt)',
         enum: ['name', 'price', 'duration', 'createdAt', 'updatedAt'],
+        default: 'createdAt',
     })
     @IsOptional()
     @IsString()
@@ -53,16 +56,17 @@ export class ServiceQueryDto {
 
     @ApiPropertyOptional({ description: 'ID của danh mục dịch vụ' })
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4')
+    @IsString()
     categoryId?: string;
 
-    @ApiPropertyOptional({ description: 'Giá tối thiểu' })
+    @ApiPropertyOptional({ description: 'Giá tối thiểu', example: 0 })
     @IsOptional()
     @IsNumber()
     @Min(0)
     minPrice?: number;
 
-    @ApiPropertyOptional({ description: 'Giá tối đa' })
+    @ApiPropertyOptional({ description: 'Giá tối đa', example: 1000000 })
     @IsOptional()
     @IsNumber()
     @Min(0)
@@ -73,24 +77,22 @@ export class ServiceQueryDto {
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    isActive?: string = 'true';
+    @IsBoolean()
+    isActive?: boolean;
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có được đánh dấu là nổi bật hay không',
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    featured?: string = 'false';
-
-    // ServiceQueryDto
+    @IsBoolean()
+    featured?: boolean;
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có yêu cầu tư vấn viên hay không',
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    requiresConsultant?: string = 'false';
+    @IsBoolean()
+    requiresConsultant?: boolean;
 }

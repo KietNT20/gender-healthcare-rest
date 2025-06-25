@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { SortOrder } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -58,8 +59,7 @@ export class ServicesService {
             requiresConsultant: createServiceDto.requiresConsultant ?? false,
         });
 
-        const savedService = await this.serviceRepo.save(newService);
-        return savedService;
+        return this.serviceRepo.save(newService);
     }
 
     /**
@@ -76,64 +76,23 @@ export class ServicesService {
             .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL');
 
-        this.applyServiceFilters(queryBuilder, serviceQueryDto);
-
-        const offset = (serviceQueryDto.page! - 1) * serviceQueryDto.limit!;
-        queryBuilder.skip(offset).take(serviceQueryDto.limit!);
-
-        const allowedSortFields = [
-            'name',
-            'price',
-            'duration',
-            'createdAt',
-            'updatedAt',
-        ];
-        if (!serviceQueryDto.sortBy) {
-            serviceQueryDto.sortBy = 'createdAt';
-        }
-        const sortField = allowedSortFields.includes(serviceQueryDto.sortBy)
-            ? serviceQueryDto.sortBy
-            : 'createdAt';
-        queryBuilder.orderBy(`service.${sortField}`, serviceQueryDto.sortOrder);
-
-        const [services, totalItems] = await queryBuilder.getManyAndCount();
-
-        return {
-            data: services,
-            meta: {
-                itemsPerPage: serviceQueryDto.limit!,
-                totalItems,
-                currentPage: serviceQueryDto.page!,
-                totalPages: Math.ceil(totalItems / serviceQueryDto.limit!),
-            },
-        };
-    }
-
-    private applyServiceFilters(
-        queryBuilder: any,
-        serviceQueryDto: ServiceQueryDto,
-    ): void {
         const {
             search,
-            categoryId,
             minPrice,
             maxPrice,
             isActive,
             featured,
             requiresConsultant,
+            categoryId,
+            page = 1,
+            limit = 10,
+            sortBy = 'createdAt',
+            sortOrder = SortOrder.DESC,
         } = serviceQueryDto;
 
         if (search) {
             queryBuilder.andWhere(
-                'service.name ILIKE :search OR service.description ILIKE :search',
-                {
-                    search: `%${search}%`,
-                },
-            );
-        }
-        if (search) {
-            queryBuilder.andWhere(
-                'service.name ILIKE :search OR service.description ILIKE :search',
+                '(service.name ILIKE :search OR service.description ILIKE :search)',
                 {
                     search: `%${search}%`,
                 },
@@ -163,6 +122,34 @@ export class ServicesService {
                 { requiresConsultant },
             );
         }
+
+        const offset = (page - 1) * limit;
+        queryBuilder.skip(offset).take(limit);
+
+        const allowedSortFields = [
+            'name',
+            'price',
+            'duration',
+            'createdAt',
+            'updatedAt',
+        ];
+
+        const sortField = allowedSortFields.includes(sortBy)
+            ? sortBy
+            : 'createdAt';
+        queryBuilder.orderBy(`service.${sortField}`, sortOrder);
+
+        const [services, totalItems] = await queryBuilder.getManyAndCount();
+
+        return {
+            data: services,
+            meta: {
+                itemsPerPage: limit,
+                totalItems,
+                currentPage: page,
+                totalPages: Math.ceil(totalItems / limit),
+            },
+        };
     }
 
     /**

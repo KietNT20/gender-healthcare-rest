@@ -1,6 +1,5 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
-    IsBoolean,
     IsBooleanString,
     IsEnum,
     IsInt,
@@ -28,10 +27,13 @@ class Filters {
     @Max(6)
     dayOfWeek?: number;
 
-    @ApiPropertyOptional({ description: 'Filter by availability status' })
+    @ApiPropertyOptional({
+        description: 'Filter by availability status',
+        type: 'boolean',
+    })
     @IsOptional()
     @IsBooleanString()
-    isAvailable?: string;
+    isAvailable?: string = 'true';
 
     @ApiPropertyOptional({
         description: 'Filter by location',

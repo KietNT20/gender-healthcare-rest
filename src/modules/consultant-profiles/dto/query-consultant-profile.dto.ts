@@ -34,7 +34,10 @@ export class FilterConsultantProfileDto {
     @IsEnum(ProfileStatusType)
     status?: ProfileStatusType;
 
-    @ApiPropertyOptional({ description: 'Filter by availability' })
+    @ApiPropertyOptional({
+        description: 'Filter by availability',
+        type: 'boolean',
+    })
     @IsOptional()
     @IsBooleanString()
     isAvailable?: string = 'true';

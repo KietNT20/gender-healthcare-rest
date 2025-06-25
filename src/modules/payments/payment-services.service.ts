@@ -19,12 +19,25 @@ export class PaymentServicesService {
      * Lấy danh sách dịch vụ có thể thanh toán
      */
     async getAvailableServices(query: GetPayablePackagesDto) {
-        const { search, isActive = true } = query;
+        const { search, isActive } = query;
+
+        let isActiveBool: boolean | undefined;
+        switch (isActive) {
+            case 'true':
+                isActiveBool = true;
+                break;
+            case 'false':
+                isActiveBool = false;
+                break;
+            default:
+                isActiveBool = undefined;
+                break;
+        }
 
         const services = await this.serviceRepository.find({
             where: {
                 deletedAt: IsNull(),
-                ...(isActive !== undefined && { isActive }),
+                ...(isActive !== undefined && { isActive: isActiveBool }),
                 ...(search && { name: Like(`%${search}%`) }),
             },
             select: [
@@ -42,23 +55,32 @@ export class PaymentServicesService {
             order: { createdAt: 'DESC' },
         });
 
-        return {
-            success: true,
-            data: services,
-            message: 'Lấy danh sách dịch vụ thành công',
-        };
+        return services;
     }
 
     /**
      * Lấy danh sách gói dịch vụ có thể thanh toán
      */
     async getAvailablePackages(query: GetPayablePackagesDto) {
-        const { search, isActive = true } = query;
+        const { search, isActive } = query;
+
+        let isActiveBool: boolean | undefined;
+        switch (isActive) {
+            case 'true':
+                isActiveBool = true;
+                break;
+            case 'false':
+                isActiveBool = false;
+                break;
+            default:
+                isActiveBool = undefined;
+                break;
+        }
 
         const packages = await this.packageRepository.find({
             where: {
                 deletedAt: IsNull(),
-                ...(isActive !== undefined && { isActive }),
+                ...(isActive !== undefined && { isActive: isActiveBool }),
                 ...(search && { name: Like(`%${search}%`) }),
             },
             select: [
@@ -72,9 +94,6 @@ export class PaymentServicesService {
             order: { createdAt: SortOrder.DESC },
         });
 
-        return {
-            success: true,
-            data: packages,
-        };
+        return packages;
     }
 }

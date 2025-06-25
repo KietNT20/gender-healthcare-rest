@@ -1,17 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsBoolean,
+    IsBooleanString,
     IsEnum,
     IsNumber,
     IsOptional,
     IsPositive,
     IsString,
     IsUUID,
-    Min,
     Max,
-    IsBooleanString,
+    Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class FeedbackQueryDto {
@@ -91,11 +89,11 @@ export class FeedbackQueryDto {
 
     @ApiPropertyOptional({
         description: 'Whether the feedback is anonymous',
-        example: true,
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
-    isAnonymous?: string;
+    isAnonymous?: string = 'true';
 
     @ApiPropertyOptional({ description: 'Search keyword in comment' })
     @IsOptional()

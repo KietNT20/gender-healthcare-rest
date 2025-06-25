@@ -12,8 +12,7 @@ export class GetPayablePackagesDto {
 
     @ApiPropertyOptional({
         description: 'Chỉ lấy các gói đang hoạt động',
-        example: true,
-        default: true,
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()

@@ -17,6 +17,10 @@ import { ServiceImageService } from './service-image.service';
     ],
     controllers: [ServicesController],
     providers: [ServicesService, ServiceImageService],
-    exports: [ServicesService, ServiceImageService, TypeOrmModule.forFeature([Service])],
+    exports: [
+        ServicesService,
+        ServiceImageService,
+        TypeOrmModule.forFeature([Service]),
+    ],
 })
 export class ServicesModule {}

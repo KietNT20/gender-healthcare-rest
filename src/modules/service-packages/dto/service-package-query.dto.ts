@@ -13,7 +13,7 @@ import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class ServicePackageQueryDto {
-    @ApiPropertyOptional({ description: 'Số trang, mặc định là 1'})
+    @ApiPropertyOptional({ description: 'Số trang, mặc định là 1' })
     @IsOptional()
     @IsPositive()
     page?: number = 1;

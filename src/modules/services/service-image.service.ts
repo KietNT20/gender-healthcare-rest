@@ -26,7 +26,9 @@ export class ServiceImageService {
         });
 
         if (!service) {
-            throw new NotFoundException(`Service with ID ${serviceId} not found`);
+            throw new NotFoundException(
+                `Service with ID ${serviceId} not found`,
+            );
         }
 
         // Find all images with entityType 'service' and matching entityId
@@ -46,7 +48,9 @@ export class ServiceImageService {
      * Add an image to a service
      * @param createServiceImageDto DTO containing serviceId and imageId
      */
-    async addImageToService(createServiceImageDto: CreateServiceImageDto): Promise<void> {
+    async addImageToService(
+        createServiceImageDto: CreateServiceImageDto,
+    ): Promise<void> {
         const { serviceId, imageId } = createServiceImageDto;
 
         // Find the service
@@ -56,7 +60,9 @@ export class ServiceImageService {
         });
 
         if (!service) {
-            throw new NotFoundException(`Service with ID ${serviceId} not found`);
+            throw new NotFoundException(
+                `Service with ID ${serviceId} not found`,
+            );
         }
 
         // Find the image
@@ -85,7 +91,9 @@ export class ServiceImageService {
      * Remove an image from a service
      * @param createServiceImageDto DTO containing serviceId and imageId
      */
-    async removeImageFromService(createServiceImageDto: CreateServiceImageDto): Promise<void> {
+    async removeImageFromService(
+        createServiceImageDto: CreateServiceImageDto,
+    ): Promise<void> {
         const { serviceId, imageId } = createServiceImageDto;
 
         // Find the service
@@ -95,7 +103,9 @@ export class ServiceImageService {
         });
 
         if (!service) {
-            throw new NotFoundException(`Service with ID ${serviceId} not found`);
+            throw new NotFoundException(
+                `Service with ID ${serviceId} not found`,
+            );
         }
 
         // Filter out the image

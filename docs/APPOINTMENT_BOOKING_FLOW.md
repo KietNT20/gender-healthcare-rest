@@ -10,7 +10,7 @@
 
 | Endpoint                               | Purpose                   | Status   | Auth Required            |
 | -------------------------------------- | ------------------------- | -------- | ------------------------ |
-| `GET /appointments/available-slots`    | Tìm slot khả dụng         | ✅ Ready | Customer                 |
+| `POST /appointments/available-slots`   | Tìm slot khả dụng         | ✅ Ready | Customer                 |
 | `POST /appointments`                   | Đặt lịch                  | ✅ Ready | Customer                 |
 | `GET /appointments`                    | Danh sách appointments    | ✅ Ready | All roles                |
 | `GET /appointments/:id`                | Chi tiết appointment      | ✅ Ready | All roles                |

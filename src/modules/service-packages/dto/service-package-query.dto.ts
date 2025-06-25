@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
-    IsBoolean,
     IsBooleanString,
     IsEnum,
     IsNumber,
@@ -9,7 +9,6 @@ import {
     IsString,
     Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class ServicePackageQueryDto {
@@ -64,8 +63,9 @@ export class ServicePackageQueryDto {
 
     @ApiPropertyOptional({
         description: 'Trạng thái hoạt động của gói dịch vụ',
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
-    isActive?: string;
+    isActive?: string = 'true';
 }

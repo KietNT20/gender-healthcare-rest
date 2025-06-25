@@ -10,9 +10,7 @@ import {
     Post,
     Put,
     Query,
-    Req,
     UseGuards,
-    Logger,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -37,13 +35,16 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Controller('services')
 export class ServicesController {
-    private readonly logger = new Logger(ServicesController.name);
-
     constructor(
         private readonly servicesService: ServicesService,
         private readonly serviceImageService: ServiceImageService,
     ) {}
 
+    /**
+     * Create a new service
+     * @param createServiceDto Data to create a service
+     * @returns Created service
+     */
     @Post()
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -65,6 +66,11 @@ export class ServicesController {
         return this.servicesService.create(createServiceDto);
     }
 
+    /**
+     * Get a list of services with pagination and filters
+     * @param query Query parameters for pagination and filtering
+     * @returns List of services with pagination metadata
+     */
     @Get()
     @ApiOperation({
         summary: 'Get a list of services with pagination and filters',
@@ -75,12 +81,15 @@ export class ServicesController {
         type: [ServiceResponseDto],
     })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto, @Req() req: any): Promise<Paginated<ServiceResponseDto>> {
-        this.logger.debug(`Raw query string from client: ${JSON.stringify(req.query)}`);
-        this.logger.debug(`Parsed query after DTO: ${JSON.stringify(query)}`);
+    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
         return this.servicesService.findAll(query);
     }
 
+    /**
+     * Get a service by slug
+     * @param slug Service slug
+     * @returns Service details
+     */
     @Get('slug/:slug')
     @ApiOperation({ summary: 'Get a service by slug' })
     @ApiResponse({
@@ -95,6 +104,11 @@ export class ServicesController {
         return this.servicesService.findBySlug(slug);
     }
 
+    /**
+     * Get a service by ID
+     * @param id Service ID
+     * @returns Service details
+     */
     @Get(':id')
     @ApiOperation({ summary: 'Get a service by ID' })
     @ApiResponse({
@@ -111,6 +125,12 @@ export class ServicesController {
         return this.servicesService.findOne(id);
     }
 
+    /**
+     * Update a service by ID
+     * @param id Service ID
+     * @param updateServiceDto Data to update the service
+     * @returns Updated service
+     */
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -136,6 +156,11 @@ export class ServicesController {
         return this.servicesService.update(id, updateServiceDto);
     }
 
+    /**
+     * Soft delete a service by ID
+     * @param id Service ID
+     * @returns Success message
+     */
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -156,6 +181,10 @@ export class ServicesController {
         return { message: 'Service deleted successfully' };
     }
 
+    /**
+     * Synchronize images with a service
+     * @param id Service ID
+     */
     @Patch('image/:id')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -170,6 +199,10 @@ export class ServicesController {
         return { message: 'Images synchronized successfully' };
     }
 
+    /**
+     * Add an image to a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
     @Post('image')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -185,6 +218,10 @@ export class ServicesController {
         return { message: 'Image added successfully' };
     }
 
+    /**
+     * Remove an image from a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
     @Put('image')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])

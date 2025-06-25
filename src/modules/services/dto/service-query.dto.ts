@@ -1,23 +1,38 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Min, IsIn } from 'class-validator';
-import { Transform } from 'class-transformer';
+import {
+    IsBoolean,
+    IsBooleanString,
+    IsEnum,
+    IsNumber,
+    IsOptional,
+    IsPositive,
+    IsString,
+    IsUUID,
+    Min,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
-    @ApiPropertyOptional({ description: 'Số trang, mặc định là 1', type: Number })
+    @ApiPropertyOptional({ description: 'Số trang, mặc định là 1' })
     @IsOptional()
     @IsPositive()
-    page: number = 1;
+    page?: number = 1;
 
-    @ApiPropertyOptional({ description: 'Số bản ghi mỗi trang, mặc định là 10', type: Number })
+    @ApiPropertyOptional({
+        description: 'Số bản ghi mỗi trang, mặc định là 10',
+    })
     @IsOptional()
     @IsPositive()
-    limit: number = 10;
+    limit?: number = 10;
 
-    @ApiPropertyOptional({ description: 'Trường sắp xếp (name, price, duration, createdAt, updatedAt)', type: String })
+    @ApiPropertyOptional({
+        description:
+            'Trường sắp xếp (name, price, duration, createdAt, updatedAt)',
+    })
     @IsOptional()
     @IsString()
-    sortBy: string = 'createdAt';
+    sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({
         enum: SortOrder,
@@ -26,57 +41,50 @@ export class ServiceQueryDto {
     })
     @IsOptional()
     @IsEnum(SortOrder)
-    sortOrder: SortOrder = SortOrder.DESC;
+    sortOrder?: SortOrder = SortOrder.DESC;
 
-    @ApiPropertyOptional({ description: 'Từ khóa tìm kiếm trong tên hoặc mô tả', type: String })
+    @ApiPropertyOptional({
+        description: 'Từ khóa tìm kiếm trong tên hoặc mô tả',
+    })
     @IsOptional()
     @IsString()
     search?: string;
 
-    @ApiPropertyOptional({ description: 'ID của danh mục dịch vụ', type: String })
+    @ApiPropertyOptional({ description: 'ID của danh mục dịch vụ' })
     @IsOptional()
     @IsUUID()
     categoryId?: string;
 
-    @ApiPropertyOptional({ description: 'Giá tối thiểu', type: Number })
+    @ApiPropertyOptional({ description: 'Giá tối thiểu' })
     @IsOptional()
     @IsNumber()
     @Min(0)
     minPrice?: number;
 
-    @ApiPropertyOptional({ description: 'Giá tối đa', type: Number })
+    @ApiPropertyOptional({ description: 'Giá tối đa' })
     @IsOptional()
     @IsNumber()
     @Min(0)
     maxPrice?: number;
 
-    @ApiPropertyOptional({
-        description: 'Trạng thái hoạt động của dịch vụ',
-        type: Number,
-        enum: [0, 1],
-    })
+    @ApiPropertyOptional({ description: 'Trạng thái hoạt động của dịch vụ' })
     @IsOptional()
-    @IsIn([0, 1])
-    @Transform(({ value }) => (value === 1 || value === '1' ? 1 : 0), { toClassOnly: true })
-    isActive?: number;
+    @IsBooleanString()
+    isActive?: string;
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có được đánh dấu là nổi bật hay không',
-        type: Number,
-        enum: [0, 1],
     })
     @IsOptional()
-    @IsIn([0, 1])
-    @Transform(({ value }) => (value === 1 || value === '1' ? 1 : 0), { toClassOnly: true })
-    featured?: number;
+    @IsBooleanString()
+    featured?: string;
+
+    // ServiceQueryDto
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có yêu cầu tư vấn viên hay không',
-        type: Number,
-        enum: [0, 1],
     })
     @IsOptional()
-    @IsIn([0, 1])
-    @Transform(({ value }) => (value === 1 || value === '1' ? 1 : 0), { toClassOnly: true })
-    requiresConsultant?: number;
+    @IsBooleanString()
+    requiresConsultant?: string;
 }

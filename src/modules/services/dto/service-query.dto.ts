@@ -69,20 +69,22 @@ export class ServiceQueryDto {
 
     @ApiPropertyOptional({ description: 'Trạng thái hoạt động của dịch vụ' })
     @IsOptional()
-    @IsBoolean()
-    isActive?: boolean;
+    @IsBooleanString()
+    isActive?: string;
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có được đánh dấu là nổi bật hay không',
     })
     @IsOptional()
-    @IsBoolean()
-    featured?: boolean;
+    @IsBooleanString()
+    featured?: string;
+
+    // ServiceQueryDto
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có yêu cầu tư vấn viên hay không',
     })
     @IsOptional()
     @IsBooleanString()
-    requiresConsultant?: string; 
+    requiresConsultant?: string;
 }

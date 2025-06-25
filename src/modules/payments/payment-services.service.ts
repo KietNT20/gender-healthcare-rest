@@ -1,74 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { SortOrder } from 'src/enums';
+import { IsNull, Like, Repository } from 'typeorm';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
-import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
-import { Like, IsNull } from 'typeorm';
 import { Service } from '../services/entities/service.entity';
+import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
 
 @Injectable()
 export class PaymentServicesService {
     constructor(
-        @InjectRepository(ServicePackage)
-        private packageRepository: Repository<ServicePackage>,
         @InjectRepository(Service)
         private serviceRepository: Repository<Service>,
+        @InjectRepository(ServicePackage)
+        private packageRepository: Repository<ServicePackage>,
     ) {}
 
-    async getAvailablePackages(query: GetPayablePackagesDto) {
-        const { search, isActive = true } = query;
-
-        const where: any = {
-            deletedAt: IsNull(),
-        };
-
-        // Thêm điều kiện isActive nếu được cung cấp
-        if (isActive !== undefined) {
-            where.isActive = isActive;
-        }
-
-        // Thêm điều kiện search nếu có
-        if (search) {
-            where.name = Like(`%${search}%`);
-        }
-
-        const packages = await this.packageRepository.find({
-            where,
-            select: [
-                'id',
-                'name',
-                'price',
-                'durationMonths',
-                'maxServicesPerMonth',
-                'isActive',
-            ],
-            order: { createdAt: 'DESC' },
-        });
-
-        return {
-            success: true,
-            data: packages,
-        };
-    }
-
-    // Giữ nguyên getAvailableServices nếu cần, sửa tương tự nếu có lỗi
+    /**
+     * Lấy danh sách dịch vụ có thể thanh toán
+     */
     async getAvailableServices(query: GetPayablePackagesDto) {
-        const { search, isActive = true } = query;
+        const { search, isActive } = query;
 
-        const where: any = {
-            deletedAt: IsNull(),
-        };
-
-        if (isActive !== undefined) {
-            where.isActive = isActive;
-        }
-
-        if (search) {
-            where.name = Like(`%${search}%`);
+        let isActiveBool: boolean | undefined;
+        switch (isActive) {
+            case 'true':
+                isActiveBool = true;
+                break;
+            case 'false':
+                isActiveBool = false;
+                break;
+            default:
+                isActiveBool = undefined;
+                break;
         }
 
         const services = await this.serviceRepository.find({
-            where,
+            where: {
+                deletedAt: IsNull(),
+                ...(isActive !== undefined && { isActive: isActiveBool }),
+                ...(search && { name: Like(`%${search}%`) }),
+            },
             select: [
                 'id',
                 'name',
@@ -84,9 +55,45 @@ export class PaymentServicesService {
             order: { createdAt: 'DESC' },
         });
 
-        return {
-            success: true,
-            data: services,
-        };
+        return services;
+    }
+
+    /**
+     * Lấy danh sách gói dịch vụ có thể thanh toán
+     */
+    async getAvailablePackages(query: GetPayablePackagesDto) {
+        const { search, isActive } = query;
+
+        let isActiveBool: boolean | undefined;
+        switch (isActive) {
+            case 'true':
+                isActiveBool = true;
+                break;
+            case 'false':
+                isActiveBool = false;
+                break;
+            default:
+                isActiveBool = undefined;
+                break;
+        }
+
+        const packages = await this.packageRepository.find({
+            where: {
+                deletedAt: IsNull(),
+                ...(isActive !== undefined && { isActive: isActiveBool }),
+                ...(search && { name: Like(`%${search}%`) }),
+            },
+            select: [
+                'id',
+                'name',
+                'price',
+                'durationMonths',
+                'maxServicesPerMonth',
+                'isActive',
+            ],
+            order: { createdAt: SortOrder.DESC },
+        });
+
+        return packages;
     }
 }

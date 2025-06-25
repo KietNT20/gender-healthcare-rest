@@ -87,7 +87,7 @@ export class FilterQueryStiTestProcessDto {
 
     @ApiPropertyOptional({
         description: 'Yêu cầu tư vấn',
-        example: true,
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
@@ -95,7 +95,7 @@ export class FilterQueryStiTestProcessDto {
 
     @ApiPropertyOptional({
         description: 'Đã thông báo bệnh nhân',
-        example: true,
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
@@ -103,7 +103,7 @@ export class FilterQueryStiTestProcessDto {
 
     @ApiPropertyOptional({
         description: 'Chỉ hiển thị các xét nghiệm có kết quả',
-        example: false,
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()

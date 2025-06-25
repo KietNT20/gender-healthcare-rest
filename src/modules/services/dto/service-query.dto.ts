@@ -68,24 +68,29 @@ export class ServiceQueryDto {
     @Min(0)
     maxPrice?: number;
 
-    @ApiPropertyOptional({ description: 'Trạng thái hoạt động của dịch vụ' })
-    @IsOptional()
-    @IsBooleanString()
-    isActive?: string;
-
     @ApiPropertyOptional({
-        description: 'Dịch vụ có được đánh dấu là nổi bật hay không',
+        description: 'Trạng thái hoạt động của dịch vụ',
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
-    featured?: string;
+    isActive?: string = 'true';
+
+    @ApiPropertyOptional({
+        description: 'Dịch vụ có được đánh dấu là nổi bật hay không',
+        type: 'boolean',
+    })
+    @IsOptional()
+    @IsBooleanString()
+    featured?: string = 'false';
 
     // ServiceQueryDto
 
     @ApiPropertyOptional({
         description: 'Dịch vụ có yêu cầu tư vấn viên hay không',
+        type: 'boolean',
     })
     @IsOptional()
     @IsBooleanString()
-    requiresConsultant?: string;
+    requiresConsultant?: string = 'false';
 }

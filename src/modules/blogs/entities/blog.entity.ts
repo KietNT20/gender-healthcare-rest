@@ -69,6 +69,9 @@ export class Blog {
     @Column({ type: 'text', nullable: true })
     revisionNotes?: string;
 
+    @Column({ type: 'text', nullable: true })
+    publishNotes?: string;
+
     @Column({
         type: 'timestamp with time zone',
         nullable: true,

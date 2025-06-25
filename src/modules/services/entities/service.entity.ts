@@ -1,3 +1,4 @@
+import { LocationTypeEnum } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import { Category } from 'src/modules/categories/entities/category.entity';
@@ -55,6 +56,13 @@ export class Service {
     @Column({ type: 'text', array: true, nullable: true })
     specialties?: string[];
 
+    @Column({
+        type: 'enum',
+        enum: LocationTypeEnum,
+        default: LocationTypeEnum.OFFICE,
+    })
+    location: LocationTypeEnum;
+
     @Column({ default: false })
     requiresConsultant: boolean;
 
@@ -89,6 +97,6 @@ export class Service {
     @ManyToMany(() => Blog, (blog) => blog.services)
     blogs: Blog[];
 
-    @OneToMany(() => Image, (image) => image.service, { eager: true })
+    @OneToMany(() => Image, (image) => image.service)
     images: Image[];
 }

@@ -242,25 +242,77 @@ export class AppointmentBookingService {
             : new Date(searchStartDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
 
         // Tìm tư vấn viên phù hợp
-        const consultantWhere: any = {
-            profileStatus: ProfileStatusType.ACTIVE,
-            ...(serviceSpecialties.length > 0 && {
-                specialties: In(serviceSpecialties),
-            }),
-            ...(consultantId && { user: { id: consultantId } }),
-        };
+        let profiles: ConsultantProfile[];
 
-        const profiles = await manager.find(ConsultantProfile, {
-            where: consultantWhere,
-            relations: ['user', 'user.role'],
-        });
+        if (consultantId) {
+            // Nếu có consultantId cụ thể, tìm consultant đó trước
+            const specificProfile = await manager.findOne(ConsultantProfile, {
+                where: {
+                    user: { id: consultantId },
+                    profileStatus: ProfileStatusType.ACTIVE,
+                },
+                relations: ['user', 'user.role'],
+            });
 
-        if (profiles.length === 0) {
-            return {
-                availableSlots: [],
-                totalSlots: 0,
-                totalConsultants: 0,
+            if (!specificProfile) {
+                return {
+                    availableSlots: [],
+                    totalSlots: 0,
+                    totalConsultants: 0,
+                    message: 'Tư vấn viên không tồn tại hoặc không hoạt động.',
+                };
+            }
+
+            // Kiểm tra specialty matching nếu có yêu cầu
+            if (serviceSpecialties.length > 0) {
+                const consultantSpecialties = specificProfile.specialties || [];
+                const hasMatchingSpecialty = serviceSpecialties.some(
+                    (serviceSpecialty) =>
+                        consultantSpecialties.includes(serviceSpecialty),
+                );
+
+                if (!hasMatchingSpecialty) {
+                    const requiredSpecialties = [
+                        ...new Set(serviceSpecialties),
+                    ].join(', ');
+                    const consultantSpecialtiesStr =
+                        consultantSpecialties.length > 0
+                            ? consultantSpecialties.join(', ')
+                            : 'Không có chuyên môn nào';
+
+                    return {
+                        availableSlots: [],
+                        totalSlots: 0,
+                        totalConsultants: 0,
+                        message: `Tư vấn viên "${specificProfile.user.firstName} ${specificProfile.user.lastName}" không có chuyên môn phù hợp. Yêu cầu: ${requiredSpecialties}. Chuyên môn hiện có: ${consultantSpecialtiesStr}.`,
+                    };
+                }
+            }
+
+            profiles = [specificProfile];
+        } else {
+            // Tìm tất cả consultant phù hợp dựa trên specialties
+            const consultantWhere: any = {
+                profileStatus: ProfileStatusType.ACTIVE,
+                ...(serviceSpecialties.length > 0 && {
+                    specialties: In(serviceSpecialties),
+                }),
             };
+
+            profiles = await manager.find(ConsultantProfile, {
+                where: consultantWhere,
+                relations: ['user', 'user.role'],
+            });
+
+            if (profiles.length === 0) {
+                return {
+                    availableSlots: [],
+                    totalSlots: 0,
+                    totalConsultants: 0,
+                    message:
+                        'Không tìm thấy tư vấn viên phù hợp với chuyên môn yêu cầu.',
+                };
+            }
         }
 
         const availableSlots: AvailableSlotDto[] = [];

@@ -27,7 +27,9 @@ export class ServicesService {
      * @param createServiceDto Input data to create a service
      * @returns Created service
      */
-    async create(createServiceDto: CreateServiceDto): Promise<ServiceResponseDto> {
+    async create(
+        createServiceDto: CreateServiceDto,
+    ): Promise<ServiceResponseDto> {
         // Generate slug from name
         const baseSlug = slugify(createServiceDto.name, {
             lower: true,
@@ -52,7 +54,9 @@ export class ServicesService {
         const newService = this.serviceRepo.create({
             ...createServiceDto,
             slug, // Assign auto-generated slug
-            category: createServiceDto.categoryId ? { id: createServiceDto.categoryId } : undefined,
+            category: createServiceDto.categoryId
+                ? { id: createServiceDto.categoryId }
+                : undefined,
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
             requiresConsultant: createServiceDto.requiresConsultant ?? false,
@@ -130,19 +134,26 @@ export class ServicesService {
         };
     }
 
-    /**
-     * Apply filters to the service query
-     * @param queryBuilder QueryBuilder to apply filters
-     * @param serviceQueryDto DTO containing filter criteria
-     */
     private applyServiceFilters(
         queryBuilder: any,
         serviceQueryDto: ServiceQueryDto,
     ): void {
-        const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
-            serviceQueryDto;
+        const {
+            search,
+            categoryId,
+            minPrice,
+            maxPrice,
+            isActive,
+            featured,
+            requiresConsultant,
+        } = serviceQueryDto;
 
-        this.logger.debug(`Received requiresConsultant filter: ${requiresConsultant}, type: ${typeof requiresConsultant}`);
+        this.logger.debug(
+            `Received serviceQueryDto: ${JSON.stringify(serviceQueryDto)}`,
+        );
+        this.logger.debug(
+            `Received requiresConsultant: ${requiresConsultant}, type: ${typeof requiresConsultant}`,
+        );
 
         if (search) {
             queryBuilder.andWhere(
@@ -171,10 +182,10 @@ export class ServicesService {
             queryBuilder.andWhere('service.featured = :featured', { featured });
         }
         if (requiresConsultant !== undefined) {
-            this.logger.debug(`Applying filter requiresConsultant: ${requiresConsultant}`);
-            queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
-                requiresConsultant,
-            });
+            queryBuilder.andWhere(
+                'service.requiresConsultant = :requiresConsultant',
+                { requiresConsultant },
+            );
         }
     }
 
@@ -214,7 +225,10 @@ export class ServicesService {
      * @param updateDto Update data
      * @returns Updated service
      */
-    async update(id: string, updateDto: UpdateServiceDto): Promise<ServiceResponseDto> {
+    async update(
+        id: string,
+        updateDto: UpdateServiceDto,
+    ): Promise<ServiceResponseDto> {
         // Fetch original entity
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
@@ -295,7 +309,9 @@ export class ServicesService {
         });
 
         if (!service) {
-            throw new NotFoundException(`Service with slug '${slug}' not found`);
+            throw new NotFoundException(
+                `Service with slug '${slug}' not found`,
+            );
         }
 
         return plainToClass(ServiceResponseDto, {

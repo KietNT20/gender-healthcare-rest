@@ -349,7 +349,6 @@ export class AppointmentAttendanceService {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Sử dụng query builder để có control tốt hơn
         return this.appointmentRepository
             .createQueryBuilder('appointment')
             .where('appointment.status = :status', {
@@ -371,26 +370,8 @@ export class AppointmentAttendanceService {
         // Tính tổng thời gian dự kiến của các services
         let totalTime = 0;
         for (const service of appointment.services) {
-            // Giả sử mỗi service có duration field (phút)
-            // Nếu không có, dùng thời gian mặc định theo loại service
-            if (service.duration) {
-                totalTime += service.duration;
-            } else {
-                // Thời gian mặc định theo category
-                switch (service.category?.type) {
-                    case 'CONSULTATION':
-                        totalTime += 30;
-                        break;
-                    case 'LAB_TEST':
-                        totalTime += 15;
-                        break;
-                    case 'EXAMINATION':
-                        totalTime += 25;
-                        break;
-                    default:
-                        totalTime += 20;
-                }
-            }
+            // Service entity có duration field (phút)
+            totalTime += service.duration;
         }
 
         return Math.max(totalTime, 10); // Tối thiểu 10 phút

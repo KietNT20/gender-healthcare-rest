@@ -78,16 +78,13 @@ export class ServiceQueryDto {
     @IsBoolean()
     featured?: boolean;
 
+    // ServiceQueryDto
+
     @ApiPropertyOptional({
         description: 'Dịch vụ có yêu cầu tư vấn viên hay không',
     })
     @IsOptional()
-    @Transform(({ value }) => {
-        if (value === 'true' || value === true || value === 1 || value === '1') return true;
-        if (value === 'false' || value === false || value === 0 || value === '0') return false;
-        return false; // Mặc định trả về false nếu giá trị không hợp lệ
-    })
+    @Type(() => Boolean) // <-- chuyển 'true'/'false' thành boolean
     @IsBoolean()
-    @IsOptional()
     requiresConsultant?: boolean;
 }

@@ -1,7 +1,6 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import {
-    IsBoolean,
+    IsBooleanString,
     IsEnum,
     IsNumber,
     IsOptional,
@@ -37,9 +36,8 @@ export class FilterConsultantProfileDto {
 
     @ApiPropertyOptional({ description: 'Filter by availability' })
     @IsOptional()
-    @Transform(({ value }) => value === 'true' || value === true)
-    @IsBoolean()
-    isAvailable?: boolean;
+    @IsBooleanString()
+    isAvailable?: string = 'true';
 
     @ApiPropertyOptional({ description: 'Filter by minimum rating' })
     @IsOptional()

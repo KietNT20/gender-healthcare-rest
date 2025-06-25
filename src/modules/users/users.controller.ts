@@ -28,8 +28,8 @@ import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @ApiBearerAuth()
-@Controller('users')
 @UseGuards(JwtAuthGuard)
+@Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
@@ -47,8 +47,8 @@ export class UsersController {
     }
 
     @Get()
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
+    // @UseGuards(RoleGuard)
+    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
     @ApiOperation({ summary: 'Get all users with pagination and filters' })
     @ApiResponse({
         status: HttpStatus.OK,

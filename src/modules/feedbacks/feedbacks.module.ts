@@ -13,7 +13,7 @@ import { Image } from '../images/entities/image.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Feedback, User, Service, Appointment,Image]),
+        TypeOrmModule.forFeature([Feedback, User, Service, Appointment, Image]),
         ImagesModule,
     ],
     controllers: [FeedbacksController],

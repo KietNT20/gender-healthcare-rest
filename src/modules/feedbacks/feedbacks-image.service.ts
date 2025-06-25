@@ -22,7 +22,9 @@ export class FeedbackImageService {
         });
 
         if (!feedback) {
-            throw new NotFoundException(`Feedback with ID ${feedbackId} not found`);
+            throw new NotFoundException(
+                `Feedback with ID ${feedbackId} not found`,
+            );
         }
 
         const images = await this.imageRepository.find({
@@ -36,7 +38,9 @@ export class FeedbackImageService {
         await this.feedbackRepository.save(feedback);
     }
 
-    async addImageToFeedback(createFeedbackImageDTO: CreateFeedbackImageDTO): Promise<void> {
+    async addImageToFeedback(
+        createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ): Promise<void> {
         const { feedbackId, imageId } = createFeedbackImageDTO;
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
@@ -44,7 +48,9 @@ export class FeedbackImageService {
         });
 
         if (!feedback) {
-            throw new NotFoundException(`Feedback with ID ${feedbackId} not found`);
+            throw new NotFoundException(
+                `Feedback with ID ${feedbackId} not found`,
+            );
         }
 
         const image = await this.imageRepository.findOne({
@@ -67,7 +73,9 @@ export class FeedbackImageService {
         }
     }
 
-    async removeImageFromFeedback(createFeedbackImageDTO: CreateFeedbackImageDTO): Promise<void> {
+    async removeImageFromFeedback(
+        createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ): Promise<void> {
         const { feedbackId, imageId } = createFeedbackImageDTO;
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
@@ -75,7 +83,9 @@ export class FeedbackImageService {
         });
 
         if (!feedback) {
-            throw new NotFoundException(`Feedback with ID ${feedbackId} not found`);
+            throw new NotFoundException(
+                `Feedback with ID ${feedbackId} not found`,
+            );
         }
 
         feedback.images = feedback.images.filter((img) => img.id !== imageId);

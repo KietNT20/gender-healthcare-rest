@@ -123,48 +123,58 @@ export class ServicesService {
      * @param serviceQueryDto DTO chứa các tiêu chí lọc
      */
     private applyServiceFilters(
-    queryBuilder: any,
-    serviceQueryDto: ServiceQueryDto,
-): void {
-    const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
-        serviceQueryDto;
-
-    if (search) {
-        queryBuilder.andWhere(
-            'service.name ILIKE :search OR service.description ILIKE :search',
-            {
-                search: `%${search}%`,
-            },
-        );
-    }
-
-    if (categoryId) {
-        queryBuilder.andWhere('service.categoryId = :categoryId', {
+        queryBuilder: any,
+        serviceQueryDto: ServiceQueryDto,
+    ): void {
+        const {
+            search,
             categoryId,
-        });
-    }
-    if (minPrice !== undefined) {
-        queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
-    }
-
-    if (maxPrice !== undefined) {
-        queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
-    }
-
-    if (isActive !== undefined) {
-        queryBuilder.andWhere('service.isActive = :isActive', { isActive });
-    }
-
-    if (featured !== undefined) {
-        queryBuilder.andWhere('service.featured = :featured', { featured });
-    }
-
-    if (requiresConsultant !== undefined) {
-        queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
+            minPrice,
+            maxPrice,
+            isActive,
+            featured,
             requiresConsultant,
-        });
+        } = serviceQueryDto;
+
+        if (search) {
+            queryBuilder.andWhere(
+                'service.name ILIKE :search OR service.description ILIKE :search',
+                {
+                    search: `%${search}%`,
+                },
+            );
+        }
+
+        if (categoryId) {
+            queryBuilder.andWhere('service.categoryId = :categoryId', {
+                categoryId,
+            });
+        }
+        if (minPrice !== undefined) {
+            queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
+        }
+
+        if (maxPrice !== undefined) {
+            queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
+        }
+
+        if (isActive !== undefined) {
+            queryBuilder.andWhere('service.isActive = :isActive', { isActive });
+        }
+
+        if (featured !== undefined) {
+            queryBuilder.andWhere('service.featured = :featured', { featured });
+        }
+
+        if (requiresConsultant !== undefined) {
+            queryBuilder.andWhere(
+                'service.requiresConsultant = :requiresConsultant',
+                {
+                    requiresConsultant,
+                },
+            );
+        }
     }
-}
 
     /**
      * Tìm một dịch vụ theo ID
@@ -175,7 +185,7 @@ export class ServicesService {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
-                category : true,
+                category: true,
             },
         });
 
@@ -329,6 +339,4 @@ export class ServicesService {
         const count = await queryBuilder.getCount();
         return count > 0;
     }
-    
-
 }

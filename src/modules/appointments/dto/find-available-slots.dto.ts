@@ -12,6 +12,7 @@ export class FindAvailableSlotsDto {
         description: 'Danh sách ID của các dịch vụ yêu cầu',
         type: [String],
         example: ['service-uuid-1', 'service-uuid-2'],
+        isArray: true,
     })
     @IsArray()
     @IsUUID('4', { each: true })

@@ -9,8 +9,8 @@ import {
     Patch,
     Post,
     Put,
-    Query,
     UseGuards,
+    ValidationPipe,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -72,17 +72,20 @@ export class ServicesController {
      * @param query Query parameters for pagination and filtering
      * @returns List of services with pagination metadata
      */
-    @Get()
+    @Post('search')
     @ApiOperation({
         summary: 'Get a list of services with pagination and filters',
     })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Services retrieved successfully',
-        type: [Service],
     })
+    @ApiBody({ type: ServiceQueryDto })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto) {
+    findAll(
+        @Body(ValidationPipe)
+        query: ServiceQueryDto,
+    ) {
         return this.servicesService.findAll(query);
     }
 

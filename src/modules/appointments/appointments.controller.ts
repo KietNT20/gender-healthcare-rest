@@ -9,9 +9,11 @@ import {
     Post,
     Query,
     UseGuards,
+    ValidationPipe,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
+    ApiBody,
     ApiOperation,
     ApiResponse,
     ApiTags,
@@ -96,7 +98,7 @@ export class AppointmentsController {
         return this.appointmentsService.findAll(currentUser, queryDto);
     }
 
-    @Get('available-slots')
+    @Post('available-slots')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
     @ApiOperation({
@@ -109,8 +111,12 @@ export class AppointmentsController {
         description: 'Available slots retrieved successfully.',
         type: FindAvailableSlotsResponseDto,
     })
+    @ApiBody({ type: FindAvailableSlotsDto })
     @ResponseMessage('Available slots retrieved successfully.')
-    findAvailableSlots(@Query() findSlotsDto: FindAvailableSlotsDto) {
+    findAvailableSlots(
+        @Body(ValidationPipe)
+        findSlotsDto: FindAvailableSlotsDto,
+    ) {
         return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 

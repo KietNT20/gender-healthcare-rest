@@ -515,6 +515,12 @@ export class AppointmentsService {
     async findAvailableSlots(
         findSlotsDto: FindAvailableSlotsDto,
     ): Promise<FindAvailableSlotsResponseDto> {
+        if (!findSlotsDto.serviceIds || findSlotsDto.serviceIds.length === 0) {
+            throw new BadRequestException(
+                'Vui lòng chọn ít nhất một dịch vụ để tìm kiếm slot khả dụng.',
+            );
+        }
+
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
 

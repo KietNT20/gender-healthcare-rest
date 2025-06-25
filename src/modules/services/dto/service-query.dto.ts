@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsBoolean,
     IsBooleanString,
     IsEnum,
+    IsIn,
     IsNumber,
     IsOptional,
     IsPositive,
@@ -10,7 +10,6 @@ import {
     IsUUID,
     Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
@@ -29,9 +28,11 @@ export class ServiceQueryDto {
     @ApiPropertyOptional({
         description:
             'Trường sắp xếp (name, price, duration, createdAt, updatedAt)',
+        enum: ['name', 'price', 'duration', 'createdAt', 'updatedAt'],
     })
     @IsOptional()
     @IsString()
+    @IsIn(['name', 'price', 'duration', 'createdAt', 'updatedAt'])
     sortBy?: string = 'createdAt';
 
     @ApiPropertyOptional({

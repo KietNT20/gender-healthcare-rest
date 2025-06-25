@@ -81,7 +81,7 @@ export class ServicesController {
         type: [ServiceResponseDto],
     })
     @ResponseMessage('Services retrieved successfully')
-    async findAll(@Query() query: ServiceQueryDto): Promise<Paginated<ServiceResponseDto>> {
+    async findAll(@Query() query: ServiceQueryDto){
         return this.servicesService.findAll(query);
     }
 

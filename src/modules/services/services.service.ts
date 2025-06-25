@@ -141,22 +141,16 @@ export class ServicesService {
     ): void {
         const { search, categoryId, minPrice, maxPrice, isActive, featured, requiresConsultant } =
             serviceQueryDto;
-
-        this.logger.debug(`Received requiresConsultant filter: ${requiresConsultant}, type: ${typeof requiresConsultant}`);
-
+    
         if (search) {
             queryBuilder.andWhere(
                 'service.name ILIKE :search OR service.description ILIKE :search',
-                {
-                    search: `%${search}%`,
-                },
+                { search: `%${search}%` },
             );
         }
-
+    
         if (categoryId) {
-            queryBuilder.andWhere('service.categoryId = :categoryId', {
-                categoryId,
-            });
+            queryBuilder.andWhere('service.categoryId = :categoryId', { categoryId });
         }
         if (minPrice !== undefined) {
             queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
@@ -171,9 +165,8 @@ export class ServicesService {
             queryBuilder.andWhere('service.featured = :featured', { featured });
         }
         if (requiresConsultant !== undefined) {
-            this.logger.debug(`Applying filter requiresConsultant: ${requiresConsultant}`);
             queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
-                requiresConsultant,
+                requiresConsultant: requiresConsultant === true
             });
         }
     }

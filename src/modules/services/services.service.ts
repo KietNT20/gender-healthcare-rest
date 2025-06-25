@@ -1,15 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { IsNull, Repository } from 'typeorm';
-import { CreateServiceDto } from './dto/create-service.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
+import { CreateServiceDto } from './dto/create-service.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { ServiceResponseDto } from './dto/service-response.dto';
-import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class ServicesService {
@@ -27,9 +25,7 @@ export class ServicesService {
      * @param createServiceDto Input data to create a service
      * @returns Created service
      */
-    async create(
-        createServiceDto: CreateServiceDto,
-    ): Promise<ServiceResponseDto> {
+    async create(createServiceDto: CreateServiceDto): Promise<Service> {
         // Generate slug from name
         const baseSlug = slugify(createServiceDto.name, {
             lower: true,
@@ -63,11 +59,7 @@ export class ServicesService {
         });
 
         const savedService = await this.serviceRepo.save(newService);
-        return plainToClass(ServiceResponseDto, {
-            ...savedService,
-            category: savedService.category || category,
-            images: savedService.images || [],
-        });
+        return savedService;
     }
 
     /**
@@ -77,7 +69,7 @@ export class ServicesService {
      */
     async findAll(
         serviceQueryDto: ServiceQueryDto,
-    ): Promise<Paginated<ServiceResponseDto>> {
+    ): Promise<Paginated<Service>> {
         const queryBuilder = this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
@@ -106,17 +98,8 @@ export class ServicesService {
 
         const [services, totalItems] = await queryBuilder.getManyAndCount();
 
-        // Map to ServiceResponseDto
-        const mappedServices = services.map((service) =>
-            plainToClass(ServiceResponseDto, {
-                ...service,
-                category: service.category,
-                images: service.images || [],
-            }),
-        );
-
         return {
-            data: mappedServices,
+            data: services,
             meta: {
                 itemsPerPage: serviceQueryDto.limit!,
                 totalItems,
@@ -140,6 +123,14 @@ export class ServicesService {
             requiresConsultant,
         } = serviceQueryDto;
 
+        if (search) {
+            queryBuilder.andWhere(
+                'service.name ILIKE :search OR service.description ILIKE :search',
+                {
+                    search: `%${search}%`,
+                },
+            );
+        }
         if (search) {
             queryBuilder.andWhere(
                 'service.name ILIKE :search OR service.description ILIKE :search',
@@ -179,7 +170,7 @@ export class ServicesService {
      * @param id Service ID
      * @returns Found service
      */
-    async findOne(id: string): Promise<ServiceResponseDto> {
+    async findOne(id: string): Promise<Service> {
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
@@ -192,13 +183,7 @@ export class ServicesService {
             throw new NotFoundException(`Service with ID '${id}' not found`);
         }
 
-
-
-        return plainToClass(ServiceResponseDto, {
-            ...service,
-            category: service.category,
-            images: service.images || [],
-        });
+        return service;
     }
 
     /**
@@ -207,10 +192,7 @@ export class ServicesService {
      * @param updateDto Update data
      * @returns Updated service
      */
-    async update(
-        id: string,
-        updateDto: UpdateServiceDto,
-    ): Promise<ServiceResponseDto> {
+    async update(id: string, updateDto: UpdateServiceDto): Promise<Service> {
         // Fetch original entity
         const service = await this.serviceRepo.findOne({
             where: { id, deletedAt: IsNull() },
@@ -250,16 +232,11 @@ export class ServicesService {
             category: categoryRef ? { id: categoryRef.id } : undefined,
             requiresConsultant:
                 updateDto.requiresConsultant ?? service.requiresConsultant,
-            updatedAt: new Date(),
         });
 
         // Save and return entity
         const savedService = await this.serviceRepo.save(updatedService);
-        return plainToClass(ServiceResponseDto, {
-            ...savedService,
-            category: savedService.category || categoryRef,
-            images: savedService.images || [],
-        });
+        return savedService;
     }
 
     /**
@@ -283,7 +260,7 @@ export class ServicesService {
      * @param slug Service slug
      * @returns Found service
      */
-    async findBySlug(slug: string): Promise<ServiceResponseDto> {
+    async findBySlug(slug: string): Promise<Service> {
         const service = await this.serviceRepo.findOne({
             where: { slug, deletedAt: IsNull() },
             relations: ['category', 'images'],
@@ -295,11 +272,7 @@ export class ServicesService {
             );
         }
 
-        return plainToClass(ServiceResponseDto, {
-            ...service,
-            category: service.category,
-            images: service.images || [],
-        });
+        return service;
     }
 
     /**

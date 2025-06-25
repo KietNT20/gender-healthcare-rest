@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo No-Show</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .details {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .reschedule-section {
+            background-color: #d1ecf1;
+            padding: 15px;
+            border-left: 4px solid #17a2b8;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #777;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        strong {
+            color: #333;
+        }
+
+        .warning {
+            color: #856404;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Thông Báo No-Show</h1>
+        </div>
+
+        <p>Chào <strong>{{userName}}</strong>,</p>
+
+        <p>Chúng tôi rất tiếc phải thông báo rằng cuộc hẹn của bạn đã bị đánh dấu <strong>No-Show</strong> do bạn không
+            có mặt theo lịch đã đặt.</p>
+
+        <div class="details">
+            <p><strong>Thông tin cuộc hẹn:</strong></p>
+            <p><strong>Thời gian:</strong> {{appointmentTime}}</p>
+            {{#if reason}}
+            <p><strong>Lý do:</strong> {{reason}}</p>
+            {{/if}}
+        </div>
+
+        <div class="reschedule-section">
+            <h3>💡 Đặt lại lịch hẹn</h3>
+            <p>Bạn vẫn có thể đặt lại lịch hẹn một cách dễ dàng. Vui lòng click vào nút bên dưới để đặt lại lịch:</p>
+            <a href="{{rescheduleLink}}" class="button">Đặt Lại Lịch Hẹn</a>
+        </div>
+
+        <p><strong class="warning">Lưu ý quan trọng:</strong></p>
+        <ul>
+            <li>Việc không đến theo lịch hẹn có thể ảnh hưởng đến việc đặt lịch trong tương lai</li>
+            <li>Vui lòng thông báo trước nếu bạn không thể đến được</li>
+            <li>Chúng tôi luôn sẵn sàng hỗ trợ và tư vấn cho bạn</li>
+        </ul>
+
+        <p>Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua:</p>
+        <ul>
+            <li><strong>Hotline:</strong> 1900 xxxx</li>
+            <li><strong>Email:</strong> support@genderhealthcare.com</li>
+        </ul>
+
+        <p>Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi!</p>
+
+        <div class="footer">
+            <p>© 2024 Gender Healthcare. Mọi quyền được bảo lưu.</p>
+            <p>Email này được gửi tự động, vui lòng không trả lời trực tiếp.</p>
+        </div>
+    </div>
+</body>
+
+</html>

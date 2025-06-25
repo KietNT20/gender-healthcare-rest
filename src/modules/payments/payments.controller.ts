@@ -20,7 +20,6 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
-import { WebhookType } from '@payos/node/lib/type';
 import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -34,9 +33,18 @@ import { CreateAppointmentPaymentDto } from './dto/create-appointment-payment.dt
 import { CreatePackagePaymentDto } from './dto/create-package-payment.dto';
 import { CreateServicePaymentDto } from './dto/create-service-payment.dto';
 import { GetPayablePackagesDto } from './dto/get-payable-packages.dto';
+import { WebhookTypeDTO } from './dto/webhook-type.dto';
 import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
-import { WebhookTypeDTO } from './dto/webhook-type.dto';
+
+/**
+ * PaymentsController - Updated for New Payment Flow
+ *
+ * ⚠️ REMOVED: All refund-related endpoints
+ * ✅ NEW FLOW:
+ * - Online consultation & packages: Pay first
+ * - Offline appointments: Book first, pay after service
+ */
 
 @ApiTags('Payments')
 @Controller('payments')

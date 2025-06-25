@@ -1,6 +1,7 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
     IsBoolean,
+    IsBooleanString,
     IsEnum,
     IsInt,
     IsOptional,
@@ -29,8 +30,8 @@ class Filters {
 
     @ApiPropertyOptional({ description: 'Filter by availability status' })
     @IsOptional()
-    @IsBoolean()
-    isAvailable?: boolean;
+    @IsBooleanString()
+    isAvailable?: string;
 
     @ApiPropertyOptional({
         description: 'Filter by location',

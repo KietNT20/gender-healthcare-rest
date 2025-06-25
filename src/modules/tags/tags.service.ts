@@ -102,7 +102,10 @@ export class TagsService {
         await this.tagRepository.remove(tag);
     }
 
-    private async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    private async generateUniqueSlug(
+        baseSlug: string,
+        excludeId?: string,
+    ): Promise<string> {
         let slug = baseSlug;
         let counter = 1;
 
@@ -114,7 +117,10 @@ export class TagsService {
         return slug;
     }
 
-    private async isSlugExists(slug: string, excludeId?: string): Promise<boolean> {
+    private async isSlugExists(
+        slug: string,
+        excludeId?: string,
+    ): Promise<boolean> {
         const queryBuilder = this.tagRepository
             .createQueryBuilder('tag')
             .where('tag.slug = :slug', { slug })

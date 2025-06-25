@@ -80,10 +80,15 @@ export class AppointmentsService {
                 consultantId,
             } = createAppointmentDto;
 
-            // 1. Kiểm tra trùng lịch: cùng user, cùng consultant, cùng thời điểm hoặc trùng khoảng thời gian
             const appointmentStart = new Date(appointmentDate);
+            if (isNaN(appointmentStart.getTime())) {
+                console.error('Invalid appointmentDate:', appointmentDate);
+                throw new BadRequestException(
+                    'appointmentDate must be a valid ISO 8601 date string',
+                );
+            }
             const appointmentEnd = new Date(
-                appointmentDate.getTime() + 60 * 60 * 1000,
+                appointmentStart.getTime() + 60 * 60 * 1000,
             ); // Giả sử mỗi lịch hẹn kéo dài 1 giờ
 
             const existing = await queryRunner.manager.findOne(Appointment, {

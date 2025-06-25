@@ -11,7 +11,7 @@ export class FindAvailableSlotsDto {
     @ApiProperty({
         description: 'Danh sách ID của các dịch vụ yêu cầu',
         type: [String],
-        example: ['service-uuid-1', 'service-uuid-2'],
+        example: ['service-id-1', 'service-id-2'],
         isArray: true,
     })
     @IsArray()
@@ -53,7 +53,7 @@ export class FindAvailableSlotsDto {
     @ApiPropertyOptional({
         description:
             'ID tư vấn viên cụ thể (nếu muốn tìm slot cho tư vấn viên này)',
-        example: 'consultant-uuid',
+        example: 'user-id',
     })
     @IsUUID('4')
     @IsOptional()

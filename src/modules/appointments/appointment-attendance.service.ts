@@ -121,23 +121,6 @@ export class AppointmentAttendanceService {
 
         await this.appointmentRepository.save(appointment);
 
-        // Process refund for no-show (usually no refund or full penalty)
-        let refundResult: any = null;
-        try {
-            refundResult = await this.paymentRefundService.processNoShowRefund(
-                appointmentId,
-                100, // 100% penalty for no-show
-            );
-            this.logger.log(
-                `No-show refund processed: ${JSON.stringify(refundResult)}`,
-            );
-        } catch (error) {
-            this.logger.warn(
-                `Failed to process no-show refund: ${error.message}`,
-            );
-            // Continue with no-show processing even if refund fails
-        }
-
         // Gửi thông báo no-show
         await this.notificationService.sendNoShowNotification(appointment);
 

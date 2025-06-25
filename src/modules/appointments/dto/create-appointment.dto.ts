@@ -4,7 +4,6 @@ import {
     IsArray,
     IsDate,
     IsEnum,
-    IsISO8601,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -39,7 +38,6 @@ export class CreateAppointmentDto {
         example: '2025-12-10T09:00:00.000Z',
     })
     @IsDate()
-    @IsISO8601()
     @IsAfterNow({
         message: 'Thời gian đặt hẹn phải là một thời điểm trong tương lai.',
     })

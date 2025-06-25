@@ -96,6 +96,24 @@ export class AppointmentsController {
         return this.appointmentsService.findAll(currentUser, queryDto);
     }
 
+    @Get('available-slots')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    @ApiOperation({
+        summary: 'Find available consultation slots',
+        description:
+            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Available slots retrieved successfully.',
+        type: FindAvailableSlotsResponseDto,
+    })
+    @ResponseMessage('Available slots retrieved successfully.')
+    findAvailableSlots(@Query() findSlotsDto: FindAvailableSlotsDto) {
+        return this.appointmentsService.findAvailableSlots(findSlotsDto);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get appointment details' })
     @ResponseMessage('Successfully retrieved appointment details.')
@@ -180,27 +198,6 @@ export class AppointmentsController {
         return this.appointmentsService.cancel(id, cancelDto, currentUser);
     }
 
-    @Get('available-slots')
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.CUSTOMER])
-    @ApiOperation({
-        summary: 'Find available consultation slots',
-        description:
-            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Available slots retrieved successfully.',
-        type: FindAvailableSlotsResponseDto,
-    })
-    @ResponseMessage('Available slots retrieved successfully.')
-    findAvailableSlots(
-        @Query() findSlotsDto: FindAvailableSlotsDto,
-        @CurrentUser() currentUser: User,
-    ) {
-        return this.appointmentsService.findAvailableSlots(findSlotsDto);
-    }
-
     @Post(':id/check-in')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -228,7 +225,6 @@ export class AppointmentsController {
     async checkInPatient(
         @Param('id', ParseUUIDPipe) appointmentId: string,
         @Body() checkInDto: CheckInAppointmentDto,
-        @CurrentUser() currentUser: User,
     ): Promise<CheckInResponseDto> {
         return this.attendanceService.checkInPatient(appointmentId, checkInDto);
     }
@@ -259,7 +255,6 @@ export class AppointmentsController {
     async markNoShow(
         @Param('id', ParseUUIDPipe) appointmentId: string,
         @Body() noShowDto: MarkNoShowDto,
-        @CurrentUser() currentUser: User,
     ): Promise<NoShowProcessResult> {
         return this.attendanceService.markNoShow(appointmentId, noShowDto);
     }
@@ -291,7 +286,6 @@ export class AppointmentsController {
     async processLateCheckIn(
         @Param('id', ParseUUIDPipe) appointmentId: string,
         @Body() lateCheckInDto: LateCheckInDto,
-        @CurrentUser() currentUser: User,
     ): Promise<LateCheckInResponseDto> {
         return this.attendanceService.processLateCheckIn(
             appointmentId,

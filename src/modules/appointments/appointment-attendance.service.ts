@@ -8,7 +8,6 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType } from 'src/enums';
 import { In, Repository } from 'typeorm';
-import { PaymentRefundService } from '../payments/providers/payment-refund.service';
 import { Service } from '../services/entities/service.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import {
@@ -32,7 +31,6 @@ export class AppointmentAttendanceService {
         @InjectRepository(Service)
         private readonly serviceRepository: Repository<Service>,
         private readonly notificationService: AppointmentNotificationService,
-        private readonly paymentRefundService: PaymentRefundService,
     ) {}
 
     /**

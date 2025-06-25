@@ -89,6 +89,6 @@ export class Service {
     @ManyToMany(() => Blog, (blog) => blog.services)
     blogs: Blog[];
 
-    @OneToMany(() => Image, (image) => image.service)
+    @OneToMany(() => Image, (image) => image.service, { eager: true })
     images: Image[];
 }

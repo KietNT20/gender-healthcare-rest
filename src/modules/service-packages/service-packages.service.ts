@@ -2,6 +2,7 @@ import {
     Injectable,
     NotFoundException,
     BadRequestException,
+    Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, IsNull } from 'typeorm';
@@ -13,23 +14,27 @@ import slugify from 'slugify';
 
 @Injectable()
 export class ServicePackagesService {
+    private readonly logger = new Logger(ServicePackagesService.name);
+
     constructor(
         @InjectRepository(ServicePackage)
         private packageRepository: Repository<ServicePackage>,
     ) {}
 
     async create(createDto: CreateServicePackageDto) {
-        // Tạo slug từ tên gói dịch vụ bằng slugify
         const slug = slugify(createDto.name, {
-            lower: true, // Chuyển thành chữ thường
-            strict: true, // Loại bỏ ký tự đặc biệt
-            locale: 'vi', // Hỗ trợ xử lý dấu tiếng Việt
+            lower: true,
+            strict: true,
+            locale: 'vi',
         });
         const servicePackage = this.packageRepository.create({
             ...createDto,
             slug,
+            isActive: createDto.isActive ?? true,
         });
-        return this.packageRepository.save(servicePackage);
+        const savedPackage = await this.packageRepository.save(servicePackage);
+        this.logger.debug(`Created Service Package: ${JSON.stringify(savedPackage)}`);
+        return savedPackage;
     }
 
     async findAll(queryDto: ServicePackageQueryDto) {
@@ -43,6 +48,20 @@ export class ServicePackagesService {
             maxPrice,
             isActive,
         } = queryDto;
+
+        this.logger.debug(
+            `Applying filters: ${JSON.stringify({
+                page,
+                limit,
+                sortBy,
+                sortOrder,
+                search,
+                minPrice,
+                maxPrice,
+                isActive,
+                isActiveType: typeof isActive,
+            })}`,
+        );
 
         // Validate sortBy
         const validSortFields = [
@@ -70,7 +89,9 @@ export class ServicePackagesService {
             );
         }
         if (isActive !== undefined) {
-            where.isActive = isActive;
+            const isActiveFilter = isActive === 1;
+            this.logger.debug(`Applying isActive filter: ${isActiveFilter} (type: ${typeof isActiveFilter})`);
+            where.isActive = isActiveFilter;
         }
 
         // Calculate pagination
@@ -84,6 +105,16 @@ export class ServicePackagesService {
             take: limit,
             relations: ['packageServices', 'packageServices.service'],
         });
+
+        this.logger.debug(
+            `Found ${data.length} service packages: ${JSON.stringify(
+                data.map((pkg) => ({
+                    id: pkg.id,
+                    name: pkg.name,
+                    isActive: pkg.isActive,
+                })),
+            )}`,
+        );
 
         return {
             data,
@@ -103,12 +134,12 @@ export class ServicePackagesService {
                 `Service package with ID '${id}' not found`,
             );
         }
+        this.logger.debug(`Found Service Package: ${JSON.stringify(servicePackage)}`);
         return servicePackage;
     }
 
     async update(id: string, updateDto: UpdateServicePackageDto) {
         const servicePackage = await this.findOne(id);
-        // Nếu có cập nhật tên, tạo slug mới
         if (updateDto.name) {
             updateDto.slug = slugify(updateDto.name, {
                 lower: true,
@@ -116,12 +147,18 @@ export class ServicePackagesService {
                 locale: 'vi',
             });
         }
-        this.packageRepository.merge(servicePackage, updateDto);
-        return this.packageRepository.save(servicePackage);
+        this.packageRepository.merge(servicePackage, {
+            ...updateDto,
+            isActive: updateDto.isActive ?? servicePackage.isActive,
+        });
+        const updatedPackage = await this.packageRepository.save(servicePackage);
+        this.logger.debug(`Updated Service Package: ${JSON.stringify(updatedPackage)}`);
+        return updatedPackage;
     }
 
     async remove(id: string) {
         const servicePackage = await this.findOne(id);
         await this.packageRepository.softDelete(id);
+        this.logger.debug(`Soft deleted Service Package with ID: ${id}`);
     }
 }

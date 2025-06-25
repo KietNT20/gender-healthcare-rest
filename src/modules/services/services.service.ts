@@ -147,14 +147,14 @@ export class ServicesService {
             featured,
             requiresConsultant,
         } = serviceQueryDto;
-
+    
         this.logger.debug(
             `Received serviceQueryDto: ${JSON.stringify(serviceQueryDto)}`,
         );
         this.logger.debug(
             `Received requiresConsultant: ${requiresConsultant}, type: ${typeof requiresConsultant}`,
         );
-
+    
         if (search) {
             queryBuilder.andWhere(
                 'service.name ILIKE :search OR service.description ILIKE :search',
@@ -165,24 +165,52 @@ export class ServicesService {
         if (categoryId) {
             queryBuilder.andWhere('service.categoryId = :categoryId', { categoryId });
         }
-        if (minPrice !== undefined) {
+        
+        if (minPrice !== undefined && minPrice !== null) {
             queryBuilder.andWhere('service.price >= :minPrice', { minPrice });
         }
-        if (maxPrice !== undefined) {
+        
+        if (maxPrice !== undefined && maxPrice !== null) {
             queryBuilder.andWhere('service.price <= :maxPrice', { maxPrice });
         }
-        if (isActive !== undefined) {
-            queryBuilder.andWhere('service.isActive = :isActive', { isActive });
+        
+        // Explicit boolean checks
+        if (isActive !== undefined && isActive !== null) {
+            const isActiveBool = this.convertToBoolean(isActive);
+            this.logger.debug(`isActive converted to: ${isActiveBool}`);
+            queryBuilder.andWhere('service.isActive = :isActive', { isActive: isActiveBool });
         }
-        if (featured !== undefined) {
-            queryBuilder.andWhere('service.featured = :featured', { featured });
+        
+        if (featured !== undefined && featured !== null) {
+            const featuredBool = this.convertToBoolean(featured);
+            this.logger.debug(`featured converted to: ${featuredBool}`);
+            queryBuilder.andWhere('service.featured = :featured', { featured: featuredBool });
         }
+        
         if (requiresConsultant !== undefined) {
-            queryBuilder.andWhere(
-                'service.requiresConsultant = :requiresConsultant',
-                { requiresConsultant },
-            );
+            const requiresConsultantBool = typeof requiresConsultant === 'string' 
+                ? requiresConsultant === '1' 
+                : Boolean(requiresConsultant);
+            queryBuilder.andWhere('service.requiresConsultant = :requiresConsultant', {
+                requiresConsultant: requiresConsultantBool,
+            });
         }
+    }
+    
+    /**
+     * Convert various boolean representations to actual boolean
+     */
+    private convertToBoolean(value: any): boolean {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            return value.toLowerCase() === 'true';
+        }
+        if (typeof value === 'number') {
+            return value === 1;
+        }
+        return Boolean(value);
     }
 
     /**

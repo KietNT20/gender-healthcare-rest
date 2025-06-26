@@ -18,6 +18,7 @@ import {
     FileResult,
     UploadDocumentOptions,
     UploadImageOptions,
+    UploadPublicPdfOptions,
 } from './interfaces';
 import { ProcessedImageResult } from './processors/image.processor';
 
@@ -211,6 +212,109 @@ export class FilesService {
     }
 
     /**
+     * Upload public PDF - no queue processing, direct upload to public bucket
+     */
+    async uploadPublicPdf(
+        options: UploadPublicPdfOptions,
+    ): Promise<FileResult> {
+        this.validateUploadPublicPdfOptions(options);
+
+        const {
+            file,
+            entityType,
+            entityId,
+            description,
+            tags = [],
+            category,
+        } = options;
+
+        try {
+            // Check for duplicates
+            const fileHash = this.generateFileHash(file.buffer);
+            const existingDoc = await this.documentRepository.findOne({
+                where: { hash: fileHash, entityType, entityId },
+            });
+
+            if (existingDoc) {
+                this.logger.log(`Public PDF already exists: ${existingDoc.id}`);
+
+                // Get access URL for existing document
+                const accessUrl = await this.s3Service.getAccessUrl(
+                    existingDoc.path,
+                );
+
+                return {
+                    id: existingDoc.id,
+                    url: accessUrl,
+                    originalName: existingDoc.originalName,
+                    size: existingDoc.size,
+                };
+            }
+
+            // Upload directly to public bucket (documents folder)
+            const fileKey = this.s3Service.generateKey(
+                'documents',
+                file.originalname,
+            );
+
+            const uploadResult = await this.s3Service.uploadFile(
+                file.buffer,
+                fileKey,
+                file.mimetype,
+                {
+                    forcePublic: true, // Force upload to public bucket
+                    metadata: {
+                        originalName: file.originalname,
+                        entityType: entityType || '',
+                        entityId: entityId || '',
+                        isPublic: 'true',
+                        category: category || '',
+                    },
+                },
+            );
+
+            // Save to database
+            const document = this.documentRepository.create({
+                name: this.generateFileName(file.originalname),
+                originalName: file.originalname,
+                mimeType: file.mimetype,
+                size: file.size,
+                path: fileKey,
+                description,
+                documentType: 'pdf',
+                entityType,
+                entityId,
+                isSensitive: false, // Public PDFs are not sensitive
+                hash: fileHash,
+                metadata: {
+                    s3Key: fileKey,
+                    uploadedAt: new Date().toISOString(),
+                    downloadCount: 0,
+                    tags,
+                    category,
+                    bucketType: 'public',
+                    cloudFrontUrl: uploadResult.cloudFrontUrl,
+                    isPublic: true, // Store in metadata since entity doesn't have this field
+                },
+            });
+
+            const savedDocument = await this.documentRepository.save(document);
+
+            this.logger.log(`Public PDF uploaded: ${savedDocument.id}`);
+
+            return {
+                id: savedDocument.id,
+                url: uploadResult.cloudFrontUrl, // Return public CloudFront URL
+                originalName: file.originalname,
+                size: file.size,
+            };
+        } catch (error) {
+            this.logger.error('Failed to upload public PDF:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get image with appropriate access URL
      */
     async getImageWithAccessUrl(
@@ -278,6 +382,61 @@ export class FilesService {
             where: { entityType, entityId },
             order: { createdAt: 'DESC' },
         });
+    }
+
+    /**
+     * Get public PDFs by entity
+     */
+    async getPublicPdfsByEntity(
+        entityType: string,
+        entityId: string,
+    ): Promise<Document[]> {
+        const queryBuilder = this.documentRepository.createQueryBuilder('doc');
+
+        return queryBuilder
+            .where('doc.entityType = :entityType', { entityType })
+            .andWhere('doc.entityId = :entityId', { entityId })
+            .andWhere('doc.mimeType = :mimeType', {
+                mimeType: 'application/pdf',
+            })
+            .andWhere("doc.metadata->>'isPublic' = 'true'")
+            .orderBy('doc.createdAt', 'DESC')
+            .getMany();
+    }
+
+    /**
+     * Get public PDF with direct access URL (no signing needed for public files)
+     */
+    async getPublicPdfWithAccessUrl(
+        documentId: string,
+    ): Promise<Document & { accessUrl: string }> {
+        const document = await this.documentRepository.findOne({
+            where: { id: documentId },
+        });
+
+        if (!document) {
+            throw new NotFoundException('Document not found');
+        }
+
+        // Check if it's a public PDF
+        const isPublic =
+            document.metadata?.isPublic === true ||
+            document.metadata?.isPublic === 'true';
+        const isPdf = document.mimeType === 'application/pdf';
+
+        if (!isPublic || !isPdf) {
+            throw new BadRequestException('Document is not a public PDF');
+        }
+
+        // For public PDFs, return the CloudFront URL directly from metadata
+        const accessUrl =
+            document.metadata?.cloudFrontUrl ||
+            (await this.s3Service.getAccessUrl(document.path));
+
+        return {
+            ...document,
+            accessUrl,
+        };
     }
 
     /**
@@ -514,7 +673,6 @@ export class FilesService {
             'image/jpg',
             'image/png',
             'image/webp',
-            'application/pdf',
         ];
 
         if (file.size > maxSize) {
@@ -531,11 +689,18 @@ export class FilesService {
     private validateDocumentFile(file: Express.Multer.File): void {
         const maxSize = 100 * 1024 * 1024; // 100MB
         const allowedTypes = [
+            // PDF files
             'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            // Text files
             'text/plain',
+            'text/csv',
             'application/json',
+            'application/xml',
+            'text/xml',
+            // Archive files
+            'application/zip',
+            'application/x-rar-compressed',
+            'application/x-7z-compressed',
         ];
 
         if (file.size > maxSize) {
@@ -544,7 +709,7 @@ export class FilesService {
 
         if (!allowedTypes.includes(file.mimetype)) {
             throw new BadRequestException(
-                `Document type ${file.mimetype} not allowed`,
+                `Document type ${file.mimetype} not allowed. Allowed types: ${allowedTypes.join(', ')}`,
             );
         }
     }
@@ -636,6 +801,51 @@ export class FilesService {
         }
 
         this.validateDocumentFile(file);
+    }
+
+    private validateUploadPublicPdfOptions(
+        options: UploadPublicPdfOptions,
+    ): void {
+        const { file, entityType, entityId } = options;
+
+        if (!file) {
+            throw new BadRequestException('File is required');
+        }
+
+        if (!entityId) {
+            throw new BadRequestException(
+                'entityId is required for file tracking',
+            );
+        }
+
+        if (!entityType) {
+            throw new BadRequestException(
+                'entityType is required for file tracking',
+            );
+        }
+
+        // Validate it's a PDF file
+        if (file.mimetype !== 'application/pdf') {
+            throw new BadRequestException(
+                'Only PDF files are allowed for public PDF upload',
+            );
+        }
+
+        this.validatePublicPdfFile(file);
+    }
+
+    private validatePublicPdfFile(file: Express.Multer.File): void {
+        const maxSize = 50 * 1024 * 1024; // 50MB for public PDFs
+
+        if (file.size > maxSize) {
+            throw new BadRequestException(`PDF size exceeds 50MB limit`);
+        }
+
+        if (file.mimetype !== 'application/pdf') {
+            throw new BadRequestException(
+                `File type ${file.mimetype} not allowed. Only PDF files are accepted.`,
+            );
+        }
     }
 
     public getAwsS3Service(): AwsS3Service {

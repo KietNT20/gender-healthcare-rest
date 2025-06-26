@@ -12,6 +12,10 @@ export interface CreateMessageData {
         fileName: string;
         fileSize: number;
         mimeType: string;
+        isDocument?: boolean; // Flag to distinguish documents from images
+        isPublicPdf?: boolean; // Flag to distinguish public PDFs
+        publicUrl?: string; // Direct public URL for public PDFs
+        [key: string]: any; // Allow additional metadata
     };
 }
 

@@ -41,7 +41,7 @@ export class ConsultantRegistrationService {
     async register(
         registerDto: RegisterConsultantDataDto,
         files: {
-            cv?: Express.Multer.File[];
+            cv?: Express.Multer.File;
             certificates?: Express.Multer.File[];
         },
     ): Promise<{ message: string; userId: string; profileId: string }> {

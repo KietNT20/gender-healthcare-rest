@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { Repository } from 'typeorm';
@@ -14,6 +14,14 @@ export class CategoriesService {
     ) {}
 
     async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+        //kiểm tra nếu có bị trùng name 
+        const existingCategoryByName = await this.categoryRepository.findOne({
+            where: { name: createCategoryDto.name },
+        });
+        if (existingCategoryByName) {
+            throw new ConflictException(`Category with name '${createCategoryDto.name}' already exists`);
+        }
+
         const slug = slugify(createCategoryDto.name, {
             lower: true,
             strict: true,

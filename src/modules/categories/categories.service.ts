@@ -50,6 +50,7 @@ export class CategoriesService {
 
     async findAll(): Promise<Category[]> {
         return this.categoryRepository.find({
+            where: { isActive: true },
             relations: {
                 children: true,
                 parent: true,
@@ -59,7 +60,7 @@ export class CategoriesService {
 
     async findOne(id: string): Promise<Category> {
         const category = await this.categoryRepository.findOne({
-            where: { id },
+            where: { id, isActive: true },
             relations: {
                 children: true,
                 parent: true,

@@ -1,9 +1,13 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import * as ExcelJS from 'exceljs';
+import { IsNull, Repository } from 'typeorm';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
 import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
-import * as ExcelJS from 'exceljs';
 import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
 
 @Injectable()
@@ -50,7 +54,9 @@ export class ServicePackageStatsService {
             .getRawMany();
 
         if (!stats.length) {
-            throw new BadRequestException('Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định');
+            throw new BadRequestException(
+                'Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định',
+            );
         }
 
         // Fetch detailed package information
@@ -59,7 +65,9 @@ export class ServicePackageStatsService {
         });
 
         if (!topPackage) {
-            throw new NotFoundException(`Service package with ID '${stats[0].packageId}' not found`);
+            throw new NotFoundException(
+                `Service package with ID '${stats[0].packageId}' not found`,
+            );
         }
 
         return {
@@ -105,7 +113,9 @@ export class ServicePackageStatsService {
             .getRawMany();
 
         if (!stats.length) {
-            throw new BadRequestException('Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định');
+            throw new BadRequestException(
+                'Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định',
+            );
         }
 
         // Fetch detailed package information for all packages
@@ -114,16 +124,22 @@ export class ServicePackageStatsService {
         });
 
         // Map stats to packages
-        const reportData = packages.map(pkg => {
-            const stat = stats.find(s => s.packageId === pkg.id);
-            return {
-                package: pkg,
-                subscriptionCount: stat ? parseInt(stat.subscriptionCount) : 0,
-            };
-        }).filter(data => data.subscriptionCount > 0); // Only include packages with subscriptions
+        const reportData = packages
+            .map((pkg) => {
+                const stat = stats.find((s) => s.packageId === pkg.id);
+                return {
+                    package: pkg,
+                    subscriptionCount: stat
+                        ? parseInt(stat.subscriptionCount)
+                        : 0,
+                };
+            })
+            .filter((data) => data.subscriptionCount > 0); // Only include packages with subscriptions
 
         if (!reportData.length) {
-            throw new BadRequestException('Không tìm thấy đăng ký hoạt động nào cho khoảng thời gian được chỉ định');
+            throw new BadRequestException(
+                'Không tìm thấy đăng ký hoạt động nào cho khoảng thời gian được chỉ định',
+            );
         }
 
         const workbook = new ExcelJS.Workbook();
@@ -213,8 +229,15 @@ export class ServicePackageStatsService {
         detailSheet.mergeCells('A1:E1');
         const detailTitleCell = detailSheet.getCell('A1');
         detailTitleCell.value = 'CHI TIẾT ĐĂNG KÝ GÓI DỊCH VỤ';
-        detailTitleCell.font = { size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-        detailTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        detailTitleCell.font = {
+            size: 14,
+            bold: true,
+            color: { argb: 'FFFFFFFF' },
+        };
+        detailTitleCell.alignment = {
+            horizontal: 'center',
+            vertical: 'middle',
+        };
         detailTitleCell.fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -277,11 +300,19 @@ export class ServicePackageStatsService {
             sheet.columns.forEach((column, index) => {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, (cell) => {
-                    const columnLength = cell.value ? cell.value.toString().length : 0;
+                    const columnLength = cell.value
+                        ? cell.value.toString().length
+                        : 0;
                     maxLength = Math.max(maxLength, columnLength);
                 });
                 // Thêm padding và căn chỉnh với tiêu đề
-                const headerLength = ['Tên Gói Dịch Vụ', 'Số Lượt Đăng Ký', 'Giá (VND)', 'Thời Gian (Tháng)', 'Trạng Thái'][index].length;
+                const headerLength = [
+                    'Tên Gói Dịch Vụ',
+                    'Số Lượt Đăng Ký',
+                    'Giá (VND)',
+                    'Thời Gian (Tháng)',
+                    'Trạng Thái',
+                ][index].length;
                 column.width = Math.max(maxLength + 2, headerLength + 2, 15); // Tối thiểu 15, cộng thêm 2 cho padding
             });
         };

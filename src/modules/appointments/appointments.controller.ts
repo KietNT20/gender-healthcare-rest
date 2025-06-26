@@ -9,7 +9,6 @@ import {
     Post,
     Query,
     UseGuards,
-    ValidationPipe,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -111,12 +110,13 @@ export class AppointmentsController {
         description: 'Available slots retrieved successfully.',
         type: FindAvailableSlotsResponseDto,
     })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: You do not have permission ( Customer only ).',
+    })
     @ApiBody({ type: FindAvailableSlotsDto })
     @ResponseMessage('Available slots retrieved successfully.')
-    findAvailableSlots(
-        @Body(ValidationPipe)
-        findSlotsDto: FindAvailableSlotsDto,
-    ) {
+    findAvailableSlots(@Body() findSlotsDto: FindAvailableSlotsDto) {
         return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 

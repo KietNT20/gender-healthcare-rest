@@ -219,14 +219,7 @@ export class FilesService {
     ): Promise<FileResult> {
         this.validateUploadPublicPdfOptions(options);
 
-        const {
-            file,
-            entityType,
-            entityId,
-            description,
-            tags = [],
-            category,
-        } = options;
+        const { file, entityType, entityId, description } = options;
 
         try {
             // Check for duplicates
@@ -268,7 +261,6 @@ export class FilesService {
                         entityType: entityType || '',
                         entityId: entityId || '',
                         isPublic: 'true',
-                        category: category || '',
                     },
                 },
             );
@@ -290,8 +282,6 @@ export class FilesService {
                     s3Key: fileKey,
                     uploadedAt: new Date().toISOString(),
                     downloadCount: 0,
-                    tags,
-                    category,
                     bucketType: 'public',
                     cloudFrontUrl: uploadResult.cloudFrontUrl,
                     isPublic: true, // Store in metadata since entity doesn't have this field

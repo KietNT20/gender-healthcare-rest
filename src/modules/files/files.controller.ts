@@ -87,17 +87,11 @@ export class FilesController {
         @UploadedFile() file: Express.Multer.File,
         @Body() uploadPdfDto: UploadPublicPdfMetadataDto,
     ) {
-        const tags = uploadPdfDto.tags
-            ? uploadPdfDto.tags.split(',').map((tag) => tag.trim())
-            : [];
-
         return this.filesService.uploadPublicPdf({
             file,
             entityType: uploadPdfDto.entityType,
             entityId: uploadPdfDto.entityId,
             description: uploadPdfDto.description,
-            tags,
-            category: uploadPdfDto.category,
         });
     }
 

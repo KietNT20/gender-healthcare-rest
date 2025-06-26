@@ -472,7 +472,9 @@ export class ChatService {
     ): Promise<string> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['question'],
+            relations: {
+                question: true,
+            },
         });
 
         if (!message) {
@@ -535,7 +537,10 @@ export class ChatService {
     async deleteMessage(messageId: string, userId: string): Promise<void> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['sender', 'question'],
+            relations: {
+                sender: true,
+                question: true,
+            },
         });
 
         if (!message) {
@@ -545,7 +550,9 @@ export class ChatService {
         // Only sender or admins can delete messages
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         const canDelete =
@@ -571,7 +578,9 @@ export class ChatService {
     }> {
         const question = await this.questionRepository.findOne({
             where: { id: questionId },
-            relations: ['user', 'category'],
+            relations: {
+                user: true,
+            },
         });
 
         if (!question) {
@@ -581,7 +590,9 @@ export class ChatService {
         // Get last message
         const lastMessage = await this.messageRepository.findOne({
             where: { question: { id: questionId } },
-            relations: ['sender', 'sender.role'],
+            relations: {
+                sender: true,
+            },
             order: { createdAt: SortOrder.DESC },
         });
 
@@ -737,12 +748,10 @@ export class ChatService {
     async getQuestionByAppointmentId(appointmentId: string): Promise<Question> {
         const question = await this.questionRepository.findOne({
             where: { appointment: { id: appointmentId } },
-            relations: [
-                'user',
-                'appointment',
-                'appointment.consultant',
-                'category',
-            ],
+            relations: {
+                user: true,
+                appointment: true,
+            },
         });
 
         if (!question) {

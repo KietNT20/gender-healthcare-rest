@@ -16,6 +16,7 @@ import {
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { FilesService } from '../files/files.service';
+import { FileResult } from '../files/interfaces';
 import { User } from '../users/entities/user.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { Message } from './entities/message.entity';
@@ -174,6 +175,62 @@ export class ChatService {
     }
 
     /**
+     * Get message history with enhanced file URLs for a question
+     */
+    async getMessageHistoryWithFileUrls(
+        questionId: string,
+        userId: string,
+        page: number = 1,
+        limit: number = 50,
+    ): Promise<MessageWithSender[]> {
+        // First get the regular message history
+        const messages = await this.getMessageHistory(questionId, page, limit);
+
+        // Enhance messages with file URLs where applicable
+        const enhancedMessages = await Promise.all(
+            messages.map(async (message) => {
+                // If it's a file-type message, try to get the file URL
+                if (
+                    message.type === MessageType.FILE ||
+                    message.type === MessageType.IMAGE ||
+                    message.type === MessageType.PUBLIC_PDF
+                ) {
+                    try {
+                        if (
+                            message.type === MessageType.PUBLIC_PDF &&
+                            message.metadata?.publicUrl
+                        ) {
+                            // For public PDFs, use the stored public URL
+                            return {
+                                ...message,
+                                fileUrl: message.metadata.publicUrl as string,
+                            };
+                        } else if (message.metadata?.fileId) {
+                            // For other files, get the access URL
+                            const fileUrl = await this.getMessageFileUrl(
+                                message.id,
+                                userId,
+                            );
+                            return {
+                                ...message,
+                                fileUrl,
+                            };
+                        }
+                    } catch (error) {
+                        this.logger.warn(
+                            `Failed to get file URL for message ${message.id}:`,
+                            error.message,
+                        );
+                    }
+                }
+                return message;
+            }),
+        );
+
+        return enhancedMessages;
+    }
+
+    /**
      * Mark message as read
      */
     async markMessageAsRead(messageId: string, userId: string): Promise<void> {
@@ -270,10 +327,10 @@ export class ChatService {
                 RolesNameEnum.ADMIN,
             ].includes(user.role?.name)
         ) {
-            // No additional filter needed - they can see all questions
-        }
-        // For other roles, no access to any questions
-        else {
+            query = query.andWhere('question.status != :status', {
+                status: QuestionStatusType.CLOSED,
+            });
+        } else {
             return 0;
         }
 
@@ -293,7 +350,6 @@ export class ChatService {
      * Send message with file attachment
      */
     async sendMessageWithFile(
-        //
         questionId: string,
         senderId: string,
         content: string,
@@ -301,22 +357,40 @@ export class ChatService {
         type: MessageType = MessageType.FILE,
     ): Promise<MessageWithSender> {
         try {
-            let entityType = 'message_document';
-            if (type === MessageType.IMAGE) {
-                entityType = 'message_image';
+            let uploadResult: FileResult;
+            let messageType: MessageType;
+
+            if (
+                type === MessageType.IMAGE ||
+                file.mimetype.startsWith('image/')
+            ) {
+                // Use uploadImage for actual image files
+                uploadResult = await this.filesService.uploadImage({
+                    file,
+                    entityType: 'message_image',
+                    entityId: questionId,
+                    isPublic: false,
+                    generateThumbnails: true,
+                });
+                messageType = MessageType.IMAGE;
+            } else {
+                // Use uploadDocument for non-image files (FILE type)
+                uploadResult = await this.filesService.uploadDocument({
+                    file,
+                    entityType: 'message_document',
+                    entityId: questionId,
+                    description: content || file.originalname,
+                });
+                // Use IMAGE type in database but mark as document in metadata
+                messageType = MessageType.IMAGE;
             }
 
-            const uploadResult = await this.filesService.uploadImage({
-                file,
-                entityType,
-                entityId: questionId,
-                isPublic: false,
-                generateThumbnails: type === MessageType.IMAGE,
-            });
-
             return await this.createMessage({
-                content: content || file.originalname, // Use content from body or file name
-                type,
+                content: content || file.originalname,
+                type:
+                    type === MessageType.IMAGE
+                        ? MessageType.IMAGE
+                        : MessageType.FILE,
                 questionId,
                 senderId,
                 fileData: {
@@ -324,10 +398,67 @@ export class ChatService {
                     fileName: file.originalname,
                     fileSize: file.size,
                     mimeType: file.mimetype,
+                    isDocument: !file.mimetype.startsWith('image/'),
                 },
             });
         } catch (error) {
             this.logger.error(`Failed to send message with file:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Send message with public PDF attachment
+     */
+    async sendMessageWithPublicPdf(
+        questionId: string,
+        senderId: string,
+        content: string,
+        file: Express.Multer.File,
+        description?: string,
+    ): Promise<MessageWithSender> {
+        try {
+            // Validate that it's a PDF file
+            if (file.mimetype !== 'application/pdf') {
+                throw new BadRequestException(
+                    'Only PDF files are allowed for public PDF messages',
+                );
+            }
+
+            // Verify question exists and user has access
+            const hasAccess = await this.verifyQuestionAccess(
+                questionId,
+                senderId,
+            );
+            if (!hasAccess) {
+                throw new ForbiddenException('Access denied to this question');
+            }
+
+            // Upload PDF as public PDF
+            const uploadResult = await this.filesService.uploadPublicPdf({
+                file,
+                entityType: 'message_public_pdf',
+                entityId: questionId,
+                description: description || content || file.originalname,
+            });
+
+            return await this.createMessage({
+                content: content || file.originalname,
+                type: MessageType.PUBLIC_PDF,
+                questionId,
+                senderId,
+                fileData: {
+                    fileId: uploadResult.id,
+                    fileName: file.originalname,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    isDocument: true,
+                    isPublicPdf: true,
+                    publicUrl: uploadResult.url,
+                },
+            });
+        } catch (error) {
+            this.logger.error(`Failed to send message with public PDF:`, error);
             throw error;
         }
     }
@@ -341,7 +472,9 @@ export class ChatService {
     ): Promise<string> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['question'],
+            relations: {
+                question: true,
+            },
         });
 
         if (!message) {
@@ -358,12 +491,25 @@ export class ChatService {
 
         if (
             (message.type === MessageType.FILE ||
-                message.type === MessageType.IMAGE) &&
+                message.type === MessageType.IMAGE ||
+                message.type === MessageType.PUBLIC_PDF) &&
             message.metadata?.fileId
         ) {
             try {
                 const fileId = message.metadata.fileId as string;
-                if (message.type === MessageType.IMAGE) {
+
+                if (message.type === MessageType.PUBLIC_PDF) {
+                    // For public PDFs, return the stored public URL or get it from service
+                    if (message.metadata.publicUrl) {
+                        return message.metadata.publicUrl as string;
+                    } else {
+                        const pdfWithUrl =
+                            await this.filesService.getPublicPdfWithAccessUrl(
+                                fileId,
+                            );
+                        return pdfWithUrl.accessUrl;
+                    }
+                } else if (message.type === MessageType.IMAGE) {
                     const imageWithUrl =
                         await this.filesService.getImageWithAccessUrl(fileId);
                     return imageWithUrl.accessUrl;
@@ -391,7 +537,10 @@ export class ChatService {
     async deleteMessage(messageId: string, userId: string): Promise<void> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['sender', 'question'],
+            relations: {
+                sender: true,
+                question: true,
+            },
         });
 
         if (!message) {
@@ -401,7 +550,9 @@ export class ChatService {
         // Only sender or admins can delete messages
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         const canDelete =
@@ -427,7 +578,9 @@ export class ChatService {
     }> {
         const question = await this.questionRepository.findOne({
             where: { id: questionId },
-            relations: ['user', 'category'],
+            relations: {
+                user: true,
+            },
         });
 
         if (!question) {
@@ -437,7 +590,9 @@ export class ChatService {
         // Get last message
         const lastMessage = await this.messageRepository.findOne({
             where: { question: { id: questionId } },
-            relations: ['sender', 'sender.role'],
+            relations: {
+                sender: true,
+            },
             order: { createdAt: SortOrder.DESC },
         });
 
@@ -525,7 +680,11 @@ export class ChatService {
         }
 
         // Additional validation for specific types
-        if (type === MessageType.FILE || type === MessageType.IMAGE) {
+        if (
+            type === MessageType.FILE ||
+            type === MessageType.IMAGE ||
+            type === MessageType.PUBLIC_PDF
+        ) {
             // For file messages, content should be JSON or a description
             if (content.length > 500) {
                 throw new BadRequestException(
@@ -589,12 +748,10 @@ export class ChatService {
     async getQuestionByAppointmentId(appointmentId: string): Promise<Question> {
         const question = await this.questionRepository.findOne({
             where: { appointment: { id: appointmentId } },
-            relations: [
-                'user',
-                'appointment',
-                'appointment.consultant',
-                'category',
-            ],
+            relations: {
+                user: true,
+                appointment: true,
+            },
         });
 
         if (!question) {

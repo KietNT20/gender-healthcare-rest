@@ -32,6 +32,7 @@ import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
+import { SendPublicPdfMessageDto } from './dto/send-public-pdf-message.dto';
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -98,7 +99,9 @@ export class ChatController {
 
     @Post('questions/:questionId/messages/file')
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Send a file message to a question chat' })
+    @ApiOperation({
+        summary: 'Send a file or image message to a question chat',
+    })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -107,6 +110,7 @@ export class ChatController {
                 file: {
                     type: 'string',
                     format: 'binary',
+                    description: 'File to upload (image or document)',
                 },
                 content: {
                     type: 'string',
@@ -114,10 +118,12 @@ export class ChatController {
                 },
                 type: {
                     type: 'string',
-                    enum: ['FILE', 'IMAGE'],
-                    default: 'FILE',
+                    enum: Object.values(MessageType),
+                    description:
+                        'Message type - will be auto-detected if not provided based on file MIME type. Note: Both files and images are stored as IMAGE type in database for compatibility.',
                 },
             },
+            required: ['file'],
         },
     })
     async sendFileMessage(
@@ -128,7 +134,14 @@ export class ChatController {
     ) {
         const userId = user.id;
         const content = body.content || file.originalname;
-        const type = body.type || MessageType.FILE;
+
+        // Auto-detect file type based on MIME type if not explicitly provided
+        let type = body.type;
+        if (!type) {
+            type = file.mimetype.startsWith('image/')
+                ? MessageType.IMAGE
+                : MessageType.FILE; // We still use FILE logic internally, but will convert to IMAGE in service
+        }
 
         const message = await this.chatService.sendMessageWithFile(
             questionId,
@@ -142,6 +155,65 @@ export class ChatController {
             success: true,
             data: message,
             message: 'File message sent successfully',
+        };
+    }
+
+    @Post('questions/:questionId/messages/public-pdf')
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiOperation({
+        summary: 'Send a public PDF message to a question chat',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'PDF file to upload to public bucket',
+                },
+                content: {
+                    type: 'string',
+                    description: 'Optional message content/description',
+                },
+                description: {
+                    type: 'string',
+                    description: 'Description of the PDF document',
+                },
+            },
+            required: ['file'],
+        },
+    })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Public PDF message sent successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid file type - only PDF files are allowed',
+    })
+    async sendPublicPdfMessage(
+        @Param('questionId') questionId: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: SendPublicPdfMessageDto,
+        @CurrentUser() user: User,
+    ) {
+        const userId = user.id;
+        const content = body.content || file.originalname;
+
+        const message = await this.chatService.sendMessageWithPublicPdf(
+            questionId,
+            userId,
+            content,
+            file,
+            body.description,
+        );
+
+        return {
+            success: true,
+            data: message,
+            message: 'Public PDF message sent successfully',
         };
     }
 
@@ -169,18 +241,54 @@ export class ChatController {
 
         const messages = await this.chatService.getMessageHistory(
             questionId,
-            query.page || 1,
-            query.limit || 50,
+            query.page,
+            query.limit,
         );
 
         return {
             success: true,
             data: messages,
-            pagination: {
-                page: query.page || 1,
-                limit: query.limit || 50,
-                total: messages.length,
-            },
+            message: 'Messages retrieved successfully',
+        };
+    }
+
+    @Get('questions/:questionId/messages/with-urls')
+    @ApiOperation({
+        summary: 'Get message history with file URLs for a question',
+        description:
+            'Get messages with enhanced file URLs, especially useful for public PDFs',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Messages with file URLs retrieved successfully',
+    })
+    async getMessagesWithFileUrls(
+        @Param('questionId') questionId: string,
+        @Query() query: GetMessagesDto,
+        @CurrentUser() user: User,
+    ) {
+        const userId = user.id;
+
+        // Verify user has access to this question
+        const hasAccess = await this.chatService.verifyQuestionAccess(
+            questionId,
+            userId,
+        );
+        if (!hasAccess) {
+            throw new ForbiddenException('Truy cập bị từ chối vào câu hỏi này');
+        }
+
+        const messages = await this.chatService.getMessageHistoryWithFileUrls(
+            questionId,
+            userId,
+            query.page,
+            query.limit,
+        );
+
+        return {
+            success: true,
+            data: messages,
+            message: 'Messages with file URLs retrieved successfully',
         };
     }
 

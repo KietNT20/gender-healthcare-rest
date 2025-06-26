@@ -29,6 +29,8 @@ import {
     UploadDocumentMetadataDto,
     UploadImageDto,
     UploadImageMetadataDto,
+    UploadPublicPdfDto,
+    UploadPublicPdfMetadataDto,
 } from './dto/upload-file.dto';
 import { FilesService } from './files.service';
 
@@ -70,6 +72,29 @@ export class FilesController {
         });
     }
 
+    @Post('public-pdf')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiOperation({
+        summary: 'Upload a public PDF file',
+        description:
+            'Upload a PDF file to public bucket for direct access without queue processing',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({ type: UploadPublicPdfDto })
+    async uploadPublicPdf(
+        @UploadedFile() file: Express.Multer.File,
+        @Body() uploadPdfDto: UploadPublicPdfMetadataDto,
+    ) {
+        return this.filesService.uploadPublicPdf({
+            file,
+            entityType: uploadPdfDto.entityType,
+            entityId: uploadPdfDto.entityId,
+            description: uploadPdfDto.description,
+        });
+    }
+
     @Get('images/entity')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
@@ -103,6 +128,31 @@ export class FilesController {
         @Query('entityId', ParseUUIDPipe) entityId: string,
     ) {
         return this.filesService.getDocumentsByEntity(entityType, entityId);
+    }
+
+    @Get('public-pdfs/entity')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Get a list of public PDFs by a specific entity',
+        description: 'Retrieve all public PDF files for a specific entity',
+    })
+    async getPublicPdfsByEntity(
+        @Query('entityType') entityType: string,
+        @Query('entityId', ParseUUIDPipe) entityId: string,
+    ) {
+        return this.filesService.getPublicPdfsByEntity(entityType, entityId);
+    }
+
+    @Get('public-pdf/:id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Get public PDF details with access URL',
+        description: 'Get public PDF information with direct access URL',
+    })
+    async getPublicPdf(@Param('id', ParseUUIDPipe) id: string) {
+        return this.filesService.getPublicPdfWithAccessUrl(id);
     }
 
     @Get('image/:id/access')
@@ -186,6 +236,37 @@ export class FilesController {
         res.send(fileData.buffer);
     }
 
+    @Get('public-pdf/:id/download')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+        summary: 'Download public PDF file',
+        description: 'Download the actual PDF file content',
+    })
+    @ApiQuery({
+        name: 'inline',
+        required: false,
+        description: 'Display inline in browser instead of download',
+        type: Boolean,
+    })
+    async downloadPublicPdf(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Query('inline') inline: boolean = false,
+        @Res() res: Response,
+    ) {
+        const { buffer, filename, mimeType } =
+            await this.filesService.downloadFile(id, 'document');
+
+        const disposition = inline ? 'inline' : 'attachment';
+        res.set({
+            'Content-Type': mimeType,
+            'Content-Disposition': `${disposition}; filename="${filename}"`,
+            'Content-Length': buffer.length.toString(),
+        });
+
+        res.send(buffer);
+    }
+
     @Post('test/upload')
     @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Test upload file to AWS S3' })
@@ -197,7 +278,10 @@ export class FilesController {
     ) {
         const isPublic = testUploadDto.isPublic === true;
         const cleanName = sanitizeFilename(file.originalname);
-        const testKey = `test-uploads/${Date.now()}-${cleanName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const testKey = `test-uploads/${Date.now()}-${cleanName.replace(
+            /[^a-zA-Z0-9.-]/g,
+            '_',
+        )}`;
 
         const uploadResult = await this.filesService
             .getAwsS3Service()

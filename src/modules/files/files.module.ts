@@ -9,6 +9,7 @@ import awsConfig from './config/aws.config';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { ImageProcessor } from './processors/image.processor';
+import { PublicPdfService } from './public-pdf.service';
 
 @Module({
     imports: [
@@ -19,7 +20,7 @@ import { ImageProcessor } from './processors/image.processor';
         }),
     ],
     controllers: [FilesController],
-    providers: [FilesService, AwsS3Service, ImageProcessor],
-    exports: [FilesService, AwsS3Service],
+    providers: [FilesService, AwsS3Service, ImageProcessor, PublicPdfService],
+    exports: [FilesService, AwsS3Service, PublicPdfService],
 })
 export class FilesModule {}

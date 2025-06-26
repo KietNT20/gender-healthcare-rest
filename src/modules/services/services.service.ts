@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { SortOrder } from 'src/enums';
+import { SortOrder, LocationTypeEnum } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -48,16 +48,20 @@ export class ServicesService {
             }
         }
 
+        // Create service entity
         const newService = this.serviceRepo.create({
             ...createServiceDto,
-            slug, // Assign auto-generated slug
             category: createServiceDto.categoryId
                 ? { id: createServiceDto.categoryId }
                 : undefined,
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
             requiresConsultant: createServiceDto.requiresConsultant ?? false,
+            location: createServiceDto.location ?? LocationTypeEnum.OFFICE, // Use enum value
         });
+
+        // Assign slug separately
+        newService.slug = slug;
 
         return this.serviceRepo.save(newService);
     }
@@ -84,6 +88,7 @@ export class ServicesService {
             featured,
             requiresConsultant,
             categoryId,
+            location,
             page = 1,
             limit = 10,
             sortBy = 'createdAt',
@@ -121,6 +126,9 @@ export class ServicesService {
                 'service.requiresConsultant = :requiresConsultant',
                 { requiresConsultant },
             );
+        }
+        if (location !== undefined) {
+            queryBuilder.andWhere('service.location = :location', { location });
         }
 
         const offset = (page - 1) * limit;
@@ -219,6 +227,7 @@ export class ServicesService {
             category: categoryRef ? { id: categoryRef.id } : undefined,
             requiresConsultant:
                 updateDto.requiresConsultant ?? service.requiresConsultant,
+            location: updateDto.location ?? service.location, // Preserve existing location if not provided
         });
 
         // Save and return entity

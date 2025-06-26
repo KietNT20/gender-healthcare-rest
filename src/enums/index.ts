@@ -111,6 +111,7 @@ export enum MessageType {
     TEXT = 'text',
     IMAGE = 'image',
     FILE = 'file',
+    PUBLIC_PDF = 'public_pdf',
 }
 
 export enum ConsultantSelectionType {

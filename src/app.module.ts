@@ -40,6 +40,7 @@ import { PackageServicesModule } from './modules/package-services/package-servic
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
+import { ServicePackageStatsModule } from './modules/ServicePackageStatsModule/service-package-stats.module';
 import { ServicesModule } from './modules/services/services.module';
 import { StiTestProcessesModule } from './modules/sti-test-processes/sti-test-processes.module';
 import { SymptomsModule } from './modules/symptoms/symptoms.module';
@@ -149,6 +150,7 @@ import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module
         ChatModule,
         TagsModule,
         RevenueStatsModule,
+        ServicePackageStatsModule,
     ],
     providers: [
         AppService,

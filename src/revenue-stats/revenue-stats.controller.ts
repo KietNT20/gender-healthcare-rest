@@ -1,7 +1,6 @@
 import { Controller, Get, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RevenueStatsService } from './revenue-stats.service';
-import { GetMonthlyRevenueDto } from './dto/revenue-stats.dto';
 import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
@@ -22,9 +21,9 @@ export class RevenueStatsController {
     @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can access' })
     @ApiResponse({ status: 400, description: 'Invalid year parameter' })
     @ResponseMessage('Monthly revenue retrieved successfully')
-    async getMonthlyRevenue(
-        @Query(ValidationPipe) dto: GetMonthlyRevenueDto,
+    getMonthlyRevenueStats(
+        @Query('year') year?: number,
     ) {
-        return this.revenueStatsService.getMonthlyRevenue(dto);
+        return this.revenueStatsService.getMonthlyRevenueStats(year);
     }
 }

@@ -1,12 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
 
-export class GetMonthlyRevenueDto {
-    @ApiProperty({
-        description: 'Year to retrieve revenue statistics',
-        example: 2025,
-    })
-    @IsNumber()
-    @Min(2000)
-    year: number;
+export class MonthlyRevenue {
+    @ApiProperty()
+    month: number;
+
+    @ApiProperty()
+    totalRevenue: number;
 }
+export class RevenueStatsDto {
+    @ApiProperty()
+    year: number;
+
+    @ApiProperty({ type: [MonthlyRevenue] })
+    stats: MonthlyRevenue[];
+}
+

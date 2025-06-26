@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
 import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
 
 @Injectable()
@@ -46,7 +46,7 @@ export class ServicePackageStatsService {
             .andWhere('package.deletedAt IS NULL')
             .andWhere('subscription.deletedAt IS NULL')
             .groupBy('subscription.packageId')
-            .orderBy('COUNT(subscription.id)', 'DESC') // Use COUNT directly instead of alias
+            .orderBy('COUNT(subscription.id)', 'DESC')
             .getRawMany();
 
         if (!stats.length) {
@@ -126,108 +126,179 @@ export class ServicePackageStatsService {
             throw new BadRequestException('Không tìm thấy đăng ký hoạt động nào cho khoảng thời gian được chỉ định');
         }
 
-        // Create worksheet data with Vietnamese content
-        const worksheetData = [
-            ['BÁO CÁO ĐĂNG KÝ GÓI DỊCH VỤ'],
-            ['Tháng', queryMonth],
-            ['Năm', queryYear],
-            [], // Empty row for spacing
-            ['Tên Gói Dịch Vụ', 'Số Lượt Đăng Ký', 'Giá (VND)', 'Thời Gian (Tháng)', 'Trạng Thái'],
-        ];
+        const workbook = new ExcelJS.Workbook();
 
-        // Add package data
-        reportData.forEach(data => {
-            worksheetData.push([
+        // === Sheet Tổng Quan ===
+        const summarySheet = workbook.addWorksheet('Tổng Quan');
+
+        // Tiêu đề chính
+        summarySheet.mergeCells('A1:E1');
+        const titleCell = summarySheet.getCell('A1');
+        titleCell.value = 'BÁO CÁO ĐĂNG KÝ GÓI DỊCH VỤ';
+        titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        titleCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4F81BD' }, // Màu xanh đậm
+        };
+
+        // Tháng và Năm
+        summarySheet.mergeCells('A2:E2');
+        const periodCell = summarySheet.getCell('A2');
+        periodCell.value = `Tháng ${queryMonth} - Năm ${queryYear}`;
+        periodCell.font = { size: 14, bold: true, color: { argb: 'FF007ACC' } };
+        periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        periodCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE6F0FA' }, // Màu xanh nhạt
+        };
+
+        // Header bảng
+        const headerRow = summarySheet.addRow([
+            'Tên Gói Dịch Vụ',
+            'Số Lượt Đăng Ký',
+            'Giá (VND)',
+            'Thời Gian (Tháng)',
+            'Trạng Thái',
+        ]);
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }, // Màu xám nhạt cho header
+            };
+            cell.border = {
+                top: { style: 'medium', color: { argb: 'FF000000' } },
+                left: { style: 'medium', color: { argb: 'FF000000' } },
+                bottom: { style: 'medium', color: { argb: 'FF000000' } },
+                right: { style: 'medium', color: { argb: 'FF000000' } },
+            };
+        });
+
+        // Dữ liệu tháng với màu nền xen kẽ
+        let isEven = false;
+        reportData.forEach((data) => {
+            const row = summarySheet.addRow([
                 data.package.name,
                 data.subscriptionCount,
                 data.package.price,
                 data.package.durationMonths,
                 data.package.isActive ? 'Hoạt động' : 'Không hoạt động',
             ]);
+            row.eachCell((cell) => {
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF000000' } },
+                    left: { style: 'thin', color: { argb: 'FF000000' } },
+                    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                    right: { style: 'thin', color: { argb: 'FF000000' } },
+                };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: isEven ? 'FFF2F2F2' : 'FFFFFFFF' }, // Xen kẽ màu xám nhạt và trắng
+                };
+            });
+            isEven = !isEven;
         });
 
-        // Create worksheet
-        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        // === Sheet Chi Tiết ===
+        const detailSheet = workbook.addWorksheet('Chi Tiết');
 
-        // Apply styles
-        if (!worksheet['!ref']) {
-            throw new Error('Worksheet range is undefined');
-        }
-        const range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (let R = range.s.r; R <= range.e.r; ++R) {
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!worksheet[cellAddress]) continue;
+        // Tiêu đề chính
+        detailSheet.mergeCells('A1:E1');
+        const detailTitleCell = detailSheet.getCell('A1');
+        detailTitleCell.value = 'CHI TIẾT ĐĂNG KÝ GÓI DỊCH VỤ';
+        detailTitleCell.font = { size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+        detailTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        detailTitleCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4F81BD' }, // Màu xanh đậm
+        };
 
-                // Base style for all cells
-                worksheet[cellAddress].s = {
-                    font: { name: 'Arial', sz: 12 },
-                    alignment: { horizontal: 'center', vertical: 'center' },
-                    border: {
-                        top: { style: 'thin' },
-                        bottom: { style: 'thin' },
-                        left: { style: 'thin' },
-                        right: { style: 'thin' },
-                    },
+        // Header bảng chi tiết
+        const detailHeader = detailSheet.addRow([
+            'Tên Gói Dịch Vụ',
+            'Số Lượt Đăng Ký',
+            'Giá (VND)',
+            'Thời Gian (Tháng)',
+            'Trạng Thái',
+        ]);
+        detailHeader.eachCell((cell) => {
+            cell.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9E1F2' }, // Màu xám nhạt cho header
+            };
+            cell.border = {
+                top: { style: 'medium', color: { argb: 'FF000000' } },
+                left: { style: 'medium', color: { argb: 'FF000000' } },
+                bottom: { style: 'medium', color: { argb: 'FF000000' } },
+                right: { style: 'medium', color: { argb: 'FF000000' } },
+            };
+        });
+
+        // Dữ liệu chi tiết với màu nền xen kẽ
+        let isEvenDetail = false;
+        reportData.forEach((data) => {
+            const row = detailSheet.addRow([
+                data.package.name,
+                data.subscriptionCount,
+                data.package.price,
+                data.package.durationMonths,
+                data.package.isActive ? 'Hoạt động' : 'Không hoạt động',
+            ]);
+            row.eachCell((cell) => {
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF000000' } },
+                    left: { style: 'thin', color: { argb: 'FF000000' } },
+                    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                    right: { style: 'thin', color: { argb: 'FF000000' } },
                 };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: isEvenDetail ? 'FFF2F2F2' : 'FFFFFFFF' }, // Xen kẽ màu xám nhạt và trắng
+                };
+            });
+            isEvenDetail = !isEvenDetail;
+        });
 
-                // Header row (row 0)
-                if (R === 0) {
-                    worksheet[cellAddress].s = {
-                        ...worksheet[cellAddress].s,
-                        font: { name: 'Arial', sz: 14, bold: true },
-                        fill: { fgColor: { rgb: '4F81BD' } },
-                    };
-                }
+        // Điều chỉnh chiều rộng cột dựa trên nội dung tối đa
+        const adjustColumnWidths = (sheet) => {
+            sheet.columns.forEach((column, index) => {
+                let maxLength = 0;
+                column.eachCell({ includeEmpty: true }, (cell) => {
+                    const columnLength = cell.value ? cell.value.toString().length : 0;
+                    maxLength = Math.max(maxLength, columnLength);
+                });
+                // Thêm padding và căn chỉnh với tiêu đề
+                const headerLength = ['Tên Gói Dịch Vụ', 'Số Lượt Đăng Ký', 'Giá (VND)', 'Thời Gian (Tháng)', 'Trạng Thái'][index].length;
+                column.width = Math.max(maxLength + 2, headerLength + 2, 15); // Tối thiểu 15, cộng thêm 2 cho padding
+            });
+        };
+        adjustColumnWidths(summarySheet);
+        adjustColumnWidths(detailSheet);
 
-                // Subheader rows (Month, Year) - row 1 and 2
-                if (R === 1 || R === 2) {
-                    worksheet[cellAddress].s = {
-                        ...worksheet[cellAddress].s,
-                        font: { ...worksheet[cellAddress].s.font, bold: true },
-                        fill: { fgColor: { rgb: 'E6E6FA' } }, // Lavender background
-                    };
-                }
+        // Điều chỉnh chiều cao hàng
+        const adjustRowHeight = (sheet) => {
+            sheet.getRows(1, sheet.rowCount)?.forEach((row) => {
+                row.height = 30; // Chiều cao cố định 30
+            });
+        };
+        adjustRowHeight(summarySheet);
+        adjustRowHeight(detailSheet);
 
-                // Column headers (row 4)
-                if (R === 4) {
-                    worksheet[cellAddress].s = {
-                        ...worksheet[cellAddress].s,
-                        font: { ...worksheet[cellAddress].s.font, bold: true },
-                        fill: { fgColor: { rgb: 'DCE6F1' } }, // Light blue background
-                    };
-                }
-
-                // Data rows (row 5 and beyond)
-                if (R >= 5) {
-                    worksheet[cellAddress].s = {
-                        ...worksheet[cellAddress].s,
-                        fill: { fgColor: { rgb: 'F5F5F5' } }, // Light gray background
-                    };
-                }
-            }
-        }
-
-        // Set column widths
-        worksheet['!cols'] = [
-            { wch: 30 }, // Tên Gói Dịch Vụ
-            { wch: 20 }, // Số Lượt Đăng Ký
-            { wch: 15 }, // Giá (VND)
-            { wch: 15 }, // Thời Gian (Tháng)
-            { wch: 15 }, // Trạng Thái
-        ];
-
-        // Merge cells for title
-        worksheet['!merges'] = [
-            { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Merge title across 5 columns
-        ];
-
-        // Create workbook and append worksheet
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Báo Cáo');
-
-        // Generate Excel buffer
-        const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+        // Xuất file buffer
+        const buffer = await workbook.xlsx.writeBuffer();
 
         return {
             buffer,

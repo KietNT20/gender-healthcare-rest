@@ -83,7 +83,7 @@ export class ConsultantProfilesService {
 
         if (search) {
             queryBuilder.andWhere(
-                '(user.firstName ILIKE :search OR user.lastName ILIKE :search OR profile.specialization ILIKE :search)',
+                '(user.firstName ILIKE :search OR user.lastName ILIKE :search)',
                 { search: `%${search}%` },
             );
         }
@@ -146,7 +146,10 @@ export class ConsultantProfilesService {
     async findOne(id: string): Promise<ConsultantProfile> {
         const profile = await this.profileRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['user', 'documents'],
+            relations: {
+                user: true,
+                documents: true,
+            },
         });
         if (!profile) {
             throw new NotFoundException(
@@ -160,7 +163,6 @@ export class ConsultantProfilesService {
         id: string,
         updateDto: UpdateConsultantProfileDto,
     ): Promise<ConsultantProfile> {
-        // Dùng preload để lấy entity và merge dữ liệu, nó sẽ tự xử lý version
         const profile = await this.profileRepository.preload({
             id,
             ...updateDto,

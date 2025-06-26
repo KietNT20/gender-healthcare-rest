@@ -1,5 +1,19 @@
-import { Controller, Get, HttpStatus, Query, Res, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+    Controller,
+    Get,
+    HttpStatus,
+    Query,
+    Res,
+    UseGuards,
+    ValidationPipe,
+} from '@nestjs/common';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiQuery,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { RevenueStatsService } from './revenue-stats.service';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/guards/role.guard';
@@ -20,9 +34,18 @@ export class RevenueStatsController {
 
     @Get('monthly')
     @ApiOperation({ summary: 'Get monthly revenue statistics' })
-    @ApiResponse({ status: 200, description: 'Monthly revenue retrieved successfully' })
-    @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can access' })
-    @ApiResponse({ status: 400, description: 'Invalid year or month parameter' })
+    @ApiResponse({
+        status: 200,
+        description: 'Monthly revenue retrieved successfully',
+    })
+    @ApiResponse({
+        status: 403,
+        description: 'Forbidden: Only Admin or Manager can access',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid year or month parameter',
+    })
     @ResponseMessage('Monthly revenue retrieved successfully')
     getMonthlyRevenueStats(
         @Query('year') year?: number,
@@ -32,22 +55,38 @@ export class RevenueStatsController {
     }
 
     @Get('yearly')
-    @ApiOperation({ summary: 'Get yearly revenue statistics with monthly breakdown' })
-    @ApiResponse({ status: 200, description: 'Yearly revenue with monthly breakdown retrieved successfully' })
-    @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can access' })
+    @ApiOperation({
+        summary: 'Get yearly revenue statistics with monthly breakdown',
+    })
+    @ApiResponse({
+        status: 200,
+        description:
+            'Yearly revenue with monthly breakdown retrieved successfully',
+    })
+    @ApiResponse({
+        status: 403,
+        description: 'Forbidden: Only Admin or Manager can access',
+    })
     @ApiResponse({ status: 400, description: 'Invalid year parameter' })
-    @ResponseMessage('Yearly revenue with monthly breakdown retrieved successfully')
-    getYearlyRevenueStats(
-        @Query('year') year?: number,
-    ) {
+    @ResponseMessage(
+        'Yearly revenue with monthly breakdown retrieved successfully',
+    )
+    getYearlyRevenueStats(@Query('year') year?: number) {
         return this.revenueStatsService.getYearlyRevenueStats(year);
     }
 
-   
     @Get('report')
-    @ApiOperation({ summary: 'Generate an Excel report for revenue statistics' })
-    @ApiResponse({ status: 200, description: 'Excel report generated successfully' })
-    @ApiResponse({ status: 403, description: 'Forbidden: Only Admin or Manager can access' })
+    @ApiOperation({
+        summary: 'Generate an Excel report for revenue statistics',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Excel report generated successfully',
+    })
+    @ApiResponse({
+        status: 403,
+        description: 'Forbidden: Only Admin or Manager can access',
+    })
     @ApiResponse({ status: 400, description: 'Invalid year parameter' })
     @ResponseMessage('Excel report generated successfully')
     async generateExcelReport(
@@ -56,10 +95,10 @@ export class RevenueStatsController {
     ) {
         const buffer = await this.revenueStatsService.exportRevenueStats(year);
         res.set({
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type':
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition': `attachment; filename="revenue-report-${year || new Date().getFullYear()}.xlsx"`,
         });
         res.send(buffer);
     }
 }
-

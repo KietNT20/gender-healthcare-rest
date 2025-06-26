@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
@@ -18,6 +19,7 @@ import {
     ApiBody,
     ApiConsumes,
     ApiOperation,
+    ApiResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -61,7 +63,7 @@ export class ConsultantProfilesController {
         @UploadedFiles()
         @UploadedFiles()
         files: {
-            cv?: Express.Multer.File[];
+            cv?: Express.Multer.File;
             certificates?: Express.Multer.File[];
         },
     ) {
@@ -72,7 +74,12 @@ export class ConsultantProfilesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Create a consultant profile (Admin/Manager)' })
+    @ApiOperation({ summary: 'Create a consultant profile' })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
+    })
     @ResponseMessage('Consultant profile created successfully.')
     create(@Body() createDto: CreateConsultantProfileDto) {
         return this.consultantProfilesService.create(createDto);
@@ -98,7 +105,12 @@ export class ConsultantProfilesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Update a consultant profile (Admin/Manager)' })
+    @ApiOperation({ summary: 'Update a consultant profile' })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
+    })
     @ResponseMessage('Consultant profile updated successfully.')
     update(
         @Param('id', ParseUUIDPipe) id: string,
@@ -111,7 +123,11 @@ export class ConsultantProfilesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Delete a consultant profile (Admin only)' })
+    @ApiOperation({ summary: 'Delete a consultant profile' })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: You do not have permission (Admin only).',
+    })
     @ResponseMessage('Consultant profile deleted successfully.')
     remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.consultantProfilesService.remove(id);
@@ -122,7 +138,12 @@ export class ConsultantProfilesController {
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
     @ApiOperation({
-        summary: 'Get all pending consultant profiles (Admin/Manager)',
+        summary: 'Get all pending consultant profiles for approval',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
     })
     @ResponseMessage('Pending profiles retrieved successfully.')
     findPending() {
@@ -133,7 +154,12 @@ export class ConsultantProfilesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Approve a consultant profile (Admin/Manager)' })
+    @ApiOperation({ summary: 'Approve a consultant profile' })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
+    })
     @ResponseMessage('Profile approved successfully.')
     approve(
         @Param('id', ParseUUIDPipe) id: string,
@@ -146,7 +172,12 @@ export class ConsultantProfilesController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Reject a consultant profile (Admin/Manager)' })
+    @ApiOperation({ summary: 'Reject a consultant profile' })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
+    })
     @ResponseMessage('Profile rejected successfully.')
     reject(
         @Param('id', ParseUUIDPipe) id: string,
@@ -172,6 +203,11 @@ export class ConsultantProfilesController {
         summary: 'Update working hours and auto-generate availability schedule',
         description:
             'Update working hours for a consultant and automatically generate their availability schedule for the next 4 weeks.',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Consultant, Admin, or Manager only).',
     })
     @ResponseMessage(
         'Working hours updated and schedule generated successfully.',
@@ -200,6 +236,11 @@ export class ConsultantProfilesController {
         description:
             'Generate availability schedule from the pre-defined working hours',
     })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Consultant, Admin, or Manager only).',
+    })
     @ResponseMessage('Schedule generated successfully.')
     generateSchedule(
         @Param('id', ParseUUIDPipe) id: string,
@@ -223,6 +264,11 @@ export class ConsultantProfilesController {
         summary: 'Ensure upcoming weeks have availability schedule',
         description:
             'Ensure there is always an availability schedule for the upcoming weeks',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Consultant, Admin, or Manager only).',
     })
     @ResponseMessage('Upcoming schedule ensured successfully.')
     ensureUpcomingSchedule(@Param('id', ParseUUIDPipe) id: string) {

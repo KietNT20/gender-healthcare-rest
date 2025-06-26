@@ -9,7 +9,9 @@ import { ServicePackageStatsController } from './service-package-stats.controlle
  * Module for handling service package statistics and reports
  */
 @Module({
-    imports: [TypeOrmModule.forFeature([ServicePackage, UserPackageSubscription])],
+    imports: [
+        TypeOrmModule.forFeature([ServicePackage, UserPackageSubscription]),
+    ],
     controllers: [ServicePackageStatsController],
     providers: [ServicePackageStatsService],
     exports: [ServicePackageStatsService],

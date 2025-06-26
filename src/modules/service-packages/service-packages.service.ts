@@ -1,15 +1,15 @@
 import {
+    BadRequestException,
     Injectable,
     NotFoundException,
-    BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between, IsNull } from 'typeorm';
-import { CreateServicePackageDto } from './dto/create-service-package.dto';
-import { UpdateServicePackageDto } from './dto/update-service-package.dto';
-import { ServicePackageQueryDto } from './dto/service-package-query.dto';
-import { ServicePackage } from './entities/service-package.entity';
 import slugify from 'slugify';
+import { Between, IsNull, Like, Repository } from 'typeorm';
+import { CreateServicePackageDto } from './dto/create-service-package.dto';
+import { ServicePackageQueryDto } from './dto/service-package-query.dto';
+import { UpdateServicePackageDto } from './dto/update-service-package.dto';
+import { ServicePackage } from './entities/service-package.entity';
 
 @Injectable()
 export class ServicePackagesService {

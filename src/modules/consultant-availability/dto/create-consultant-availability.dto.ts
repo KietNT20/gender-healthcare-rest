@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsBoolean,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsInt,
     IsNotEmpty,
@@ -61,7 +61,7 @@ export class CreateConsultantAvailabilityDto {
         description: 'Ngày cụ thể cho lịch làm việc không lặp lại (YYYY-MM-DD)',
     })
     @IsOptional()
-    @IsDateString()
+    @IsDate()
     specificDate?: Date;
 
     @ApiPropertyOptional({

@@ -48,6 +48,19 @@ export class ConsultantAvailabilityController {
         status: HttpStatus.CREATED,
         description: 'Create availability successfully.',
     })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Bad Request: Invalid request body or validation failed',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description:
+            'Unauthorized: Only authenticated users can create availability',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: Just consultant can create availability',
+    })
     create(
         @CurrentUser() currentUser: User,
         @Body() createDto: CreateConsultantAvailabilityDto,

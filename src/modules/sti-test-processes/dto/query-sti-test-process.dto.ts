@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
-    IsBooleanString,
+    IsBoolean,
     IsDateString,
     IsEnum,
     IsIn,
@@ -90,24 +90,24 @@ export class FilterQueryStiTestProcessDto {
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    requiresConsultation?: string = 'false';
+    @IsBoolean()
+    requiresConsultation?: boolean = false;
 
     @ApiPropertyOptional({
         description: 'Đã thông báo bệnh nhân',
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    patientNotified?: string = 'false';
+    @IsBoolean()
+    patientNotified?: boolean = false;
 
     @ApiPropertyOptional({
         description: 'Chỉ hiển thị các xét nghiệm có kết quả',
         type: 'boolean',
     })
     @IsOptional()
-    @IsBooleanString()
-    hasResults?: string = 'false';
+    @IsBoolean()
+    hasResults?: boolean = false;
 
     @ApiPropertyOptional({
         description: 'Sắp xếp theo trường',

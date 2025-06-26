@@ -10,7 +10,7 @@ import {
     IsUUID,
     Min,
 } from 'class-validator';
-import { SortOrder } from 'src/enums';
+import { LocationTypeEnum, SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
     @ApiPropertyOptional({ description: 'Số trang', default: 1, example: 1 })
@@ -95,4 +95,11 @@ export class ServiceQueryDto {
     @IsOptional()
     @IsBoolean()
     requiresConsultant?: boolean;
+    @ApiPropertyOptional({
+        description: 'Địa điểm cung cấp dịch vụ',
+        enum: LocationTypeEnum,
+    })
+    @IsOptional()
+    @IsEnum(LocationTypeEnum)
+    location?: LocationTypeEnum;
 }

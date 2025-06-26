@@ -196,7 +196,7 @@ export class AppointmentBookingService {
         manager: EntityManager,
     ): Promise<FindAvailableSlotsResponseDto> {
         const {
-            serviceIds,
+            serviceIds = [],
             startDate,
             endDate,
             startTime = '08:00',
@@ -207,14 +207,10 @@ export class AppointmentBookingService {
         // Lấy thông tin services
         const services = await manager.find(Service, {
             where: { id: In(serviceIds) },
-            relations: ['category'],
+            relations: {
+                category: true,
+            },
         });
-
-        if (services.length !== serviceIds.length) {
-            throw new NotFoundException(
-                'Một hoặc nhiều dịch vụ không tồn tại.',
-            );
-        }
 
         // Kiểm tra xem có dịch vụ nào yêu cầu tư vấn viên không
         const consultationServices = services.filter(
@@ -251,7 +247,11 @@ export class AppointmentBookingService {
                     user: { id: consultantId },
                     profileStatus: ProfileStatusType.ACTIVE,
                 },
-                relations: ['user', 'user.role'],
+                relations: {
+                    user: {
+                        role: true,
+                    },
+                },
             });
 
             if (!specificProfile) {

@@ -24,22 +24,24 @@ import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ConsultantAvailabilityCrudService } from './consultant-availability-crud.service';
 import { ConsultantAvailabilityService } from './consultant-availability.service';
 import { CreateConsultantAvailabilityDto } from './dto/create-consultant-availability.dto';
 import { QueryConsultantAvailabilityDto } from './dto/query-consultant-availability.dto';
 import { UpdateConsultantAvailabilityDto } from './dto/update-consultant-availability.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('consultant-availability')
 export class ConsultantAvailabilityController {
     constructor(
         private readonly availabilityService: ConsultantAvailabilityService,
+        private readonly consultantAvailabilityCrudService: ConsultantAvailabilityCrudService,
     ) {}
 
     @Post()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
     @UseInterceptors(NoFilesInterceptor())
     @ApiConsumes('multipart/form-data')
@@ -69,6 +71,18 @@ export class ConsultantAvailabilityController {
     }
 
     @Get()
+    @ApiOperation({ summary: 'Consultant get all availability' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Get all availability successfully.',
+    })
+    findAll(@Query() queryDto: QueryConsultantAvailabilityDto) {
+        return this.consultantAvailabilityCrudService.findAll(queryDto);
+    }
+
+    @Get('consultant')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([
         RolesNameEnum.ADMIN,
         RolesNameEnum.MANAGER,
@@ -79,14 +93,19 @@ export class ConsultantAvailabilityController {
         status: HttpStatus.OK,
         description: 'Get all availability successfully.',
     })
-    findAll(
+    findAllByConsultant(
         @CurrentUser() currentUser: User,
         @Query() queryDto: QueryConsultantAvailabilityDto,
     ) {
-        return this.availabilityService.findAll(currentUser, queryDto);
+        return this.availabilityService.findAllConsultantAvailability(
+            currentUser,
+            queryDto,
+        );
     }
 
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([
         RolesNameEnum.ADMIN,
         RolesNameEnum.MANAGER,
@@ -105,6 +124,8 @@ export class ConsultantAvailabilityController {
     }
 
     @Put(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
     @UseInterceptors(NoFilesInterceptor())
     @ApiConsumes('multipart/form-data')
@@ -122,6 +143,8 @@ export class ConsultantAvailabilityController {
     }
 
     @Delete(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
     @ApiOperation({ summary: 'Consultant delete availability' })
     @ApiResponse({

@@ -45,7 +45,7 @@ export class ConsultantAvailabilityService {
         return this.crudService.create(profile, createDto);
     }
 
-    async findAll(
+    async findAllConsultantAvailability(
         currentUser: User,
         queryDto: QueryConsultantAvailabilityDto,
     ): Promise<Paginated<ConsultantAvailability>> {
@@ -59,7 +59,7 @@ export class ConsultantAvailabilityService {
             return this.crudService.findAll(queryDto);
         }
 
-        // Nếu là consultant, họ chỉ xem được lịch của mình
+        // Nếu là consultant
         const profile = await this.getProfileByUserId(currentUser.id);
         queryDto.consultantId = profile.id;
 

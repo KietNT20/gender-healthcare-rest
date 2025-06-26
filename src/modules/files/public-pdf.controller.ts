@@ -4,6 +4,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Post,
     Query,
@@ -33,8 +34,6 @@ class UploadPublicPdfDto {
     entityType: string;
     entityId: string;
     description?: string;
-    tags?: string;
-    category?: string;
 }
 
 @UseGuards(JwtAuthGuard, RoleGuard)
@@ -71,20 +70,12 @@ export class PublicPdfController {
                     type: 'string',
                     description: 'Optional description of the PDF',
                 },
-                tags: {
-                    type: 'string',
-                    description: 'Comma-separated tags',
-                },
-                category: {
-                    type: 'string',
-                    description: 'Category of the PDF',
-                },
             },
             required: ['file', 'entityType', 'entityId'],
         },
     })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'PDF uploaded successfully',
         schema: {
             type: 'object',
@@ -114,10 +105,6 @@ export class PublicPdfController {
             entityType: uploadDto.entityType,
             entityId: uploadDto.entityId,
             description: uploadDto.description,
-            tags: uploadDto.tags
-                ? uploadDto.tags.split(',').map((tag) => tag.trim())
-                : [],
-            category: uploadDto.category,
         };
 
         return this.publicPdfService.uploadPublicPdf(options);
@@ -139,7 +126,7 @@ export class PublicPdfController {
         example: 'uuid-string',
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'List of public PDFs',
         type: Array,
     })
@@ -170,7 +157,7 @@ export class PublicPdfController {
         example: 'uuid-string',
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'PDF details with access URL',
     })
     @Roles([
@@ -200,7 +187,7 @@ export class PublicPdfController {
         type: Boolean,
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'PDF file content',
         headers: {
             'Content-Type': {
@@ -248,7 +235,7 @@ export class PublicPdfController {
         example: 'uuid-string',
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'PDF deleted successfully',
     })
     @Roles([

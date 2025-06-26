@@ -186,22 +186,6 @@ export class UploadPublicPdfMetadataDto {
     @IsOptional()
     @IsString()
     description?: string;
-
-    @ApiPropertyOptional({
-        description: 'Comma-separated tags for categorization',
-        example: 'healthcare,guidelines,pdf',
-    })
-    @IsOptional()
-    @IsString()
-    tags?: string;
-
-    @ApiPropertyOptional({
-        description: 'Category of the PDF',
-        example: 'guidelines',
-    })
-    @IsOptional()
-    @IsString()
-    category?: string;
 }
 
 export class UploadPublicPdfDto extends UploadPublicPdfMetadataDto {

@@ -221,8 +221,6 @@ export interface UploadDocumentOptions {
     entityId: string;
     description?: string;
     isSensitive?: boolean;
-    tags?: string[];
-    category?: string;
     documentType?: string;
 }
 
@@ -231,6 +229,4 @@ export interface UploadPublicPdfOptions {
     entityType: string;
     entityId: string;
     description?: string;
-    tags?: string[];
-    category?: string;
 }

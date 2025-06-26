@@ -30,14 +30,7 @@ export class PublicPdfService {
     ): Promise<FileResult> {
         this.validateUploadOptions(options);
 
-        const {
-            file,
-            entityType,
-            entityId,
-            description,
-            tags = [],
-            category,
-        } = options;
+        const { file, entityType, entityId, description } = options;
 
         try {
             // Check for duplicates
@@ -66,8 +59,6 @@ export class PublicPdfService {
                 entityType,
                 entityId,
                 description,
-                tags,
-                category,
             });
 
             this.logger.log(`Public PDF uploaded: ${document.id}`);
@@ -304,8 +295,6 @@ export class PublicPdfService {
         entityType: string;
         entityId: string;
         description?: string;
-        tags: string[];
-        category?: string;
     }): Promise<Document> {
         const {
             file,
@@ -315,8 +304,6 @@ export class PublicPdfService {
             entityType,
             entityId,
             description,
-            tags,
-            category,
         } = params;
 
         const document = this.documentRepository.create({
@@ -335,8 +322,6 @@ export class PublicPdfService {
                 s3Key: fileKey,
                 uploadedAt: new Date().toISOString(),
                 downloadCount: 0,
-                tags,
-                category,
                 bucketType: 'public',
                 cloudFrontUrl: uploadResult.cloudFrontUrl,
                 isPublic: 'true',

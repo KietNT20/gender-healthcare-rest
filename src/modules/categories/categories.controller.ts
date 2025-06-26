@@ -20,13 +20,12 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) {}
 
     @Post()
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Create a new category' })
     @ApiResponse({
@@ -43,17 +42,17 @@ export class CategoriesController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all categories' })
+    @ApiOperation({ summary: 'Get all active categories' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'List of all categories.',
+        description: 'List of all active categories.',
     })
     findAll() {
         return this.categoriesService.findAll();
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get category by ID' })
+    @ApiOperation({ summary: 'Get active category by ID' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Category found successfully.',
@@ -63,9 +62,8 @@ export class CategoriesController {
     }
 
     @Patch(':id')
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
     @ApiOperation({ summary: 'Update a category by ID' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -84,9 +82,8 @@ export class CategoriesController {
     }
 
     @Delete(':id')
-    @UseGuards(RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete a category by ID' })
     @ApiResponse({
         status: HttpStatus.NO_CONTENT,

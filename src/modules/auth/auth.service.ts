@@ -1,7 +1,6 @@
 import {
     BadRequestException,
     Injectable,
-    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -55,10 +54,6 @@ export class AuthService {
         };
 
         const user = await this.usersService.registerAccountCustomer(userData);
-
-        if (!user) {
-            throw new NotFoundException('Người dùng không được tìm thấy');
-        }
 
         const fullName = `${user.firstName} ${user.lastName}`;
 

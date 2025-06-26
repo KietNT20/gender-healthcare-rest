@@ -2,9 +2,13 @@ import { MessageType } from 'src/enums';
 
 export class ChatUtils {
     /**
-     * Format message content based on type
+     * Format message content based on type and metadata
      */
-    static formatMessageContent(content: string, type: MessageType): string {
+    static formatMessageContent(
+        content: string,
+        type: MessageType,
+        metadata?: any,
+    ): string {
         switch (type) {
             case MessageType.FILE:
                 try {
@@ -14,11 +18,21 @@ export class ChatUtils {
                     return content;
                 }
             case MessageType.IMAGE:
-                try {
-                    const imageData = JSON.parse(content);
-                    return imageData.text || 'Image attachment';
-                } catch {
-                    return content;
+                // Check if it's actually a document based on metadata
+                if (metadata?.isDocument) {
+                    try {
+                        const fileData = JSON.parse(content);
+                        return fileData.text || 'File attachment';
+                    } catch {
+                        return content;
+                    }
+                } else {
+                    try {
+                        const imageData = JSON.parse(content);
+                        return imageData.text || 'Image attachment';
+                    } catch {
+                        return content;
+                    }
                 }
             default:
                 return content;
@@ -89,6 +103,7 @@ export class ChatUtils {
     static getMessagePreview(
         content: string,
         type: MessageType,
+        metadata?: any,
         maxLength: number = 50,
     ): string {
         let preview = '';
@@ -98,7 +113,12 @@ export class ChatUtils {
                 preview = '📎 File attachment';
                 break;
             case MessageType.IMAGE:
-                preview = '🖼️ Image';
+                // Check if it's actually a document based on metadata
+                if (metadata?.isDocument) {
+                    preview = '� File attachment';
+                } else {
+                    preview = '�🖼️ Image';
+                }
                 break;
             default:
                 preview = this.sanitizeContent(content);

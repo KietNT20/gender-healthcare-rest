@@ -17,6 +17,13 @@ export class RevenueStatsDto {
     })
     year: number;
 
+    @ApiProperty({
+        description: 'Month number (1-12)',
+        example: 1,
+        required: false,
+    })
+    month?: number;
+
     @ApiProperty({ type: [MonthlyRevenue] })
     stats: MonthlyRevenue[];
 }

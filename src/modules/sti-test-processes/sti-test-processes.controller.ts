@@ -12,6 +12,7 @@ import {
     Query,
     UseGuards,
     UseInterceptors,
+    ValidationPipe,
 } from '@nestjs/common';
 import { NoFilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -64,17 +65,28 @@ export class StiTestProcessesController {
         return this.stiTestProcessesService.create(createStiTestProcessDto);
     }
 
-    @Get()
+    @Post('search')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Get list of STI test processes' })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of STI test processes',
         type: StiTestProcessListResponseDto,
     })
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid query parameters',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: Just admins, managers and staff can access this endpoint',
+    })
     findAll(
-        @Query() query: QueryStiTestProcessDto,
+        @Body(ValidationPipe) query: QueryStiTestProcessDto,
     ): Promise<StiTestProcessListResponseDto> {
         return this.stiTestProcessesService.findAll(query);
     }
@@ -93,7 +105,9 @@ export class StiTestProcessesController {
         return this.stiTestProcessesService.findByTestCode(testCode);
     }
 
-    @Get('patient/:patientId')
+    @Post('patient/:patientId')
+    @UseInterceptors(NoFilesInterceptor())
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({
         summary: 'Get list of STI test processes by patient ID',
     })
@@ -108,7 +122,7 @@ export class StiTestProcessesController {
     )
     findByPatientId(
         @Param('patientId', ParseUUIDPipe) patientId: string,
-        @Query() query: QueryStiTestProcessDto,
+        @Body(ValidationPipe) query: QueryStiTestProcessDto,
     ): Promise<StiTestProcessListResponseDto> {
         return this.stiTestProcessesService.findByPatientId(patientId, query);
     }

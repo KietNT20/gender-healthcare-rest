@@ -161,3 +161,54 @@ export class TestUploadDto {
     @IsBoolean()
     isPublic: boolean = true;
 }
+
+export class UploadPublicPdfMetadataDto {
+    @ApiProperty({
+        description: 'Type of entity (e.g., "blog", "service", "news")',
+        example: 'blog',
+    })
+    @IsNotEmpty({ message: 'Entity type is required' })
+    @IsString()
+    entityType: string;
+
+    @ApiProperty({
+        description: 'ID of the entity this PDF belongs to',
+        example: '550e8400-e29b-41d4-a716-446655440000',
+    })
+    @IsNotEmpty({ message: 'Entity ID is required' })
+    @IsUUID(4, { message: 'Entity ID must be a valid UUID' })
+    entityId: string;
+
+    @ApiPropertyOptional({
+        description: 'Description of the PDF document',
+        example: 'Important healthcare guidelines',
+    })
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @ApiPropertyOptional({
+        description: 'Comma-separated tags for categorization',
+        example: 'healthcare,guidelines,pdf',
+    })
+    @IsOptional()
+    @IsString()
+    tags?: string;
+
+    @ApiPropertyOptional({
+        description: 'Category of the PDF',
+        example: 'guidelines',
+    })
+    @IsOptional()
+    @IsString()
+    category?: string;
+}
+
+export class UploadPublicPdfDto extends UploadPublicPdfMetadataDto {
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        description: 'PDF file to upload',
+    })
+    file: Express.Multer.File;
+}

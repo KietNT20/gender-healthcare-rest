@@ -226,9 +226,11 @@ export interface UploadDocumentOptions {
     documentType?: string;
 }
 
-export interface FileResult {
-    id: string;
-    url: string;
-    originalName: string;
-    size: number;
+export interface UploadPublicPdfOptions {
+    file: Express.Multer.File;
+    entityType: string;
+    entityId: string;
+    description?: string;
+    tags?: string[];
+    category?: string;
 }

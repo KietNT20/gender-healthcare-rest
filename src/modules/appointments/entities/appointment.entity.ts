@@ -103,21 +103,25 @@ export class Appointment {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.appointments, { onDelete: 'CASCADE' })
+    @ManyToOne(() => User, (user) => user.appointments, {
+        onDelete: 'CASCADE',
+        eager: true,
+    })
     user: User;
 
-    @ManyToOne(() => User, { nullable: true })
+    @ManyToOne(() => User, { nullable: true, eager: true })
     cancelledBy?: User;
 
     @ManyToOne(() => User, (user) => user.consultantAppointments, {
         nullable: true,
+        eager: true,
     })
     consultant?: User;
 
     @ManyToOne(
         () => ConsultantAvailability,
         (consultantAvailability) => consultantAvailability.appointments,
-        { nullable: true },
+        { nullable: true, eager: true, onDelete: 'SET NULL' },
     )
     consultantAvailability?: ConsultantAvailability;
 

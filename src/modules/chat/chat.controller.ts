@@ -181,14 +181,6 @@ export class ChatController {
                     type: 'string',
                     description: 'Description of the PDF document',
                 },
-                tags: {
-                    type: 'string',
-                    description: 'Comma-separated tags for categorization',
-                },
-                category: {
-                    type: 'string',
-                    description: 'Category of the PDF',
-                },
             },
             required: ['file'],
         },

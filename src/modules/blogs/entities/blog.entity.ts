@@ -82,8 +82,7 @@ export class Blog {
     @Column({ type: 'uuid', nullable: true })
     deletedByUserId?: string;
 
-    
-    @Column({ type: 'uuid',  nullable: true })
+    @Column({ type: 'uuid', nullable: true })
     authorId?: string;
 
     @Column({ type: 'uuid', nullable: true })

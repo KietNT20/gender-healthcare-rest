@@ -1,4 +1,5 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import * as XLSX from 'xlsx';
+import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentStatusType } from 'src/enums';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
@@ -7,6 +8,7 @@ import { Repository } from 'typeorm';
 import * as uuid from 'uuid';
 import * as path from 'path';
 import * as fs from 'fs';
+import { RevenueStatsDto } from './dto/revenue-stats.dto';
 
 
 @Injectable()
@@ -169,104 +171,80 @@ export class RevenueStatsService {
         };
     }
 
-    async generateRevenueReport(year: number): Promise<{ buffer: Buffer, filename: string }> {
+
+
+    async exportRevenueStats(year?: number) {
+        const stats = await this.getYearlyRevenueStats(year);
         const currentYear = year || new Date().getFullYear();
-        const startDate = new Date(`${currentYear}-01-01`);
-        const endDate = new Date(`${currentYear + 1}-01-01`);
 
-        const yearlyStats = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                "EXTRACT(MONTH FROM payment.paymentDate) as month",
-                'COALESCE(SUM(payment.amount), 0) as totalRevenue',
-            ])
-            .where('payment.status = :status', { status: PaymentStatusType.COMPLETED })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', { 
-                startDate, 
-                endDate 
-            })
-            .groupBy("EXTRACT(MONTH FROM payment.paymentDate)")
-            .orderBy("month", "ASC")
-            .getRawMany();
+        if (!stats.stats || stats.stats.length === 0) {
+            throw new NotFoundException('No revenue data found for the specified year');
+        }
 
-        const monthlyDetails = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                "EXTRACT(MONTH FROM payment.paymentDate) as month",
-                'payment.paymentDate',
-                'payment.amount',
-                'payment.id'
-            ])
-            .where('payment.status = :status', { status: PaymentStatusType.COMPLETED })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', { 
-                startDate, 
-                endDate 
-            })
-            .orderBy("payment.paymentDate", "ASC")
-            .getRawMany();
-
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Revenue Report');
-
-        worksheet.columns = [
-            { header: 'Month', key: 'month', width: 10 },
-            { header: 'Total Revenue', key: 'totalRevenue', width: 20 },
-            { header: 'Payment ID', key: 'paymentId', width: 15 },
-            { header: 'Payment Date', key: 'paymentDate', width: 20 },
-            { header: 'Amount', key: 'amount', width: 15 },
+        // Create worksheet data
+        const worksheetData = [
+            ['REVENUE STATISTICS REPORT'],
+            ['Year', currentYear],
+            [],
+            ['Month', 'Total Revenue (VND)', 'Number of Transactions'],
         ];
 
-        yearlyStats.forEach(stat => {
-            const monthNum = Number(stat.month);
-            const monthDetails = monthlyDetails.filter(d => Number(d.month) === monthNum);
-            
-            monthDetails.forEach((detail, index) => {
-                worksheet.addRow({
-                    month: monthNum,
-                    totalRevenue: index === 0 ? parseFloat(stat.totalRevenue) : '',
-                    paymentId: detail.id,
-                    paymentDate: detail.paymentDate,
-                    amount: parseFloat(detail.amount),
-                });
-            });
+        // Add monthly data
+        stats.stats.forEach(stat => {
+            if (stat && stat.totalRevenue !== null) {
+                worksheetData.push([
+                    stat.month,
+                    stat.totalRevenue.toFixed(2),
+                    stat.details.length
+                ]);
+            }
+        });
 
-            if (monthDetails.length === 0) {
-                worksheet.addRow({
-                    month: monthNum,
-                    totalRevenue: parseFloat(stat.totalRevenue),
+        // Add summary
+        const totalRevenue = stats.stats.reduce((sum, stat) => 
+            stat && stat.totalRevenue !== null ? sum + stat.totalRevenue : sum, 0);
+        const totalTransactions = stats.stats.reduce((sum, stat) => 
+            stat && stat.details ? sum + stat.details.length : sum, 0);
+        
+        worksheetData.push([]);
+        worksheetData.push(['Total', totalRevenue.toFixed(2), totalTransactions]);
+
+        // Create detailed transaction sheet
+        const transactionSheetData = [
+            ['DETAILED TRANSACTIONS'],
+            ['Month', 'Payment ID', 'Payment Date', 'Amount (VND)'],
+        ];
+
+        stats.stats.forEach(stat => {
+            if (stat && stat.details && stat.details.length > 0) {
+                stat.details.forEach(detail => {
+                    transactionSheetData.push([
+                        stat.month,
+                        detail.id,
+                        new Date(detail.paymentDate).toLocaleString(),
+                        detail.amount.toFixed(2)
+                    ]);
                 });
             }
         });
 
-        worksheet.getRow(1).font = { bold: true };
-        worksheet.getRow(1).fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFCCCCCC' }
-        };
+        // Create workbook and worksheets
+        const workbook = XLSX.utils.book_new();
+        const summarySheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        const transactionSheet = XLSX.utils.aoa_to_sheet(transactionSheetData);
 
-        // Đường dẫn đến thư mục 'files'
-        const directoryPath = path.join(__dirname, 'files');
-        
-        // Kiểm tra xem thư mục đã tồn tại chưa, nếu chưa thì tạo thư mục
-        if (!fs.existsSync(directoryPath)) {
-            fs.mkdirSync(directoryPath, { recursive: true });
-        }
+        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+        XLSX.utils.book_append_sheet(workbook, transactionSheet, 'Transactions');
 
-        // Tạo đường dẫn đầy đủ cho file Excel
-        const filename = `Revenue_Report_${currentYear}_${uuid.v4()}.xlsx`;
-        const filePath = path.join(directoryPath, filename); // Sử dụng thư mục đã tạo
+        // Generate Excel buffer
+        const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
 
-        await workbook.xlsx.writeFile(filePath);
-
-        // Đọc file vào buffer và trả về
-        const buffer = fs.readFileSync(filePath);
-
-        // Trả về buffer và filename
-        return { buffer, filename };
+        return buffer;
     }
+
+    
+
+
 
     async debugPaymentData(year?: number) {
         const currentYear = year || new Date().getFullYear();

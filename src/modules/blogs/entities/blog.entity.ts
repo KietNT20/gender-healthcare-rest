@@ -82,6 +82,16 @@ export class Blog {
     @Column({ type: 'uuid', nullable: true })
     deletedByUserId?: string;
 
+    
+    @Column({ type: 'uuid',  nullable: true })
+    authorId?: string;
+
+    @Column({ type: 'uuid', nullable: true })
+    categoryId?: string;
+
+    @Column({ default: false })
+    autoPublish: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

@@ -49,14 +49,14 @@ export class UsersService {
         actorId: string,
     ): Promise<UserResponseDto> {
         // Check if email already exists
-        console.log('catch', createUserDto);
-
         const existingUser = await this.userRepository.findOne({
             where: { email: createUserDto.email },
         });
 
         if (existingUser) {
-            throw new ConflictException('Email này đã tồn tại');
+            throw new ConflictException(
+                'Đã có tài khoản đăng ký với email này',
+            );
         }
 
         // Hash password
@@ -117,7 +117,9 @@ export class UsersService {
         });
 
         if (existingUser) {
-            throw new ConflictException('Email này đã tồn tại trong hệ thống');
+            throw new ConflictException(
+                'Đã có tài khoản đăng ký với email này',
+            );
         }
 
         // Hash password
@@ -185,14 +187,16 @@ export class UsersService {
             const emailSet = new Set(emails);
             if (emailSet.size !== emails.length) {
                 throw new ConflictException(
-                    'Duplicate emails found in the request payload.',
+                    'Bị trùng email trong danh sách người dùng',
                 );
             }
 
             // 2. Check against the database for any existing emails.
             const existingUsers = await queryRunner.manager.find(User, {
                 where: { email: In(emails) },
-                select: ['email'],
+                select: {
+                    email: true,
+                },
             });
 
             if (existingUsers.length > 0) {
@@ -200,7 +204,7 @@ export class UsersService {
                     .map((u) => u.email)
                     .join(', ');
                 throw new ConflictException(
-                    `These emails already exist: ${existingEmails}`,
+                    `Các email đã được đăng ký: ${existingEmails}`,
                 );
             }
 
@@ -658,7 +662,7 @@ export class UsersService {
         ) {
             const existingUser = await this.findByEmail(updateUserDto.email);
             if (existingUser && existingUser.id !== id) {
-                throw new ConflictException('Email already exists');
+                throw new ConflictException('Đã có tài khoản với email này');
             }
         }
 
@@ -717,6 +721,16 @@ export class UsersService {
 
         if (!user) {
             throw new NotFoundException('Người dùng không tồn tại');
+        }
+
+        const emailExists = await this.userRepository.findOneBy({
+            email: updateProfileDto.email,
+        });
+
+        if (emailExists && emailExists.id !== id) {
+            throw new ConflictException(
+                'Đã có tài khoản đăng ký với email này',
+            );
         }
 
         // Update slug if firstName or lastName is being updated

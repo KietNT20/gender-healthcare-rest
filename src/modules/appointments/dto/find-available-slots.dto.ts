@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsArray,
     IsDateString,
     IsNotEmpty,
     IsOptional,
+    IsString,
     IsUUID,
 } from 'class-validator';
 
@@ -11,20 +11,16 @@ export class FindAvailableSlotsDto {
     @ApiProperty({
         description: 'Danh sách ID của các dịch vụ yêu cầu',
         type: [String],
-        example: ['service-id-1', 'service-id-2'],
-        isArray: true,
     })
-    @IsArray()
     @IsUUID('4', { each: true })
-    @IsNotEmpty()
-    serviceIds: string[];
+    serviceIds: string[] = [];
 
     @ApiProperty({
         description: 'Ngày bắt đầu tìm kiếm (YYYY-MM-DD)',
         example: '2025-06-25',
     })
-    @IsDateString()
     @IsNotEmpty()
+    @IsDateString()
     startDate: string;
 
     @ApiPropertyOptional({
@@ -32,8 +28,8 @@ export class FindAvailableSlotsDto {
             'Ngày kết thúc tìm kiếm (YYYY-MM-DD). Mặc định là 7 ngày từ startDate',
         example: '2025-07-01',
     })
-    @IsDateString()
     @IsOptional()
+    @IsDateString()
     endDate?: string;
 
     @ApiPropertyOptional({
@@ -41,6 +37,7 @@ export class FindAvailableSlotsDto {
         example: '08:00',
     })
     @IsOptional()
+    @IsString()
     startTime?: string;
 
     @ApiPropertyOptional({
@@ -48,15 +45,15 @@ export class FindAvailableSlotsDto {
         example: '18:00',
     })
     @IsOptional()
+    @IsString()
     endTime?: string;
 
     @ApiPropertyOptional({
         description:
             'ID tư vấn viên cụ thể (nếu muốn tìm slot cho tư vấn viên này)',
-        example: 'user-id',
     })
-    @IsUUID('4')
     @IsOptional()
+    @IsString()
     consultantId?: string;
 }
 

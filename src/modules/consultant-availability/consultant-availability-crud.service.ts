@@ -40,49 +40,44 @@ export class ConsultantAvailabilityCrudService {
             sortOrder,
         } = queryDto;
 
-        const queryBuilder = this.availabilityRepository
-            .createQueryBuilder('availability')
-            .leftJoin('availability.consultantProfile', 'profile')
-            .where('availability.deletedAt IS NULL');
+        const consultantAvailability = await this.availabilityRepository.find({
+            where: {
+                deletedAt: IsNull(),
+                ...(consultantId && {
+                    consultantProfile: { id: consultantId },
+                }),
+                ...(dayOfWeek !== undefined && { dayOfWeek }),
+                ...(isAvailable !== undefined && {
+                    isAvailable:
+                        isAvailable === 'true'
+                            ? true
+                            : isAvailable === 'false'
+                              ? false
+                              : undefined,
+                }),
+                ...(location && { location }),
+            },
+            relations: {
+                consultantProfile: {
+                    user: {
+                        role: true,
+                    },
+                },
+            },
+            order: {
+                [sortBy || 'createdAt']: sortOrder || 'DESC',
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
 
-        if (consultantId) {
-            queryBuilder.andWhere('profile.id = :consultantId', {
-                consultantId,
-            });
-        }
-        if (dayOfWeek !== undefined) {
-            queryBuilder.andWhere('availability.dayOfWeek = :dayOfWeek', {
-                dayOfWeek,
-            });
-        }
-        if (isAvailable !== undefined) {
-            queryBuilder.andWhere('availability.isAvailable = :isAvailable', {
-                isAvailable,
-            });
-        }
-        if (location) {
-            queryBuilder.andWhere('availability.location = :location', {
-                location,
-            });
-        }
-
-        const validSortFields = ['dayOfWeek', 'startTime', 'createdAt'];
-        const orderBy = validSortFields.includes(sortBy)
-            ? `availability.${sortBy}`
-            : 'availability.dayOfWeek';
-        queryBuilder.orderBy(orderBy, sortOrder);
-
-        const skip = (page - 1) * limit;
-        const [data, totalItems] = await queryBuilder
-            .skip(skip)
-            .take(limit)
-            .getManyAndCount();
+        const totalItems = await this.availabilityRepository.count();
 
         return {
-            data,
+            data: consultantAvailability,
             meta: {
                 itemsPerPage: limit,
-                totalItems,
+                totalItems: totalItems,
                 currentPage: page,
                 totalPages: Math.ceil(totalItems / limit),
             },

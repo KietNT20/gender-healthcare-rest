@@ -522,7 +522,7 @@ export class AppointmentsService {
     ): Promise<FindAvailableSlotsResponseDto> {
         if (!findSlotsDto.serviceIds || findSlotsDto.serviceIds.length === 0) {
             throw new BadRequestException(
-                'Vui lòng chọn ít nhất một dịch vụ để tìm kiếm slot khả dụng.',
+                'Vui lòng chọn ít nhất một dịch vụ tư vấn để tìm kiếm',
             );
         }
 

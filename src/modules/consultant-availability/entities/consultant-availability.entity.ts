@@ -59,7 +59,10 @@ export class ConsultantAvailability {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => ConsultantProfile, (profile) => profile.availabilities)
+    @ManyToOne(
+        () => ConsultantProfile,
+        (consultantProfile) => consultantProfile.availabilities,
+    )
     consultantProfile: ConsultantProfile;
 
     @OneToMany(

@@ -108,7 +108,6 @@ export class ConsultantProfile {
 
     // Relations
     @OneToOne(() => User, (user) => user.consultantProfile, {
-        eager: true,
         cascade: true,
     })
     @JoinColumn()
@@ -116,7 +115,6 @@ export class ConsultantProfile {
 
     @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
         nullable: true,
-        eager: true,
         cascade: true,
     })
     verifiedBy: User;

@@ -29,15 +29,6 @@ export class AuthService {
     ) {}
 
     async register(registerDto: RegisterDto) {
-        // Check if email user already exists
-        const existingUserEmail = await this.usersService.findByEmail(
-            registerDto.email,
-        );
-
-        if (existingUserEmail) {
-            throw new BadRequestException('Email đã được sử dụng');
-        }
-
         // Generate verification token
         const emailVerificationToken = randomBytes(32).toString('hex');
         const emailVerificationExpires = new Date();

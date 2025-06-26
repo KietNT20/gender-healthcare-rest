@@ -19,14 +19,15 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard, RoleGuard)
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new category' })
     @ApiResponse({
         status: HttpStatus.CREATED,
@@ -62,7 +63,7 @@ export class CategoriesController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Update a category by ID' })
@@ -83,7 +84,7 @@ export class CategoriesController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
+    @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete a category by ID' })

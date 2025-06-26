@@ -48,6 +48,7 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
+import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
 
 @Module({
     imports: [
@@ -148,6 +149,7 @@ import { UsersModule } from './modules/users/users.module';
         FilesModule,
         ChatModule,
         TagsModule,
+        RevenueStatsModule,
         ServicePackageStatsModule,
     ],
     providers: [

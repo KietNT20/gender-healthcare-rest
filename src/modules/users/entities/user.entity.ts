@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { GenderType } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
 import { AuditLog } from 'src/modules/audit-logs/entities/audit-log.entity';
@@ -42,6 +43,7 @@ export class User {
     email: string;
 
     @Column({ type: 'varchar', length: 255, nullable: true })
+    @Exclude()
     password?: string;
 
     @Column({ type: 'varchar', nullable: true })

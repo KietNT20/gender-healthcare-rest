@@ -8,8 +8,10 @@ import {
     IsPositive,
     Min,
     MaxLength,
+    IsEnum,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { LocationTypeEnum } from 'src/enums';
 
 export class CreateServiceDto {
     @ApiProperty({ description: 'Service name' })
@@ -68,4 +70,13 @@ export class CreateServiceDto {
     @IsBoolean()
     @IsOptional()
     requiresConsultant?: boolean; // Thêm trường này
+
+    @ApiPropertyOptional({
+        description: 'Service location',
+        enum: LocationTypeEnum,
+        default: LocationTypeEnum.OFFICE,
+    })
+    @IsEnum(LocationTypeEnum)
+    @IsOptional()
+    location?: LocationTypeEnum;
 }

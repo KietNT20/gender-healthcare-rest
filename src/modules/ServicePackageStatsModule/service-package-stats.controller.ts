@@ -14,9 +14,9 @@ export class ServicePackageStatsController {
     constructor(private readonly statsService: ServicePackageStatsService) {}
 
     @Get('most-subscribed')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({ summary: 'Get the most subscribed service package for a specific month' })
     @ApiResponse({
         status: 200,
@@ -28,10 +28,10 @@ export class ServicePackageStatsController {
     }
 
     @Get('report')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiOperation({ summary: 'Generate an Excel report for the most subscribed service package' })
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Generate an Excel report for all subscribed service package' })
     @ApiResponse({
         status: 200,
         description: 'Excel report generated successfully',

@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsNumber, Min, Max } from 'class-validator';
 
-export class ServicePackageStatsQueryDto {
+export class ServicePackagesStatsQueryDto {
     @ApiPropertyOptional({
         description: 'Tháng cần thống kê (1-12)',
         example: 6,

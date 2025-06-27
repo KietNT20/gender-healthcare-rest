@@ -1,14 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsArray, IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class LateCheckInDto {
     @ApiProperty({
         description: 'Thời gian đến thực tế',
-        type: Date,
     })
     @IsDate()
-    @Type(() => Date)
     actualArrivalTime: Date;
 
     @ApiPropertyOptional({

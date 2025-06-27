@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+    IsDate,
     IsDateString,
     IsNotEmpty,
     IsOptional,
@@ -11,15 +12,15 @@ export class CreateMenstrualCycleDto {
         description: 'Start Date (YYYY-MM-DD)',
     })
     @IsNotEmpty({ message: 'Start date is required' })
-    @IsDateString()
-    cycleStartDate: string;
+    @IsDate()
+    cycleStartDate: Date;
 
     @ApiProperty({
         description: 'End Date (YYYY-MM-DD)',
     })
     @IsNotEmpty({ message: 'End date is required' })
-    @IsDateString()
-    cycleEndDate: string;
+    @IsDate()
+    cycleEndDate: Date;
 
     @ApiProperty({
         description: 'Additional notes about the cycle',

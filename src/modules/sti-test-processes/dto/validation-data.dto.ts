@@ -1,5 +1,4 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
     IsBoolean,
     IsDate,
@@ -43,7 +42,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian lấy mẫu' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     sampleCollectionDate?: Date;
 
@@ -65,7 +63,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian bắt đầu xử lý' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     processingStartDate?: Date;
 
@@ -82,7 +79,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian validate kết quả' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     resultValidationDate?: Date;
 
@@ -107,7 +103,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian giao kết quả' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     deliveryDate?: Date;
 
@@ -146,7 +141,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian theo dõi' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     followUpDate?: Date;
 
@@ -163,7 +157,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian hủy' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     cancellationDate?: Date;
 

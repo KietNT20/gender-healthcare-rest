@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     ArrayNotEmpty,
     IsArray,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsInt,
     IsNotEmpty,
@@ -35,14 +35,14 @@ export class CreateContraceptiveReminderDto {
     @ApiProperty({
         description: 'Ngày bắt đầu nhắc nhở (YYYY-MM-DD)',
     })
-    @IsDateString()
+    @IsDate()
     @IsNotEmpty()
     startDate: Date;
 
     @ApiPropertyOptional({
         description: 'Ngày kết thúc nhắc nhở (YYYY-MM-DD)',
     })
-    @IsDateString()
+    @IsDate()
     @IsOptional()
     endDate?: Date;
 

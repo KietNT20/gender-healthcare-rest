@@ -143,13 +143,13 @@ export class StiTestProcessesService {
 
         const [data, total] = await this.stiTestProcessRepository.findAndCount({
             where,
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
             order: orderOptions,
             skip: (page - 1) * limit,
             take: limit,
@@ -174,13 +174,13 @@ export class StiTestProcessesService {
     async findById(id: string): Promise<StiTestProcessResponseDto> {
         const stiTestProcess = await this.stiTestProcessRepository.findOne({
             where: { id },
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
         });
 
         if (!stiTestProcess) {
@@ -196,13 +196,13 @@ export class StiTestProcessesService {
     async findByTestCode(testCode: string): Promise<StiTestProcessResponseDto> {
         const stiTestProcess = await this.stiTestProcessRepository.findOne({
             where: { testCode },
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
         });
 
         if (!stiTestProcess) {
@@ -223,7 +223,9 @@ export class StiTestProcessesService {
     ): Promise<StiTestProcessResponseDto> {
         const stiTestProcess = await this.stiTestProcessRepository.findOne({
             where: { id },
-            relations: ['patient'],
+            relations: {
+                patient: true,
+            },
         });
 
         if (!stiTestProcess) {
@@ -231,7 +233,7 @@ export class StiTestProcessesService {
         }
 
         // Cập nhật dữ liệu
-        const updateData: any = { ...updateDto };
+        const updateData = { ...updateDto };
 
         if (updateDto.estimatedResultDate) {
             updateData.estimatedResultDate = new Date(
@@ -253,11 +255,7 @@ export class StiTestProcessesService {
 
         // Gửi thông báo khi trạng thái thay đổi
         if (updateDto.status && updateDto.status !== stiTestProcess.status) {
-            await this.handleStatusChange(
-                id,
-                updateDto.status,
-                stiTestProcess.status,
-            );
+            await this.handleStatusChange(id, updateDto.status);
         }
 
         return this.findById(id);
@@ -279,7 +277,6 @@ export class StiTestProcessesService {
     private async handleStatusChange(
         id: string,
         newStatus: StiTestProcessStatus,
-        oldStatus: StiTestProcessStatus,
     ): Promise<void> {
         const statusMessages = {
             [StiTestProcessStatus.SAMPLE_COLLECTION_SCHEDULED]:
@@ -319,7 +316,9 @@ export class StiTestProcessesService {
         try {
             const process = await this.stiTestProcessRepository.findOne({
                 where: { id: processId },
-                relations: ['patient'],
+                relations: {
+                    patient: true,
+                },
             });
 
             if (process && process.patient) {
@@ -344,7 +343,10 @@ export class StiTestProcessesService {
         try {
             const process = await this.stiTestProcessRepository.findOne({
                 where: { id: processId },
-                relations: ['patient', 'testResult'],
+                relations: {
+                    patient: true,
+                    testResult: true,
+                },
             });
 
             if (process && process.patient && !process.resultEmailSent) {
@@ -479,14 +481,14 @@ export class StiTestProcessesService {
      */
     async findAllForStatistics(): Promise<StiTestProcess[]> {
         return await this.stiTestProcessRepository.find({
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
-            order: { createdAt: 'DESC' },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+            order: { createdAt: SortOrder.DESC },
         });
     }
 
@@ -501,14 +503,14 @@ export class StiTestProcessesService {
             where: {
                 createdAt: Between(startDate, endDate),
             },
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
-            order: { createdAt: 'DESC' },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+            order: { createdAt: SortOrder.DESC },
         });
     }
 
@@ -522,14 +524,14 @@ export class StiTestProcessesService {
             where: {
                 patient: { id: patientId },
             },
-            relations: [
-                'patient',
-                'service',
-                'appointment',
-                'testResult',
-                'consultantDoctor',
-            ],
-            order: { createdAt: 'DESC' },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+            order: { createdAt: SortOrder.DESC },
         });
     }
 }

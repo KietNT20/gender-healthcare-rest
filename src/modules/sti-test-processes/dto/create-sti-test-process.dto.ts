@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsBoolean,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
@@ -56,8 +56,8 @@ export class CreateStiTestProcessDto {
         description: 'Thời gian dự kiến có kết quả',
     })
     @IsOptional()
-    @IsDateString()
-    estimatedResultDate?: string;
+    @IsDate()
+    estimatedResultDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Địa điểm lấy mẫu',

@@ -1,14 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsArray, IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CheckInAppointmentDto {
     @ApiPropertyOptional({
         description: 'Thời gian check-in, mặc định là thời gian hiện tại',
-        type: Date,
     })
     @IsDate()
-    @Type(() => Date)
     @IsOptional()
     checkInTime?: Date;
 

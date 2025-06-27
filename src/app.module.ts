@@ -49,6 +49,7 @@ import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
 import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
+import { ServicePackagesStatsModule } from './service-packages-stats/service-packages-stats.module';
 
 @Module({
     imports: [
@@ -151,6 +152,7 @@ import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module
         TagsModule,
         RevenueStatsModule,
         ServicePackageStatsModule,
+        ServicePackagesStatsModule,
     ],
     providers: [
         AppService,

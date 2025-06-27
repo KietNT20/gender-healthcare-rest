@@ -1,9 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
-    IsBoolean,
+    IsBooleanString,
     IsDate,
-    IsDateString,
     IsIn,
     IsNumber,
     IsOptional,
@@ -22,34 +20,42 @@ export class PeriodStatsDto {
 export class DashboardQueryDto {
     @ApiPropertyOptional()
     @IsOptional()
-    @IsDateString()
-    @Type(() => Date)
+    @IsDate()
     startDate?: Date;
 
     @ApiPropertyOptional()
     @IsOptional()
-    @IsDateString()
-    @Type(() => Date)
+    @IsDate()
     endDate?: Date;
 }
 
 export class UserActiveStatsPeriodDto {
+    @ApiPropertyOptional({
+        enum: ['month', 'quarter', 'year'],
+        default: 'month',
+    })
     @IsOptional()
     @IsIn(['month', 'quarter', 'year'])
     periodType?: 'month' | 'quarter' | 'year' = 'month';
 
+    @ApiPropertyOptional()
     @IsOptional()
-    @Type(() => Number)
     @IsNumber()
     periodCount?: number = 12;
 
+    @ApiPropertyOptional({
+        type: 'boolean',
+    })
     @IsOptional()
-    @Type(() => Boolean)
-    @IsBoolean()
-    includeCurrentPeriod?: boolean = true;
+    @IsBooleanString()
+    includeCurrentPeriod?: string = 'true';
 }
 
 export class UserActiveStatsComparisonDto {
+    @ApiProperty({
+        enum: ['month', 'quarter', 'year'],
+        default: 'month',
+    })
     @IsIn(['month', 'quarter', 'year'])
     periodType: 'month' | 'quarter' | 'year' = 'month';
 }

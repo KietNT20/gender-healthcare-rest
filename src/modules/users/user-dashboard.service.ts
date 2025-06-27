@@ -26,6 +26,7 @@ export class UserDashboardService {
                 role: {
                     name: RolesNameEnum.CUSTOMER,
                 },
+                deletedAt: IsNull(),
             },
         });
 
@@ -36,6 +37,7 @@ export class UserDashboardService {
                     name: RolesNameEnum.CUSTOMER,
                 },
                 isActive: true,
+                deletedAt: IsNull(),
             },
         });
 
@@ -62,6 +64,7 @@ export class UserDashboardService {
                     name: RolesNameEnum.CUSTOMER,
                 },
                 createdAt: Between(startOfMonth, endOfMonth),
+                deletedAt: IsNull(),
             },
         });
 
@@ -80,6 +83,7 @@ export class UserDashboardService {
                 role: {
                     name: RolesNameEnum.CONSULTANT,
                 },
+                deletedAt: IsNull(),
             },
         });
 
@@ -90,6 +94,7 @@ export class UserDashboardService {
                     name: RolesNameEnum.CONSULTANT,
                 },
                 isActive: true,
+                deletedAt: IsNull(),
             },
         });
 
@@ -102,6 +107,7 @@ export class UserDashboardService {
                 role: {
                     name: RolesNameEnum.CONSULTANT,
                 },
+                deletedAt: IsNull(),
             },
         });
 
@@ -345,18 +351,22 @@ export class UserDashboardService {
 
     /**
      * Thống kê user active theo khoảng thời gian (tháng, quý, năm)
+     * @param periodType - Loại khoảng thời gian: 'month', 'quarter', 'year'
+     * @param periodCount - Số lượng khoảng thời gian cần thống kê (mặc định 12)
+     * @param includeCurrentPeriod - Có bao gồm khoảng thời gian hiện tại hay không (mặc định 'true')
+     * @returns Promise<UserActiveStatsPeriod[]>
      */
     async getUserActiveStatsByPeriod(
         periodType: 'month' | 'quarter' | 'year',
         periodCount: number = 12,
-        includeCurrentPeriod: boolean = true,
+        includeCurrentPeriod: string = 'true',
     ): Promise<UserActiveStatsPeriod[]> {
         const stats: UserActiveStatsPeriod[] = [];
         const currentDate = new Date();
 
         for (
-            let i = includeCurrentPeriod ? 0 : 1;
-            i < periodCount + (includeCurrentPeriod ? 0 : 1);
+            let i = includeCurrentPeriod === 'true' ? 0 : 1;
+            i < periodCount + (includeCurrentPeriod === 'true' ? 0 : 1);
             i++
         ) {
             let startDate: Date;

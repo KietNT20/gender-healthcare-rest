@@ -7,6 +7,8 @@ import { MailModule } from '../mail/mail.module';
 import { Role } from '../roles/entities/role.entity';
 import { User } from './entities/user.entity';
 import { CreateGoogleUserProvider } from './provider/create-google-user.provider';
+import { UserDashboardController } from './user-dashboard.controller';
+import { UserDashboardService } from './user-dashboard.service';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -16,15 +18,16 @@ import { UsersService } from './users.service';
         MailModule,
         AuditLogsModule,
     ],
-    controllers: [UsersController],
+    controllers: [UsersController, UserDashboardController],
     providers: [
         UsersService,
+        UserDashboardService,
         CreateGoogleUserProvider,
         {
             provide: HashingProvider,
             useClass: BcryptProvider,
         },
     ],
-    exports: [UsersService, CreateGoogleUserProvider],
+    exports: [UsersService, UserDashboardService, CreateGoogleUserProvider],
 })
 export class UsersModule {}

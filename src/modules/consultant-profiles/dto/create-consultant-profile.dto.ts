@@ -14,34 +14,35 @@ import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
 
 export class CreateConsultantProfileDto {
     @ApiProperty({ description: 'ID of the user this profile belongs to.' })
-    @IsUUID('4')
     @IsNotEmpty()
+    @IsString()
+    @IsUUID('4')
     userId: string;
 
     @ApiProperty({
-        description: 'Danh sách các chuyên môn của tư vấn viên',
+        description:
+            'Specialties of the consultant, e.g., "Cardiology", "Psychology".',
         type: [String],
     })
-    @IsArray()
-    @IsString({ each: true })
     @IsNotEmpty()
+    @IsArray()
     specialties: string[];
 
     @ApiProperty({
         description: 'Qualification of the consultant.',
     })
-    @IsString()
     @IsNotEmpty()
+    @IsString()
     qualification: string;
 
     @ApiProperty({ description: 'Experience of the consultant.' })
-    @IsString()
     @IsNotEmpty()
+    @IsString()
     experience: string;
 
     @ApiPropertyOptional()
-    @IsString()
     @IsOptional()
+    @IsString()
     bio?: string;
 
     @ApiProperty({ description: 'Consultation fee per session.' })
@@ -50,22 +51,21 @@ export class CreateConsultantProfileDto {
     consultationFee: number;
 
     @ApiPropertyOptional({ default: true })
-    @IsBoolean()
     @IsOptional()
+    @IsBoolean()
     isAvailable?: boolean;
 
     @ApiPropertyOptional({
         enum: ProfileStatusType,
         default: ProfileStatusType.ACTIVE,
     })
-    @IsEnum(ProfileStatusType)
     @IsOptional()
+    @IsEnum(ProfileStatusType)
     profileStatus?: ProfileStatusType;
 
-    @ApiPropertyOptional({ example: ['Tiếng Việt', 'English'] })
-    @IsArray()
-    @IsString({ each: true })
+    @ApiPropertyOptional({ type: [String], default: ['tiếng Việt'] })
     @IsOptional()
+    @IsArray()
     languages?: string[];
 
     @ApiPropertyOptional({
@@ -73,8 +73,8 @@ export class CreateConsultantProfileDto {
         isArray: true,
         default: [LocationTypeEnum.ONLINE, LocationTypeEnum.OFFICE],
     })
+    @IsOptional()
     @IsArray()
     @IsEnum(LocationTypeEnum, { each: true })
-    @IsOptional()
     consultationTypes?: LocationTypeEnum[];
 }

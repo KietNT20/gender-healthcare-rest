@@ -1,5 +1,10 @@
 import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { ServicePackageStatsService } from './service-package-stats.service';
 import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -8,39 +13,50 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 
-
 @Controller('service-package-stats')
 export class ServicePackageStatsController {
     constructor(private readonly statsService: ServicePackageStatsService) {}
 
     @Get('most-subscribed')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiOperation({ summary: 'Get the most subscribed service package for a specific month' })
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Get the most subscribed service package for a specific month',
+    })
     @ApiResponse({
         status: 200,
-        description: 'Successfully retrieved the most subscribed service package',
+        description:
+            'Successfully retrieved the most subscribed service package',
     })
     @ApiResponse({ status: 400, description: 'Invalid input data' })
-    async getMostSubscribedPackage(@Query() query: ServicePackageStatsQueryDto) {
+    async getMostSubscribedPackage(
+        @Query() query: ServicePackageStatsQueryDto,
+    ) {
         return this.statsService.getMostSubscribedPackage(query);
     }
 
     @Get('report')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiOperation({ summary: 'Generate an Excel report for the most subscribed service package' })
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard, RoleGuard)
+    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Generate an Excel report for all subscribed service package',
+    })
     @ApiResponse({
         status: 200,
         description: 'Excel report generated successfully',
     })
     @ApiResponse({ status: 400, description: 'Invalid input data' })
-    async generateExcelReport(@Query() query: ServicePackageStatsQueryDto, @Res() res: Response) {
-        const { buffer, filename } = await this.statsService.generateExcelReport(query);
+    async generateExcelReport(
+        @Query() query: ServicePackageStatsQueryDto,
+        @Res() res: Response,
+    ) {
+        const { buffer, filename } =
+            await this.statsService.generateExcelReport(query);
         res.set({
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Type':
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition': `attachment; filename="${filename}"`,
         });
         res.send(buffer);

@@ -1,16 +1,14 @@
-import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as ExcelJS from 'exceljs';
 import { PaymentStatusType } from 'src/enums';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
-import * as ExcelJS from 'exceljs';
 import { Repository } from 'typeorm';
-import * as uuid from 'uuid';
-import * as path from 'path';
-import * as fs from 'fs';
-import { RevenueStatsDto } from './dto/revenue-stats.dto';
 
 @Injectable()
 export class RevenueStatsService {
+    private readonly logger = new Logger(RevenueStatsService.name);
+
     constructor(
         @InjectRepository(Payment)
         private readonly paymentRepository: Repository<Payment>,
@@ -47,7 +45,7 @@ export class RevenueStatsService {
 
         const monthlyStats = await query.getRawMany();
 
-        console.log('Monthly stats raw data:', monthlyStats);
+        this.logger.log('Monthly stats raw data:', monthlyStats);
 
         const result = Array(12)
             .fill(0)
@@ -68,7 +66,7 @@ export class RevenueStatsService {
             })
             .filter((r) => r !== null);
 
-        console.log('Processed result:', result);
+        this.logger.log('Processed result:', result);
 
         return {
             year: currentYear,
@@ -118,8 +116,8 @@ export class RevenueStatsService {
             .orderBy('payment.paymentDate', 'ASC')
             .getRawMany();
 
-        console.log('Yearly stats raw data:', yearlyStats);
-        console.log('Monthly details raw data:', monthlyDetails);
+        this.logger.log('Yearly stats raw data:', yearlyStats);
+        this.logger.log('Monthly details raw data:', monthlyDetails);
 
         const result = Array(12)
             .fill(null)
@@ -144,8 +142,6 @@ export class RevenueStatsService {
                         })),
                 };
             });
-
-        console.log('Processed yearly result:', result);
 
         return {
             year: currentYear,
@@ -399,8 +395,6 @@ export class RevenueStatsService {
             })
             .orderBy('payment.paymentDate', 'ASC')
             .getMany();
-
-        console.log('All payments in year:', allPayments);
 
         const completedPayments = await this.paymentRepository
             .createQueryBuilder('payment')

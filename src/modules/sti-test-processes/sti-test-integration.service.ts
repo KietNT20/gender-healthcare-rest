@@ -5,23 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PackageService } from '../package-services/entities/package-service.entity';
 import { Service } from '../services/entities/service.entity';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
+import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
 import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
 import {
     ProcessPriority,
     StiSampleType,
 } from './entities/sti-test-process.entity';
 import { StiTestProcessesService } from './sti-test-processes.service';
-
-export interface StiTestBookingRequest {
-    patientId: string;
-    serviceIds: string[];
-    appointmentId?: string;
-    consultantDoctorId?: string;
-    notes?: string;
-}
 
 export interface StiTestBookingResponse {
     stiTestProcesses: StiTestProcessResponseDto[];
@@ -36,6 +30,8 @@ export class StiTestIntegrationService {
         private readonly usersService: UsersService,
         @InjectRepository(Service)
         private readonly serviceRepository: Repository<Service>,
+        @InjectRepository(PackageService)
+        private readonly packageServiceRepository: Repository<PackageService>,
     ) {}
 
     /**
@@ -53,8 +49,18 @@ export class StiTestIntegrationService {
             throw new NotFoundException('Không tìm thấy bệnh nhân');
         }
 
+        // Get service IDs from either direct serviceIds or servicePackageId
+        let serviceIds: string[] = [];
+        if (request.serviceIds && request.serviceIds.length > 0) {
+            serviceIds = request.serviceIds;
+        } else if (request.servicePackageId) {
+            serviceIds = await this.getStiServicesFromPackage(
+                request.servicePackageId,
+            );
+        }
+
         // Validate that all services are STI tests
-        for (const serviceId of request.serviceIds) {
+        for (const serviceId of serviceIds) {
             if (!(await this.isStiTestService(serviceId))) {
                 throw new BadRequestException(
                     `Service ${serviceId} không phải là xét nghiệm STI`,
@@ -63,9 +69,7 @@ export class StiTestIntegrationService {
         }
 
         // Calculate cost from services
-        const services = await this.serviceRepository.findByIds(
-            request.serviceIds,
-        );
+        const services = await this.serviceRepository.findByIds(serviceIds);
         const estimatedCost = services.reduce(
             (total, service) => total + Number(service.price),
             0,
@@ -74,12 +78,12 @@ export class StiTestIntegrationService {
         // Tạo STI test process cho từng service
         const stiTestProcesses: StiTestProcessResponseDto[] = [];
 
-        for (const serviceId of request.serviceIds) {
+        for (const serviceId of serviceIds) {
             const createDto: CreateStiTestProcessDto = {
                 patientId: request.patientId,
                 serviceId: serviceId,
                 appointmentId: request.appointmentId,
-                consultantDoctorId: request.consultantDoctorId,
+                consultantDoctorId: request.consultantId,
                 processNotes: request.notes,
                 priority: ProcessPriority.NORMAL,
                 sampleType: StiSampleType.BLOOD, // Default
@@ -166,12 +170,34 @@ export class StiTestIntegrationService {
      * Lấy danh sách STI services từ package
      * @param packageId - ID của package
      * @returns Danh sách ID của các service STI trong package
-     * TODO: Implement this function
      */
     async getStiServicesFromPackage(packageId: string): Promise<string[]> {
-        // Simple implementation - you can extend this later
-        // For now, just return empty array as placeholder
-        return [];
+        try {
+            // Lấy danh sách services trong package
+            const packageServices = await this.packageServiceRepository.find({
+                where: {
+                    package: { id: packageId },
+                },
+                relations: ['service'],
+            });
+
+            const stiServiceIds: string[] = [];
+
+            // Kiểm tra từng service xem có phải STI test không
+            for (const packageService of packageServices) {
+                if (
+                    packageService.service &&
+                    (await this.isStiTestService(packageService.service.id))
+                ) {
+                    stiServiceIds.push(packageService.service.id);
+                }
+            }
+
+            return stiServiceIds;
+        } catch (error) {
+            console.error('Error getting STI services from package:', error);
+            return [];
+        }
     }
 
     /**
@@ -182,8 +208,15 @@ export class StiTestIntegrationService {
             throw new BadRequestException('Patient ID là bắt buộc');
         }
 
-        if (!request.serviceIds || request.serviceIds.length === 0) {
-            throw new BadRequestException('Cần chọn ít nhất một service');
+        // Phải có ít nhất một trong hai: serviceIds hoặc servicePackageId
+        const hasServiceIds =
+            request.serviceIds && request.serviceIds.length > 0;
+        const hasServicePackageId = request.servicePackageId;
+
+        if (!hasServiceIds && !hasServicePackageId) {
+            throw new BadRequestException(
+                'Cần chọn ít nhất một service hoặc một service package',
+            );
         }
     }
 }

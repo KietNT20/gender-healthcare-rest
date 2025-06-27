@@ -13,14 +13,15 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('service-package-stats')
 export class ServicePackageStatsController {
     constructor(private readonly statsService: ServicePackageStatsService) {}
 
     @Get('most-subscribed')
-    // @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard, RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Get the most subscribed service package for a specific month',
     })
@@ -36,10 +37,25 @@ export class ServicePackageStatsController {
         return this.statsService.getMostSubscribedPackage(query);
     }
 
+    @Get('all-stats')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Get statistics for all service packages in a specific month',
+    })
+    @ApiResponse({
+        status: 200,
+        description:
+            'Successfully retrieved statistics for all service packages',
+    })
+    @ApiResponse({ status: 400, description: 'Invalid input data' })
+    async getAllPackageStats(@Query() query: ServicePackageStatsQueryDto) {
+        return this.statsService.getAllPackageStats(query);
+    }
+
     @Get('report')
-    // @ApiBearerAuth()
-    // @UseGuards(JwtAuthGuard, RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Generate an Excel report for all subscribed service package',
     })

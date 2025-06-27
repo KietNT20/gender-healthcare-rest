@@ -79,6 +79,71 @@ export class ServicePackageStatsService {
     }
 
     /**
+     * Get statistics for all service packages in a specific month and year
+     * @param query Query parameters for month and year
+     * @returns List of all packages with their subscription counts
+     */
+    async getAllPackageStats(query: ServicePackageStatsQueryDto) {
+        const { month, year } = query;
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        // Default to current month/year if not provided
+        const queryMonth = month ?? currentMonth;
+        const queryYear = year ?? currentYear;
+
+        // Build date range
+        const startDate = new Date(queryYear, queryMonth - 1, 1);
+        const endDate = new Date(queryYear, queryMonth, 0, 23, 59, 59, 999);
+
+        // Query subscription statistics for all packages
+        const stats = await this.subscriptionRepository
+            .createQueryBuilder('subscription')
+            .select('subscription.packageId', 'packageId')
+            .addSelect('COUNT(subscription.id)', 'subscriptionCount')
+            .innerJoin('subscription.package', 'package')
+            .where('subscription.createdAt BETWEEN :startDate AND :endDate', {
+                startDate,
+                endDate,
+            })
+            .andWhere('package.deletedAt IS NULL')
+            .andWhere('subscription.deletedAt IS NULL')
+            .groupBy('subscription.packageId')
+            .orderBy('COUNT(subscription.id)', 'DESC')
+            .getRawMany();
+
+        // Fetch detailed package information for all packages
+        const packages = await this.packageRepository.find({
+            where: { deletedAt: IsNull() },
+        });
+
+        // Map stats to packages
+        const reportData = packages.map((pkg) => {
+            const stat = stats.find((s) => s.packageId === pkg.id);
+            return {
+                package: {
+                    id: pkg.id,
+                    name: pkg.name,
+                    price: pkg.price,
+                    durationMonths: pkg.durationMonths,
+                    isActive: pkg.isActive,
+                },
+                subscriptionCount: stat ? parseInt(stat.subscriptionCount) : 0,
+            };
+        });
+
+        return {
+            packages: reportData,
+            month: queryMonth,
+            year: queryYear,
+            totalSubscriptions: reportData.reduce(
+                (sum, data) => sum + data.subscriptionCount,
+                0,
+            ),
+        };
+    }
+
+    /**
      * Generate an Excel report for all subscribed service packages
      * @param query Query parameters for month and year
      * @returns Excel file buffer and filename

@@ -14,14 +14,13 @@ import { RolesNameEnum } from 'src/enums';
 import { ServicePackagesStatsService } from './service-packages-stats.service';
 import { ServicePackagesStatsQueryDto } from './dto/service-packages-stats-query.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('service-package-stats')
 export class ServicePackagesStatsController {
     constructor(private readonly statsService: ServicePackagesStatsService) {}
 
     @Get('most-subscribed')
-    @UseGuards(RoleGuard)
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard ,RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Get the most subscribed service package for a specific month',
@@ -39,7 +38,8 @@ export class ServicePackagesStatsController {
     }
 
     @Get('all-stats')
-    @UseGuards(RoleGuard)
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard ,RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Get statistics for all service packages in a specific month',
@@ -55,7 +55,8 @@ export class ServicePackagesStatsController {
     }
 
     @Get('report')
-    @UseGuards(RoleGuard)
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard ,RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Generate an Excel report for all subscribed service package',

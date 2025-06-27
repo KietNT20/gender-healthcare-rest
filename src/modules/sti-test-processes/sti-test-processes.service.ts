@@ -473,4 +473,63 @@ export class StiTestProcessesService {
                 : undefined,
         };
     }
+
+    /**
+     * Lấy tất cả processes cho thống kê dashboard
+     */
+    async findAllForStatistics(): Promise<StiTestProcess[]> {
+        return await this.stiTestProcessRepository.find({
+            relations: [
+                'patient',
+                'service',
+                'appointment',
+                'testResult',
+                'consultantDoctor',
+            ],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    /**
+     * Lấy processes theo khoảng thời gian cho thống kê
+     */
+    async findAllForStatisticsByPeriod(
+        startDate: Date,
+        endDate: Date,
+    ): Promise<StiTestProcess[]> {
+        return await this.stiTestProcessRepository.find({
+            where: {
+                createdAt: Between(startDate, endDate),
+            },
+            relations: [
+                'patient',
+                'service',
+                'appointment',
+                'testResult',
+                'consultantDoctor',
+            ],
+            order: { createdAt: 'DESC' },
+        });
+    }
+
+    /**
+     * Lấy processes theo patient cho thống kê
+     */
+    async findAllForStatisticsByPatient(
+        patientId: string,
+    ): Promise<StiTestProcess[]> {
+        return await this.stiTestProcessRepository.find({
+            where: {
+                patient: { id: patientId },
+            },
+            relations: [
+                'patient',
+                'service',
+                'appointment',
+                'testResult',
+                'consultantDoctor',
+            ],
+            order: { createdAt: 'DESC' },
+        });
+    }
 }

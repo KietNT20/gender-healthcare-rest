@@ -744,4 +744,64 @@ export class BlogsService {
 
         return updatedBlog;
     }
+
+
+
+    async getMonthlyBlogStats(year?: number, month?: number) {
+        const currentYear = year || new Date().getFullYear();
+        const startDate = new Date(`${currentYear}-01-01`);
+        const endDate = new Date(`${currentYear + 1}-01-01`);
+
+        const queryBuilder = this.blogRepository
+            .createQueryBuilder('blog')
+            .select([
+                'EXTRACT(MONTH FROM blog.createdAt) as month',
+                'COUNT(CASE WHEN blog.status = :createdStatus THEN 1 END) as createdCount',
+                'COUNT(CASE WHEN blog.status = :pendingStatus THEN 1 END) as pendingCount',
+                'COUNT(CASE WHEN blog.status = :approvedStatus AND blog.updatedAt >= :startDate THEN 1 END) as approvedCount',
+            ])
+            .where('blog.deletedAt IS NULL')
+            .andWhere('blog.createdAt BETWEEN :startDate AND :endDate', {
+                startDate,
+                endDate,
+            })
+            .setParameters({
+                createdStatus: ContentStatusType.DRAFT,
+                pendingStatus: ContentStatusType.PENDING_REVIEW,
+                approvedStatus: ContentStatusType.APPROVED,
+                startDate,
+            })
+            .groupBy('EXTRACT(MONTH FROM blog.createdAt)')
+            .orderBy('month', 'ASC');
+
+        if (month) {
+            queryBuilder.andWhere('EXTRACT(MONTH FROM blog.createdAt) = :month', { month });
+        }
+
+        const monthlyStats = await queryBuilder.getRawMany();
+
+        const result = Array(12)
+            .fill(0)
+            .map((_, index) => {
+                const monthNum = index + 1;
+                const stat = monthlyStats.find((s) => Number(s.month) === monthNum);
+                if (month && monthNum !== month) return null;
+                return {
+                    month: monthNum,
+                    createdCount: stat ? parseInt(stat.createdcount || '0') : 0,
+                    pendingCount: stat ? parseInt(stat.pendingcount || '0') : 0,
+                    approvedCount: stat ? parseInt(stat.approvedcount || '0') : 0,
+                };
+            })
+            .filter((r) => r !== null);
+
+        return {
+            year: currentYear,
+            stats: result,
+        };
+    }
+
+    
+
+
 }

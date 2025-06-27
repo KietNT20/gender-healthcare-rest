@@ -120,6 +120,28 @@ export class BlogsController {
         return this.blogsService.findAllPendingReview(queryDto);
     }
 
+
+    @Get('stats/monthly')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get monthly blog statistics' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Monthly blog statistics retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: Only Admin or Manager can access',
+    })
+    @ResponseMessage('Monthly blog statistics retrieved successfully')
+    getMonthlyBlogStats(
+        @Query('year') year?: number,
+        @Query('month') month?: number,
+    ) {
+        return this.blogsService.getMonthlyBlogStats(year, month);
+    }
+
     @Patch('/image/:id')
     @ApiOperation({ summary: 'Synchronize image to blog' })
     async syncBlogImages(@Param('id', ParseUUIDPipe) id: string) {

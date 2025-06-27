@@ -23,3 +23,29 @@ export interface DashboardOverview {
     customers: CustomerDashboardStats;
     consultants: ConsultantDashboardStats;
 }
+
+export interface UserActiveStatsPeriod {
+    month: string;
+    customer: number;
+    consultant: number;
+}
+
+export interface UserActiveStatsComparison {
+    current: UserActiveStatsPeriod;
+    previous: UserActiveStatsPeriod;
+    growth: {
+        customer: number;
+        consultant: number;
+        customerPercent: number;
+        consultantPercent: number;
+    };
+}
+
+export interface TotalActiveUsersByRole {
+    customers: number;
+    consultants: number;
+    staff: number;
+    managers: number;
+    admins: number;
+    total: number;
+}

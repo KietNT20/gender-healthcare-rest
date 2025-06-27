@@ -64,7 +64,7 @@ export class UserDashboardController {
         return this.userDashboardService.getUserActiveStatsByPeriod(
             query.periodType || 'month',
             query.periodCount || 12,
-            query.includeCurrentPeriod ?? true,
+            query.includeCurrentPeriod ?? 'true',
         );
     }
 

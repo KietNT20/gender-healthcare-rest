@@ -136,7 +136,6 @@ export class StiTestProcess {
 
     // Quan hệ với User (bệnh nhân)
     @ManyToOne(() => User, (user) => user.stiTestProcesses)
-    @JoinColumn()
     patient: User;
 
     // Quan hệ với Appointment (cuộc hẹn lấy mẫu)
@@ -153,11 +152,9 @@ export class StiTestProcess {
 
     // Quan hệ với Service (dịch vụ xét nghiệm)
     @ManyToOne(() => Service)
-    @JoinColumn()
     service: Service;
 
     // Quan hệ với User (bác sĩ tư vấn)
     @ManyToOne(() => User, { nullable: true })
-    @JoinColumn()
     consultantDoctor?: User;
 }

@@ -36,6 +36,10 @@ import {
 } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
 import { StiTestProcessStatus } from './entities/sti-test-process.entity';
+import {
+    StiTestBookingRequest,
+    StiTestIntegrationService,
+} from './sti-test-integration.service';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 
@@ -46,6 +50,7 @@ export class StiTestProcessesController {
     constructor(
         private readonly stiTestProcessesService: StiTestProcessesService,
         private readonly stiTestWorkflowService: StiTestWorkflowService,
+        private readonly stiTestIntegrationService: StiTestIntegrationService,
     ) {}
 
     @Post()
@@ -232,6 +237,131 @@ export class StiTestProcessesController {
             body.newStatus,
             body.validationData,
         );
+    }
+
+    @Post('booking/from-service-selection')
+    @ApiOperation({ summary: 'Create STI test process from service selection' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'STI test process created from service selection',
+    })
+    @ResponseMessage(
+        'STI test process created from service selection successfully',
+    )
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    async createFromServiceSelection(@Body() request: StiTestBookingRequest) {
+        return this.stiTestIntegrationService.createStiTestFromServiceSelection(
+            request,
+        );
+    }
+
+    @Get('services/available')
+    @ApiOperation({ summary: 'Get available STI test services' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of available STI test services',
+    })
+    @ResponseMessage('Get available STI services successfully')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    async getAvailableStiServices() {
+        return this.stiTestIntegrationService.getAvailableStiServices();
+    }
+
+    @Get('services/package/:packageId')
+    @ApiOperation({ summary: 'Get STI services from package' })
+    @ApiParam({ name: 'packageId', description: 'Service package ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI services from package',
+    })
+    @ResponseMessage('Get STI services from package successfully')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    async getStiServicesFromPackage(
+        @Param('packageId', ParseUUIDPipe) packageId: string,
+    ) {
+        return this.stiTestIntegrationService.getStiServicesFromPackage(
+            packageId,
+        );
+    }
+
+    @Get('statistics/dashboard')
+    @ApiOperation({ summary: 'Get STI test process statistics for dashboard' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI test process statistics',
+    })
+    @ResponseMessage('Get STI test statistics successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    async getStatistics() {
+        const processes =
+            await this.stiTestProcessesService.findAllForStatistics();
+        return this.stiTestWorkflowService.getWorkflowStatistics(processes);
+    }
+
+    @Get('statistics/period')
+    @ApiOperation({ summary: 'Get STI test process statistics by period' })
+    @ApiQuery({ name: 'startDate', description: 'Start date (YYYY-MM-DD)' })
+    @ApiQuery({ name: 'endDate', description: 'End date (YYYY-MM-DD)' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI test process statistics by period',
+    })
+    @ResponseMessage('Get STI test statistics by period successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    async getStatisticsByPeriod(
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string,
+    ) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const processes =
+            await this.stiTestProcessesService.findAllForStatisticsByPeriod(
+                start,
+                end,
+            );
+        return this.stiTestWorkflowService.getWorkflowStatistics(processes);
+    }
+
+    @Get('statistics/patient/:patientId')
+    @ApiOperation({
+        summary: 'Get STI test process statistics for specific patient',
+    })
+    @ApiParam({ name: 'patientId', description: 'Patient ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI test process statistics for patient',
+    })
+    @ResponseMessage('Get STI test statistics for patient successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    async getPatientStatistics(
+        @Param('patientId', ParseUUIDPipe) patientId: string,
+    ) {
+        const processes =
+            await this.stiTestProcessesService.findAllForStatisticsByPatient(
+                patientId,
+            );
+        return this.stiTestWorkflowService.getWorkflowStatistics(processes);
     }
 
     @Delete(':id')

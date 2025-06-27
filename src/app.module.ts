@@ -38,6 +38,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';

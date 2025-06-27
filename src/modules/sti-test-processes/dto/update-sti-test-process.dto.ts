@@ -1,7 +1,7 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
     IsBoolean,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsOptional,
     IsString,
@@ -27,16 +27,16 @@ export class UpdateStiTestProcessDto extends PartialType(
         example: '2024-12-25T15:00:00Z',
     })
     @IsOptional()
-    @IsDateString()
-    actualResultDate?: string;
+    @IsDate()
+    actualResultDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Thời gian lấy mẫu',
         example: '2024-12-20T09:00:00Z',
     })
     @IsOptional()
-    @IsDateString()
-    sampleCollectionDate?: string;
+    @IsDate()
+    sampleCollectionDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Ghi chú từ phòng lab',

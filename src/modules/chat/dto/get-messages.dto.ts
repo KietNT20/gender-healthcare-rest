@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsOptional, IsPositive, Max, Min } from 'class-validator';
 
 export class GetMessagesDto {
@@ -10,7 +9,6 @@ export class GetMessagesDto {
         required: false,
     })
     @IsOptional()
-    @Type(() => Number)
     @IsPositive()
     @Min(1)
     page?: number;
@@ -24,7 +22,6 @@ export class GetMessagesDto {
         required: false,
     })
     @IsOptional()
-    @Type(() => Number)
     @IsPositive()
     @Min(1)
     @Max(100)

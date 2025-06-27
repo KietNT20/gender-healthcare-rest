@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsDateString,
+    IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
@@ -34,16 +34,16 @@ export class CreateEmploymentContractDto {
         description: 'Start date of the contract',
         example: '2025-01-01',
     })
-    @IsDateString()
     @IsNotEmpty()
+    @IsDate()
     startDate: Date;
 
     @ApiPropertyOptional({
         description: 'End date of the contract',
         example: '2026-01-01',
     })
-    @IsDateString()
     @IsOptional()
+    @IsDate()
     endDate?: Date;
 
     @ApiPropertyOptional({

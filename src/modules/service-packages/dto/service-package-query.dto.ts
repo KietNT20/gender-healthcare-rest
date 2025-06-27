@@ -1,5 +1,4 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
     IsBooleanString,
     IsEnum,
@@ -50,7 +49,6 @@ export class ServicePackageQueryDto {
 
     @ApiPropertyOptional({ description: 'Giá tối thiểu' })
     @IsOptional()
-    @Type(() => Number)
     @IsNumber()
     @Min(0)
     minPrice?: number;

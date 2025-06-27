@@ -17,9 +17,10 @@ Module STI Test Integration cung cấp các API đơn giản để tích hợp q
 ```json
 {
     "patientId": "123e4567-e89b-12d3-a456-426614174000",
-    "serviceIds": ["123e4567-e89b-12d3-a456-426614174000"],
+    "serviceIds": ["123e4567-e89b-12d3-a456-426614174000"], // Optional nếu có servicePackageId
+    "servicePackageId": "123e4567-e89b-12d3-a456-426614174000", // Optional nếu có serviceIds
     "appointmentId": "123e4567-e89b-12d3-a456-426614174000", // Optional
-    "consultantDoctorId": "123e4567-e89b-12d3-a456-426614174000", // Optional
+    "consultantId": "123e4567-e89b-12d3-a456-426614174000", // Optional
     "notes": "Patient prefers morning appointment" // Optional
 }
 ```
@@ -72,13 +73,15 @@ Module STI Test Integration cung cấp các API đơn giản để tích hợp q
 
 **Endpoint:** `GET /sti-test-processes/services/package/:packageId`
 
-**Mô tả:** Lấy danh sách STI services có trong một package (placeholder)
+**Mô tả:** Lấy danh sách STI services có trong một package
 
 **Response:**
 
 ```json
 ["service-id-1", "service-id-2"]
 ```
+
+**Note:** Method này đã được implement đầy đủ. Sẽ trả về danh sách service IDs của các STI tests có trong package.
 
 ## 📊 Statistics API Endpoints
 
@@ -102,10 +105,8 @@ Module STI Test Integration cung cấp các API đơn giản để tích hợp q
         "result_delivered": 20,
         "completed": 15
     },
-    "bottlenecks": ["Đang xử lý"],
-    "avgDurationByStep": {
-        "processing": 48
-    }
+    "avgDurationByStep": {},
+    "bottlenecks": ["Đang xử lý"]
 }
 ```
 
@@ -158,9 +159,10 @@ Module STI Test Integration cung cấp các API đơn giản để tích hợp q
 ### Service Selection Validation
 
 - Phải có `patientId`
-- Phải có `serviceIds` với ít nhất 1 service
+- Phải có `serviceIds` HOẶC `servicePackageId` (ít nhất một trong hai)
 - Tất cả services phải là STI tests
 - System tự động validate service type
+- DTO class có validation để đảm bảo logic nghiệp vụ
 
 ### STI Service Identification
 
@@ -186,7 +188,17 @@ Service được coi là STI test nếu:
 
 ```json
 {
-    "message": "Cần chọn ít nhất một service",
+    "message": "Patient ID là bắt buộc",
+    "error": "Bad Request",
+    "statusCode": 400
+}
+```
+
+**400 Bad Request (Service Required):**
+
+```json
+{
+    "message": "Cần chọn ít nhất một service hoặc một service package",
     "error": "Bad Request",
     "statusCode": 400
 }
@@ -219,10 +231,19 @@ Service được coi là STI test nếu:
     - `CUSTOMER`: Có thể tạo booking và xem services
     - `STAFF/ADMIN/MANAGER`: Full access
 
-## 📝 Notes
+## 📝 Implementation Notes
 
-- **Đơn giản hóa**: Service chỉ tập trung vào việc identify STI services và tạo processes
-- **Tự động validation**: System tự động kiểm tra service có phải STI test không
-- **Flexible**: Có thể mở rộng để tích hợp với appointment system sau này
+- **✅ Interface và DTO Sync**: Interface đã được loại bỏ, chỉ sử dụng DTO class với validation đầy đủ
+- **✅ Package Integration**: Method `getStiServicesFromPackage` đã được implement đầy đủ
+- **Validation**: Hỗ trợ cả `serviceIds` và `servicePackageId` với conditional validation
+- **Service Detection**: System tự động identify STI services dựa trên category type và keywords
+- **Flexible Design**: Có thể mở rộng để tích hợp với appointment system sau này
 - **Statistics**: Hỗ trợ real-time dashboard cho admin/staff
 - **Workflow**: Quản lý trạng thái với validation đầy đủ
+
+## 🚀 Future Enhancements
+
+1. **✅ Package Integration**: Đã hoàn thành - method `getStiServicesFromPackage` hoạt động đầy đủ
+2. **✅ DTO Alignment**: Đã hoàn thành - sử dụng DTO class thống nhất
+3. **✅ Appointment Integration**: Sử dụng `appointmentId` để tích hợp với appointment system
+4. **Cost Calculation**: Improve cost calculation với discounts và promotions

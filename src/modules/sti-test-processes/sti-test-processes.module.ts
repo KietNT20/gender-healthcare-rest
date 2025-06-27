@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PackageService } from '../package-services/entities/package-service.entity';
 import { Service } from '../services/entities/service.entity';
 import { TestResultsModule } from '../test-results/test-results.module';
 import { UsersModule } from '../users/users.module';
@@ -13,7 +14,7 @@ import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([StiTestProcess, Service]),
+        TypeOrmModule.forFeature([StiTestProcess, Service, PackageService]),
         TestResultsModule,
         NotificationsModule,
         MailModule,

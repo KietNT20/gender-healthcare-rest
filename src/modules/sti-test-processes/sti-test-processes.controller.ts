@@ -30,16 +30,14 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
+import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
 import {
     StiTestProcessListResponseDto,
     StiTestProcessResponseDto,
 } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
 import { StiTestProcessStatus } from './entities/sti-test-process.entity';
-import {
-    StiTestBookingRequest,
-    StiTestIntegrationService,
-} from './sti-test-integration.service';
+import { StiTestIntegrationService } from './sti-test-integration.service';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 

@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
+import { SortOrder } from 'src/enums';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
 import { IsNull, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -33,7 +34,7 @@ export class MenstrualPredictionsService {
 
         const cycles = await this.cycleRepository.find({
             where: { user: { id: userId }, deletedAt: IsNull() },
-            order: { cycleStartDate: 'ASC' },
+            order: { cycleStartDate: SortOrder.ASC },
         });
 
         if (cycles.length < 1) {

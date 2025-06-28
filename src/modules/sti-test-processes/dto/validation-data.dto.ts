@@ -7,24 +7,7 @@ import {
     IsString,
     IsUUID,
 } from 'class-validator';
-
-export enum DeliveryMethod {
-    IN_PERSON = 'in_person',
-    EMAIL = 'email',
-    PORTAL = 'portal',
-}
-
-export enum UrgencyLevel {
-    NORMAL = 'normal',
-    HIGH = 'high',
-    URGENT = 'urgent',
-}
-
-export enum FollowUpType {
-    TREATMENT = 'treatment',
-    MONITORING = 'monitoring',
-    RETEST = 'retest',
-}
+import { DeliveryMethod, FollowUpType, UrgencyLevel } from '../enums';
 
 export class ValidationDataDto {
     // Cho SAMPLE_COLLECTION_SCHEDULED

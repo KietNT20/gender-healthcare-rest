@@ -3,7 +3,6 @@ import { Type } from 'class-transformer';
 import {
     ProcessPriority,
     StiSampleType,
-    StiTestProcess,
     StiTestProcessStatus,
 } from '../entities/sti-test-process.entity';
 
@@ -125,9 +124,9 @@ export class StiTestProcessResponseDto {
 }
 
 export class StiTestProcessListResponseDto {
-    @ApiProperty({ type: [StiTestProcess] })
-    @Type(() => StiTestProcess)
-    data: StiTestProcess[];
+    @ApiProperty({ type: [StiTestProcessResponseDto] })
+    @Type(() => StiTestProcessResponseDto)
+    data: StiTestProcessResponseDto[];
 
     @ApiProperty({ description: 'Tổng số bản ghi' })
     total: number;

@@ -1,31 +1,33 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
-    ParseUUIDPipe,
     BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiBody,
     ApiOperation,
-    ApiResponse,
     ApiParam,
+    ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
-import { PackageServiceUsageService } from './package-service-usage.service';
-import { CreatePackageServiceUsageDto } from './dto/create-package-service-usage.dto';
-import { UpdatePackageServiceUsageDto } from './dto/update-package-service-usage.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from '../../guards/role.guard';
+import { ResponseMessage } from '../../decorators/response-message.decorator';
 import { Roles } from '../../decorators/roles.decorator';
 import { RolesNameEnum } from '../../enums';
-import { ResponseMessage } from '../../decorators/response-message.decorator';
+import { RoleGuard } from '../../guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreatePackageServiceUsageDto } from './dto/create-package-service-usage.dto';
+import { UpdatePackageServiceUsageDto } from './dto/update-package-service-usage.dto';
+import { PackageServiceUsageService } from './package-service-usage.service';
 
+@ApiTags('Package Service Usage')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('package-service-usage')

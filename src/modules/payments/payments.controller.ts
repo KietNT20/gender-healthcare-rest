@@ -18,7 +18,6 @@ import {
     ApiOperation,
     ApiQuery,
     ApiResponse,
-    ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -37,16 +36,6 @@ import { WebhookTypeDTO } from './dto/webhook-type.dto';
 import { PaymentServicesService } from './payment-services.service';
 import { PaymentsService } from './payments.service';
 
-/**
- * PaymentsController - Updated for New Payment Flow
- *
- * ⚠️ REMOVED: All refund-related endpoints
- * ✅ NEW FLOW:
- * - Online consultation & packages: Pay first
- * - Offline appointments: Book first, pay after service
- */
-
-@ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
     constructor(

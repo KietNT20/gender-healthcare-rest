@@ -1,17 +1,8 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
-import {
-    ApiBearerAuth,
-    ApiOperation,
-    ApiResponse,
-    ApiTags,
-} from '@nestjs/swagger';
-import { ServicePackageStatsService } from './service-package-stats.service';
-import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Controller, Get, Query, Res } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
-import { RoleGuard } from 'src/guards/role.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { RolesNameEnum } from 'src/enums';
+import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
+import { ServicePackageStatsService } from './service-package-stats.service';
 
 @Controller('service-package-stats')
 export class ServicePackageStatsController {

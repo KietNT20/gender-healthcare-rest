@@ -9,7 +9,12 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
@@ -19,6 +24,7 @@ import { AuditLogsService } from './audit-logs.service';
 import { QueryAuditLogDto } from './dto/query-audit-log.dto';
 import { UpdateAuditLogDto } from './dto/update-audit-log.dto';
 
+@ApiTags('Audit Logs')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('audit-logs')

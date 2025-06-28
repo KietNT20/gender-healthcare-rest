@@ -1,10 +1,11 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { MenstrualPredictionsService } from './menstrual-predictions.service';
 
+@ApiTags('Menstrual Predictions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('menstrual-predictions')

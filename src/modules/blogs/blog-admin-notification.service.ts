@@ -35,7 +35,9 @@ export class BlogAdminNotificationService {
                     { role: { name: RolesNameEnum.ADMIN } },
                     { role: { name: RolesNameEnum.MANAGER } },
                 ],
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             });
 
             const adminIds = adminUsers.map((user) => user.id);
@@ -68,7 +70,9 @@ export class BlogAdminNotificationService {
                     { role: { name: RolesNameEnum.ADMIN } },
                     { role: { name: RolesNameEnum.MANAGER } },
                 ],
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             });
 
             const adminIds = adminUsers.map((user) => user.id);
@@ -125,7 +129,9 @@ export class BlogAdminNotificationService {
                 { role: { name: RolesNameEnum.ADMIN } },
                 { role: { name: RolesNameEnum.MANAGER } },
             ],
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         const adminIds = adminUsers.map((user) => user.id);

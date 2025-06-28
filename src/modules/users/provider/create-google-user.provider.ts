@@ -106,14 +106,18 @@ export class CreateGoogleUserProvider {
         // Tìm theo googleId trước
         let user = await this.usersRepository.findOne({
             where: { googleId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
             // Tìm theo email nếu không có googleId
             user = await this.usersRepository.findOne({
                 where: { email: email.toLowerCase() },
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             });
         }
 
@@ -140,7 +144,9 @@ export class CreateGoogleUserProvider {
 
         const updatedUser = await this.usersRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!updatedUser) {

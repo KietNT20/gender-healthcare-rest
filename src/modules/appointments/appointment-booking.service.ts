@@ -75,7 +75,11 @@ export class AppointmentBookingService {
     ) {
         const profile = await manager.findOne(ConsultantProfile, {
             where: { user: { id: consultantId } },
-            relations: ['user', 'user.role'],
+            relations: {
+                user: {
+                    role: true,
+                },
+            },
         });
 
         if (!profile || profile.user.role.name !== RolesNameEnum.CONSULTANT) {
@@ -301,7 +305,11 @@ export class AppointmentBookingService {
 
             profiles = await manager.find(ConsultantProfile, {
                 where: consultantWhere,
-                relations: ['user', 'user.role'],
+                relations: {
+                    user: {
+                        role: true,
+                    },
+                },
             });
 
             if (profiles.length === 0) {
@@ -333,7 +341,13 @@ export class AppointmentBookingService {
                         endTime: MoreThanOrEqual(startTime),
                         isAvailable: true,
                     },
-                    relations: ['consultantProfile', 'consultantProfile.user'],
+                    relations: {
+                        consultantProfile: {
+                            user: {
+                                role: true,
+                            },
+                        },
+                    },
                 },
             );
 

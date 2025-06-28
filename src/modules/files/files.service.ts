@@ -28,8 +28,7 @@ export class FilesService {
 
     constructor(
         private readonly s3Service: AwsS3Service,
-        @InjectQueue('image-processing')
-        private readonly imageQueue: Queue,
+        @InjectQueue('image-processing') private imageQueue: Queue,
         @InjectRepository(Document)
         private readonly documentRepository: Repository<Document>,
         @InjectRepository(Image)

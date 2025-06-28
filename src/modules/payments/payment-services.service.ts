@@ -40,19 +40,21 @@ export class PaymentServicesService {
                 ...(isActive !== undefined && { isActive: isActiveBool }),
                 ...(search && { name: Like(`%${search}%`) }),
             },
-            select: [
-                'id',
-                'name',
-                'slug',
-                'description',
-                'shortDescription',
-                'price',
-                'duration',
-                'isActive',
-                'featured',
-            ],
-            relations: ['category'],
-            order: { createdAt: 'DESC' },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                description: true,
+                shortDescription: true,
+                price: true,
+                duration: true,
+                isActive: true,
+                featured: true,
+            },
+            relations: {
+                category: true,
+            },
+            order: { createdAt: SortOrder.DESC },
         });
 
         return services;

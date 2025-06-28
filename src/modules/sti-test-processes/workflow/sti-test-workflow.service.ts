@@ -456,19 +456,6 @@ export class StiTestWorkflowService {
             }
         }
 
-        // Validate phone format if delivery method is phone
-        if (
-            validationData?.deliveryMethod === 'phone' &&
-            validationData?.deliveredBy
-        ) {
-            const phoneRegex = /^[0-9+\-\s()]{10,}$/;
-            if (!phoneRegex.test(validationData.deliveredBy)) {
-                throw new BadRequestException(
-                    'Số điện thoại không đúng định dạng',
-                );
-            }
-        }
-
         // Validate date is not in the future for collection/delivery dates
         const now = new Date();
         if (validationData?.sampleCollectionDate) {

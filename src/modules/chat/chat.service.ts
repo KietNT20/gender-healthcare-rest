@@ -49,7 +49,12 @@ export class ChatService {
     ): Promise<boolean> {
         const question = await this.questionRepository.findOne({
             where: { id: questionId },
-            relations: ['user', 'appointment', 'appointment.consultant'],
+            relations: {
+                user: true,
+                appointment: {
+                    consultant: true,
+                },
+            },
         });
 
         if (!question) {
@@ -58,7 +63,9 @@ export class ChatService {
 
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
@@ -107,7 +114,9 @@ export class ChatService {
             this.questionRepository.findOne({ where: { id: questionId } }),
             this.userRepository.findOne({
                 where: { id: senderId },
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             }),
         ]);
 
@@ -157,8 +166,12 @@ export class ChatService {
     ): Promise<MessageWithSender[]> {
         const messages = await this.messageRepository.find({
             where: { question: { id: questionId } },
-            relations: ['sender', 'sender.role'],
-            order: { createdAt: 'ASC' },
+            relations: {
+                sender: {
+                    role: true,
+                },
+            },
+            order: { createdAt: SortOrder.ASC },
             skip: (page - 1) * limit,
             take: limit,
         });
@@ -168,7 +181,7 @@ export class ChatService {
             sender: {
                 id: message.sender.id,
                 fullName: `${message.sender.firstName} ${message.sender.lastName}`,
-                role: message.sender.role?.name || 'user',
+                role: message.sender.role?.name,
                 profilePicture: message.sender.profilePicture,
             },
         }));
@@ -236,7 +249,10 @@ export class ChatService {
     async markMessageAsRead(messageId: string, userId: string): Promise<void> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['sender', 'question'],
+            relations: {
+                sender: true,
+                question: true,
+            },
         });
 
         if (!message) {
@@ -294,7 +310,9 @@ export class ChatService {
     async getUnreadMessageCount(userId: string): Promise<number> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
@@ -700,7 +718,9 @@ export class ChatService {
     async getUserAccessibleQuestions(userId: string): Promise<Question[]> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {

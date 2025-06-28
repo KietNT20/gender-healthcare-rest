@@ -87,7 +87,9 @@ export class ConsultantAvailabilityCrudService {
     async findOneById(id: string): Promise<ConsultantAvailability> {
         const availability = await this.availabilityRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['consultantProfile'],
+            relations: {
+                consultantProfile: true,
+            },
         });
         if (!availability) {
             throw new NotFoundException(

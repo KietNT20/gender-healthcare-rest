@@ -178,7 +178,9 @@ export class StiTestIntegrationService {
                 where: {
                     package: { id: packageId },
                 },
-                relations: ['service'],
+                relations: {
+                    service: true,
+                },
             });
 
             const stiServiceIds: string[] = [];

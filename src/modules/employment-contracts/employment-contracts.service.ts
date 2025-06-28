@@ -40,14 +40,24 @@ export class EmploymentContractsService {
 
     async findAll(): Promise<EmploymentContract[]> {
         return this.contractRepository.find({
-            relations: ['user', 'contractFiles', 'contractFiles.file'],
+            relations: {
+                user: true,
+                contractFiles: {
+                    file: true,
+                },
+            },
         });
     }
 
     async findOne(id: string): Promise<EmploymentContract> {
         const contract = await this.contractRepository.findOne({
             where: { id },
-            relations: ['user', 'contractFiles', 'contractFiles.file'],
+            relations: {
+                user: true,
+                contractFiles: {
+                    file: true,
+                },
+            },
         });
         if (!contract) {
             throw new NotFoundException(`Contract with ID ${id} not found.`);

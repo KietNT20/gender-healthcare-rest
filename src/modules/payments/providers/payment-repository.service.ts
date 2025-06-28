@@ -64,13 +64,13 @@ export class PaymentRepositoryService {
     async findPaymentById(id: string) {
         const payment = await this.paymentRepository.findOne({
             where: { id },
-            relations: [
-                'user',
-                'servicePackage',
-                'appointment',
-                'service',
-                'packageSubscriptions',
-            ],
+            relations: {
+                user: true,
+                servicePackage: true,
+                appointment: true,
+                service: true,
+                packageSubscriptions: true,
+            },
         });
 
         if (!payment) {
@@ -108,7 +108,12 @@ export class PaymentRepositoryService {
                 user: { id: userId },
                 deletedAt: IsNull(),
             },
-            relations: ['user', 'servicePackage', 'appointment', 'service'],
+            relations: {
+                user: true,
+                servicePackage: true,
+                appointment: true,
+                service: true,
+            },
         });
 
         if (!payment) {
@@ -145,7 +150,11 @@ export class PaymentRepositoryService {
                 deletedAt: IsNull(),
                 ...(status && { status }),
             },
-            relations: ['servicePackage', 'appointment', 'service'],
+            relations: {
+                servicePackage: true,
+                appointment: true,
+                service: true,
+            },
             order: { createdAt: SortOrder.DESC },
             select: {
                 id: true,
@@ -260,16 +269,21 @@ export class PaymentRepositoryService {
                 user: { id: userId },
                 deletedAt: IsNull(),
             },
-            relations: ['services', 'consultant'],
-            select: [
-                'id',
-                'appointmentDate',
-                'appointmentLocation',
-                'notes',
-                'fixedPrice',
-                'status',
-            ],
-            order: { appointmentDate: 'ASC' },
+            relations: {
+                services: true,
+                consultant: {
+                    role: true,
+                },
+            },
+            select: {
+                id: true,
+                appointmentDate: true,
+                appointmentLocation: true,
+                notes: true,
+                fixedPrice: true,
+                status: true,
+            },
+            order: { appointmentDate: SortOrder.ASC },
         });
 
         // Filter appointments that need payment

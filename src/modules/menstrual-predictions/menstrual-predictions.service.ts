@@ -10,8 +10,8 @@ import { MenstrualPrediction } from './entities/menstrual-prediction.entity';
 @Injectable()
 export class MenstrualPredictionsService {
     private readonly logger = new Logger(MenstrualPredictionsService.name);
-    private readonly DEFAULT_CYCLE_LENGTH = 28;
-    private readonly DEFAULT_PERIOD_LENGTH = 5;
+    private readonly DEFAULT_CYCLE_LENGTH = 28; // độ dài chu kỳ kinh nguyệt trung bình
+    private readonly DEFAULT_PERIOD_LENGTH = 5; // độ dài hành kinh trung bình
 
     constructor(
         @InjectRepository(MenstrualCycle)

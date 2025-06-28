@@ -1,10 +1,12 @@
-import { Cron } from '@nestjs/schedule';
 import {
     BadRequestException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server } from 'socket.io';
 import { PaymentStatusType, SubscriptionStatusType } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
 import { Payment } from '../payments/entities/payment.entity';
@@ -13,8 +15,6 @@ import { User } from '../users/entities/user.entity';
 import { CreateUserPackageSubscriptionDto } from './dto/create-user-package-subscription.dto';
 import { UpdateUserPackageSubscriptionDto } from './dto/update-user-package-subscription.dto';
 import { UserPackageSubscription } from './entities/user-package-subscription.entity';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
 
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -131,7 +131,9 @@ export class UserPackageSubscriptionsService {
         await this.updateExpiredSubscriptions();
         const subscriptions = await this.subscriptionRepository.find({
             where: { user: { id: userId }, deletedAt: IsNull() },
-            relations: ['package'],
+            relations: {
+                package: true,
+            },
         });
         return subscriptions.map((sub) => ({
             id: sub.id,
@@ -148,7 +150,11 @@ export class UserPackageSubscriptionsService {
                     status: SubscriptionStatusType.ACTIVE,
                     deletedAt: IsNull(),
                 },
-                relations: ['user', 'package'],
+                relations: {
+                    user: true,
+                    package: true,
+                    payment: true,
+                },
             });
 
             const now = new Date();

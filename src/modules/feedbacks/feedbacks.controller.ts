@@ -1,40 +1,38 @@
-import { Image } from 'src/modules/images/entities/image.entity';
-
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
-    Query,
-    ParseUUIDPipe,
     BadRequestException,
-    UploadedFile,
-    UseInterceptors,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
     Put,
+    Query,
+    UseGuards,
 } from '@nestjs/common';
 import {
+    ApiBadRequestResponse,
     ApiBearerAuth,
     ApiBody,
+    ApiCreatedResponse,
+    ApiForbiddenResponse,
     ApiOperation,
-    ApiResponse,
     ApiParam,
-    ApiConsumes,
+    ApiResponse,
 } from '@nestjs/swagger';
-import { FeedbacksService } from './feedbacks.service';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { FeedbackQueryDto } from './dto/feedback-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from 'src/guards/role.guard';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
-import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateFeedbackImageDTO } from './dto/create-feedback-image.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackQueryDto } from './dto/feedback-query.dto';
+import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { FeedbackImageService } from './feedbacks-image.service';
+import { FeedbacksService } from './feedbacks.service';
 
 @Controller('feedbacks')
 export class FeedbacksController {
@@ -59,14 +57,12 @@ export class FeedbacksController {
         RolesNameEnum.ADMIN,
     ])
     @ApiOperation({ summary: 'Create a new feedback' })
-    @ApiResponse({
-        status: 201,
+    @ApiCreatedResponse({
         description: 'Feedback created successfully',
         type: CreateFeedbackDto,
     })
-    @ApiResponse({ status: 400, description: 'Invalid data' })
-    @ApiResponse({
-        status: 403,
+    @ApiBadRequestResponse({ description: 'Invalid data' })
+    @ApiForbiddenResponse({
         description:
             'Forbidden: Only Customer, Staff, Manager, or Admin can perform this action',
     })

@@ -20,6 +20,7 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -41,6 +42,7 @@ import { RejectProfileDto } from './dto/review-profile.dto';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
 import { UpdateWorkingHoursDto } from './dto/update-working-hours.dto';
 
+@ApiTags('Consultant Profiles')
 @Controller('consultant-profiles')
 export class ConsultantProfilesController {
     constructor(

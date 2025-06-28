@@ -10,13 +10,14 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CycleSymptomsService } from './cycle-symptoms.service';
 import { CreateCycleSymptomDto } from './dto/create-cycle-symptom.dto';
 import { CycleSymptomQueryDto } from './dto/cycle-symptom-query.dto';
 import { UpdateCycleSymptomDto } from './dto/update-cycle-symptom.dto';
 
+@ApiTags('Cycle Symptoms')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('cycle-symptoms')

@@ -117,6 +117,8 @@ export class BlogsService {
             .leftJoinAndSelect('blog.category', 'category')
             .leftJoinAndSelect('blog.tags', 'tag')
             .leftJoinAndSelect('blog.images', 'images')
+            .leftJoinAndSelect('blog.author', 'author')
+            .leftJoinAndSelect('blog.services', 'services')
             .where('blog.deletedAt IS NULL');
 
         // Áp dụng bộ lọc theo tags nếu có
@@ -176,6 +178,7 @@ export class BlogsService {
             .leftJoinAndSelect('blog.tags', 'tag')
             .leftJoinAndSelect('blog.images', 'images')
             .leftJoinAndSelect('blog.author', 'author')
+            .leftJoinAndSelect('blog.services', 'services')
             .where('blog.deletedAt IS NULL')
             .andWhere('blog.status = :status', {
                 status: ContentStatusType.PENDING_REVIEW,
@@ -238,6 +241,7 @@ export class BlogsService {
             .leftJoinAndSelect('blog.tags', 'tag')
             .leftJoinAndSelect('blog.images', 'images')
             .leftJoinAndSelect('blog.author', 'author')
+            .leftJoinAndSelect('blog.services', 'services')
             .where('blog.deletedAt IS NULL')
             .andWhere('blog.status = :status', {
                 status: ContentStatusType.PUBLISHED,
@@ -286,22 +290,36 @@ export class BlogsService {
         };
     }
 
+    /**
+     * Find blog by id
+     * @param id
+     * @returns Blog
+     */
     async findOne(id: string) {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: [
-                'category',
-                'author',
-                'tags',
-                'reviewedByUser',
-                'publishedByUser',
-            ],
+            relations: {
+                category: true,
+                author: true,
+                tags: true,
+                reviewedByUser: true,
+                publishedByUser: true,
+                services: true,
+                images: true,
+            },
         });
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
         }
         return blog;
     }
+
+    /**
+     * Find blog by slug
+     * @param slug
+     * @param incrementView
+     * @returns Blog
+     */
     async findBySlug(slug: string, incrementView: boolean = true) {
         const blog = await this.blogRepository.findOne({
             where: {
@@ -309,7 +327,13 @@ export class BlogsService {
                 deletedAt: IsNull(),
                 status: ContentStatusType.PUBLISHED,
             },
-            relations: ['category', 'author', 'tags'],
+            relations: {
+                category: true,
+                author: true,
+                tags: true,
+                images: true,
+                services: true,
+            },
         });
         if (!blog) {
             throw new NotFoundException(
@@ -445,7 +469,9 @@ export class BlogsService {
     async incrementViewCount(id: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
@@ -478,7 +504,9 @@ export class BlogsService {
     ): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
 
         if (!blog) {
@@ -567,7 +595,9 @@ export class BlogsService {
     ): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
 
         if (!blog) {
@@ -600,7 +630,9 @@ export class BlogsService {
     async submitForReview(id: string, authorId: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
 
         if (!blog) {
@@ -630,7 +662,9 @@ export class BlogsService {
     async archiveBlog(id: string, userId: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
 
         if (!blog) {
@@ -713,7 +747,9 @@ export class BlogsService {
     ): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['author'],
+            relations: {
+                author: true,
+            },
         });
 
         if (!blog) {

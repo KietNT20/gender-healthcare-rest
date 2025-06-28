@@ -5,22 +5,22 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
-
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Response } from 'express';
-import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
-import { ServicePackagesStatsService } from './service-packages-stats.service';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ServicePackagesStatsQueryDto } from './dto/service-packages-stats-query.dto';
+import { ServicePackagesStatsService } from './service-packages-stats.service';
 
+@ApiTags('Service Packages Stats')
 @Controller('service-package-stats')
 export class ServicePackagesStatsController {
     constructor(private readonly statsService: ServicePackagesStatsService) {}
 
     @Get('most-subscribed')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard ,RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Get the most subscribed service package for a specific month',
@@ -39,7 +39,7 @@ export class ServicePackagesStatsController {
 
     @Get('all-stats')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard ,RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Get statistics for all service packages in a specific month',
@@ -56,7 +56,7 @@ export class ServicePackagesStatsController {
 
     @Get('report')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard ,RoleGuard)
+    @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     @ApiOperation({
         summary: 'Generate an Excel report for all subscribed service package',

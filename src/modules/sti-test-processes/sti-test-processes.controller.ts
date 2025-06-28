@@ -22,6 +22,7 @@ import {
     ApiParam,
     ApiQuery,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -41,6 +42,7 @@ import { StiTestIntegrationService } from './sti-test-integration.service';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 
+@ApiTags('STIs Test Processes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('sti-test-processes')

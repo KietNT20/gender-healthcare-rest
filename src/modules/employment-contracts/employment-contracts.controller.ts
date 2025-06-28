@@ -17,6 +17,7 @@ import {
     ApiBody,
     ApiConsumes,
     ApiOperation,
+    ApiTags,
 } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,6 +25,7 @@ import { CreateEmploymentContractDto } from './dto/create-employment-contract.dt
 import { UpdateEmploymentContractDto } from './dto/update-employment-contract.dto';
 import { EmploymentContractsService } from './employment-contracts.service';
 
+@ApiTags('Employment Contracts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('employment-contracts')

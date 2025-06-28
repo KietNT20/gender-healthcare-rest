@@ -9,7 +9,7 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -17,6 +17,7 @@ import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
 import { UpdateMenstrualCycleDto } from './dto/update-menstrual-cycle.dto';
 import { MenstrualCyclesService } from './menstrual-cycles.service';
 
+@ApiTags('Menstrual Cycles')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('menstrual-cycles')

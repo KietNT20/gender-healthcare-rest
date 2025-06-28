@@ -23,8 +23,7 @@ export class ContraceptiveRemindersService {
         private readonly reminderRepository: Repository<ContraceptiveReminder>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectQueue('notification-queue')
-        private notificationQueue: Queue,
+        @InjectQueue('notification-queue') private notificationQueue: Queue,
     ) {}
 
     async create(

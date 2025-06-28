@@ -110,7 +110,9 @@ export class AppointmentsService {
 
             const services = await queryRunner.manager.find(Service, {
                 where: { id: In(serviceIds) },
-                relations: ['category'],
+                relations: {
+                    category: true,
+                },
             });
 
             if (services.length !== serviceIds.length) {
@@ -170,7 +172,13 @@ export class AppointmentsService {
                             role: { name: RolesNameEnum.CONSULTANT },
                             isActive: true,
                         },
-                        relations: ['role', 'consultantProfile'],
+                        relations: {
+                            consultantProfile: {
+                                user: {
+                                    role: true,
+                                },
+                            },
+                        },
                     });
 
                     if (consultant && consultant.consultantProfile) {

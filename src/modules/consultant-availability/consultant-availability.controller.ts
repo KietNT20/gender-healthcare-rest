@@ -18,6 +18,7 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -32,6 +33,7 @@ import { CreateConsultantAvailabilityDto } from './dto/create-consultant-availab
 import { QueryConsultantAvailabilityDto } from './dto/query-consultant-availability.dto';
 import { UpdateConsultantAvailabilityDto } from './dto/update-consultant-availability.dto';
 
+@ApiTags('Consultant Availability')
 @Controller('consultant-availability')
 export class ConsultantAvailabilityController {
     constructor(

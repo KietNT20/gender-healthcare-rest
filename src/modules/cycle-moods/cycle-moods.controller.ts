@@ -11,13 +11,14 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CycleMoodsService } from './cycle-moods.service';
 import { CreateCycleMoodDto } from './dto/create-cycle-mood.dto';
 import { CycleMoodQueryDto } from './dto/cycle-mood-query.dto';
 import { UpdateCycleMoodDto } from './dto/update-cycle-mood.dto';
 
+@ApiTags('Cycle Moods')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('cycle-moods')

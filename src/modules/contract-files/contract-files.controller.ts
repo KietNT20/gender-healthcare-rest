@@ -7,12 +7,13 @@ import {
     Patch,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContractFilesService } from './contract-files.service';
 import { UpdateContractFileDto } from './dto/update-contract-file.dto';
 
+@ApiTags('Contract Files')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('contract-files')

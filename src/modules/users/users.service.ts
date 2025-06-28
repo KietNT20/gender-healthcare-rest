@@ -420,7 +420,9 @@ export class UsersService {
     async findOne(id: string): Promise<UserResponseDto> {
         const user = await this.userRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
@@ -448,17 +450,19 @@ export class UsersService {
     async findByEmailWithPassword(email: string): Promise<User> {
         const user = await this.userRepository.findOne({
             where: { email: email.toLowerCase(), deletedAt: IsNull() },
-            relations: ['role'],
-            select: [
-                'id',
-                'email',
-                'password',
-                'firstName',
-                'lastName',
-                'isActive',
-                'emailVerified',
-                'loginAttempts',
-            ],
+            relations: {
+                role: true,
+            },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                emailVerified: true,
+                loginAttempts: true,
+            },
         });
 
         if (!user) {
@@ -511,15 +515,17 @@ export class UsersService {
                 id,
                 deletedAt: IsNull(),
             },
-            relations: ['role'],
-            select: [
-                'id',
-                'email',
-                'firstName',
-                'lastName',
-                'isActive',
-                'refreshToken',
-            ],
+            relations: {
+                role: true,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                refreshToken: true,
+            },
         });
 
         if (!user || !user.refreshToken) {
@@ -679,7 +685,9 @@ export class UsersService {
     async findBySlug(slug: string): Promise<UserResponseDto> {
         const user = await this.userRepository.findOne({
             where: { slug, deletedAt: IsNull() },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {

@@ -45,7 +45,10 @@ export class TestResultsService {
         try {
             const appointment = await queryRunner.manager.findOne(Appointment, {
                 where: { id: createDto.appointmentId },
-                relations: ['user', 'service'],
+                relations: {
+                    user: true,
+                    services: true,
+                },
             });
 
             if (!appointment) {
@@ -136,7 +139,11 @@ export class TestResultsService {
     ): Promise<TestResult> {
         const testResult = await this.testResultRepository.findOne({
             where: { appointment: { id: appointmentId } },
-            relations: ['user', 'service', 'documents'],
+            relations: {
+                user: true,
+                service: true,
+                documents: true,
+            },
         });
 
         if (!testResult) {
@@ -162,7 +169,10 @@ export class TestResultsService {
 
     findAll() {
         return this.testResultRepository.find({
-            relations: ['user', 'appointment'],
+            relations: {
+                user: true,
+                appointment: true,
+            },
         });
     }
 
@@ -188,7 +198,9 @@ export class TestResultsService {
     async remove(id: string) {
         const result = await this.testResultRepository.findOne({
             where: { id },
-            relations: ['documents'],
+            relations: {
+                documents: true,
+            },
         });
 
         if (!result) {

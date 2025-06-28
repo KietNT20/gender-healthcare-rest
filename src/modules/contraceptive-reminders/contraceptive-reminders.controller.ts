@@ -11,7 +11,12 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { NoFilesInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiConsumes,
+    ApiOperation,
+    ApiTags,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,6 +25,7 @@ import { ContraceptiveRemindersService } from './contraceptive-reminders.service
 import { CreateContraceptiveReminderDto } from './dto/create-contraceptive-reminder.dto';
 import { UpdateContraceptiveReminderDto } from './dto/update-contraceptive-reminder.dto';
 
+@ApiTags('Contraceptive Reminders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('contraceptive-reminders')

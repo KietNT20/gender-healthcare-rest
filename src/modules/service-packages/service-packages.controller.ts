@@ -1,33 +1,35 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
-    Query,
-    ParseUUIDPipe,
     BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiBody,
     ApiOperation,
-    ApiResponse,
     ApiParam,
+    ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
-import { ServicePackagesService } from './service-packages.service';
-import { CreateServicePackageDto } from './dto/create-service-package.dto';
-import { UpdateServicePackageDto } from './dto/update-service-package.dto';
-import { ServicePackageQueryDto } from './dto/service-package-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from 'src/guards/role.guard';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
-import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateServicePackageDto } from './dto/create-service-package.dto';
+import { ServicePackageQueryDto } from './dto/service-package-query.dto';
+import { UpdateServicePackageDto } from './dto/update-service-package.dto';
+import { ServicePackagesService } from './service-packages.service';
 
+@ApiTags('Service Packages')
 @Controller('service-packages')
 export class ServicePackagesController {
     constructor(private readonly packagesService: ServicePackagesService) {}

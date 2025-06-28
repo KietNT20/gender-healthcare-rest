@@ -97,7 +97,10 @@ export class CycleMoodsService {
     async findOne(id: string): Promise<CycleMood> {
         const cycleMood = await this.cycleMoodRepository.findOne({
             where: { id },
-            relations: ['mood', 'cycle'],
+            relations: {
+                mood: true,
+                cycle: true,
+            },
         });
 
         if (!cycleMood) {

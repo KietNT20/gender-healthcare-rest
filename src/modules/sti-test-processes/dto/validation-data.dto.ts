@@ -12,7 +12,6 @@ export enum DeliveryMethod {
     IN_PERSON = 'in_person',
     EMAIL = 'email',
     PORTAL = 'portal',
-    PHONE = 'phone',
 }
 
 export enum UrgencyLevel {

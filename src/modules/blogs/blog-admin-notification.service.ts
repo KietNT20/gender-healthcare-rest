@@ -149,4 +149,61 @@ export class BlogAdminNotificationService {
 
         await Promise.all(promises);
     }
+
+    /**
+     * Thống kê hàng tháng về số blog được tạo, đang chờ duyệt và được duyệt
+     */
+    @Cron('0 9 1 * *') // Every 1st day of month at 9AM
+    async sendMonthlyBlogStatistics() {
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const [createdCount, pendingCount, approvedCount] = await Promise.all([
+            // Blogs created this month
+            this.blogRepository.count({
+                where: {
+                    createdAt: MoreThanOrEqual(firstDayOfMonth),
+                    deletedAt: IsNull(),
+                },
+            }),
+            // Blogs pending review
+            this.blogRepository.count({
+                where: {
+                    status: ContentStatusType.PENDING_REVIEW,
+                    deletedAt: IsNull(),
+                },
+            }),
+            // Blogs approved this month
+            this.blogRepository.count({
+                where: {
+                    status: ContentStatusType.APPROVED,
+                    updatedAt: MoreThanOrEqual(firstDayOfMonth),
+                    deletedAt: IsNull(),
+                },
+            }),
+        ]);
+
+        const adminUsers = await this.userRepository.find({
+            where: [
+                { role: { name: RolesNameEnum.ADMIN } },
+                { role: { name: RolesNameEnum.MANAGER } },
+            ],
+            relations: ['role'],
+        });
+
+        const adminIds = adminUsers.map((user) => user.id);
+
+        const promises = adminIds.map((adminId) =>
+            this.blogNotificationService['notificationsService'].create({
+                userId: adminId,
+                title: '📈 Báo cáo blog tháng này',
+                content: `Tháng này: ${createdCount} blog được tạo, ${pendingCount} blog đang chờ duyệt, ${approvedCount} blog được duyệt.`,
+                type: 'ADMIN_MONTHLY_STATS',
+                priority: PriorityType.LOW,
+                actionUrl: '/admin/dashboard/blog-statistics',
+            }),
+        );
+
+        await Promise.all(promises);
+    }
 }

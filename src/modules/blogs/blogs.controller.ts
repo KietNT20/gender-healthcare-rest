@@ -28,6 +28,7 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { PublishBlogDto } from './dto/publish-blog.dto';
 import { ReviewBlogDto } from './dto/review-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { GetBlogMonthYear } from './dto/get-blog.dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -118,6 +119,24 @@ export class BlogsController {
     @ResponseMessage('Pending review blogs retrieved successfully')
     findAllPendingReview(@Query() queryDto: BlogQueryDto) {
         return this.blogsService.findAllPendingReview(queryDto);
+    }
+
+    @Get('stats/monthly')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get monthly blog statistics' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Monthly blog statistics retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden: Only Admin or Manager can access',
+    })
+    @ResponseMessage('Monthly blog statistics retrieved successfully')
+    getMonthlyBlogStats(@Query() getBlogMonthYear: GetBlogMonthYear) {
+        return this.blogsService.getMonthlyBlogStats(getBlogMonthYear);
     }
 
     @Patch('/image/:id')

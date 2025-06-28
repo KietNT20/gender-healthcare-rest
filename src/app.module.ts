@@ -41,7 +41,6 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
-import { ServicePackageStatsModule } from './modules/ServicePackageStatsModule/service-package-stats.module';
 import { ServicesModule } from './modules/services/services.module';
 import { StiTestProcessesModule } from './modules/sti-test-processes/sti-test-processes.module';
 import { SymptomsModule } from './modules/symptoms/symptoms.module';
@@ -49,6 +48,8 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
+import { ServicePackagesStatsModule } from './modules/service-packages-stats/service-packages-stats.module';
+
 
 @Module({
     imports: [
@@ -150,7 +151,7 @@ import { UsersModule } from './modules/users/users.module';
         ChatModule,
         TagsModule,
         RevenueStatsModule,
-        ServicePackageStatsModule,
+        ServicePackagesStatsModule,
     ],
     providers: [
         AppService,

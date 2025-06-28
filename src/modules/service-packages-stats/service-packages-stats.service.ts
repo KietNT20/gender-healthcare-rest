@@ -8,10 +8,10 @@ import * as ExcelJS from 'exceljs';
 import { IsNull, Repository } from 'typeorm';
 import { ServicePackage } from '../service-packages/entities/service-package.entity';
 import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
-import { ServicePackageStatsQueryDto } from './dto/service-package-stats-query.dto';
+import { ServicePackagesStatsQueryDto } from './dto/service-packages-stats-query.dto';
 
 @Injectable()
-export class ServicePackageStatsService {
+export class ServicePackagesStatsService {
     constructor(
         @InjectRepository(ServicePackage)
         private packageRepository: Repository<ServicePackage>,
@@ -24,7 +24,7 @@ export class ServicePackageStatsService {
      * @param query Query parameters for month and year
      * @returns The most subscribed package and its subscription count
      */
-    async getMostSubscribedPackage(query: ServicePackageStatsQueryDto) {
+    async getMostSubscribedPackage(query: ServicePackagesStatsQueryDto) {
         const { month, year } = query;
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
@@ -54,9 +54,12 @@ export class ServicePackageStatsService {
             .getRawMany();
 
         if (!stats.length) {
-            throw new BadRequestException(
-                'Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định',
-            );
+            return {
+                message:
+                    'Không có gói dịch vụ nào được đăng ký trong tháng này',
+                month: queryMonth,
+                year: queryYear,
+            };
         }
 
         // Fetch detailed package information
@@ -79,11 +82,83 @@ export class ServicePackageStatsService {
     }
 
     /**
+     * Get statistics for all service packages in a specific month and year
+     * @param query Query parameters for month and year
+     * @returns List of all packages with their subscription counts
+     */
+    async getAllPackageStats(query: ServicePackagesStatsQueryDto) {
+        const { month, year } = query;
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        // Default to current month/year if not provided
+        const queryMonth = month ?? currentMonth;
+        const queryYear = year ?? currentYear;
+
+        // Build date range
+        const startDate = new Date(queryYear, queryMonth - 1, 1);
+        const endDate = new Date(queryYear, queryMonth, 0, 23, 59, 59, 999);
+
+        // Query subscription statistics for all packages
+        const stats = await this.subscriptionRepository
+            .createQueryBuilder('subscription')
+            .select('subscription.packageId', 'packageId')
+            .addSelect('COUNT(subscription.id)', 'subscriptionCount')
+            .innerJoin('subscription.package', 'package')
+            .where('subscription.createdAt BETWEEN :startDate AND :endDate', {
+                startDate,
+                endDate,
+            })
+            .andWhere('package.deletedAt IS NULL')
+            .andWhere('subscription.deletedAt IS NULL')
+            .groupBy('subscription.packageId')
+            .orderBy('COUNT(subscription.id)', 'DESC')
+            .getRawMany();
+
+        // Kiểm tra nếu không có dữ liệu đăng ký
+        if (!stats.length) {
+            throw new BadRequestException(
+                'Không tìm thấy dữ liệu đăng ký cho khoảng thời gian được chỉ định',
+            );
+        }
+
+        // Fetch detailed package information for all packages
+        const packages = await this.packageRepository.find({
+            where: { deletedAt: IsNull() },
+        });
+
+        // Map stats to packages
+        const reportData = packages.map((pkg) => {
+            const stat = stats.find((s) => s.packageId === pkg.id);
+            return {
+                package: {
+                    id: pkg.id,
+                    name: pkg.name,
+                    price: pkg.price,
+                    durationMonths: pkg.durationMonths,
+                    isActive: pkg.isActive,
+                },
+                subscriptionCount: stat ? parseInt(stat.subscriptionCount) : 0,
+            };
+        });
+
+        return {
+            packages: reportData,
+            month: queryMonth,
+            year: queryYear,
+            totalSubscriptions: reportData.reduce(
+                (sum, data) => sum + data.subscriptionCount,
+                0,
+            ),
+        };
+    }
+
+    /**
      * Generate an Excel report for all subscribed service packages
      * @param query Query parameters for month and year
      * @returns Excel file buffer and filename
      */
-    async generateExcelReport(query: ServicePackageStatsQueryDto) {
+    async generateExcelReport(query: ServicePackagesStatsQueryDto) {
         const { month, year } = query;
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;

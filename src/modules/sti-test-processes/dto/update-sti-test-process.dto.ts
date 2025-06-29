@@ -7,7 +7,7 @@ import {
     IsString,
     Length,
 } from 'class-validator';
-import { StiTestProcessStatus } from '../entities/sti-test-process.entity';
+import { StiTestProcessStatus } from '../enums';
 import { CreateStiTestProcessDto } from './create-sti-test-process.dto';
 
 export class UpdateStiTestProcessDto extends PartialType(

@@ -10,11 +10,7 @@ import {
 } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { SortOrder } from 'src/enums';
-import {
-    ProcessPriority,
-    StiSampleType,
-    StiTestProcessStatus,
-} from '../entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType, StiTestProcessStatus } from '../enums';
 
 export class FilterQueryStiTestProcessDto {
     @ApiPropertyOptional({

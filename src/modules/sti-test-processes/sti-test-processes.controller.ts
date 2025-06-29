@@ -37,7 +37,7 @@ import {
     StiTestProcessResponseDto,
 } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
-import { StiTestProcessStatus } from './entities/sti-test-process.entity';
+import { StiTestProcessStatus } from './enums';
 import { StiTestIntegrationService } from './sti-test-integration.service';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';

@@ -7,12 +7,8 @@ import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TestResultsService } from '../test-results/test-results.service';
 import { UsersService } from '../users/users.service';
-import {
-    ProcessPriority,
-    StiSampleType,
-    StiTestProcess,
-    StiTestProcessStatus,
-} from './entities/sti-test-process.entity';
+import { StiTestProcess } from './entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType, StiTestProcessStatus } from './enums';
 import { StiTestProcessesService } from './sti-test-processes.service';
 
 describe('StiTestProcessesService', () => {

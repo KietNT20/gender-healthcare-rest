@@ -17,10 +17,8 @@ import {
     StiTestProcessResponseDto,
 } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
-import {
-    StiTestProcess,
-    StiTestProcessStatus,
-} from './entities/sti-test-process.entity';
+import { StiTestProcess } from './entities/sti-test-process.entity';
+import { StiTestProcessStatus } from './enums';
 
 @Injectable()
 export class StiTestProcessesService {

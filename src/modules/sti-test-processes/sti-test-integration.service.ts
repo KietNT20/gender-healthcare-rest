@@ -11,10 +11,7 @@ import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
 import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
-import {
-    ProcessPriority,
-    StiSampleType,
-} from './entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType } from './enums';
 import { StiTestProcessesService } from './sti-test-processes.service';
 
 export interface StiTestBookingResponse {

@@ -54,8 +54,8 @@ import { ServicePackagesStatsModule } from './modules/service-packages-stats/ser
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: ['.env'],
-            // envFilePath: ['.env.development.local'],
+            // envFilePath: ['.env'],
+            envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),
@@ -86,7 +86,7 @@ import { ServicePackagesStatsModule } from './modules/service-packages-stats/ser
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                logging: true,
+                // logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,

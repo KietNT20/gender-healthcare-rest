@@ -1,10 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-    ProcessPriority,
-    StiSampleType,
-    StiTestProcessStatus,
-} from '../entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType, StiTestProcessStatus } from '../enums';
 
 export class StiTestProcessResponseDto {
     @ApiProperty({ description: 'ID của quá trình xét nghiệm' })

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
-import { StiTestProcessStatus } from '../entities/sti-test-process.entity';
+import { StiTestProcessStatus } from '../enums';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
 export interface WorkflowStep {

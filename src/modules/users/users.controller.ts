@@ -47,8 +47,8 @@ export class UsersController {
     }
 
     @Get()
-    // @UseGuards(RoleGuard)
-    // @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
     @ApiOperation({ summary: 'Get all users with pagination and filters' })
     @ApiResponse({
         status: HttpStatus.OK,

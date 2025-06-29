@@ -9,10 +9,7 @@ import {
     IsUUID,
     Length,
 } from 'class-validator';
-import {
-    ProcessPriority,
-    StiSampleType,
-} from '../entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType } from '../enums';
 
 export class CreateStiTestProcessDto {
     @ApiProperty({

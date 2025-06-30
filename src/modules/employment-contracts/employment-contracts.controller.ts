@@ -11,7 +11,7 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, NoFilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiBearerAuth,
     ApiBody,
@@ -35,8 +35,6 @@ export class EmploymentContractsController {
     ) {}
 
     @Post()
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create a new employment contract' })
     @ResponseMessage('Contract created successfully.')
     create(@Body() createEmploymentContractDto: CreateEmploymentContractDto) {
@@ -82,8 +80,6 @@ export class EmploymentContractsController {
     }
 
     @Put(':id')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update a contract' })
     @ResponseMessage('Contract updated successfully.')
     update(

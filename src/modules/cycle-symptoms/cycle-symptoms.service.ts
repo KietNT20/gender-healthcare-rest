@@ -41,8 +41,8 @@ export class CycleSymptomsService {
             sortOrder,
         } = cycleSymptomQueryDto;
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         const queryBuilder = this.cycleSymptomRepository
             .createQueryBuilder('cycleSymptom')

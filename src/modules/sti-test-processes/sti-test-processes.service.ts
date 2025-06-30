@@ -7,8 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { SortOrder } from 'src/enums';
 import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
+import { AppointmentsService } from '../appointments/appointments.service';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ServicesService } from '../services/services.service';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
@@ -28,9 +30,11 @@ export class StiTestProcessesService {
         private readonly notificationsService: NotificationsService,
         private readonly mailService: MailService,
         private readonly usersService: UsersService,
+        private readonly servicesService: ServicesService,
+        private readonly appointmentsService: AppointmentsService,
     ) {}
     /**
-     * Tạo mã xét nghiệm ngẫu nhiên\
+     * Tạo mã xét nghiệm ngẫu nhiên
      * @description Mã này bao gồm tiền tố "STI",
      * thời gian hiện tại và một chuỗi ngẫu nhiên để đảm bảo tính duy nhất.
      * @returns Mã xét nghiệm duy nhất
@@ -48,11 +52,43 @@ export class StiTestProcessesService {
     async create(
         createDto: CreateStiTestProcessDto,
     ): Promise<StiTestProcessResponseDto> {
-        // Kiểm tra xem bệnh nhân và dịch vụ có tồn tại không
+        // Check data exist
         const patient = await this.usersService.findOne(createDto.patientId);
         if (!patient) {
-            throw new NotFoundException('Không tìm thấy bệnh nhân');
+            throw new NotFoundException(
+                `Không tìm thấy bệnh nhân với ID: ${createDto.patientId}`,
+            );
         }
+        const service = await this.servicesService.findOne(createDto.serviceId);
+        if (!service) {
+            throw new NotFoundException(
+                `Không tìm thấy dịch vụ với ID: ${createDto.serviceId}`,
+            );
+        }
+
+        if (createDto.consultantDoctorId) {
+            const consultantDoctor = await this.usersService.findOne(
+                createDto.consultantDoctorId,
+            );
+            if (!consultantDoctor) {
+                throw new NotFoundException(
+                    `Không tìm thấy bác sĩ tư vấn với ID: ${createDto.consultantDoctorId}`,
+                );
+            }
+        }
+
+        if (createDto.appointmentId) {
+            const appointment = await this.appointmentsService.findOneById(
+                createDto.appointmentId,
+            );
+
+            if (!appointment) {
+                throw new NotFoundException(
+                    `Không tìm thấy cuộc hẹn với ID: ${createDto.appointmentId}`,
+                );
+            }
+        }
+
         let testCode = '';
         let isUnique = false;
         let attempts = 0;

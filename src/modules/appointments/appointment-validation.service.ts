@@ -26,7 +26,7 @@ export class AppointmentValidationService {
         const isAdminOrManager = [
             RolesNameEnum.ADMIN,
             RolesNameEnum.MANAGER,
-        ].includes(user.role.name as RolesNameEnum);
+        ].includes(user.role.name);
 
         if (!isOwner && !isConsultant && !isAdminOrManager) {
             throw new ForbiddenException(

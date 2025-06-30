@@ -5,7 +5,6 @@ import { UserPackageSubscription } from '../user-package-subscriptions/entities/
 import { ServicePackagesStatsController } from './service-packages-stats.controller';
 import { ServicePackagesStatsService } from './service-packages-stats.service';
 
-
 /**
  * Module for handling service package statistics and reports
  */

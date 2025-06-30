@@ -155,7 +155,7 @@ export class TestResultsService {
         const isAdminOrStaff = [
             RolesNameEnum.ADMIN,
             RolesNameEnum.STAFF,
-        ].includes(currentUser.role.name as RolesNameEnum);
+        ].includes(currentUser.role.name);
 
         // Check ownership
         if (testResult.user.id !== currentUser.id && !isAdminOrStaff) {

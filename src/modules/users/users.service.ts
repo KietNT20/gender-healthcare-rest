@@ -384,7 +384,7 @@ export class UsersService {
         }
 
         const offset = (userQueryDto.page! - 1) * userQueryDto.limit!;
-        queryBuilder.skip(offset).take(userQueryDto.limit!);
+        queryBuilder.skip(offset).take(userQueryDto.limit);
 
         const allowedSortFields = [
             'firstName',

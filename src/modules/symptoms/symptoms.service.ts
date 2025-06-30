@@ -42,8 +42,8 @@ export class SymptomsService {
         const { name, sortBy, sortOrder, page, limit } = symptomQueryDto;
         const query = this.symptomRepository.createQueryBuilder('symptom');
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         if (name) {
             query.andWhere('symptom.name ILIKE :name', { name: `%${name}%` });

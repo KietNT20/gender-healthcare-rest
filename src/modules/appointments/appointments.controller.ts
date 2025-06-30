@@ -120,7 +120,7 @@ export class AppointmentsController {
         return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 
-    @Get(':id')
+    @Get('/me/:id')
     @ApiOperation({ summary: 'Get appointment details' })
     @ResponseMessage('Successfully retrieved appointment details.')
     findOne(
@@ -128,6 +128,13 @@ export class AppointmentsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.appointmentsService.findOne(id, currentUser);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get appointment details' })
+    @ResponseMessage('Successfully retrieved appointment details.')
+    findOneById(@Param('id', ParseUUIDPipe) id: string) {
+        return this.appointmentsService.findOneById(id);
     }
 
     @Get(':id/chat-room')

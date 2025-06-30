@@ -30,8 +30,8 @@ export class CycleMoodsService {
         const { page, limit, cycleId, moodId, intensity, sortBy, sortOrder } =
             cycleMoodQueryDto;
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         const queryBuilder = this.cycleMoodRepository
             .createQueryBuilder('cycleMood')

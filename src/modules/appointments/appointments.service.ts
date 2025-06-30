@@ -277,12 +277,13 @@ export class AppointmentsService {
         const [data, totalItems] =
             await this.appointmentRepository.findAndCount({
                 where,
-                relations: [
-                    'user',
-                    'consultant',
-                    'services',
-                    'consultant.consultantProfile',
-                ],
+                relations: {
+                    user: true,
+                    services: true,
+                    consultant: {
+                        consultantProfile: true,
+                    },
+                },
                 order: { [sortBy]: sortOrder },
                 skip: (page - 1) * limit,
                 take: limit,
@@ -308,14 +309,16 @@ export class AppointmentsService {
     async findOne(id: string, currentUser: User): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: [
-                'user',
-                'user.role',
-                'consultant',
-                'consultant.role',
-                'services',
-                'cancelledBy',
-            ],
+            relations: {
+                user: {
+                    role: true,
+                },
+                consultant: {
+                    role: true,
+                },
+                services: true,
+                cancelledBy: true,
+            },
         });
 
         if (!appointment) {
@@ -324,6 +327,28 @@ export class AppointmentsService {
 
         // Ủy thác việc xác thực quyền truy cập
         this.validationService.validateUserAccess(appointment, currentUser);
+
+        return appointment;
+    }
+
+    async findOneById(id: string): Promise<Appointment> {
+        const appointment = await this.appointmentRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: {
+                user: {
+                    role: true,
+                },
+                consultant: {
+                    role: true,
+                },
+                services: true,
+                cancelledBy: true,
+            },
+        });
+
+        if (!appointment) {
+            throw new NotFoundException(`Không tìm thấy cuộc hẹn với ID ${id}`);
+        }
 
         return appointment;
     }

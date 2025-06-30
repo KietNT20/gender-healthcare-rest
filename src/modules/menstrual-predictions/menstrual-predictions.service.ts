@@ -112,7 +112,7 @@ export class MenstrualPredictionsService {
         field: 'cycleLength' | 'periodLength',
         defaultValue: number,
     ): number {
-        const validCycles = cycles.filter((c) => c[field] && c[field]! > 0);
+        const validCycles = cycles.filter((c) => c[field] && c[field] > 0);
         if (validCycles.length === 0) return defaultValue;
         const sum = validCycles.reduce((acc, c) => acc + c[field]!, 0);
         return Math.round(sum / validCycles.length);

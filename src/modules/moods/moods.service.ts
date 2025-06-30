@@ -36,8 +36,8 @@ export class MoodsService {
     async findAll(moodQueryDto: MoodQueryDto): Promise<Paginated<Mood>> {
         const { name, sortBy, sortOrder, page, limit } = moodQueryDto;
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         const query = this.moodRepository.createQueryBuilder('mood');
 

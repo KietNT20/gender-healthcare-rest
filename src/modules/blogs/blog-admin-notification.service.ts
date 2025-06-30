@@ -157,7 +157,7 @@ export class BlogAdminNotificationService {
     async sendMonthlyBlogStatistics() {
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        
+
         const [createdCount, pendingCount, approvedCount] = await Promise.all([
             // Blogs created this month
             this.blogRepository.count({

@@ -132,7 +132,7 @@ export class BlogsService {
 
         // Đặt offset và limit tương tự UsersService
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
-        queryBuilder.skip(offset).take(blogQueryDto.limit!);
+        queryBuilder.skip(offset).take(blogQueryDto.limit);
 
         // Xử lý sortBy và sortOrder
         const allowedSortFields = [
@@ -195,7 +195,7 @@ export class BlogsService {
 
         // Đặt offset và limit
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
-        queryBuilder.skip(offset).take(blogQueryDto.limit!);
+        queryBuilder.skip(offset).take(blogQueryDto.limit);
 
         // Sắp xếp
         const allowedSortFields = [
@@ -258,7 +258,7 @@ export class BlogsService {
 
         // Đặt offset và limit
         const offset = (blogQueryDto.page! - 1) * blogQueryDto.limit!;
-        queryBuilder.skip(offset).take(blogQueryDto.limit!);
+        queryBuilder.skip(offset).take(blogQueryDto.limit);
 
         // Sắp xếp
         const allowedSortFields = [

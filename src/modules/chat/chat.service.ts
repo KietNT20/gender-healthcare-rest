@@ -514,7 +514,7 @@ export class ChatService {
             message.metadata?.fileId
         ) {
             try {
-                const fileId = message.metadata.fileId as string;
+                const fileId = message.metadata.fileId;
 
                 if (message.type === MessageType.PUBLIC_PDF) {
                     // For public PDFs, return the stored public URL or get it from service

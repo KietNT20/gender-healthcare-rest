@@ -1,4 +1,4 @@
-import { Inject, Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
     ConnectedSocket,
     MessageBody,
@@ -8,9 +8,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
-import { RedisClientType } from 'redis';
 import { Server } from 'socket.io';
-import { ChatService } from './chat.service';
 import { CHAT_EVENTS, RESPONSE_STATUS } from './constants/chat.constants';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -43,8 +41,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(ChatGateway.name);
 
     constructor(
-        private readonly chatService: ChatService,
-        @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
         private readonly connectionHandler: ConnectionHandler,
         private readonly roomHandler: RoomHandler,
         private readonly messageHandler: MessageHandler,

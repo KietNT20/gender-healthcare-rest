@@ -580,13 +580,13 @@ export class FilesService {
                 where: { id: fileId },
             });
             if (!file) throw new NotFoundException('Image not found');
-            s3Key = this.extractS3KeyFromUrl((file as Image).url) || '';
+            s3Key = this.extractS3KeyFromUrl(file.url) || '';
         } else {
             file = await this.documentRepository.findOne({
                 where: { id: fileId },
             });
             if (!file) throw new NotFoundException('Document not found');
-            s3Key = (file as Document).path;
+            s3Key = file.path;
         }
 
         try {

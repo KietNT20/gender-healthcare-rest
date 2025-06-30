@@ -78,9 +78,15 @@ export class StiTestProcessesService {
         }
 
         if (createDto.appointmentId) {
-            throw new NotFoundException(
-                `Không tìm thấy cuộc hẹn với ID: ${createDto.appointmentId}`,
+            const appointment = await this.appointmentsService.findOneById(
+                createDto.appointmentId,
             );
+
+            if (!appointment) {
+                throw new NotFoundException(
+                    `Không tìm thấy cuộc hẹn với ID: ${createDto.appointmentId}`,
+                );
+            }
         }
 
         let testCode = '';

@@ -85,7 +85,7 @@ export class ChatController {
 
         const message = await this.chatService.createMessage({
             content: createMessageDto.content,
-            type: createMessageDto.type || MessageType.TEXT,
+            type: MessageType.TEXT,
             questionId,
             senderId: userId,
         });

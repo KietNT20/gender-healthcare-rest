@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppointmentsModule } from '../appointments/appointments.module';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PackageService } from '../package-services/entities/package-service.entity';
 import { Service } from '../services/entities/service.entity';
+import { ServicesModule } from '../services/services.module';
 import { TestResultsModule } from '../test-results/test-results.module';
 import { UsersModule } from '../users/users.module';
 import { StiTestProcess } from './entities/sti-test-process.entity';
@@ -19,6 +21,8 @@ import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
         NotificationsModule,
         MailModule,
         UsersModule,
+        ServicesModule,
+        AppointmentsModule,
     ],
     controllers: [StiTestProcessesController],
     providers: [

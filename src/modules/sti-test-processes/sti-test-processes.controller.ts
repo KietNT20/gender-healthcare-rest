@@ -11,13 +11,10 @@ import {
     Put,
     Query,
     UseGuards,
-    UseInterceptors,
     ValidationPipe,
 } from '@nestjs/common';
-import { NoFilesInterceptor } from '@nestjs/platform-express';
 import {
     ApiBearerAuth,
-    ApiConsumes,
     ApiOperation,
     ApiParam,
     ApiQuery,
@@ -54,8 +51,6 @@ export class StiTestProcessesController {
     ) {}
 
     @Post()
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create STI Test Process' })
     @ApiResponse({
         status: HttpStatus.CREATED,
@@ -73,8 +68,6 @@ export class StiTestProcessesController {
     @Post('search')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Get list of STI test processes' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -111,8 +104,6 @@ export class StiTestProcessesController {
     }
 
     @Post('patient/:patientId')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({
         summary: 'Get list of STI test processes by patient ID',
     })
@@ -148,8 +139,6 @@ export class StiTestProcessesController {
     }
 
     @Put(':id')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update STI test process information' })
     @ApiParam({ name: 'id', description: 'STI test process ID' })
     @ApiResponse({

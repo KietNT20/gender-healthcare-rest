@@ -40,6 +40,7 @@ import { PackageServicesModule } from './modules/package-services/package-servic
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { ServicePackagesStatsModule } from './modules/service-packages-stats/service-packages-stats.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
 import { StiTestProcessesModule } from './modules/sti-test-processes/sti-test-processes.module';
@@ -48,14 +49,12 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { ServicePackagesStatsModule } from './modules/service-packages-stats/service-packages-stats.module';
-
 
 @Module({
     imports: [
         ConfigModule.forRoot({
-            // envFilePath: ['.env'],
-            envFilePath: ['.env.development.local'],
+            envFilePath: ['.env'],
+            // envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),
@@ -86,7 +85,7 @@ import { ServicePackagesStatsModule } from './modules/service-packages-stats/ser
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                // logging: true,
+                logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,

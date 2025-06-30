@@ -225,9 +225,9 @@ export class AppointmentsService {
             }
 
             return this.findOne(savedAppointment.id, currentUser);
-        } catch (error) {
+        } catch (error: unknown) {
             await queryRunner.rollbackTransaction();
-            throw error;
+            throw new Error('Không thể tạo cuộc hẹn: ' + error);
         } finally {
             await queryRunner.release();
         }

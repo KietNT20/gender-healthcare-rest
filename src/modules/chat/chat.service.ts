@@ -150,7 +150,7 @@ export class ChatService {
             sender: {
                 id: sender.id,
                 fullName: `${sender.firstName} ${sender.lastName}`,
-                role: sender.role?.name || 'user',
+                role: sender.role?.name,
                 profilePicture: sender.profilePicture,
             },
         };

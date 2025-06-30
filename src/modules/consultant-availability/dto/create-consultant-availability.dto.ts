@@ -11,6 +11,7 @@ import {
     Max,
     Min,
 } from 'class-validator';
+import { REGEX } from 'src/constant';
 import { LocationTypeEnum } from 'src/enums';
 
 export class CreateConsultantAvailabilityDto {
@@ -26,7 +27,7 @@ export class CreateConsultantAvailabilityDto {
     @ApiProperty({ description: 'Thời gian bắt đầu (HH:mm)' })
     @IsString()
     @IsNotEmpty()
-    @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'Thời gian bắt đầu phải có định dạng HH:mm',
     })
     startTime: string;
@@ -36,7 +37,7 @@ export class CreateConsultantAvailabilityDto {
     })
     @IsString()
     @IsNotEmpty()
-    @Matches(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'Thời gian kết thúc phải có định dạng HH:mm',
     })
     endTime: string;

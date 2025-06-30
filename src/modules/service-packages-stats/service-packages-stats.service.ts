@@ -371,15 +371,18 @@ export class ServicePackagesStatsService {
         });
 
         // Điều chỉnh chiều rộng cột dựa trên nội dung tối đa
-        const adjustColumnWidths = (sheet) => {
-            sheet.columns.forEach((column, index) => {
+        const adjustColumnWidths = (sheet: ExcelJS.Worksheet) => {
+            sheet.columns.forEach((column: ExcelJS.Column, index: number) => {
                 let maxLength = 0;
-                column.eachCell({ includeEmpty: true }, (cell) => {
-                    const columnLength = cell.value
-                        ? cell.value.toString().length
-                        : 0;
-                    maxLength = Math.max(maxLength, columnLength);
-                });
+                column.eachCell(
+                    { includeEmpty: true },
+                    (cell: ExcelJS.Cell) => {
+                        const columnLength = cell.value
+                            ? cell.value.toString().length
+                            : 0;
+                        maxLength = Math.max(maxLength, columnLength);
+                    },
+                );
                 // Thêm padding và căn chỉnh với tiêu đề
                 const headerLength = [
                     'Tên Gói Dịch Vụ',
@@ -395,8 +398,8 @@ export class ServicePackagesStatsService {
         adjustColumnWidths(detailSheet);
 
         // Điều chỉnh chiều cao hàng
-        const adjustRowHeight = (sheet) => {
-            sheet.getRows(1, sheet.rowCount)?.forEach((row) => {
+        const adjustRowHeight = (sheet: ExcelJS.Worksheet) => {
+            sheet.getRows(1, sheet.rowCount)?.forEach((row: ExcelJS.Row) => {
                 row.height = 30; // Chiều cao cố định 30
             });
         };

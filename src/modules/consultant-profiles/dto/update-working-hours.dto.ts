@@ -12,6 +12,7 @@ import {
     Min,
     ValidateNested,
 } from 'class-validator';
+import { REGEX } from 'src/constant';
 
 export class DayWorkingHoursDto {
     @ApiProperty({
@@ -19,7 +20,7 @@ export class DayWorkingHoursDto {
     })
     @IsNotEmpty()
     @IsString()
-    @Matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'startTime phải có định dạng HH:mm (ví dụ: 09:00)',
     })
     startTime: string;
@@ -29,7 +30,7 @@ export class DayWorkingHoursDto {
     })
     @IsNotEmpty()
     @IsString()
-    @Matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'endTime phải có định dạng HH:mm (ví dụ: 17:00)',
     })
     endTime: string;

@@ -28,6 +28,7 @@ import { EmploymentContractsModule } from './modules/employment-contracts/employ
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import awsConfig from './modules/files/config/aws.config';
 import { FilesModule } from './modules/files/files.module';
+import { HealthModule } from './modules/health/health.module';
 import { ImagesModule } from './modules/images/images.module';
 import mailConfig from './modules/mail/config/mail.config';
 import { MailModule } from './modules/mail/mail.module';
@@ -87,12 +88,19 @@ import { UsersModule } from './modules/users/users.module';
                 autoLoadEntities: true,
                 logging: true,
                 dropSchema: false,
-                ssl: {
-                    rejectUnauthorized: true,
-                    ca: readFileSync(
-                        join(process.cwd(), 'certs', 'global-bundle.pem'),
-                    ).toString(),
-                },
+                ssl:
+                    configService.get('NODE_ENV') === 'production'
+                        ? {
+                              rejectUnauthorized: true,
+                              ca: readFileSync(
+                                  join(
+                                      process.cwd(),
+                                      'certs',
+                                      'global-bundle.pem',
+                                  ),
+                              ).toString(),
+                          }
+                        : false,
             }),
             inject: [ConfigService],
         }),
@@ -151,6 +159,7 @@ import { UsersModule } from './modules/users/users.module';
         TagsModule,
         RevenueStatsModule,
         ServicePackagesStatsModule,
+        HealthModule,
     ],
     providers: [
         AppService,

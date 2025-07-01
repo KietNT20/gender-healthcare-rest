@@ -13,6 +13,7 @@ import {
     Min,
     ValidateIf,
 } from 'class-validator';
+import { REGEX } from 'src/constant';
 import { ReminderFrequencyType } from 'src/enums';
 
 export class CreateContraceptiveReminderDto {
@@ -27,7 +28,7 @@ export class CreateContraceptiveReminderDto {
         description: 'Thời gian nhắc nhở trong ngày (HH:mm)',
     })
     @IsNotEmpty()
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'Thời gian phải có định dạng HH:mm',
     })
     reminderTime: string;

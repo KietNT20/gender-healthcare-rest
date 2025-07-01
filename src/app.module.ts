@@ -49,6 +49,7 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
     imports: [
@@ -151,6 +152,7 @@ import { UsersModule } from './modules/users/users.module';
         TagsModule,
         RevenueStatsModule,
         ServicePackagesStatsModule,
+        HealthModule,
     ],
     providers: [
         AppService,

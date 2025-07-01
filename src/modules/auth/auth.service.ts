@@ -382,21 +382,12 @@ export class AuthService {
                 id: user.id,
                 email: user.email,
                 role: user.role?.name,
-                firstName: user.firstName,
-                lastName: user.lastName,
+                fullName: user.firstName + ' ' + user.lastName,
+                isActive: user.isActive,
                 emailVerified: user.emailVerified,
             };
         } catch (error) {
             throw new UnauthorizedException('Invalid token');
-        }
-    }
-
-    async verifyTokenForWebSocket(token: string) {
-        try {
-            const cleanToken = token.replace('Bearer ', '');
-            return await this.verifyToken(cleanToken);
-        } catch (error) {
-            return null;
         }
     }
 }

@@ -5,6 +5,8 @@ import {
     Logger,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
+import { Observable } from 'rxjs';
+import { Socket } from 'socket.io';
 import { AuthService } from 'src/modules/auth/auth.service';
 
 @Injectable()
@@ -13,21 +15,31 @@ export class WsJwtGuard implements CanActivate {
 
     constructor(private readonly authService: AuthService) {}
 
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-        const client = context.switchToWs().getClient();
-        const token =
-            client.handshake.auth?.token || client.handshake.query?.token;
+    canActivate(
+        context: ExecutionContext,
+    ): boolean | Promise<boolean> | Observable<boolean> {
+        if (context.getType() !== 'ws') {
+            return true;
+        }
+
+        const client: Socket = context.switchToWs().getClient();
+        const authHeader = client.handshake.headers.authorization;
+        const token = authHeader?.split(' ')[1];
+        this.logger.log('Token: ' + token);
 
         if (!token) {
             throw new WsException('No authentication token provided');
         }
 
         try {
-            const user = await this.authService.verifyTokenForWebSocket(token);
+            const user = this.authService.verifyToken(token);
+
             if (!user) {
                 throw new WsException('Invalid authentication token');
             }
-            client.user = user;
+
+            client.data.user = user;
+
             return true;
         } catch (error) {
             this.logger.error(

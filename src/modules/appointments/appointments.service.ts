@@ -228,11 +228,12 @@ export class AppointmentsService {
             }
 
             return this.findOne(savedAppointment.id, currentUser);
-        } catch (error: unknown) {
+        } catch (error: any) {
             await queryRunner.rollbackTransaction();
             this.logger.error(error);
             throw new InternalServerErrorException(
-                'Không thể tạo cuộc hẹn: ' + error,
+                'Không thể tạo cuộc hẹn: ' +
+                    (error instanceof Error ? error.message : 'Chưa xác định'),
             );
         } finally {
             await queryRunner.release();

@@ -381,8 +381,10 @@ export class AuthService {
             return {
                 id: user.id,
                 email: user.email,
-                role: user.role?.name || 'user',
-                fullName: user.firstName + ' ' + user.lastName,
+                role: user.role?.name,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                emailVerified: user.emailVerified,
             };
         } catch (error) {
             throw new UnauthorizedException('Invalid token');

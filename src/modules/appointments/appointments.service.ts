@@ -2,6 +2,8 @@ import {
     BadRequestException,
     ConflictException,
     Injectable,
+    InternalServerErrorException,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,6 +49,7 @@ import { Appointment } from './entities/appointment.entity';
  */
 @Injectable()
 export class AppointmentsService {
+    private readonly logger = new Logger(AppointmentsService.name);
     constructor(
         @InjectRepository(Appointment)
         private readonly appointmentRepository: Repository<Appointment>,
@@ -227,7 +230,10 @@ export class AppointmentsService {
             return this.findOne(savedAppointment.id, currentUser);
         } catch (error: unknown) {
             await queryRunner.rollbackTransaction();
-            throw new Error('Không thể tạo cuộc hẹn: ' + error);
+            this.logger.error(error);
+            throw new InternalServerErrorException(
+                'Không thể tạo cuộc hẹn: ' + error,
+            );
         } finally {
             await queryRunner.release();
         }

@@ -630,7 +630,7 @@ export class ChatService {
                       sender: {
                           id: lastMessage.sender.id,
                           fullName: `${lastMessage.sender.firstName} ${lastMessage.sender.lastName}`,
-                          role: lastMessage.sender.role?.name || 'user',
+                          role: lastMessage.sender.role?.name,
                           profilePicture: lastMessage.sender.profilePicture,
                       },
                   }

@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsArray,
-    IsDateString,
     IsOptional,
     IsString,
     IsUUID,
+    ValidateIf,
 } from 'class-validator';
 
 export class StiTestBookingRequest {
@@ -21,6 +21,7 @@ export class StiTestBookingRequest {
     })
     @IsUUID()
     @IsOptional()
+    @ValidateIf((o) => !o.serviceIds || o.serviceIds.length === 0)
     servicePackageId?: string;
 
     @ApiPropertyOptional({
@@ -31,15 +32,16 @@ export class StiTestBookingRequest {
     @IsArray()
     @IsUUID('4', { each: true })
     @IsOptional()
+    @ValidateIf((o) => !o.servicePackageId)
     serviceIds?: string[];
 
     @ApiPropertyOptional({
-        description: 'Appointment date',
-        example: '2024-01-15T10:00:00Z',
+        description: 'Appointment ID',
+        example: '123e4567-e89b-12d3-a456-426614174000',
     })
-    @IsDateString()
+    @IsUUID()
     @IsOptional()
-    appointmentDate?: Date;
+    appointmentId?: string;
 
     @ApiPropertyOptional({
         description: 'Consultant ID',

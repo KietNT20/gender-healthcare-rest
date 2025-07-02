@@ -30,8 +30,8 @@ export class CycleMoodsService {
         const { page, limit, cycleId, moodId, intensity, sortBy, sortOrder } =
             cycleMoodQueryDto;
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         const queryBuilder = this.cycleMoodRepository
             .createQueryBuilder('cycleMood')
@@ -97,7 +97,10 @@ export class CycleMoodsService {
     async findOne(id: string): Promise<CycleMood> {
         const cycleMood = await this.cycleMoodRepository.findOne({
             where: { id },
-            relations: ['mood', 'cycle'],
+            relations: {
+                mood: true,
+                cycle: true,
+            },
         });
 
         if (!cycleMood) {

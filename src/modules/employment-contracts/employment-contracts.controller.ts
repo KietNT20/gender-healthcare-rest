@@ -11,12 +11,13 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, NoFilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
     ApiOperation,
+    ApiTags,
 } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,6 +25,7 @@ import { CreateEmploymentContractDto } from './dto/create-employment-contract.dt
 import { UpdateEmploymentContractDto } from './dto/update-employment-contract.dto';
 import { EmploymentContractsService } from './employment-contracts.service';
 
+@ApiTags('Employment Contracts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('employment-contracts')
@@ -33,8 +35,6 @@ export class EmploymentContractsController {
     ) {}
 
     @Post()
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create a new employment contract' })
     @ResponseMessage('Contract created successfully.')
     create(@Body() createEmploymentContractDto: CreateEmploymentContractDto) {
@@ -80,8 +80,6 @@ export class EmploymentContractsController {
     }
 
     @Put(':id')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update a contract' })
     @ResponseMessage('Contract updated successfully.')
     update(

@@ -77,7 +77,9 @@ export class AuditLogsService {
 
         const [data, totalItems] = await this.auditLogRepository.findAndCount({
             where,
-            relations: ['user'],
+            relations: {
+                user: true,
+            },
             order: { [sortBy]: sortOrder },
             skip: (page - 1) * limit,
             take: limit,
@@ -102,7 +104,9 @@ export class AuditLogsService {
     async findOne(id: string): Promise<AuditLog> {
         const auditLog = await this.auditLogRepository.findOne({
             where: { id },
-            relations: ['user'],
+            relations: {
+                user: true,
+            },
         });
         if (!auditLog) {
             throw new NotFoundException(`AuditLog with ID ${id} not found.`);

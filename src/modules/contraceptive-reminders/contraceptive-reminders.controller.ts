@@ -8,10 +8,8 @@ import {
     Post,
     Put,
     UseGuards,
-    UseInterceptors,
 } from '@nestjs/common';
-import { NoFilesInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,6 +18,7 @@ import { ContraceptiveRemindersService } from './contraceptive-reminders.service
 import { CreateContraceptiveReminderDto } from './dto/create-contraceptive-reminder.dto';
 import { UpdateContraceptiveReminderDto } from './dto/update-contraceptive-reminder.dto';
 
+@ApiTags('Contraceptive Reminders')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('contraceptive-reminders')
@@ -29,8 +28,6 @@ export class ContraceptiveRemindersController {
     ) {}
 
     @Post()
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create a new contraceptive reminder' })
     create(
         @CurrentUser() user: User,
@@ -56,8 +53,6 @@ export class ContraceptiveRemindersController {
     }
 
     @Put(':id')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update a contraceptive reminder' })
     update(
         @Param('id', ParseUUIDPipe) id: string,

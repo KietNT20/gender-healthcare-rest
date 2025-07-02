@@ -28,6 +28,7 @@ import { EmploymentContractsModule } from './modules/employment-contracts/employ
 import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 import awsConfig from './modules/files/config/aws.config';
 import { FilesModule } from './modules/files/files.module';
+import { HealthModule } from './modules/health/health.module';
 import { ImagesModule } from './modules/images/images.module';
 import mailConfig from './modules/mail/config/mail.config';
 import { MailModule } from './modules/mail/mail.module';
@@ -40,6 +41,7 @@ import { PackageServicesModule } from './modules/package-services/package-servic
 import { PaymentsModule } from './modules/payments/payments.module';
 import { RevenueStatsModule } from './modules/revenue-stats/revenue-stats.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { ServicePackagesStatsModule } from './modules/service-packages-stats/service-packages-stats.module';
 import { ServicePackagesModule } from './modules/service-packages/service-packages.module';
 import { ServicesModule } from './modules/services/services.module';
 import { StiTestProcessesModule } from './modules/sti-test-processes/sti-test-processes.module';
@@ -48,8 +50,6 @@ import { TagsModule } from './modules/tags/tags.module';
 import { TestResultsModule } from './modules/test-results/test-results.module';
 import { UserPackageSubscriptionsModule } from './modules/user-package-subscriptions/user-package-subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
-import { ServicePackagesStatsModule } from './modules/service-packages-stats/service-packages-stats.module';
-
 
 @Module({
     imports: [
@@ -88,12 +88,19 @@ import { ServicePackagesStatsModule } from './modules/service-packages-stats/ser
                 autoLoadEntities: true,
                 logging: true,
                 dropSchema: false,
-                ssl: {
-                    rejectUnauthorized: true,
-                    ca: readFileSync(
-                        join(process.cwd(), 'certs', 'global-bundle.pem'),
-                    ).toString(),
-                },
+                ssl:
+                    configService.get('NODE_ENV') === 'production'
+                        ? {
+                              rejectUnauthorized: true,
+                              ca: readFileSync(
+                                  join(
+                                      process.cwd(),
+                                      'certs',
+                                      'global-bundle.pem',
+                                  ),
+                              ).toString(),
+                          }
+                        : false,
             }),
             inject: [ConfigService],
         }),
@@ -152,6 +159,7 @@ import { ServicePackagesStatsModule } from './modules/service-packages-stats/ser
         TagsModule,
         RevenueStatsModule,
         ServicePackagesStatsModule,
+        HealthModule,
     ],
     providers: [
         AppService,

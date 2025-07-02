@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsDateString,
+    IsDate,
     IsNotEmpty,
+    IsNumber,
     IsOptional,
     IsString,
     IsUUID,
@@ -20,8 +21,8 @@ export class FindAvailableSlotsDto {
         example: '2025-06-25',
     })
     @IsNotEmpty()
-    @IsDateString()
-    startDate: string;
+    @IsDate()
+    startDate: Date;
 
     @ApiPropertyOptional({
         description:
@@ -29,8 +30,8 @@ export class FindAvailableSlotsDto {
         example: '2025-07-01',
     })
     @IsOptional()
-    @IsDateString()
-    endDate?: string;
+    @IsDate()
+    endDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Giờ bắt đầu trong ngày (HH:MM). Mặc định 08:00',
@@ -59,6 +60,8 @@ export class FindAvailableSlotsDto {
 
 export class AvailableSlotDto {
     @ApiProperty({ description: 'Ngày và giờ của slot' })
+    @IsNotEmpty()
+    @IsDate()
     dateTime: Date;
 
     @ApiProperty({ description: 'Thông tin tư vấn viên' })
@@ -72,9 +75,13 @@ export class AvailableSlotDto {
     };
 
     @ApiProperty({ description: 'ID của availability slot' })
+    @IsNotEmpty()
+    @IsUUID('4')
     availabilityId: string;
 
     @ApiProperty({ description: 'Số slot còn trống' })
+    @IsNotEmpty()
+    @IsNumber()
     remainingSlots: number;
 }
 

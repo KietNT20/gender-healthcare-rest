@@ -11,17 +11,15 @@ import {
     Put,
     Query,
     UseGuards,
-    UseInterceptors,
     ValidationPipe,
 } from '@nestjs/common';
-import { NoFilesInterceptor } from '@nestjs/platform-express';
 import {
     ApiBearerAuth,
-    ApiConsumes,
     ApiOperation,
     ApiParam,
     ApiQuery,
     ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -30,19 +28,18 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
+import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
 import {
     StiTestProcessListResponseDto,
     StiTestProcessResponseDto,
 } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
-import { StiTestProcessStatus } from './entities/sti-test-process.entity';
-import {
-    StiTestBookingRequest,
-    StiTestIntegrationService,
-} from './sti-test-integration.service';
+import { StiTestProcessStatus } from './enums';
+import { StiTestIntegrationService } from './sti-test-integration.service';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 
+@ApiTags('STIs Test Processes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('sti-test-processes')
@@ -54,8 +51,6 @@ export class StiTestProcessesController {
     ) {}
 
     @Post()
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Create STI Test Process' })
     @ApiResponse({
         status: HttpStatus.CREATED,
@@ -73,8 +68,6 @@ export class StiTestProcessesController {
     @Post('search')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Get list of STI test processes' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -111,8 +104,6 @@ export class StiTestProcessesController {
     }
 
     @Post('patient/:patientId')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({
         summary: 'Get list of STI test processes by patient ID',
     })
@@ -148,8 +139,6 @@ export class StiTestProcessesController {
     }
 
     @Put(':id')
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Update STI test process information' })
     @ApiParam({ name: 'id', description: 'STI test process ID' })
     @ApiResponse({

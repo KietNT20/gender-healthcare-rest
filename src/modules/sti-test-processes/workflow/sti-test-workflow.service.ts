@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
-import { StiTestProcessStatus } from '../entities/sti-test-process.entity';
+import { StiTestProcessStatus } from '../enums';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
 export interface WorkflowStep {
@@ -215,7 +215,9 @@ export class StiTestWorkflowService {
         return currentStep.nextSteps
             .map((status) => this.workflow.get(status))
             .filter((step): step is WorkflowStep => step !== undefined);
-    } /**
+    }
+
+    /**
      * Chuyển đổi trạng thái với kiểm tra workflow
      */
     async transitionStatus(
@@ -246,7 +248,9 @@ export class StiTestWorkflowService {
             processId,
             newStatus,
         );
-    } /**
+    }
+
+    /**
      * Validation cho việc chuyển đổi trạng thái
      */
     private async validateTransition(
@@ -300,7 +304,9 @@ export class StiTestWorkflowService {
                 // Không cần validation đặc biệt
                 break;
         }
-    } /**
+    }
+
+    /**
      * Validate cho SAMPLE_COLLECTION_SCHEDULED
      */
     private validateSampleCollectionScheduled(
@@ -311,7 +317,9 @@ export class StiTestWorkflowService {
             ['appointmentId'],
             'Lên lịch lấy mẫu',
         );
-    } /**
+    }
+
+    /**
      * Validate cho SAMPLE_COLLECTED
      */
     private validateSampleCollected(validationData?: ValidationDataDto): void {
@@ -353,7 +361,9 @@ export class StiTestWorkflowService {
                 'Cần thông tin người validate kết quả',
             );
         }
-    } /**
+    }
+
+    /**
      * Validate cho RESULT_DELIVERED
      */
     private validateResultDelivered(validationData?: ValidationDataDto): void {
@@ -442,19 +452,6 @@ export class StiTestWorkflowService {
             if (!emailRegex.test(validationData.deliveredBy)) {
                 throw new BadRequestException(
                     'Email người giao kết quả không đúng định dạng',
-                );
-            }
-        }
-
-        // Validate phone format if delivery method is phone
-        if (
-            validationData?.deliveryMethod === 'phone' &&
-            validationData?.deliveredBy
-        ) {
-            const phoneRegex = /^[0-9+\-\s()]{10,}$/;
-            if (!phoneRegex.test(validationData.deliveredBy)) {
-                throw new BadRequestException(
-                    'Số điện thoại không đúng định dạng',
                 );
             }
         }

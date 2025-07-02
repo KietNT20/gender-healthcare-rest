@@ -10,14 +10,17 @@ import {
     Put,
     Query,
     UseGuards,
-    UseInterceptors,
 } from '@nestjs/common';
-import { NoFilesInterceptor } from '@nestjs/platform-express';
 import {
+    ApiBadRequestResponse,
     ApiBearerAuth,
-    ApiConsumes,
+    ApiCreatedResponse,
+    ApiForbiddenResponse,
+    ApiOkResponse,
     ApiOperation,
     ApiResponse,
+    ApiTags,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -32,6 +35,7 @@ import { CreateConsultantAvailabilityDto } from './dto/create-consultant-availab
 import { QueryConsultantAvailabilityDto } from './dto/query-consultant-availability.dto';
 import { UpdateConsultantAvailabilityDto } from './dto/update-consultant-availability.dto';
 
+@ApiTags('Consultant Availability')
 @Controller('consultant-availability')
 export class ConsultantAvailabilityController {
     constructor(
@@ -43,24 +47,18 @@ export class ConsultantAvailabilityController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Consultant create availability' })
-    @ApiResponse({
-        status: HttpStatus.CREATED,
+    @ApiCreatedResponse({
         description: 'Create availability successfully.',
     })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
+    @ApiBadRequestResponse({
         description: 'Bad Request: Invalid request body or validation failed',
     })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
+    @ApiUnauthorizedResponse({
         description:
             'Unauthorized: Only authenticated users can create availability',
     })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
+    @ApiForbiddenResponse({
         description: 'Forbidden: Just consultant can create availability',
     })
     create(
@@ -72,8 +70,7 @@ export class ConsultantAvailabilityController {
 
     @Get()
     @ApiOperation({ summary: 'Consultant get all availability' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Get all availability successfully.',
     })
     findAll(@Query() queryDto: QueryConsultantAvailabilityDto) {
@@ -89,8 +86,7 @@ export class ConsultantAvailabilityController {
         RolesNameEnum.CONSULTANT,
     ])
     @ApiOperation({ summary: 'Consultant get all availability' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Get all availability successfully.',
     })
     findAllByConsultant(
@@ -112,8 +108,7 @@ export class ConsultantAvailabilityController {
         RolesNameEnum.CONSULTANT,
     ])
     @ApiOperation({ summary: 'Consultant get availability by id' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Get availability successfully.',
     })
     findOne(
@@ -127,11 +122,8 @@ export class ConsultantAvailabilityController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
-    @UseInterceptors(NoFilesInterceptor())
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Consultant update availability' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Update availability successfully.',
     })
     update(
@@ -147,8 +139,7 @@ export class ConsultantAvailabilityController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
     @ApiOperation({ summary: 'Consultant delete availability' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Delete availability successfully.',
     })
     @ResponseMessage('Availability deleted successfully.')

@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsBoolean,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
@@ -9,10 +9,7 @@ import {
     IsUUID,
     Length,
 } from 'class-validator';
-import {
-    ProcessPriority,
-    StiSampleType,
-} from '../entities/sti-test-process.entity';
+import { ProcessPriority, StiSampleType } from '../enums';
 
 export class CreateStiTestProcessDto {
     @ApiProperty({
@@ -56,8 +53,8 @@ export class CreateStiTestProcessDto {
         description: 'Thời gian dự kiến có kết quả',
     })
     @IsOptional()
-    @IsDateString()
-    estimatedResultDate?: string;
+    @IsDate()
+    estimatedResultDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Địa điểm lấy mẫu',

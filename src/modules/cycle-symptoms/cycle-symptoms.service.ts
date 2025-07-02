@@ -41,8 +41,8 @@ export class CycleSymptomsService {
             sortOrder,
         } = cycleSymptomQueryDto;
 
-        let pageNumber = page || 1;
-        let limitNumber = limit || 10;
+        const pageNumber = page || 1;
+        const limitNumber = limit || 10;
 
         const queryBuilder = this.cycleSymptomRepository
             .createQueryBuilder('cycleSymptom')
@@ -110,7 +110,10 @@ export class CycleSymptomsService {
     async findOne(id: string): Promise<CycleSymptom> {
         const cycleSymptom = await this.cycleSymptomRepository.findOne({
             where: { id },
-            relations: ['symptom', 'cycle'],
+            relations: {
+                symptom: true,
+                cycle: true,
+            },
         });
 
         if (!cycleSymptom) {

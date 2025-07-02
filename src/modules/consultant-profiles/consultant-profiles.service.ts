@@ -190,7 +190,9 @@ export class ConsultantProfilesService {
     async findPendingProfiles(): Promise<ConsultantProfile[]> {
         return this.profileRepository.find({
             where: { profileStatus: ProfileStatusType.PENDING_APPROVAL },
-            relations: ['user'],
+            relations: {
+                user: true,
+            },
         });
     }
 
@@ -200,7 +202,9 @@ export class ConsultantProfilesService {
     ): Promise<ConsultantProfile> {
         const profile = await this.profileRepository.findOne({
             where: { id },
-            relations: ['user'],
+            relations: {
+                user: true,
+            },
         });
         if (
             !profile ||
@@ -236,7 +240,9 @@ export class ConsultantProfilesService {
     ): Promise<ConsultantProfile> {
         const profile = await this.profileRepository.findOne({
             where: { id },
-            relations: ['user'],
+            relations: {
+                user: true,
+            },
         });
         if (
             !profile ||

@@ -1,14 +1,12 @@
-// src/modules/feedbacks/dto/create-feedback.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    IsUUID,
-    IsOptional,
-    IsInt,
-    Min,
-    Max,
-    IsString,
     IsBoolean,
-    IsArray,
+    IsInt,
+    IsOptional,
+    IsString,
+    IsUUID,
+    Max,
+    Min,
 } from 'class-validator';
 
 export class CreateFeedbackDto {

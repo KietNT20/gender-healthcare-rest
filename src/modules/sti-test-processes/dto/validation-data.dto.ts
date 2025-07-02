@@ -1,5 +1,4 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
     IsBoolean,
     IsDate,
@@ -8,25 +7,7 @@ import {
     IsString,
     IsUUID,
 } from 'class-validator';
-
-export enum DeliveryMethod {
-    IN_PERSON = 'in_person',
-    EMAIL = 'email',
-    PORTAL = 'portal',
-    PHONE = 'phone',
-}
-
-export enum UrgencyLevel {
-    NORMAL = 'normal',
-    HIGH = 'high',
-    URGENT = 'urgent',
-}
-
-export enum FollowUpType {
-    TREATMENT = 'treatment',
-    MONITORING = 'monitoring',
-    RETEST = 'retest',
-}
+import { DeliveryMethod, FollowUpType, UrgencyLevel } from '../enums';
 
 export class ValidationDataDto {
     // Cho SAMPLE_COLLECTION_SCHEDULED
@@ -43,7 +24,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian lấy mẫu' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     sampleCollectionDate?: Date;
 
@@ -65,7 +45,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian bắt đầu xử lý' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     processingStartDate?: Date;
 
@@ -82,7 +61,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian validate kết quả' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     resultValidationDate?: Date;
 
@@ -107,7 +85,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian giao kết quả' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     deliveryDate?: Date;
 
@@ -146,7 +123,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian theo dõi' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     followUpDate?: Date;
 
@@ -163,7 +139,6 @@ export class ValidationDataDto {
 
     @ApiPropertyOptional({ description: 'Thời gian hủy' })
     @IsOptional()
-    @Type(() => Date)
     @IsDate()
     cancellationDate?: Date;
 

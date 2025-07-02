@@ -1,6 +1,6 @@
-# Chat Flow Documentation
+# Chat Flow Documentation - Frontend Testing Guide
 
-Tài liệu này mô tả flow hoạt động của hệ thống chat trong ứng dụng Gender Healthcare REST API, bao gồm ChatController (REST API) và ChatGateway (WebSocket).
+Tài liệu này mô tả flow hoạt động của hệ thống chat trong ứng dụng Gender Healthcare REST API, bao gồm ChatController (REST API) và ChatGateway (WebSocket), với các ví dụ cụ thể để frontend test.
 
 ## Tổng quan kiến trúc
 
@@ -15,128 +15,338 @@ ChatGateway (WebSocket) ←→ Redis ←→ Handlers
 ### 1.1 Tạo câu hỏi mới
 
 ```
-POST /chat/questions
+POST /api/chat/questions
 ```
 
-**Flow:**
+**Headers:**
 
-1. Client gửi request với `CreateQuestionDto`
-2. Kiểm tra auth (JWT) và role (CUSTOMER)
-3. `ChatService.createQuestion()` tạo question mới
-4. Lưu vào database
-5. Trả về thông tin question
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
 
-**Quyền truy cập:** Chỉ CUSTOMER
+**Request Body (`CreateQuestionDto`):**
+
+```json
+{
+    "title": "Câu hỏi về sức khỏe sinh sản",
+    "content": "Tôi muốn tư vấn về...",
+    "isAnonymous": false
+}
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "id": "uuid-question-id",
+        "title": "Câu hỏi về sức khỏe sinh sản",
+        "content": "Tôi muốn tư vấn về...",
+        "isAnonymous": false,
+        "customerId": "uuid-customer-id",
+        "createdAt": "2025-06-30T10:00:00.000Z"
+    },
+    "message": "Question created successfully"
+}
+```
+
+**Quyền truy cập:** Chỉ CUSTOMER role
 
 ---
 
 ### 1.2 Gửi tin nhắn text
 
 ```
-POST /chat/questions/:questionId/messages
+POST /api/chat/questions/:questionId/messages
 ```
 
-**Flow:**
+**Headers:**
 
-1. Client gửi `CreateChatDto` với content
-2. Kiểm tra auth và quyền truy cập question
-3. `ChatService.createMessage()` tạo message
-4. Lưu message vào database
-5. Trả về thông tin message đã tạo
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Request Body (`CreateChatDto`):**
+
+```json
+{
+    "content": "Xin chào, tôi cần hỗ trợ",
+    "type": "TEXT",
+    "questionId": "uuid-question-id"
+}
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "id": "uuid-message-id",
+        "content": "Xin chào, tôi cần hỗ trợ",
+        "type": "TEXT",
+        "questionId": "uuid-question-id",
+        "senderId": "uuid-user-id",
+        "createdAt": "2025-06-30T10:05:00.000Z",
+        "isRead": false
+    },
+    "message": "Message sent successfully"
+}
+```
 
 ---
 
 ### 1.3 Gửi tin nhắn có file
 
 ```
-POST /chat/questions/:questionId/messages/file
+POST /api/chat/questions/:questionId/messages/file
 ```
 
-**Flow:**
+**Headers:**
 
-1. Client upload file với `multipart/form-data`
-2. Kiểm tra auth và quyền truy cập
-3. `ChatService.sendMessageWithFile()`:
-    - Upload file lên storage
-    - Tạo message với file URL
-    - Lưu vào database
-4. Trả về thông tin message với file
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+
+```
+file: <File> (image/document)
+content: "Đây là file báo cáo của tôi" (optional)
+type: "IMAGE" hoặc "FILE" (optional - auto-detect)
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "id": "uuid-message-id",
+        "content": "image.jpg",
+        "type": "IMAGE",
+        "questionId": "uuid-question-id",
+        "senderId": "uuid-user-id",
+        "fileUrl": "https://storage.example.com/files/...",
+        "createdAt": "2025-06-30T10:05:00.000Z"
+    },
+    "message": "File message sent successfully"
+}
+```
 
 ---
 
-### 1.4 Lấy lịch sử tin nhắn
+### 1.4 Gửi PDF công khai
 
 ```
-GET /chat/questions/:questionId/messages
+POST /api/chat/questions/:questionId/messages/public-pdf
 ```
 
-**Flow:**
+**Headers:**
 
-1. Client gửi request với pagination params
-2. Kiểm tra auth và quyền truy cập question
-3. `ChatService.verifyQuestionAccess()` xác thực quyền
-4. `ChatService.getMessageHistory()` lấy messages
-5. Trả về danh sách messages với pagination
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+
+```
+file: <PDF_File>
+content: "Báo cáo xét nghiệm" (optional)
+description: "Kết quả xét nghiệm máu ngày 30/06/2025"
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "id": "uuid-message-id",
+        "content": "report.pdf",
+        "type": "IMAGE",
+        "questionId": "uuid-question-id",
+        "fileUrl": "https://public-bucket.example.com/pdfs/...",
+        "description": "Kết quả xét nghiệm máu ngày 30/06/2025"
+    },
+    "message": "Public PDF message sent successfully"
+}
+```
 
 ---
 
-### 1.5 Đánh dấu đã đọc
+### 1.5 Lấy lịch sử tin nhắn
 
 ```
-PATCH /messages/:messageId/read
-PATCH /questions/:questionId/messages/read-all
+GET /api/chat/questions/:questionId/messages?page=1&limit=20
 ```
 
-**Flow đánh dấu 1 message:**
+**Headers:**
 
-1. `ChatService.markMessageAsRead()` cập nhật trạng thái
-2. Cập nhật database
+```
+Authorization: Bearer <JWT_TOKEN>
+```
 
-**Flow đánh dấu tất cả:**
+**Query Parameters:**
 
-1. `ChatService.markAllMessagesAsRead()` cập nhật hàng loạt
-2. Cập nhật database cho tất cả messages chưa đọc
+```
+page: 1 (default)
+limit: 20 (default, max 100)
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "messages": [
+            {
+                "id": "uuid-message-id",
+                "content": "Xin chào",
+                "type": "TEXT",
+                "senderId": "uuid-user-id",
+                "senderName": "Nguyễn Văn A",
+                "createdAt": "2025-06-30T10:00:00.000Z",
+                "isRead": true
+            }
+        ],
+        "pagination": {
+            "currentPage": 1,
+            "totalPages": 5,
+            "totalItems": 100,
+            "limit": 20
+        }
+    },
+    "message": "Messages retrieved successfully"
+}
+```
 
 ---
 
-### 1.6 Xóa tin nhắn
+### 1.6 Lấy tin nhắn có URL file
 
 ```
-DELETE /messages/:messageId
+GET /api/chat/questions/:questionId/messages/with-urls?page=1&limit=20
 ```
 
-**Flow:**
-
-1. Kiểm tra quyền xóa message
-2. `ChatService.deleteMessage()` soft delete
-3. Cập nhật trạng thái deleted trong database
+**Response:** Tương tự như trên nhưng bao gồm `fileUrl` đầy đủ cho các message có file.
 
 ---
 
-### 1.7 Các endpoint khác
+### 1.7 Đánh dấu đã đọc
+
+**Đánh dấu 1 message:**
+
+```
+PATCH /api/chat/messages/:messageId/read
+```
+
+**Đánh dấu tất cả message trong question:**
+
+```
+PATCH /api/chat/questions/:questionId/messages/read-all
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "message": "Message(s) marked as read"
+}
+```
+
+---
+
+### 1.8 Xóa tin nhắn
+
+```
+DELETE /api/chat/messages/:messageId
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "message": "Message deleted successfully"
+}
+```
+
+---
+
+### 1.9 Các endpoint khác
 
 **Lấy tóm tắt question:**
 
 ```
-GET /chat/questions/:questionId/summary
+GET /api/chat/questions/:questionId/summary
 ```
 
 **Đếm tin nhắn chưa đọc:**
 
 ```
-GET /chat/messages/unread-count
+GET /api/chat/messages/unread-count
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "unreadCount": 15
+    }
+}
 ```
 
 **Download file:**
 
 ```
-GET /chat/messages/:messageId/file
+GET /api/chat/messages/:messageId/file
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "fileUrl": "https://presigned-url.example.com/..."
+    }
+}
 ```
 
 **Lấy danh sách questions:**
 
 ```
-GET /chat/questions
+GET /api/chat/questions
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": "uuid-question-id",
+            "title": "Câu hỏi về sức khỏe",
+            "lastMessage": {
+                "content": "Tin nhắn cuối cùng",
+                "createdAt": "2025-06-30T10:00:00.000Z"
+            },
+            "unreadCount": 3
+        }
+    ],
+    "message": "Questions retrieved successfully"
+}
 ```
 
 ## 2. WebSocket Flow (ChatGateway)
@@ -144,22 +354,42 @@ GET /chat/questions
 ### 2.1 Kết nối WebSocket
 
 **Namespace:** `/chat`
+**URL:** `ws://localhost:3000/chat` hoặc `wss://domain.com/chat`
 
-**Flow kết nối:**
+**Frontend Setup (Socket.IO Client):**
 
-1. Client kết nối với JWT token
-2. `WsJwtGuard` xác thực token
-3. `ConnectionHandler.handleConnection()`:
-    - Lưu thông tin user vào Redis
-    - Cập nhật presence status
-    - Emit event `connected`
+```javascript
+import { io } from 'socket.io-client';
 
-**Flow ngắt kết nối:**
+const socket = io('/chat', {
+    auth: {
+        token: 'Bearer <JWT_TOKEN>',
+    },
+    transports: ['websocket', 'polling'],
+});
 
-1. `ConnectionHandler.handleDisconnect()`:
-    - Cleanup Redis data
-    - Remove user từ các rooms
-    - Cập nhật presence status
+// Lắng nghe kết nối thành công
+socket.on('connect', () => {
+    console.log('Connected to chat server');
+});
+
+// Lắng nghe event connected từ server
+socket.on('connected', (data) => {
+    console.log('Server confirmed connection:', data);
+});
+```
+
+**Server Response Event:**
+
+```json
+{
+    "event": "connected",
+    "data": {
+        "userId": "uuid-user-id",
+        "timestamp": "2025-06-30T10:00:00.000Z"
+    }
+}
+```
 
 ---
 
@@ -167,27 +397,54 @@ GET /chat/questions
 
 **Event:** `join_question`
 
-**Flow:**
+**Frontend Code:**
 
-1. Client emit với `questionId`
-2. `WsRoomAccessGuard` kiểm tra quyền truy cập
-3. `RedisWsThrottleGuard` kiểm tra rate limiting
-4. `RoomHandler.handleJoinQuestion()`:
-    - Join Socket.io room
-    - Lưu vào Redis
-    - Thông báo cho các users khác
-    - Emit `user_joined` đến room
+```javascript
+// Gửi request join room
+socket.emit(
+    'join_question',
+    {
+        questionId: 'uuid-question-id',
+    },
+    (acknowledgement) => {
+        console.log('Join room response:', acknowledgement);
+    },
+);
 
-**Response:**
+// Lắng nghe user khác join
+socket.on('user_joined', (data) => {
+    console.log('User joined:', data);
+});
+
+// Lắng nghe confirmation
+socket.on('joined_question', (data) => {
+    console.log('Successfully joined question:', data);
+});
+```
+
+**Request Data:**
+
+```json
+{
+    "questionId": "uuid-question-id"
+}
+```
+
+**Acknowledgement Response:**
 
 ```json
 {
     "status": "success",
     "message": "Successfully joined question",
-    "questionId": "uuid",
-    "timestamp": "2025-06-24T..."
+    "questionId": "uuid-question-id",
+    "timestamp": "2025-06-30T10:00:00.000Z"
 }
 ```
+
+**Server Events:**
+
+- `user_joined`: Khi có user khác join room
+- `joined_question`: Confirm join thành công
 
 ---
 
@@ -195,13 +452,24 @@ GET /chat/questions
 
 **Event:** `leave_question`
 
-**Flow:**
+**Frontend Code:**
 
-1. Client emit với `questionId`
-2. `RoomHandler.handleLeaveQuestion()`:
-    - Leave Socket.io room
-    - Remove từ Redis
-    - Emit `user_left` đến room
+```javascript
+socket.emit(
+    'leave_question',
+    {
+        questionId: 'uuid-question-id',
+    },
+    (acknowledgement) => {
+        console.log('Leave room response:', acknowledgement);
+    },
+);
+
+// Lắng nghe user khác rời room
+socket.on('user_left', (data) => {
+    console.log('User left:', data);
+});
+```
 
 ---
 
@@ -209,23 +477,54 @@ GET /chat/questions
 
 **Event:** `send_message`
 
-**Flow:**
+**Frontend Code:**
 
-1. Client emit với message data
-2. Guards kiểm tra quyền và rate limiting
-3. `MessageHandler.handleSendMessage()`:
-    - Validate data
-    - Lưu message vào database
-    - Emit `new_message` đến tất cả users trong room
-    - Cập nhật unread count
+```javascript
+const messageData = {
+    questionId: 'uuid-question-id',
+    content: 'Hello from WebSocket!',
+    type: 'TEXT',
+};
 
-**Message format:**
+socket.emit('send_message', messageData, (acknowledgement) => {
+    if (acknowledgement.status === 'success') {
+        console.log('Message sent successfully');
+    } else {
+        console.error('Failed to send message:', acknowledgement.message);
+    }
+});
+
+// Lắng nghe tin nhắn mới
+socket.on('new_message', (message) => {
+    console.log('New message received:', message);
+    // Cập nhật UI với tin nhắn mới
+});
+```
+
+**Message Data Format:**
 
 ```json
 {
-    "questionId": "uuid",
-    "content": "Hello world",
+    "questionId": "uuid-question-id",
+    "content": "Hello from WebSocket!",
     "type": "TEXT"
+}
+```
+
+**New Message Event:**
+
+```json
+{
+    "event": "new_message",
+    "data": {
+        "id": "uuid-message-id",
+        "content": "Hello from WebSocket!",
+        "type": "TEXT",
+        "senderId": "uuid-user-id",
+        "senderName": "Nguyễn Văn A",
+        "questionId": "uuid-question-id",
+        "createdAt": "2025-06-30T10:00:00.000Z"
+    }
 }
 ```
 
@@ -235,19 +534,47 @@ GET /chat/questions
 
 **Event:** `typing`
 
-**Flow:**
+**Frontend Code:**
 
-1. Client emit trạng thái typing
-2. `TypingHandler.handleTyping()`:
-    - Lưu trạng thái vào Redis với TTL
-    - Emit `typing_status` đến users khác trong room
-    - Auto cleanup sau TTL
+```javascript
+// Bắt đầu typing
+socket.emit('typing', {
+    questionId: 'uuid-question-id',
+    isTyping: true,
+});
 
-**Data format:**
+// Dừng typing
+socket.emit('typing', {
+    questionId: 'uuid-question-id',
+    isTyping: false,
+});
+
+// Lắng nghe typing status của users khác
+socket.on('typing_status', (data) => {
+    console.log('Typing status:', data);
+    // data: { userId: 'uuid', userName: 'Name', isTyping: true, questionId: 'uuid' }
+});
+
+// Auto cleanup typing sau 3 giây
+let typingTimeout;
+function handleTyping() {
+    socket.emit('typing', { questionId: 'uuid-question-id', isTyping: true });
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        socket.emit('typing', {
+            questionId: 'uuid-question-id',
+            isTyping: false,
+        });
+    }, 3000);
+}
+```
+
+**Data Format:**
 
 ```json
 {
-    "questionId": "uuid",
+    "questionId": "uuid-question-id",
     "isTyping": true
 }
 ```
@@ -258,33 +585,548 @@ GET /chat/questions
 
 **Event:** `mark_as_read`
 
-**Flow:**
+**Frontend Code:**
 
-1. Client emit với `messageId` và `questionId`
-2. `MessageHandler.handleMarkAsRead()`:
-    - Cập nhật database
-    - Emit `message_read` đến sender
-    - Cập nhật unread count
+```javascript
+socket.emit(
+    'mark_as_read',
+    {
+        questionId: 'uuid-question-id',
+        messageId: 'uuid-message-id',
+    },
+    (acknowledgement) => {
+        console.log('Mark as read response:', acknowledgement);
+    },
+);
+
+// Lắng nghe message được đọc
+socket.on('message_read', (data) => {
+    console.log('Message read:', data);
+    // Cập nhật UI để hiển thị message đã được đọc
+});
+```
+
+**Data Format:**
+
+```json
+{
+    "questionId": "uuid-question-id",
+    "messageId": "uuid-message-id"
+}
+```
 
 ---
 
-### 2.7 Server-to-client events
+### 2.7 Lắng nghe tất cả server events
 
-**Các events mà server emit:**
+**Frontend Complete Setup:**
 
-1. **`connected`** - Khi client kết nối thành công
-2. **`joined_question`** - Khi join room thành công
-3. **`user_joined`** - Khi có user mới join room
-4. **`user_left`** - Khi có user rời room
-5. **`new_message`** - Khi có tin nhắn mới
-6. **`message_read`** - Khi tin nhắn được đọc
-7. **`typing_status`** - Trạng thái typing của users
-8. **`question_updated`** - Khi question được cập nhật
-9. **`consultant_assigned`** - Khi được assign consultant
+```javascript
+import { io } from 'socket.io-client';
 
-## 3. Redis Integration
+class ChatClient {
+    constructor(token) {
+        this.socket = io('/chat', {
+            auth: { token: `Bearer ${token}` },
+        });
 
-### 3.1 Redis Keys Pattern
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Connection events
+        this.socket.on('connect', () => console.log('Connected'));
+        this.socket.on('connected', (data) =>
+            console.log('Server confirmed:', data),
+        );
+        this.socket.on('disconnect', () => console.log('Disconnected'));
+
+        // Room events
+        this.socket.on('joined_question', (data) =>
+            console.log('Joined:', data),
+        );
+        this.socket.on('user_joined', (data) =>
+            console.log('User joined:', data),
+        );
+        this.socket.on('user_left', (data) => console.log('User left:', data));
+
+        // Message events
+        this.socket.on('new_message', (message) =>
+            this.handleNewMessage(message),
+        );
+        this.socket.on('message_read', (data) => this.handleMessageRead(data));
+
+        // Typing events
+        this.socket.on('typing_status', (data) =>
+            this.handleTypingStatus(data),
+        );
+
+        // Question events
+        this.socket.on('question_updated', (data) =>
+            console.log('Question updated:', data),
+        );
+        this.socket.on('consultant_assigned', (data) =>
+            console.log('Consultant assigned:', data),
+        );
+    }
+
+    // Methods
+    joinQuestion(questionId) {
+        return new Promise((resolve, reject) => {
+            this.socket.emit('join_question', { questionId }, (ack) => {
+                if (ack.status === 'success') resolve(ack);
+                else reject(ack);
+            });
+        });
+    }
+
+    sendMessage(questionId, content, type = 'TEXT') {
+        return new Promise((resolve, reject) => {
+            this.socket.emit(
+                'send_message',
+                { questionId, content, type },
+                (ack) => {
+                    if (ack.status === 'success') resolve(ack);
+                    else reject(ack);
+                },
+            );
+        });
+    }
+
+    setTyping(questionId, isTyping) {
+        this.socket.emit('typing', { questionId, isTyping });
+    }
+
+    markAsRead(questionId, messageId) {
+        this.socket.emit('mark_as_read', { questionId, messageId });
+    }
+}
+
+// Usage
+const chatClient = new ChatClient('your-jwt-token');
+```
+
+## 3. Frontend Testing Examples
+
+### 3.1 Testing REST API với Postman/Thunder Client
+
+**1. Tạo question mới:**
+
+```bash
+POST http://localhost:3000/api/chat/questions
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "title": "Test Question",
+  "content": "This is a test question for frontend integration",
+  "isAnonymous": false
+}
+```
+
+**2. Gửi tin nhắn text:**
+
+```bash
+POST http://localhost:3000/api/chat/questions/{{questionId}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Hello, this is a test message",
+  "type": "TEXT",
+  "questionId": "{{questionId}}"
+}
+```
+
+**3. Upload file:**
+
+```bash
+POST http://localhost:3000/api/chat/questions/{{questionId}}/messages/file
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+# Form data:
+file: [select file]
+content: "This is my test file"
+type: "IMAGE"
+```
+
+---
+
+### 3.2 Testing WebSocket với JavaScript
+
+**HTML Test Page:**
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat WebSocket Test</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    </head>
+    <body>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+        <button onclick="joinRoom()">Join Room</button>
+        <button onclick="leaveRoom()">Leave Room</button>
+
+        <script>
+            const token = 'your-jwt-token-here';
+            const questionId = 'your-question-id-here';
+
+            const socket = io('/chat', {
+                auth: { token: `Bearer ${token}` },
+            });
+
+            // Event listeners
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                addMessage('Connected to server');
+            });
+
+            socket.on('connected', (data) => {
+                console.log('Server confirmed connection:', data);
+                addMessage(`Server confirmed: ${JSON.stringify(data)}`);
+            });
+
+            socket.on('new_message', (message) => {
+                console.log('New message:', message);
+                addMessage(`New message: ${message.data.content}`);
+            });
+
+            socket.on('user_joined', (data) => {
+                addMessage(`User joined: ${JSON.stringify(data)}`);
+            });
+
+            socket.on('typing_status', (data) => {
+                addMessage(`Typing: ${JSON.stringify(data)}`);
+            });
+
+            // Functions
+            function joinRoom() {
+                socket.emit('join_question', { questionId }, (ack) => {
+                    console.log('Join response:', ack);
+                    addMessage(`Join response: ${JSON.stringify(ack)}`);
+                });
+            }
+
+            function leaveRoom() {
+                socket.emit('leave_question', { questionId }, (ack) => {
+                    console.log('Leave response:', ack);
+                    addMessage(`Leave response: ${JSON.stringify(ack)}`);
+                });
+            }
+
+            function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const content = input.value.trim();
+
+                if (!content) return;
+
+                socket.emit(
+                    'send_message',
+                    {
+                        questionId,
+                        content,
+                        type: 'TEXT',
+                    },
+                    (ack) => {
+                        console.log('Send message response:', ack);
+                        addMessage(`Send response: ${JSON.stringify(ack)}`);
+                    },
+                );
+
+                input.value = '';
+            }
+
+            function addMessage(message) {
+                const div = document.createElement('div');
+                div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+                document.getElementById('messages').appendChild(div);
+            }
+
+            // Auto typing simulation
+            document
+                .getElementById('messageInput')
+                .addEventListener('input', () => {
+                    socket.emit('typing', { questionId, isTyping: true });
+
+                    clearTimeout(window.typingTimeout);
+                    window.typingTimeout = setTimeout(() => {
+                        socket.emit('typing', { questionId, isTyping: false });
+                    }, 1000);
+                });
+        </script>
+    </body>
+</html>
+```
+
+---
+
+### 3.3 Testing với React/Next.js
+
+**Install dependencies:**
+
+```bash
+npm install socket.io-client
+npm install axios  # for REST API calls
+```
+
+**Chat Component Example:**
+
+```javascript
+import { useEffect, useState, useRef } from 'react';
+import { io } from 'socket.io-client';
+import axios from 'axios';
+
+const ChatComponent = ({ token, questionId }) => {
+    const [socket, setSocket] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [typingUsers, setTypingUsers] = useState([]);
+    const typingTimeoutRef = useRef(null);
+
+    // Initialize socket connection
+    useEffect(() => {
+        const newSocket = io('/chat', {
+            auth: { token: `Bearer ${token}` },
+        });
+
+        newSocket.on('connect', () => {
+            console.log('Connected to chat server');
+            // Auto join question room
+            newSocket.emit('join_question', { questionId });
+        });
+
+        newSocket.on('new_message', (data) => {
+            setMessages((prev) => [...prev, data.data]);
+        });
+
+        newSocket.on('typing_status', (data) => {
+            if (data.isTyping) {
+                setTypingUsers((prev) => [
+                    ...prev.filter((u) => u !== data.userName),
+                    data.userName,
+                ]);
+            } else {
+                setTypingUsers((prev) =>
+                    prev.filter((u) => u !== data.userName),
+                );
+            }
+        });
+
+        setSocket(newSocket);
+
+        return () => newSocket.close();
+    }, [token, questionId]);
+
+    // Load message history
+    useEffect(() => {
+        const loadMessages = async () => {
+            try {
+                const response = await axios.get(
+                    `/api/chat/questions/${questionId}/messages`,
+                    { headers: { Authorization: `Bearer ${token}` } },
+                );
+                setMessages(response.data.data.messages);
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+            }
+        };
+
+        loadMessages();
+    }, [questionId, token]);
+
+    const sendMessage = () => {
+        if (!newMessage.trim() || !socket) return;
+
+        socket.emit(
+            'send_message',
+            {
+                questionId,
+                content: newMessage,
+                type: 'TEXT',
+            },
+            (ack) => {
+                if (ack.status === 'success') {
+                    setNewMessage('');
+                } else {
+                    console.error('Failed to send message:', ack.message);
+                }
+            },
+        );
+    };
+
+    const handleTyping = () => {
+        if (!socket) return;
+
+        if (!isTyping) {
+            setIsTyping(true);
+            socket.emit('typing', { questionId, isTyping: true });
+        }
+
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            setIsTyping(false);
+            socket.emit('typing', { questionId, isTyping: false });
+        }, 1000);
+    };
+
+    const handleFileUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('content', file.name);
+
+        try {
+            const response = await axios.post(
+                `/api/chat/questions/${questionId}/messages/file`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
+            );
+
+            console.log('File uploaded:', response.data);
+        } catch (error) {
+            console.error('Failed to upload file:', error);
+        }
+    };
+
+    return (
+        <div className="chat-container">
+            <div className="messages">
+                {messages.map((message) => (
+                    <div key={message.id} className="message">
+                        <strong>{message.senderName}:</strong> {message.content}
+                        <span className="timestamp">
+                            {new Date(message.createdAt).toLocaleTimeString()}
+                        </span>
+                    </div>
+                ))}
+
+                {typingUsers.length > 0 && (
+                    <div className="typing-indicator">
+                        {typingUsers.join(', ')} đang nhập...
+                    </div>
+                )}
+            </div>
+
+            <div className="input-area">
+                <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onInput={handleTyping}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Nhập tin nhắn..."
+                />
+                <button onClick={sendMessage}>Gửi</button>
+
+                <input
+                    type="file"
+                    onChange={(e) => handleFileUpload(e.target.files[0])}
+                    accept="image/*,.pdf,.doc,.docx"
+                />
+            </div>
+        </div>
+    );
+};
+
+export default ChatComponent;
+```
+
+---
+
+### 3.4 Testing Error Scenarios
+
+**1. Test authentication errors:**
+
+```javascript
+// Kết nối không có token
+const socket = io('/chat'); // Should fail
+
+// Token không hợp lệ
+const socket = io('/chat', {
+    auth: { token: 'Bearer invalid-token' },
+}); // Should fail with authentication error
+```
+
+**2. Test access control:**
+
+```javascript
+// Join question không có quyền
+socket.emit(
+    'join_question',
+    {
+        questionId: 'question-user-not-allowed',
+    },
+    (ack) => {
+        // Should return error status
+        console.log(ack); // { status: 'error', message: '...' }
+    },
+);
+```
+
+**3. Test rate limiting:**
+
+```javascript
+// Gửi nhiều message liên tiếp
+for (let i = 0; i < 10; i++) {
+    socket.emit('send_message', {
+        questionId: 'test-question',
+        content: `Message ${i}`,
+        type: 'TEXT',
+    });
+}
+// Should be throttled after some requests
+```
+
+---
+
+### 3.5 Environment Configuration
+
+**Development:**
+
+```javascript
+const API_BASE_URL = 'http://localhost:3000/api';
+const SOCKET_URL = 'http://localhost:3000';
+```
+
+**Production:**
+
+```javascript
+const API_BASE_URL = 'https://api.yourdomain.com/api';
+const SOCKET_URL = 'https://api.yourdomain.com';
+```
+
+**axios setup:**
+
+```javascript
+import axios from 'axios';
+
+const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+    timeout: 10000,
+});
+
+// Request interceptor để tự động thêm token
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+```
+
+## 4. Redis Integration & Technical Details
+
+### 4.1 Redis Keys Pattern
 
 ```
 chat:user:presence:{userId}     - User online status
@@ -293,112 +1135,477 @@ chat:question:typing:{questionId} - Users đang typing
 chat:user:rooms:{userId}        - Rooms mà user đã join
 ```
 
-### 3.2 TTL Values
+### 4.2 TTL Values
 
-- User presence: 5 minutes
-- Question users: 1 hour
+- User presence: 5 minutes (300 seconds)
+- Question users: 1 hour (3600 seconds)
 - Typing status: 10 seconds
 - Individual typing: 5 seconds
 
-## 4. Guards và Middleware
+### 4.3 Guards và Middleware
 
-### 4.1 WsJwtGuard
+#### 4.3.1 WsJwtGuard
 
 - Xác thực JWT token cho WebSocket
 - Extract user info từ token
+- Reject connection nếu token invalid
 
-### 4.2 WsRoomAccessGuard
+#### 4.3.2 WsRoomAccessGuard
 
 - Kiểm tra quyền truy cập vào question room
 - Verify user có thể join room hay không
+- Dựa trên role và ownership của question
 
-### 4.3 RedisWsThrottleGuard
+#### 4.3.3 RedisWsThrottleGuard
 
 - Rate limiting cho WebSocket events
 - Prevent spam và abuse
+- Limits: 10 messages/minute per user
 
-### 4.4 RoleGuard (REST API)
+#### 4.3.4 RoleGuard (REST API)
 
 - Kiểm tra role permissions
-- Restrict access theo roles
+- Restrict access theo roles (CUSTOMER, CONSULTANT, ADMIN)
 
-## 5. Error Handling
+---
+
+## 5. Error Handling & Status Codes
 
 ### 5.1 REST API Errors
 
-- HTTP status codes chuẩn
-- Error messages localized (tiếng Việt)
-- Structured error responses
+**HTTP Status Codes:**
+
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized (không có token hoặc token invalid)
+- `403` - Forbidden (không có quyền truy cập)
+- `404` - Not Found (resource không tồn tại)
+- `500` - Internal Server Error
+
+**Error Response Format:**
+
+```json
+{
+    "success": false,
+    "message": "Error message in Vietnamese",
+    "statusCode": 400,
+    "error": "Bad Request",
+    "details": {
+        "field": "validation error details"
+    }
+}
+```
 
 ### 5.2 WebSocket Errors
 
-- Error acknowledgements cho events
-- Graceful error handling
-- Log errors để debug
+**Error Acknowledgements:**
+
+```json
+{
+    "status": "error",
+    "message": "Truy cập bị từ chối vào câu hỏi này",
+    "questionId": "uuid-question-id",
+    "timestamp": "2025-06-30T10:00:00.000Z"
+}
+```
+
+**Common WebSocket Error Messages:**
+
+- `"Người dùng chưa đăng nhập"` - Authentication required
+- `"Truy cập bị từ chối vào câu hỏi này"` - Access denied to question
+- `"Dữ liệu yêu cầu không hợp lệ"` - Invalid request data
+- `"Đã xảy ra lỗi"` - Internal error
+
+---
 
 ## 6. Security Features
 
-### 6.1 Authentication
+### 6.1 Authentication & Authorization
 
-- JWT tokens cho cả REST và WebSocket
-- Token validation và refresh
+**JWT Token Requirements:**
 
-### 6.2 Authorization
+- Token phải được gửi trong header: `Authorization: Bearer <token>`
+- Token phải valid và chưa expired
+- User phải có role phù hợp với endpoint
 
-- Role-based access control
-- Question-level access control
-- File access permissions
+**WebSocket Authentication:**
+
+```javascript
+const socket = io('/chat', {
+    auth: {
+        token: 'Bearer your-jwt-token-here',
+    },
+});
+```
+
+### 6.2 File Upload Security
+
+**Allowed File Types:**
+
+- Images: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
+- Documents: `.pdf`, `.doc`, `.docx`, `.txt`
+- Max file size: 10MB (configurable)
+
+**File Validation:**
+
+- MIME type checking
+- File extension validation
+- Virus scanning (if configured)
+- File size limits
 
 ### 6.3 Rate Limiting
 
-- Redis-based throttling
-- Per-user rate limits
-- Different limits cho different events
+**REST API Limits:**
 
-## 7. Performance Optimizations
+- Global: 100 requests/minute per IP
+- Per user: 60 requests/minute
 
-### 7.1 Redis Caching
+**WebSocket Limits:**
 
-- Cache user presence
-- Cache room memberships
-- TTL-based cleanup
+- Message sending: 10 messages/minute per user
+- Join/Leave room: 5 actions/minute per user
+- Typing events: 30 events/minute per user
+
+---
+
+## 7. Performance & Monitoring
+
+### 7.1 Caching Strategy
+
+**Redis Caching:**
+
+- User presence information
+- Active room memberships
+- Typing status với TTL tự động cleanup
+- Message read status
 
 ### 7.2 Database Optimization
 
-- Pagination cho message history
-- Efficient queries với indexes
-- Soft deletes
+**Indexed Fields:**
 
-### 7.3 File Handling
+- `messages.questionId`
+- `messages.senderId`
+- `messages.createdAt`
+- `questions.customerId`
 
-- File upload optimization
-- Secure file storage
-- File access control
+**Pagination:**
 
-## 8. Monitoring và Logging
+- Default: 20 messages per page
+- Maximum: 100 messages per page
+- Cursor-based pagination cho performance tốt
 
-### 8.1 Logs
+### 7.3 Monitoring Endpoints
 
-- Connection/disconnection events
-- Error logs với stack traces
-- Performance metrics
+**Health Check:**
 
-### 8.2 Health Checks
+```
+GET /api/health
+```
 
-- Redis health monitoring
-- Database connection status
-- WebSocket server status
+**Chat Health Check:**
 
-## 9. Deployment Considerations
+```
+GET /api/chat/health
+```
 
-### 9.1 Scaling
+Response:
 
-- Horizontal scaling với Redis
-- Load balancer sticky sessions
-- Database connection pooling
+```json
+{
+    "status": "ok",
+    "database": "connected",
+    "redis": "connected",
+    "websocket": "active",
+    "timestamp": "2025-06-30T10:00:00.000Z"
+}
+```
 
-### 9.2 Environment Configuration
+---
 
-- Production vs Development configs
-- SSL/TLS cho production
-- Environment-specific Redis settings
+## 8. Deployment & Environment Setup
+
+### 8.1 Environment Variables
+
+**Required Environment Variables:**
+
+```bash
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/gender_healthcare
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your-redis-password
+
+# JWT
+JWT_SECRET=your-jwt-secret-key
+JWT_EXPIRES_IN=7d
+
+# File Storage
+AWS_S3_BUCKET_NAME=your-bucket-name
+AWS_S3_REGION=ap-southeast-1
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+
+# WebSocket
+WEBSOCKET_CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
+```
+
+### 8.2 Production Deployment
+
+**Docker Compose Example:**
+
+```yaml
+version: '3.8'
+services:
+    app:
+        build: .
+        ports:
+            - '3000:3000'
+        environment:
+            - NODE_ENV=production
+            - DATABASE_URL=${DATABASE_URL}
+            - REDIS_HOST=redis
+        depends_on:
+            - postgres
+            - redis
+
+    postgres:
+        image: postgres:15
+        environment:
+            POSTGRES_DB: gender_healthcare
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+    redis:
+        image: redis:7-alpine
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+        volumes:
+            - redis_data:/data
+
+volumes:
+    postgres_data:
+    redis_data:
+```
+
+### 8.3 Nginx Configuration
+
+```nginx
+upstream backend {
+    server localhost:3000;
+}
+
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    # WebSocket upgrade
+    location /socket.io/ {
+        proxy_pass http://backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # API routes
+    location /api/ {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+---
+
+## 9. Troubleshooting Guide
+
+### 9.1 Common Issues
+
+**1. WebSocket Connection Failed**
+
+```javascript
+// Check browser console for errors
+socket.on('connect_error', (error) => {
+    console.error('Connection error:', error);
+});
+
+// Possible causes:
+// - CORS not configured properly
+// - JWT token expired/invalid
+// - Server not running
+// - Network/firewall issues
+```
+
+**2. Messages Not Appearing**
+
+```javascript
+// Debug steps:
+// 1. Check if user joined the room
+socket.emit('join_question', { questionId }, (ack) => {
+    console.log('Join status:', ack.status);
+});
+
+// 2. Check message send acknowledgement
+socket.emit('send_message', messageData, (ack) => {
+    if (ack.status !== 'success') {
+        console.error('Send failed:', ack.message);
+    }
+});
+
+// 3. Verify event listeners
+socket.on('new_message', (data) => {
+    console.log('Received message:', data);
+});
+```
+
+**3. File Upload Issues**
+
+```javascript
+// Check file size and type
+const maxSize = 10 * 1024 * 1024; // 10MB
+if (file.size > maxSize) {
+    console.error('File too large');
+    return;
+}
+
+const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+if (!allowedTypes.includes(file.type)) {
+    console.error('File type not allowed');
+    return;
+}
+```
+
+### 9.2 Debug Tools
+
+**Enable Debug Logging:**
+
+```javascript
+// Client-side Socket.IO debug
+localStorage.debug = 'socket.io-client:*';
+
+// Or specific namespaces
+localStorage.debug = 'socket.io-client:socket';
+```
+
+**Server Logs:**
+
+```bash
+# View real-time logs
+docker logs -f <container-name>
+
+# Search for specific errors
+docker logs <container-name> 2>&1 | grep "ERROR"
+```
+
+### 9.3 Testing Checklist
+
+**Before Deployment:**
+
+- [ ] All REST endpoints working với Postman
+- [ ] WebSocket connection successful
+- [ ] Join/leave room functionality
+- [ ] Message sending và receiving
+- [ ] File upload working
+- [ ] Typing indicators working
+- [ ] Read receipts working
+- [ ] Error handling working
+- [ ] Rate limiting tested
+- [ ] Authentication tested
+- [ ] Authorization tested
+
+**Load Testing:**
+
+```bash
+# Test concurrent WebSocket connections
+npm install -g artillery
+artillery run websocket-load-test.yml
+```
+
+**websocket-load-test.yml:**
+
+```yaml
+config:
+    target: 'ws://localhost:3000'
+    phases:
+        - duration: 60
+          arrivalRate: 10
+    engines:
+        socketio:
+            query:
+                auth: 'Bearer your-test-token'
+
+scenarios:
+    - name: 'Connect and send messages'
+      engine: socketio
+      flow:
+          - emit:
+                channel: 'join_question'
+                data:
+                    questionId: 'test-question-id'
+          - think: 1
+          - emit:
+                channel: 'send_message'
+                data:
+                    questionId: 'test-question-id'
+                    content: 'Load test message'
+                    type: 'TEXT'
+```
+
+---
+
+## 10. API Reference Summary
+
+### 10.1 REST Endpoints
+
+| Method | Endpoint                                      | Description                | Auth Required |
+| ------ | --------------------------------------------- | -------------------------- | ------------- |
+| POST   | `/api/chat/questions`                         | Tạo question mới           | ✅ CUSTOMER   |
+| POST   | `/api/chat/questions/:id/messages`            | Gửi text message           | ✅            |
+| POST   | `/api/chat/questions/:id/messages/file`       | Upload file message        | ✅            |
+| POST   | `/api/chat/questions/:id/messages/public-pdf` | Upload public PDF          | ✅            |
+| GET    | `/api/chat/questions/:id/messages`            | Lấy message history        | ✅            |
+| GET    | `/api/chat/questions/:id/messages/with-urls`  | Lấy messages với file URLs | ✅            |
+| PATCH  | `/api/chat/messages/:id/read`                 | Đánh dấu message đã đọc    | ✅            |
+| PATCH  | `/api/chat/questions/:id/messages/read-all`   | Đánh dấu tất cả đã đọc     | ✅            |
+| DELETE | `/api/chat/messages/:id`                      | Xóa message                | ✅            |
+| GET    | `/api/chat/questions/:id/summary`             | Lấy question summary       | ✅            |
+| GET    | `/api/chat/messages/unread-count`             | Đếm tin nhắn chưa đọc      | ✅            |
+| GET    | `/api/chat/messages/:id/file`                 | Download file              | ✅            |
+| GET    | `/api/chat/questions`                         | Lấy danh sách questions    | ✅            |
+
+### 10.2 WebSocket Events
+
+**Client to Server:**
+
+- `join_question` - Tham gia room
+- `leave_question` - Rời room
+- `send_message` - Gửi message
+- `typing` - Thông báo typing
+- `mark_as_read` - Đánh dấu đã đọc
+
+**Server to Client:**
+
+- `connected` - Xác nhận kết nối
+- `joined_question` - Xác nhận join room
+- `user_joined` - User khác join
+- `user_left` - User khác rời room
+- `new_message` - Message mới
+- `message_read` - Message được đọc
+- `typing_status` - Trạng thái typing
+- `question_updated` - Question được cập nhật
+- `consultant_assigned` - Được assign consultant
+
+---
+
+_Tài liệu này được cập nhật dựa trên code thực tế của chat module. Hãy thử nghiệm các example trên để đảm bảo tích hợp frontend thành công._

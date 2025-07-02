@@ -49,7 +49,12 @@ export class ChatService {
     ): Promise<boolean> {
         const question = await this.questionRepository.findOne({
             where: { id: questionId },
-            relations: ['user', 'appointment', 'appointment.consultant'],
+            relations: {
+                user: true,
+                appointment: {
+                    consultant: true,
+                },
+            },
         });
 
         if (!question) {
@@ -58,7 +63,9 @@ export class ChatService {
 
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
@@ -107,7 +114,9 @@ export class ChatService {
             this.questionRepository.findOne({ where: { id: questionId } }),
             this.userRepository.findOne({
                 where: { id: senderId },
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             }),
         ]);
 
@@ -141,7 +150,7 @@ export class ChatService {
             sender: {
                 id: sender.id,
                 fullName: `${sender.firstName} ${sender.lastName}`,
-                role: sender.role?.name || 'user',
+                role: sender.role?.name,
                 profilePicture: sender.profilePicture,
             },
         };
@@ -157,8 +166,12 @@ export class ChatService {
     ): Promise<MessageWithSender[]> {
         const messages = await this.messageRepository.find({
             where: { question: { id: questionId } },
-            relations: ['sender', 'sender.role'],
-            order: { createdAt: 'ASC' },
+            relations: {
+                sender: {
+                    role: true,
+                },
+            },
+            order: { createdAt: SortOrder.ASC },
             skip: (page - 1) * limit,
             take: limit,
         });
@@ -168,7 +181,7 @@ export class ChatService {
             sender: {
                 id: message.sender.id,
                 fullName: `${message.sender.firstName} ${message.sender.lastName}`,
-                role: message.sender.role?.name || 'user',
+                role: message.sender.role?.name,
                 profilePicture: message.sender.profilePicture,
             },
         }));
@@ -236,7 +249,10 @@ export class ChatService {
     async markMessageAsRead(messageId: string, userId: string): Promise<void> {
         const message = await this.messageRepository.findOne({
             where: { id: messageId },
-            relations: ['sender', 'question'],
+            relations: {
+                sender: true,
+                question: true,
+            },
         });
 
         if (!message) {
@@ -294,7 +310,9 @@ export class ChatService {
     async getUnreadMessageCount(userId: string): Promise<number> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {
@@ -496,7 +514,7 @@ export class ChatService {
             message.metadata?.fileId
         ) {
             try {
-                const fileId = message.metadata.fileId as string;
+                const fileId = message.metadata.fileId;
 
                 if (message.type === MessageType.PUBLIC_PDF) {
                     // For public PDFs, return the stored public URL or get it from service
@@ -612,7 +630,7 @@ export class ChatService {
                       sender: {
                           id: lastMessage.sender.id,
                           fullName: `${lastMessage.sender.firstName} ${lastMessage.sender.lastName}`,
-                          role: lastMessage.sender.role?.name || 'user',
+                          role: lastMessage.sender.role?.name,
                           profilePicture: lastMessage.sender.profilePicture,
                       },
                   }
@@ -700,7 +718,9 @@ export class ChatService {
     async getUserAccessibleQuestions(userId: string): Promise<Question[]> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!user) {

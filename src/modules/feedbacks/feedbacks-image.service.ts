@@ -1,10 +1,10 @@
 // src/modules/feedbacks/feedbacks-image.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Feedback } from './entities/feedback.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../images/entities/image.entity';
 import { CreateFeedbackImageDTO } from './dto/create-feedback-image.dto';
+import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class FeedbackImageService {
@@ -18,7 +18,9 @@ export class FeedbackImageService {
     async syncFeedbackImages(feedbackId: string): Promise<void> {
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!feedback) {
@@ -44,7 +46,9 @@ export class FeedbackImageService {
         const { feedbackId, imageId } = createFeedbackImageDTO;
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!feedback) {
@@ -79,7 +83,9 @@ export class FeedbackImageService {
         const { feedbackId, imageId } = createFeedbackImageDTO;
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
-            relations: ['images'],
+            relations: {
+                images: true,
+            },
         });
 
         if (!feedback) {

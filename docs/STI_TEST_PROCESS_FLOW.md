@@ -12,7 +12,7 @@ Quy trình xét nghiệm STI (Sexually Transmitted Infections) là một quy tr�
 - **Yêu cầu**:
     - Thông tin bệnh nhân đầy đủ
     - Dịch vụ được chọn
-- **Thời gian ước tính**: Ngay lập tức
+- **Thời gian ước tính**: 0 giờ
 - **Bước tiếp theo**:
     - `SAMPLE_COLLECTION_SCHEDULED` (Lên lịch lấy mẫu)
     - `CANCELLED` (Hủy bỏ)
@@ -66,7 +66,7 @@ Quy trình xét nghiệm STI (Sexually Transmitted Infections) là một quy tr�
 - **Yêu cầu**:
     - Bệnh nhân đã nhận kết quả
     - Xác nhận giao kết quả
-- **Thời gian ước tính**: Ngay lập tức
+- **Thời gian ước tính**: 0 giờ
 - **Bước tiếp theo**:
     - `CONSULTATION_REQUIRED` (Cần tư vấn)
     - `FOLLOW_UP_SCHEDULED` (Lên lịch theo dõi)
@@ -98,17 +98,17 @@ Quy trình xét nghiệm STI (Sexually Transmitted Infections) là một quy tr�
 - **Mô tả**: Toàn bộ quy trình xét nghiệm STI đã hoàn thành
 - **Yêu cầu**:
     - Tất cả bước đã hoàn thành
-    - Tài liệu được lưu trữ
-- **Thời gian ước tính**: Ngay lập tức
+    - Bệnh nhân hài lòng
+- **Thời gian ước tính**: 0 giờ
 - **Bước tiếp theo**: Không có (trạng thái cuối)
 
 ### 10. CANCELLED (Đã hủy)
 
 - **Mô tả**: Quy trình xét nghiệm đã bị hủy bỏ
 - **Yêu cầu**:
-    - Lý do hủy bỏ được ghi nhận
+    - Lý do hủy rõ ràng
     - Thông báo cho bệnh nhân
-- **Thời gian ước tính**: Ngay lập tức
+- **Thời gian ước tính**: 0 giờ
 - **Bước tiếp theo**: Không có (trạng thái cuối)
 
 ---
@@ -145,6 +145,20 @@ Quy trình xét nghiệm STI (Sexually Transmitted Infections) là một quy tr�
 4. **Appointment** - Cuộc hẹn lấy mẫu
 5. **TestResult** - Kết quả xét nghiệm
 
+### Services Integration:
+
+1. **StiTestProcessesService** - Core service quản lý quy trình
+2. **StiTestWorkflowService** - Quản lý workflow và validation
+3. **StiTestIntegrationService** - Tích hợp với service selection và booking
+4. **NotificationsService** - Gửi thông báo cho bệnh nhân
+5. **MailService** - Gửi email thông báo kết quả
+
+### Workflow Validation:
+
+- Mỗi bước chuyển đổi trạng thái đều có validation riêng
+- ValidationDataDto chứa các field cần thiết cho từng bước
+- Hệ thống kiểm tra điều kiện trước khi cho phép chuyển đổi
+
 ---
 
 ## 🔄 Workflow Diagram
@@ -174,7 +188,9 @@ graph TD
 ### Quản lý STI Test Process
 
 - `POST /sti-test-processes` - Tạo mới quy trình xét nghiệm
+- `POST /sti-test-processes/search` - Tìm kiếm với điều kiện
 - `GET /sti-test-processes/test-code/:testCode` - Lấy thông tin theo mã xét nghiệm
+- `POST /sti-test-processes/patient/:patientId` - Lấy danh sách theo bệnh nhân
 - `GET /sti-test-processes/:id` - Lấy chi tiết quy trình
 - `PUT /sti-test-processes/:id` - Cập nhật thông tin quy trình
 - `PATCH /sti-test-processes/:id/status` - Cập nhật trạng thái
@@ -186,10 +202,17 @@ graph TD
 - `GET /sti-test-processes/workflow/next-steps/:status` - Lấy các bước tiếp theo
 - `POST /sti-test-processes/:id/workflow/transition` - Chuyển đổi trạng thái với validation
 
-### Tìm kiếm và Lọc
+### Integration và Booking
 
-- `POST /sti-test-processes/search` - Tìm kiếm với điều kiện
-- `POST /sti-test-processes/patient/:patientId` - Lấy danh sách theo bệnh nhân
+- `POST /sti-test-processes/booking/from-service-selection` - Tạo STI test từ việc chọn dịch vụ
+- `GET /sti-test-processes/services/available` - Lấy danh sách STI services có sẵn
+- `GET /sti-test-processes/services/package/:packageId` - Lấy STI services từ package
+
+### Thống kê và Báo cáo
+
+- `GET /sti-test-processes/statistics/dashboard` - Thống kê cho dashboard
+- `GET /sti-test-processes/statistics/period` - Thống kê theo khoảng thời gian
+- `GET /sti-test-processes/statistics/patient/:patientId` - Thống kê theo bệnh nhân
 
 ---
 
@@ -200,13 +223,18 @@ graph TD
 - **ADMIN** - Toàn quyền
 - **MANAGER** - Quản lý và giám sát
 - **STAFF** - Thực hiện các thao tác thường ngày
-- **CONSULTANT** - Xem thông tin bệnh nhân của mình
+- **CUSTOMER** - Khách hàng (quyền hạn chế)
 
 ### Quyền hạn cụ thể:
 
 - **Tạo/Sửa/Xóa**: ADMIN, MANAGER, STAFF
-- **Xem thông tin**: Tất cả roles (theo phạm vi)
+- **Xem thông tin**:
+    - ADMIN, MANAGER, STAFF: Xem tất cả
+    - CUSTOMER: Chỉ xem thông tin của chính mình
 - **Workflow transition**: ADMIN, MANAGER, STAFF
+- **Thống kê**: ADMIN, MANAGER, STAFF
+- **Booking STI test**: ADMIN, MANAGER, STAFF, CUSTOMER
+- **Xem STI services**: ADMIN, MANAGER, STAFF, CUSTOMER
 
 ---
 
@@ -214,11 +242,31 @@ graph TD
 
 ### Thông tin được theo dõi:
 
-1. **Thời gian**: Tạo, cập nhật, các mốc thời gian quan trọng
-2. **Người thực hiện**: Người lấy mẫu, xử lý lab, tư vấn
-3. **Trạng thái**: Theo dõi chuyển đổi trạng thái
-4. **Thông báo**: Email, SMS cho bệnh nhân
-5. **Bảo mật**: Đảm bảo tính bảo mật thông tin
+1. **Thời gian**:
+
+    - `createdAt`, `updatedAt` - Thời gian tạo và cập nhật
+    - `estimatedResultDate` - Thời gian dự kiến có kết quả
+    - `actualResultDate` - Thời gian thực tế có kết quả
+    - `sampleCollectionDate` - Thời gian lấy mẫu
+
+2. **Người thực hiện**:
+
+    - `sampleCollectedBy` - Người lấy mẫu
+    - `labProcessedBy` - Phòng lab xử lý
+    - `consultantDoctor` - Bác sĩ tư vấn
+
+3. **Tracking Flags**:
+
+    - `requiresConsultation` - Cần tư vấn hay không
+    - `patientNotified` - Đã thông báo cho bệnh nhân
+    - `resultEmailSent` - Đã gửi email kết quả
+    - `isConfidential` - Thông tin bảo mật
+
+4. **Metadata**:
+    - `testCode` - Mã xét nghiệm duy nhất
+    - `processNotes` - Ghi chú về quá trình
+    - `labNotes` - Ghi chú từ lab
+    - `sampleCollectionLocation` - Địa điểm lấy mẫu
 
 ### Báo cáo và Analytics:
 
@@ -226,16 +274,43 @@ graph TD
 - Phân tích hiệu suất workflow
 - Theo dõi chất lượng dịch vụ
 - Báo cáo tuân thủ quy định
+- Dashboard statistics với các metrics quan trọng
+
+---
+
+## ⚙️ Business Rules và Validation
+
+### Quy tắc Chuyển đổi Trạng thái:
+
+1. **ORDERED → SAMPLE_COLLECTION_SCHEDULED**: Cần có appointmentId
+2. **SAMPLE_COLLECTION_SCHEDULED → SAMPLE_COLLECTED**: Cần có thông tin người lấy mẫu và thời gian
+3. **SAMPLE_COLLECTED → PROCESSING**: Cần xác nhận chất lượng mẫu
+4. **PROCESSING → RESULT_READY**: Cần có kết quả từ lab
+5. **RESULT_READY → RESULT_DELIVERED**: Cần xác nhận giao kết quả
+6. **Bất kỳ trạng thái nào → CANCELLED**: Cần lý do hủy rõ ràng
+
+### STI Service Integration Rules:
+
+- Chỉ các service có category type = 'test' mới được coi là STI test
+- Service name/description phải chứa các từ khóa STI: 'sti', 'std', 'hiv', 'syphilis', 'gonorrhea', 'chlamydia', 'herpes', 'hpv', 'hepatitis b', 'hepatitis c'
+- Service phải có trạng thái isActive = true
+
+### Mã Test Code Generation:
+
+- Format: `STI{timestamp}{random}` (ví dụ: STI123456ABC)
+- Đảm bảo tính duy nhất trong hệ thống
+- Tối đa 10 lần thử tạo mã mới nếu trùng
 
 ---
 
 ## ⚠️ Lưu ý quan trọng
 
-1. **Bảo mật thông tin**: Tất cả thông tin xét nghiệm STI đều được đánh dấu confidential
+1. **Bảo mật thông tin**: Tất cả thông tin xét nghiệm STI đều được đánh dấu confidential (`isConfidential = true`)
 2. **Tuân thủ quy định**: Workflow tuân thủ các quy định y tế về xét nghiệm STI
 3. **Thông báo bệnh nhân**: Hệ thống tự động thông báo cho bệnh nhân ở các bước quan trọng
 4. **Backup dữ liệu**: Định kỳ sao lưu dữ liệu để đảm bảo an toàn
 5. **Audit trail**: Ghi nhận tất cả các thay đổi để có thể truy vết
+6. **Xóa Process**: Chỉ cho phép xóa khi trạng thái là ORDERED hoặc CANCELLED
 
 ---
 

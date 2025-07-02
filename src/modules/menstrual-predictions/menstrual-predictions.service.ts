@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
+import { SortOrder } from 'src/enums';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
 import { IsNull, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -10,8 +11,8 @@ import { MenstrualPrediction } from './entities/menstrual-prediction.entity';
 @Injectable()
 export class MenstrualPredictionsService {
     private readonly logger = new Logger(MenstrualPredictionsService.name);
-    private readonly DEFAULT_CYCLE_LENGTH = 28;
-    private readonly DEFAULT_PERIOD_LENGTH = 5;
+    private readonly DEFAULT_CYCLE_LENGTH = 28; // độ dài chu kỳ kinh nguyệt trung bình
+    private readonly DEFAULT_PERIOD_LENGTH = 5; // độ dài hành kinh trung bình
 
     constructor(
         @InjectRepository(MenstrualCycle)
@@ -33,7 +34,7 @@ export class MenstrualPredictionsService {
 
         const cycles = await this.cycleRepository.find({
             where: { user: { id: userId }, deletedAt: IsNull() },
-            order: { cycleStartDate: 'ASC' },
+            order: { cycleStartDate: SortOrder.ASC },
         });
 
         if (cycles.length < 1) {
@@ -111,7 +112,7 @@ export class MenstrualPredictionsService {
         field: 'cycleLength' | 'periodLength',
         defaultValue: number,
     ): number {
-        const validCycles = cycles.filter((c) => c[field] && c[field]! > 0);
+        const validCycles = cycles.filter((c) => c[field] && c[field] > 0);
         if (validCycles.length === 0) return defaultValue;
         const sum = validCycles.reduce((acc, c) => acc + c[field]!, 0);
         return Math.round(sum / validCycles.length);

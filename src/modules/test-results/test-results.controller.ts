@@ -18,6 +18,7 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiParam,
+    ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -38,6 +39,7 @@ import { ServiceType } from './enums/test-result.enums';
 import { TestResultTemplateService } from './services/test-result-template.service';
 import { TestResultsService } from './test-results.service';
 
+@ApiTags('Test Results')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('test-results')

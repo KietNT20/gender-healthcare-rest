@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     ArrayNotEmpty,
     IsArray,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsInt,
     IsNotEmpty,
@@ -13,6 +13,7 @@ import {
     Min,
     ValidateIf,
 } from 'class-validator';
+import { REGEX } from 'src/constant';
 import { ReminderFrequencyType } from 'src/enums';
 
 export class CreateContraceptiveReminderDto {
@@ -27,7 +28,7 @@ export class CreateContraceptiveReminderDto {
         description: 'Thời gian nhắc nhở trong ngày (HH:mm)',
     })
     @IsNotEmpty()
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    @Matches(REGEX.TIME_24H, {
         message: 'Thời gian phải có định dạng HH:mm',
     })
     reminderTime: string;
@@ -35,14 +36,14 @@ export class CreateContraceptiveReminderDto {
     @ApiProperty({
         description: 'Ngày bắt đầu nhắc nhở (YYYY-MM-DD)',
     })
-    @IsDateString()
+    @IsDate()
     @IsNotEmpty()
     startDate: Date;
 
     @ApiPropertyOptional({
         description: 'Ngày kết thúc nhắc nhở (YYYY-MM-DD)',
     })
-    @IsDateString()
+    @IsDate()
     @IsOptional()
     endDate?: Date;
 

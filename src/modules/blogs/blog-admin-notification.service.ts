@@ -35,7 +35,9 @@ export class BlogAdminNotificationService {
                     { role: { name: RolesNameEnum.ADMIN } },
                     { role: { name: RolesNameEnum.MANAGER } },
                 ],
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             });
 
             const adminIds = adminUsers.map((user) => user.id);
@@ -68,7 +70,9 @@ export class BlogAdminNotificationService {
                     { role: { name: RolesNameEnum.ADMIN } },
                     { role: { name: RolesNameEnum.MANAGER } },
                 ],
-                relations: ['role'],
+                relations: {
+                    role: true,
+                },
             });
 
             const adminIds = adminUsers.map((user) => user.id);
@@ -125,7 +129,9 @@ export class BlogAdminNotificationService {
                 { role: { name: RolesNameEnum.ADMIN } },
                 { role: { name: RolesNameEnum.MANAGER } },
             ],
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         const adminIds = adminUsers.map((user) => user.id);
@@ -151,7 +157,7 @@ export class BlogAdminNotificationService {
     async sendMonthlyBlogStatistics() {
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        
+
         const [createdCount, pendingCount, approvedCount] = await Promise.all([
             // Blogs created this month
             this.blogRepository.count({

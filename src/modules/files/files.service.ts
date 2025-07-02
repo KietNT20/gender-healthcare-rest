@@ -28,8 +28,7 @@ export class FilesService {
 
     constructor(
         private readonly s3Service: AwsS3Service,
-        @InjectQueue('image-processing')
-        private readonly imageQueue: Queue,
+        @InjectQueue('image-processing') private imageQueue: Queue,
         @InjectRepository(Document)
         private readonly documentRepository: Repository<Document>,
         @InjectRepository(Image)
@@ -581,13 +580,13 @@ export class FilesService {
                 where: { id: fileId },
             });
             if (!file) throw new NotFoundException('Image not found');
-            s3Key = this.extractS3KeyFromUrl((file as Image).url) || '';
+            s3Key = this.extractS3KeyFromUrl(file.url) || '';
         } else {
             file = await this.documentRepository.findOne({
                 where: { id: fileId },
             });
             if (!file) throw new NotFoundException('Document not found');
-            s3Key = (file as Document).path;
+            s3Key = file.path;
         }
 
         try {

@@ -278,7 +278,12 @@ export class AppointmentAttendanceService {
     ): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id: appointmentId },
-            relations: ['user', 'consultant', 'services', 'payments'],
+            relations: {
+                user: true,
+                consultant: true,
+                services: true,
+                payments: true,
+            },
         });
 
         if (!appointment) {

@@ -13,36 +13,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-
-// Enum cho trạng thái của quá trình xét nghiệm STI
-export enum StiTestProcessStatus {
-    ORDERED = 'ordered', // Đã đặt xét nghiệm
-    SAMPLE_COLLECTION_SCHEDULED = 'sample_collection_scheduled', // Đã lên lịch lấy mẫu
-    SAMPLE_COLLECTED = 'sample_collected', // Đã lấy mẫu
-    PROCESSING = 'processing', // Đang xử lý/phân tích
-    RESULT_READY = 'result_ready', // Kết quả đã sẵn sàng
-    RESULT_DELIVERED = 'result_delivered', // Đã giao kết quả
-    CONSULTATION_REQUIRED = 'consultation_required', // Cần tư vấn thêm
-    FOLLOW_UP_SCHEDULED = 'follow_up_scheduled', // Đã lên lịch theo dõi
-    COMPLETED = 'completed', // Hoàn thành
-    CANCELLED = 'cancelled', // Đã hủy
-}
-
-// Enum cho loại mẫu xét nghiệm
-export enum StiSampleType {
-    BLOOD = 'blood',
-    URINE = 'urine',
-    SWAB = 'swab',
-    SALIVA = 'saliva',
-    OTHER = 'other',
-}
-
-// Enum cho độ ưu tiên
-export enum ProcessPriority {
-    NORMAL = 'normal',
-    HIGH = 'high',
-    URGENT = 'urgent',
-}
+import { ProcessPriority, StiSampleType, StiTestProcessStatus } from '../enums';
 
 @Entity()
 export class StiTestProcess {
@@ -136,7 +107,6 @@ export class StiTestProcess {
 
     // Quan hệ với User (bệnh nhân)
     @ManyToOne(() => User, (user) => user.stiTestProcesses)
-    @JoinColumn()
     patient: User;
 
     // Quan hệ với Appointment (cuộc hẹn lấy mẫu)
@@ -153,11 +123,9 @@ export class StiTestProcess {
 
     // Quan hệ với Service (dịch vụ xét nghiệm)
     @ManyToOne(() => Service)
-    @JoinColumn()
     service: Service;
 
     // Quan hệ với User (bác sĩ tư vấn)
     @ManyToOne(() => User, { nullable: true })
-    @JoinColumn()
     consultantDoctor?: User;
 }

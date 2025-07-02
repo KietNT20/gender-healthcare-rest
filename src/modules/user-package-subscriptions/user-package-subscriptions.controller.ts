@@ -1,31 +1,33 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
-    ParseUUIDPipe,
     BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiBody,
     ApiOperation,
-    ApiResponse,
     ApiParam,
+    ApiResponse,
+    ApiTags,
 } from '@nestjs/swagger';
-import { UserPackageSubscriptionsService } from './user-package-subscriptions.service';
-import { CreateUserPackageSubscriptionDto } from './dto/create-user-package-subscription.dto';
-import { UpdateUserPackageSubscriptionDto } from './dto/update-user-package-subscription.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from 'src/guards/role.guard';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
-import { ResponseMessage } from 'src/decorators/response-message.decorator';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateUserPackageSubscriptionDto } from './dto/create-user-package-subscription.dto';
+import { UpdateUserPackageSubscriptionDto } from './dto/update-user-package-subscription.dto';
+import { UserPackageSubscriptionsService } from './user-package-subscriptions.service';
 
+@ApiTags('User Package Subscriptions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('user-package-subscriptions')

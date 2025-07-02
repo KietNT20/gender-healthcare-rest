@@ -1,28 +1,17 @@
-import {
-    Controller,
-    Get,
-    HttpStatus,
-    Query,
-    Res,
-    UseGuards,
-    ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiOperation,
-    ApiQuery,
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
-import { RevenueStatsService } from './revenue-stats.service';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
-import { RoleGuard } from 'src/guards/role.guard';
+import { Response } from 'express';
+import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
-import { ResponseMessage } from 'src/decorators/response-message.decorator';
-import { StreamableFile } from '@nestjs/common';
-import { RevenueStatsDto } from './dto/revenue-stats.dto';
-import { Response } from 'express';
+import { RoleGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { RevenueStatsService } from './revenue-stats.service';
 
 @ApiTags('Revenue Stats')
 @ApiBearerAuth()

@@ -2,6 +2,8 @@ import {
     BadRequestException,
     ConflictException,
     Injectable,
+    InternalServerErrorException,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,6 +49,7 @@ import { Appointment } from './entities/appointment.entity';
  */
 @Injectable()
 export class AppointmentsService {
+    private readonly logger = new Logger(AppointmentsService.name);
     constructor(
         @InjectRepository(Appointment)
         private readonly appointmentRepository: Repository<Appointment>,
@@ -110,7 +113,9 @@ export class AppointmentsService {
 
             const services = await queryRunner.manager.find(Service, {
                 where: { id: In(serviceIds) },
-                relations: ['category'],
+                relations: {
+                    category: true,
+                },
             });
 
             if (services.length !== serviceIds.length) {
@@ -170,7 +175,13 @@ export class AppointmentsService {
                             role: { name: RolesNameEnum.CONSULTANT },
                             isActive: true,
                         },
-                        relations: ['role', 'consultantProfile'],
+                        relations: {
+                            consultantProfile: {
+                                user: {
+                                    role: true,
+                                },
+                            },
+                        },
                     });
 
                     if (consultant && consultant.consultantProfile) {
@@ -217,9 +228,13 @@ export class AppointmentsService {
             }
 
             return this.findOne(savedAppointment.id, currentUser);
-        } catch (error) {
+        } catch (error: any) {
             await queryRunner.rollbackTransaction();
-            throw error;
+            this.logger.error(error);
+            throw new InternalServerErrorException(
+                'Không thể tạo cuộc hẹn: ' +
+                    (error instanceof Error ? error.message : 'Chưa xác định'),
+            );
         } finally {
             await queryRunner.release();
         }
@@ -269,12 +284,13 @@ export class AppointmentsService {
         const [data, totalItems] =
             await this.appointmentRepository.findAndCount({
                 where,
-                relations: [
-                    'user',
-                    'consultant',
-                    'services',
-                    'consultant.consultantProfile',
-                ],
+                relations: {
+                    user: true,
+                    services: true,
+                    consultant: {
+                        consultantProfile: true,
+                    },
+                },
                 order: { [sortBy]: sortOrder },
                 skip: (page - 1) * limit,
                 take: limit,
@@ -300,14 +316,16 @@ export class AppointmentsService {
     async findOne(id: string, currentUser: User): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: [
-                'user',
-                'user.role',
-                'consultant',
-                'consultant.role',
-                'services',
-                'cancelledBy',
-            ],
+            relations: {
+                user: {
+                    role: true,
+                },
+                consultant: {
+                    role: true,
+                },
+                services: true,
+                cancelledBy: true,
+            },
         });
 
         if (!appointment) {
@@ -316,6 +334,28 @@ export class AppointmentsService {
 
         // Ủy thác việc xác thực quyền truy cập
         this.validationService.validateUserAccess(appointment, currentUser);
+
+        return appointment;
+    }
+
+    async findOneById(id: string): Promise<Appointment> {
+        const appointment = await this.appointmentRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: {
+                user: {
+                    role: true,
+                },
+                consultant: {
+                    role: true,
+                },
+                services: true,
+                cancelledBy: true,
+            },
+        });
+
+        if (!appointment) {
+            throw new NotFoundException(`Không tìm thấy cuộc hẹn với ID ${id}`);
+        }
 
         return appointment;
     }

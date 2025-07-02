@@ -134,7 +134,11 @@ export class AuthService {
         });
 
         // Generate tokens
-        const payload = { sub: user.id, email: user.email };
+        const payload = {
+            sub: user.id,
+            email: user.email,
+            role: user.role.name,
+        };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, {
             secret: this.configService.get<string>('JWT_REFRESH_SECRET'),

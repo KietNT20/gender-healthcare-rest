@@ -1,5 +1,5 @@
 import { BullModule } from '@nestjs/bullmq';
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -88,19 +88,12 @@ import { UsersModule } from './modules/users/users.module';
                 autoLoadEntities: true,
                 logging: true,
                 dropSchema: false,
-                ssl:
-                    configService.get('NODE_ENV') === 'production'
-                        ? {
-                              rejectUnauthorized: true,
-                              ca: readFileSync(
-                                  join(
-                                      process.cwd(),
-                                      'certs',
-                                      'global-bundle.pem',
-                                  ),
-                              ).toString(),
-                          }
-                        : false,
+                ssl: {
+                    rejectUnauthorized: true,
+                    ca: readFileSync(
+                        join(process.cwd(), 'certs', 'global-bundle.pem'),
+                    ).toString(),
+                },
             }),
             inject: [ConfigService],
         }),
@@ -166,6 +159,10 @@ import { UsersModule } from './modules/users/users.module';
         {
             provide: APP_INTERCEPTOR,
             useClass: TransformInterceptor,
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: ClassSerializerInterceptor,
         },
     ],
     controllers: [AppController],

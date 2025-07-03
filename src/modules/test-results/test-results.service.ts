@@ -14,6 +14,7 @@ import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { User } from '../users/entities/user.entity';
 import { CreateTestResultDto } from './dto/create-test-result.dto';
+import { TestResultResponseDto } from './dto/test-result-response.dto';
 import { UpdateTestResultDto } from './dto/update-test-result.dto';
 import { TestResult } from './entities/test-result.entity';
 import { TestResultMapperService } from './services/test-result-mapper.service';
@@ -27,7 +28,7 @@ export class TestResultsService {
         private readonly notificationsService: NotificationsService,
         private readonly mailService: MailService,
         private readonly dataSource: DataSource,
-        private readonly mapperService: TestResultMapperService,
+        private readonly testResultMapperService: TestResultMapperService,
     ) {}
 
     async create(
@@ -76,9 +77,17 @@ export class TestResultsService {
                 );
             }
 
-            // 2. Create TestResult
+            // 2. Calculate summary fields từ resultData đã validated
+            const summaryFields =
+                this.testResultMapperService.calculateSummaryFields(
+                    createDto.resultData,
+                );
+
+            // 3. Create TestResult với data đã validated từ DTO
             const testResult = queryRunner.manager.create(TestResult, {
                 ...createDto,
+                resultData: createDto.resultData, // DTO đã được validate sẵn
+                ...summaryFields, // Auto-calculate isAbnormal, resultSummary, followUpRequired
                 appointment,
                 user: appointment.user,
                 service: appointment.services[0],
@@ -136,7 +145,7 @@ export class TestResultsService {
     async findByAppointmentId(
         appointmentId: string,
         currentUser: User,
-    ): Promise<TestResult> {
+    ): Promise<TestResultResponseDto> {
         const testResult = await this.testResultRepository.findOne({
             where: { appointment: { id: appointmentId } },
             relations: {
@@ -164,16 +173,23 @@ export class TestResultsService {
             );
         }
 
-        return testResult;
+        // Return normalized response DTO
+        return this.testResultMapperService.toResponseDto(testResult);
     }
 
     findAll() {
-        return this.testResultRepository.find({
+        const testResults = this.testResultRepository.find({
             relations: {
                 user: true,
                 appointment: true,
+                service: true,
+                documents: true,
             },
         });
+
+        return testResults.then((results) =>
+            this.testResultMapperService.toResponseDtos(results),
+        );
     }
 
     async findOne(id: string) {
@@ -189,9 +205,11 @@ export class TestResultsService {
             id: id,
             ...updateDto,
         });
+
         if (!result) {
             throw new NotFoundException(`Test result with ID ${id} not found.`);
         }
+
         return this.testResultRepository.save(result);
     }
 

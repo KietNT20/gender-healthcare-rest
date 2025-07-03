@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
+import { StiTestProcess } from '../entities/sti-test-process.entity';
 import { StiTestProcessStatus } from '../enums';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
@@ -11,6 +12,13 @@ export interface WorkflowStep {
     nextSteps: StiTestProcessStatus[];
     requirements?: string[];
     estimatedDuration?: string;
+}
+
+export interface WorkflowStatistics {
+    total: number; // Tổng số quá trình
+    byStatus: Record<string, number>; // Số lượng theo từng trạng thái
+    avgDurationByStep: Record<string, number>; // Thời gian trung bình cho từng bước
+    bottlenecks: string[]; // Các bước có thể là bottleneck
 }
 
 @Injectable()
@@ -426,7 +434,7 @@ export class StiTestWorkflowService {
      * Utility method để validate ValidationDataDto
      */
     private validateRequiredFields(
-        data: any,
+        data: ValidationDataDto | undefined,
         requiredFields: string[],
         context: string,
     ): void {
@@ -564,12 +572,12 @@ export class StiTestWorkflowService {
     /**
      * Lấy thống kê workflow cho dashboard
      */
-    getWorkflowStatistics(processes: any[]): any {
-        const statistics = {
+    getWorkflowStatistics(processes: StiTestProcess[]): WorkflowStatistics {
+        const statistics: WorkflowStatistics = {
             total: processes.length,
-            byStatus: {} as Record<string, number>,
-            avgDurationByStep: {} as Record<string, number>,
-            bottlenecks: [] as string[],
+            byStatus: {},
+            avgDurationByStep: {},
+            bottlenecks: [],
         };
 
         // Đếm theo trạng thái

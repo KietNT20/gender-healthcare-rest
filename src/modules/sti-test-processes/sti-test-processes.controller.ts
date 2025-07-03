@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
+    ApiOkResponse,
     ApiOperation,
     ApiParam,
     ApiQuery,
@@ -26,6 +27,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ValidationDataDto } from './dto';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
 import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
@@ -92,8 +94,7 @@ export class StiTestProcessesController {
     @Get('test-code/:testCode')
     @ApiOperation({ summary: 'Get STI test process by code' })
     @ApiParam({ name: 'testCode', description: 'Test code' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Information about the STI test process',
         type: StiTestProcessResponseDto,
     })
@@ -108,8 +109,7 @@ export class StiTestProcessesController {
         summary: 'Get list of STI test processes by patient ID',
     })
     @ApiParam({ name: 'patientId', description: 'Patient ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'List of STI test processes by patient ID',
         type: StiTestProcessListResponseDto,
     })
@@ -126,8 +126,7 @@ export class StiTestProcessesController {
     @Get(':id')
     @ApiOperation({ summary: 'Get STI test process details' })
     @ApiParam({ name: 'id', description: 'STI test process ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Information about the STI test process',
         type: StiTestProcessResponseDto,
     })
@@ -141,8 +140,7 @@ export class StiTestProcessesController {
     @Put(':id')
     @ApiOperation({ summary: 'Update STI test process information' })
     @ApiParam({ name: 'id', description: 'STI test process ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'STI test process updated successfully',
         type: StiTestProcessResponseDto,
     })
@@ -164,8 +162,7 @@ export class StiTestProcessesController {
         description: 'New status',
         enum: StiTestProcessStatus,
     })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Status updated successfully',
         type: StiTestProcessResponseDto,
     })
@@ -181,8 +178,7 @@ export class StiTestProcessesController {
 
     @Get('workflow/steps')
     @ApiOperation({ summary: 'Get list of workflow steps' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'List of workflow steps',
     })
     @ResponseMessage('Get workflow steps successfully')
@@ -195,8 +191,7 @@ export class StiTestProcessesController {
     @Get('workflow/next-steps/:status')
     @ApiOperation({ summary: 'Get list of next workflow steps' })
     @ApiParam({ name: 'status', description: 'Current status' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'List of next steps',
     })
     @ResponseMessage('Get next steps successfully')
@@ -209,8 +204,7 @@ export class StiTestProcessesController {
     @Post(':id/workflow/transition')
     @ApiOperation({ summary: 'Transition status with workflow validation' })
     @ApiParam({ name: 'id', description: 'STI test process ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Status transitioned successfully',
         type: StiTestProcessResponseDto,
     })
@@ -219,7 +213,11 @@ export class StiTestProcessesController {
     @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
     transitionStatus(
         @Param('id', ParseUUIDPipe) id: string,
-        @Body() body: { newStatus: StiTestProcessStatus; validationData?: any },
+        @Body()
+        body: {
+            newStatus: StiTestProcessStatus;
+            validationData?: ValidationDataDto;
+        },
     ): Promise<StiTestProcessResponseDto> {
         return this.stiTestWorkflowService.transitionStatus(
             id,

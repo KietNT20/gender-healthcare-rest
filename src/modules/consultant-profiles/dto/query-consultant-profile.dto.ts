@@ -2,6 +2,7 @@ import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
     IsBooleanString,
     IsEnum,
+    IsIn,
     IsNumber,
     IsOptional,
     IsString,
@@ -62,6 +63,7 @@ export class SortConsultantProfileDto {
     })
     @IsOptional()
     @IsString()
+    @IsIn(['rating', 'consultationFee', 'experience', 'createdAt', 'updatedAt'])
     sortBy: string = 'createdAt';
 
     @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })

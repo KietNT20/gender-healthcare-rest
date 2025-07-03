@@ -1,20 +1,20 @@
 import {
-    Injectable,
-    NotFoundException,
     BadRequestException,
+    Injectable,
     Logger,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between, IsNull } from 'typeorm';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { FeedbackQueryDto } from './dto/feedback-query.dto';
-import { Feedback } from './entities/feedback.entity';
-import { User } from '../users/entities/user.entity';
-import { Service } from '../services/entities/service.entity';
-import { Appointment } from '../appointments/entities/appointment.entity';
 import { RolesNameEnum } from 'src/enums';
+import { Between, IsNull, Like, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { Service } from '../services/entities/service.entity';
+import { User } from '../users/entities/user.entity';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackQueryDto } from './dto/feedback-query.dto';
+import { UpdateFeedbackDto } from './dto/update-feedback.dto';
+import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class FeedbacksService {
@@ -126,7 +126,9 @@ export class FeedbacksService {
             let consultant = await this.userRepository.findOne({
                 where: {
                     id: createFeedbackDto.consultantId,
-                    roleId: RolesNameEnum.CONSULTANT,
+                    role: {
+                        name: RolesNameEnum.CONSULTANT,
+                    },
                     deletedAt: IsNull(),
                 },
             });
@@ -372,7 +374,7 @@ export class FeedbacksService {
             let consultant = await this.userRepository.findOne({
                 where: {
                     id: updateFeedbackDto.consultantId,
-                    roleId: RolesNameEnum.CONSULTANT,
+                    role: { name: RolesNameEnum.CONSULTANT },
                     deletedAt: IsNull(),
                 },
             });

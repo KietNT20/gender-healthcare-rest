@@ -141,13 +141,13 @@ export class User {
 
     @Column({
         type: 'jsonb',
-        default: { sms: false, push: true, email: true },
+        default: { push: true, email: true },
     })
     notificationPreferences: {
-        sms: boolean;
         push: boolean;
         email: boolean;
     };
+
     @Column({ default: false })
     healthDataConsent: boolean;
 

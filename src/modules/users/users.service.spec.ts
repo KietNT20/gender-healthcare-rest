@@ -32,7 +32,6 @@ describe('UsersService', () => {
         loginAttempts: 0,
         phoneVerified: false,
         notificationPreferences: {
-            sms: true,
             push: true,
             email: true,
         },

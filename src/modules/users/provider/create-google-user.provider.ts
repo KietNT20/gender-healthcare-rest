@@ -39,7 +39,6 @@ export class CreateGoogleUserProvider {
                 isActive: true,
                 locale: 'vi',
                 notificationPreferences: {
-                    sms: false,
                     push: true,
                     email: true,
                 },

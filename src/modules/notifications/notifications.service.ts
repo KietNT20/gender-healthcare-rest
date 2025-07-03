@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { SortOrder } from 'src/enums';
 import { Repository } from 'typeorm';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { Notification } from './entities/notification.entity';
@@ -31,7 +32,7 @@ export class NotificationsService {
         const [data, totalItems] =
             await this.notificationRepository.findAndCount({
                 where: { user: { id: userId } },
-                order: { createdAt: 'DESC' },
+                order: { createdAt: SortOrder.DESC },
                 take: limit,
                 skip,
             });

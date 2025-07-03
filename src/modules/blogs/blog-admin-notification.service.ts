@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContentStatusType, PriorityType, RolesNameEnum } from 'src/enums';
 import { IsNull, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { NotificationsService } from '../notifications/notifications.service';
 import { User } from '../users/entities/user.entity';
 import { BlogNotificationService } from './blog-notification.service';
 import { Blog } from './entities/blog.entity';
@@ -15,6 +16,7 @@ export class BlogAdminNotificationService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly blogNotificationService: BlogNotificationService,
+        private readonly notificationsService: NotificationsService,
     ) {}
 
     /**
@@ -79,7 +81,7 @@ export class BlogAdminNotificationService {
 
             // Custom notification for overdue blogs
             const promises = adminIds.map((adminId) =>
-                this.blogNotificationService['notificationsService'].create({
+                this.notificationsService.create({
                     userId: adminId,
                     title: '⚠️ Blog quá hạn duyệt',
                     content: `Có ${overdueBlogsCount} blog đã chờ duyệt quá 3 ngày. Vui lòng xử lý khẩn cấp!`,
@@ -92,7 +94,9 @@ export class BlogAdminNotificationService {
 
             await Promise.all(promises);
         }
-    } /**
+    }
+
+    /**
      * Thống kê hàng tuần về blog activities
      */
     @Cron('0 9 * * 1') // Every Monday at 9AM
@@ -137,7 +141,7 @@ export class BlogAdminNotificationService {
         const adminIds = adminUsers.map((user) => user.id);
 
         const promises = adminIds.map((adminId) =>
-            this.blogNotificationService['notificationsService'].create({
+            this.notificationsService.create({
                 userId: adminId,
                 title: '📊 Báo cáo blog tuần này',
                 content: `Tuần vừa qua: ${publishedCount} blog xuất bản, ${approvedCount} blog duyệt, ${rejectedCount} blog từ chối.`,
@@ -188,13 +192,15 @@ export class BlogAdminNotificationService {
                 { role: { name: RolesNameEnum.ADMIN } },
                 { role: { name: RolesNameEnum.MANAGER } },
             ],
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         const adminIds = adminUsers.map((user) => user.id);
 
         const promises = adminIds.map((adminId) =>
-            this.blogNotificationService['notificationsService'].create({
+            this.notificationsService.create({
                 userId: adminId,
                 title: '📈 Báo cáo blog tháng này',
                 content: `Tháng này: ${createdCount} blog được tạo, ${pendingCount} blog đang chờ duyệt, ${approvedCount} blog được duyệt.`,

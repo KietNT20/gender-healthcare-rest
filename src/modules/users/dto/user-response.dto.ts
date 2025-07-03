@@ -89,8 +89,7 @@ export class UpdateProfileDto {
         description: 'Notification preferences for the user',
         additionalProperties: true,
         example: {
-            sms: true,
-            push: false,
+            push: true,
             email: true,
         },
     })

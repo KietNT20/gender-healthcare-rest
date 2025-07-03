@@ -76,9 +76,6 @@ export class ConsultantProfile {
     @Column({ default: 10 })
     maxAppointmentsPerDay: number;
 
-    @Column({ default: 0 })
-    version: number;
-
     @Column({ default: false })
     isVerified: boolean;
 

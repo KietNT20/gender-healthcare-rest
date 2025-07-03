@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { AuthModule } from '../auth/auth.module';
 import { ConsultantAvailability } from '../consultant-availability/entities/consultant-availability.entity';
 import { Document } from '../documents/entities/document.entity';
@@ -25,6 +26,7 @@ import { ConsultantProfile } from './entities/consultant-profile.entity';
             ConsultantAvailability,
         ]),
         AuthModule,
+        AuditLogsModule,
         FilesModule,
         MailModule,
         NotificationsModule,

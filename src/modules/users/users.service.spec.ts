@@ -31,7 +31,6 @@ describe('UsersService', () => {
         slug: 'john-doe',
         loginAttempts: 0,
         phoneVerified: false,
-        version: 1,
         notificationPreferences: {
             sms: true,
             push: true,
@@ -136,7 +135,7 @@ describe('UsersService', () => {
                 mockUser as User,
             );
 
-            const result = await service.create(createUserDto);
+            const result = await service.create(createUserDto, '1');
 
             expect(result).toBeDefined();
             expect(result.email).toBe(createUserDto.email);
@@ -157,7 +156,7 @@ describe('UsersService', () => {
                 mockUser as User,
             );
 
-            await expect(service.create(createUserDto)).rejects.toThrow(
+            await expect(service.create(createUserDto, '1')).rejects.toThrow(
                 ConflictException,
             );
         });
@@ -207,7 +206,7 @@ describe('UsersService', () => {
                 updatedUser as User,
             );
 
-            const result = await service.update('1', updateUserDto);
+            const result = await service.update('1', updateUserDto, 'admin-id');
 
             expect(result).toBeDefined();
             expect(result).toEqual(
@@ -226,9 +225,9 @@ describe('UsersService', () => {
 
             jest.spyOn(userRepository, 'findOneById').mockResolvedValue(null);
 
-            await expect(service.update('1', updateUserDto)).rejects.toThrow(
-                NotFoundException,
-            );
+            await expect(
+                service.update('1', updateUserDto, 'admin-id'),
+            ).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -332,7 +331,7 @@ describe('UsersService', () => {
         it('should throw NotFoundException if user not found', async () => {
             jest.spyOn(userRepository, 'findOneById').mockResolvedValue(null);
 
-            await expect(service.remove('1')).rejects.toThrow(
+            await expect(service.remove('1', 'admin-id')).rejects.toThrow(
                 NotFoundException,
             );
         });

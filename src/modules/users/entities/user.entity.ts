@@ -161,9 +161,6 @@ export class User {
     @Column({ nullable: true })
     deletedByUserId?: string;
 
-    @Column({ default: 0 })
-    version: number;
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -172,9 +169,6 @@ export class User {
 
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
-
-    @Column({ type: 'uuid', nullable: true })
-    roleId?: string;
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {

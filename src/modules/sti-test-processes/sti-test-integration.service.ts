@@ -114,7 +114,7 @@ export class StiTestIntegrationService {
         }
 
         // Kiểm tra category type
-        if (service.category?.type === 'test') {
+        if (service.category?.type === 'sti_test') {
             // Kiểm tra tên service có chứa từ khóa STI không
             const stiKeywords = [
                 'sti',

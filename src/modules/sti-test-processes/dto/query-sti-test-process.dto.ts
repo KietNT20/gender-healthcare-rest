@@ -1,7 +1,7 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
     IsBoolean,
-    IsDateString,
+    IsDate,
     IsEnum,
     IsIn,
     IsOptional,
@@ -41,6 +41,7 @@ export class FilterQueryStiTestProcessDto {
         description: 'ID bệnh nhân',
     })
     @IsOptional()
+    @IsString()
     @IsUUID('4')
     patientId?: string;
 
@@ -48,6 +49,7 @@ export class FilterQueryStiTestProcessDto {
         description: 'ID bác sĩ tư vấn',
     })
     @IsOptional()
+    @IsString()
     @IsUUID('4')
     consultantDoctorId?: string;
 
@@ -55,6 +57,7 @@ export class FilterQueryStiTestProcessDto {
         description: 'ID dịch vụ',
     })
     @IsOptional()
+    @IsString()
     @IsUUID('4')
     serviceId?: string;
 
@@ -70,16 +73,16 @@ export class FilterQueryStiTestProcessDto {
         example: '2024-01-01',
     })
     @IsOptional()
-    @IsDateString()
-    startDate?: string;
+    @IsDate()
+    startDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Ngày kết thúc (đến ngày)',
         example: '2024-12-31',
     })
     @IsOptional()
-    @IsDateString()
-    endDate?: string;
+    @IsDate()
+    endDate?: Date;
 
     @ApiPropertyOptional({
         description: 'Yêu cầu tư vấn',
@@ -118,6 +121,7 @@ export class FilterQueryStiTestProcessDto {
     @ApiPropertyOptional({
         description: 'Thứ tự sắp xếp',
         enum: SortOrder,
+        default: SortOrder.DESC,
     })
     @IsOptional()
     @IsString()

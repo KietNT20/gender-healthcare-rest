@@ -189,6 +189,8 @@ export class StiTestProcessesService {
             take: limit,
         });
 
+        const totalPages = Math.ceil(total / limit);
+
         const processedData = data.map((item) =>
             this.transformToResponseDto(item),
         );
@@ -198,7 +200,7 @@ export class StiTestProcessesService {
             total,
             page,
             limit,
-            totalPages: Math.ceil(total / limit),
+            totalPages: totalPages,
         };
     }
 

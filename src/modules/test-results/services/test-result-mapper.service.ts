@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { TestResultResponseDto } from '../dto/test-result-response.dto';
 import { TestResult } from '../entities/test-result.entity';
+import { TestResultData } from '../interfaces/test-result.interfaces';
 
 @Injectable()
 export class TestResultMapperService {
@@ -51,58 +52,20 @@ export class TestResultMapperService {
     }
 
     /**
-     * Validate và normalize dữ liệu resultData trước khi lưu vào database
-     */
-    normalizeResultData(resultData: any): any {
-        // Ensure all required fields are present
-        const normalized = {
-            serviceType: resultData.serviceType,
-            testName: resultData.testName || 'Unknown Test',
-            testCode: resultData.testCode,
-            sampleCollectedAt: resultData.sampleCollectedAt
-                ? new Date(resultData.sampleCollectedAt)
-                : undefined,
-            analyzedAt: resultData.analyzedAt
-                ? new Date(resultData.analyzedAt)
-                : undefined,
-            reportedAt: resultData.reportedAt
-                ? new Date(resultData.reportedAt)
-                : new Date(),
-            sampleInfo: resultData.sampleInfo,
-            results: resultData.results || [],
-            overallStatus: resultData.overallStatus || 'inconclusive',
-            summary: resultData.summary,
-            clinicalInterpretation: resultData.clinicalInterpretation,
-            recommendations: resultData.recommendations || [],
-            laboratoryInfo: resultData.laboratoryInfo,
-            qualityControl: resultData.qualityControl,
-        };
-
-        // Remove undefined fields
-        Object.keys(normalized).forEach((key) => {
-            if (normalized[key] === undefined) {
-                delete normalized[key];
-            }
-        });
-
-        return normalized;
-    }
-
-    /**
      * Tính toán các field summary từ resultData
      */
-    calculateSummaryFields(resultData: any): {
+    calculateSummaryFields(resultData: TestResultData): {
         isAbnormal: boolean;
         resultSummary: string;
         followUpRequired: boolean;
     } {
         const hasAbnormalResults = resultData.results?.some(
-            (result: any) =>
+            (result) =>
                 result.status === 'abnormal' || result.status === 'critical',
         );
 
         const hasCriticalResults = resultData.results?.some(
-            (result: any) => result.status === 'critical',
+            (result) => result.status === 'critical',
         );
 
         return {
@@ -116,14 +79,14 @@ export class TestResultMapperService {
         };
     }
 
-    private generateResultSummary(resultData: any): string {
+    private generateResultSummary(resultData: TestResultData): string {
         if (resultData.summary) {
             return resultData.summary;
         }
 
         const abnormalCount =
             resultData.results?.filter(
-                (result: any) =>
+                (result) =>
                     result.status === 'abnormal' ||
                     result.status === 'critical',
             ).length || 0;
@@ -137,5 +100,35 @@ export class TestResultMapperService {
         } else {
             return `${abnormalCount}/${totalCount} chỉ số bất thường`;
         }
+    }
+
+    /**
+     * Get summary statistics from test results
+     */
+    getResultStatistics(results: TestResultData['results']): {
+        total: number;
+        normal: number;
+        abnormal: number;
+        critical: number;
+        borderline: number;
+    } {
+        if (!Array.isArray(results)) {
+            return {
+                total: 0,
+                normal: 0,
+                abnormal: 0,
+                critical: 0,
+                borderline: 0,
+            };
+        }
+
+        return results.reduce(
+            (stats, result) => {
+                stats.total++;
+                stats[result.status]++;
+                return stats;
+            },
+            { total: 0, normal: 0, abnormal: 0, critical: 0, borderline: 0 },
+        );
     }
 }

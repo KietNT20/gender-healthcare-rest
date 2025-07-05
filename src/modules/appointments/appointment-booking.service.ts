@@ -295,16 +295,13 @@ export class AppointmentBookingService {
 
             profiles = [specificProfile];
         } else {
-            // Tìm tất cả consultant phù hợp dựa trên specialties
-            const consultantWhere: any = {
-                profileStatus: ProfileStatusType.ACTIVE,
-                ...(serviceSpecialties.length > 0 && {
-                    specialties: In(serviceSpecialties),
-                }),
-            };
-
             profiles = await manager.find(ConsultantProfile, {
-                where: consultantWhere,
+                where: {
+                    profileStatus: ProfileStatusType.ACTIVE,
+                    ...(serviceSpecialties.length > 0 && {
+                        specialties: In(serviceSpecialties),
+                    }),
+                },
                 relations: {
                     user: {
                         role: true,

@@ -42,6 +42,7 @@ export class StiTestIntegrationService {
 
         // Validate patient
         const patient = await this.usersService.findOne(request.patientId);
+
         if (!patient) {
             throw new NotFoundException('Không tìm thấy bệnh nhân');
         }
@@ -122,12 +123,28 @@ export class StiTestIntegrationService {
                 'sexually transmitted',
                 'hiv',
                 'syphilis',
+                'scabies',
                 'gonorrhea',
                 'chlamydia',
                 'herpes',
+                'genital warts',
                 'hpv',
+                'hepatitis a',
                 'hepatitis b',
                 'hepatitis c',
+                'bacterial vaginosis',
+                'lymphogranuloma venereum',
+                'thrush',
+                'trichomonas',
+                'urethritis',
+                'urinary tract infections',
+                'pubic lice',
+                'pep',
+                'prep',
+                'pelvic inflammatory disease',
+                'mycoplasma genitalium',
+                'mpox',
+                'molluscum contagiosum',
             ];
             const serviceName = service.name.toLowerCase();
             const serviceDescription = service.description.toLowerCase();

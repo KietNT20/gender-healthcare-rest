@@ -42,8 +42,8 @@ export class UsersController {
         description: 'User created successfully',
     })
     @ResponseMessage('User created successfully')
-    create(@Body() createUserDto: CreateUserDto, @CurrentUser() actor: User) {
-        return this.usersService.create(createUserDto, actor.id);
+    create(@Body() createUserDto: CreateUserDto, @CurrentUser() actor?: User) {
+        return this.usersService.create(createUserDto, actor?.id);
     }
 
     @Get()
@@ -160,9 +160,9 @@ export class UsersController {
     update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateUserDto: UpdateUserDto,
-        @CurrentUser() actor: User,
+        @CurrentUser() actor?: User,
     ) {
-        return this.usersService.update(id, updateUserDto, actor.id);
+        return this.usersService.update(id, updateUserDto, actor?.id);
     }
 
     @Put(':id/toggle-active')

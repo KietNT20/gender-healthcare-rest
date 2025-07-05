@@ -143,8 +143,7 @@ export class AppointmentsController {
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
     @ApiOperation({
-        summary: 'Get consultant appointments with filtering',
-        description: 'Lấy danh sách cuộc hẹn của consultant với khả năng lọc',
+        summary: 'Get consultant appointments',
     })
     @ApiOkResponse({
         description: 'Consultant appointments retrieved successfully.',

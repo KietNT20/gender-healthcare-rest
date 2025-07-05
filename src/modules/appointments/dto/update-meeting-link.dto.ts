@@ -1,6 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, IsUrl } from 'class-validator';
-import { AppointmentStatusType } from 'src/enums';
+import {
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from '@nestjs/swagger';
+import {
+    IsDateString,
+    IsEnum,
+    IsOptional,
+    IsString,
+    IsUrl,
+} from 'class-validator';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { AppointmentStatusType, SortOrder } from 'src/enums';
 
 export class UpdateMeetingLinkDto {
     @ApiProperty({
@@ -13,7 +24,7 @@ export class UpdateMeetingLinkDto {
     meetingLink?: string;
 }
 
-export class ConsultantAppointmentsMeetingQueryDto {
+export class ConsultantAppointmentsMeetingFilterDto {
     @ApiProperty({
         description: 'Filter by appointment status',
         required: false,
@@ -29,7 +40,7 @@ export class ConsultantAppointmentsMeetingQueryDto {
         example: '2024-01-01',
     })
     @IsOptional()
-    @IsString()
+    @IsDateString()
     dateFrom?: string;
 
     @ApiProperty({
@@ -38,6 +49,24 @@ export class ConsultantAppointmentsMeetingQueryDto {
         example: '2024-12-31',
     })
     @IsOptional()
-    @IsString()
+    @IsDateString()
     dateTo?: string;
+
+    @ApiPropertyOptional({
+        enum: ['status'],
+        default: 'status',
+    })
+    @IsString()
+    @IsOptional()
+    sortBy?: string = 'status';
+
+    @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })
+    @IsEnum(SortOrder)
+    @IsOptional()
+    sortOrder?: SortOrder = SortOrder.DESC;
 }
+
+export class ConsultantAppointmentsMeetingQueryDto extends IntersectionType(
+    ConsultantAppointmentsMeetingFilterDto,
+    PaginationDto,
+) {}

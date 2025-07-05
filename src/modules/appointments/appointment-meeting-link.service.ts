@@ -6,8 +6,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { RolesNameEnum } from 'src/enums';
-import { Repository } from 'typeorm';
+import { RolesNameEnum, SortOrder } from 'src/enums';
+import {
+    Between,
+    FindOptionsWhere,
+    IsNull,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+    Repository,
+} from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import {
@@ -37,52 +44,66 @@ export class AppointmentMeetingLinkService {
         consultant: User,
         queryDto: ConsultantAppointmentsMeetingQueryDto,
     ): Promise<Paginated<Appointment>> {
-        const { status, dateFrom, dateTo } = queryDto;
+        const {
+            status,
+            dateFrom,
+            dateTo,
+            sortBy = 'status',
+            sortOrder = SortOrder.ASC,
+            page = 1,
+            limit = 10,
+        } = queryDto;
 
-        const queryBuilder = this.appointmentRepository
-            .createQueryBuilder('appointment')
-            .leftJoinAndSelect('appointment.user', 'user')
-            .leftJoinAndSelect('appointment.services', 'services')
-            .leftJoinAndSelect('services.category', 'category')
-            .leftJoinAndSelect(
-                'appointment.consultantAvailability',
-                'consultantAvailability',
-            )
-            .where('appointment.consultant.id = :consultantId', {
-                consultantId: consultant.id,
-            })
-            .andWhere('appointment.deletedAt IS NULL');
+        // Build where conditions
+        const whereConditions: FindOptionsWhere<Appointment> = {
+            consultant: { id: consultant.id },
+            deletedAt: IsNull(),
+        };
 
-        // Filter by status
+        // Add status filter if provided
         if (status) {
-            queryBuilder.andWhere('appointment.status = :status', { status });
+            whereConditions.status = status;
         }
 
-        // Filter by date range
-        if (dateFrom) {
-            queryBuilder.andWhere('appointment.appointmentDate >= :dateFrom', {
-                dateFrom: new Date(dateFrom),
+        // Add date range filters
+        if (dateFrom && dateTo) {
+            whereConditions.appointmentDate = Between(
+                new Date(dateFrom),
+                new Date(dateTo),
+            );
+        } else if (dateFrom) {
+            whereConditions.appointmentDate = MoreThanOrEqual(
+                new Date(dateFrom),
+            );
+        } else if (dateTo) {
+            whereConditions.appointmentDate = LessThanOrEqual(new Date(dateTo));
+        }
+
+        // Use findAndCount with options
+        const [appointments, total] =
+            await this.appointmentRepository.findAndCount({
+                where: whereConditions,
+                relations: {
+                    user: true,
+                    services: {
+                        category: true,
+                    },
+                    consultantAvailability: true,
+                },
+                order: {
+                    [sortBy]: sortOrder,
+                },
+                skip: (page - 1) * limit,
+                take: limit,
             });
-        }
-
-        if (dateTo) {
-            queryBuilder.andWhere('appointment.appointmentDate <= :dateTo', {
-                dateTo: new Date(dateTo),
-            });
-        }
-
-        // Order by appointment date
-        queryBuilder.orderBy('appointment.appointmentDate', 'ASC');
-
-        const [appointments, total] = await queryBuilder.getManyAndCount();
 
         return {
             data: appointments,
             meta: {
-                itemsPerPage: total,
+                itemsPerPage: limit,
                 totalItems: total,
-                currentPage: 1,
-                totalPages: 1,
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
             },
         };
     }
@@ -97,7 +118,10 @@ export class AppointmentMeetingLinkService {
     ): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id: appointmentId },
-            relations: ['consultant', 'user'],
+            relations: {
+                consultant: true,
+                user: true,
+            },
         });
 
         if (!appointment) {
@@ -142,7 +166,10 @@ export class AppointmentMeetingLinkService {
     ): Promise<{ meetingLink?: string }> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id: appointmentId },
-            relations: ['consultant', 'user'],
+            relations: {
+                consultant: true,
+                user: true,
+            },
         });
 
         if (!appointment) {
@@ -175,7 +202,10 @@ export class AppointmentMeetingLinkService {
     ): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id: appointmentId },
-            relations: ['consultant', 'user'],
+            relations: {
+                consultant: true,
+                user: true,
+            },
         });
 
         if (!appointment) {

@@ -1,6 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 import { PackageServiceUsage } from '../package-service-usage/entities/package-service-usage.entity';
 import { Payment } from '../payments/entities/payment.entity';
 import { PaymentsModule } from '../payments/payments.module';
@@ -12,7 +11,6 @@ import { UserPackageSubscriptionsService } from './user-package-subscriptions.se
 
 @Module({
     imports: [
-        ScheduleModule.forRoot(),
         TypeOrmModule.forFeature([
             UserPackageSubscription,
             User,

@@ -13,8 +13,9 @@ import {
     RolesNameEnum,
     SortOrder,
 } from 'src/enums';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Appointment } from '../appointments/entities/appointment.entity';
 import { FilesService } from '../files/files.service';
 import { FileResult } from '../files/interfaces';
 import { User } from '../users/entities/user.entity';
@@ -646,7 +647,7 @@ export class ChatService {
         createQuestionDto: CreateQuestionDto,
         userId: string,
         appointmentId?: string,
-        entityManager?: any,
+        entityManager?: EntityManager,
     ): Promise<Question> {
         const user = await this.userRepository.findOneBy({ id: userId });
         if (!user) {
@@ -660,7 +661,7 @@ export class ChatService {
         });
         const slug = `${baseSlug}-${uuidv4().substring(0, 8)}`;
 
-        const questionData: any = {
+        const questionData: Partial<Question> = {
             ...createQuestionDto,
             user,
             slug,
@@ -669,7 +670,7 @@ export class ChatService {
 
         // Nếu có appointmentId, gắn với appointment
         if (appointmentId) {
-            questionData.appointment = { id: appointmentId };
+            questionData.appointment = { id: appointmentId } as Appointment;
         }
 
         const question = this.questionRepository.create(questionData);

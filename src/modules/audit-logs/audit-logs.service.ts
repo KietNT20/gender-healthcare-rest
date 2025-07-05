@@ -2,7 +2,13 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { SortOrder } from 'src/enums';
-import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+    Between,
+    FindOptionsWhere,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+    Repository,
+} from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 import { QueryAuditLogDto } from './dto/query-audit-log.dto';
@@ -60,7 +66,7 @@ export class AuditLogsService {
             ...filters
         } = queryDto;
 
-        const where: any = {};
+        const where: FindOptionsWhere<AuditLog> = {};
         if (filters.userId) where.user = { id: filters.userId };
         if (filters.action) where.action = filters.action;
         if (filters.entityType) where.entityType = filters.entityType;

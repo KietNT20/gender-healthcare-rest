@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { createClient } from 'redis';
 import { AuthModule } from '../auth/auth.module';
@@ -26,7 +25,6 @@ import { RedisHelperService } from './redis-helper.service';
 
 @Module({
     imports: [
-        ScheduleModule.forRoot(),
         TypeOrmModule.forFeature([User, Message, Question]),
         FilesModule,
         AuthModule,

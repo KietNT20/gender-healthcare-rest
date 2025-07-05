@@ -9,8 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import * as crypto from 'crypto';
 import { THIRTY_DAYS } from 'src/constant';
+import { SortOrder } from 'src/enums';
 import { sanitizeFilename } from 'src/utils/sanitize-name.util';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Document } from '../documents/entities/document.entity';
 import { Image } from '../images/entities/image.entity';
 import { AwsS3Service } from './aws-s3.service';
@@ -347,7 +348,10 @@ export class FilesService {
         entityId: string,
         includePrivate: boolean = false,
     ): Promise<Image[]> {
-        const whereCondition: any = { entityType, entityId };
+        const whereCondition: FindOptionsWhere<Image> = {
+            entityType,
+            entityId,
+        };
 
         // If not including private, only get public images
         if (!includePrivate) {
@@ -356,7 +360,7 @@ export class FilesService {
 
         return this.imageRepository.find({
             where: whereCondition,
-            order: { createdAt: 'DESC' },
+            order: { createdAt: SortOrder.DESC },
         });
     }
 

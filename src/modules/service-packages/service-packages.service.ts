@@ -5,7 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { Between, IsNull, Like, Repository } from 'typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { SortOrder } from 'src/enums';
+import { Between, FindOptionsWhere, IsNull, Like, Repository } from 'typeorm';
 import { CreateServicePackageDto } from './dto/create-service-package.dto';
 import { ServicePackageQueryDto } from './dto/service-package-query.dto';
 import { UpdateServicePackageDto } from './dto/update-service-package.dto';
@@ -32,12 +34,14 @@ export class ServicePackagesService {
         return this.packageRepository.save(servicePackage);
     }
 
-    async findAll(queryDto: ServicePackageQueryDto) {
+    async findAll(
+        queryDto: ServicePackageQueryDto,
+    ): Promise<Paginated<ServicePackage>> {
         const {
             page = 1,
             limit = 10,
             sortBy = 'createdAt',
-            sortOrder = 'DESC',
+            sortOrder = SortOrder.DESC,
             search,
             minPrice,
             maxPrice,
@@ -59,7 +63,7 @@ export class ServicePackagesService {
         }
 
         // Build where conditions
-        const where: any = { deletedAt: IsNull() };
+        const where: FindOptionsWhere<ServicePackage> = { deletedAt: IsNull() };
         if (search) {
             where.name = Like(`%${search}%`);
         }
@@ -70,7 +74,7 @@ export class ServicePackagesService {
             );
         }
         if (isActive !== undefined) {
-            where.isActive = isActive;
+            where.isActive = isActive === 'true' ? true : false;
         }
 
         // Calculate pagination
@@ -82,21 +86,32 @@ export class ServicePackagesService {
             order: { [sortBy]: sortOrder },
             skip,
             take: limit,
-            relations: ['packageServices', 'packageServices.service'],
+            relations: {
+                packageServices: {
+                    service: true,
+                },
+            },
         });
 
         return {
             data,
-            total,
-            page,
-            limit,
+            meta: {
+                itemsPerPage: limit,
+                totalItems: total,
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+            },
         };
     }
 
-    async findOne(id: string) {
+    async findOne(id: string): Promise<ServicePackage> {
         const servicePackage = await this.packageRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['packageServices', 'packageServices.service'],
+            relations: {
+                packageServices: {
+                    service: true,
+                },
+            },
         });
         if (!servicePackage) {
             throw new NotFoundException(
@@ -106,7 +121,10 @@ export class ServicePackagesService {
         return servicePackage;
     }
 
-    async update(id: string, updateDto: UpdateServicePackageDto) {
+    async update(
+        id: string,
+        updateDto: UpdateServicePackageDto,
+    ): Promise<ServicePackage> {
         const servicePackage = await this.findOne(id);
         // Nếu có cập nhật tên, tạo slug mới
         if (updateDto.name) {
@@ -120,8 +138,12 @@ export class ServicePackagesService {
         return this.packageRepository.save(servicePackage);
     }
 
-    async remove(id: string) {
-        const servicePackage = await this.findOne(id);
-        await this.packageRepository.softDelete(id);
+    async remove(id: string): Promise<void> {
+        const result = await this.packageRepository.softDelete(id);
+        if (result.affected === 0) {
+            throw new NotFoundException(
+                `Service package with ID '${id}' not found`,
+            );
+        }
     }
 }

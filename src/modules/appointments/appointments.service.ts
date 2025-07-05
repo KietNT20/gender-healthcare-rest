@@ -82,6 +82,7 @@ export class AppointmentsService {
                 appointmentLocation,
                 notes,
                 consultantId,
+                meetingLink,
             } = createAppointmentDto;
 
             const appointmentStart = new Date(appointmentDate);
@@ -143,12 +144,21 @@ export class AppointmentsService {
                 servicesNotRequiringConsultant,
                 consultantId,
             );
+
+            // Validate meetingLink: chỉ cho phép khi có dịch vụ yêu cầu tư vấn viên
+            if (meetingLink && !needsConsultant) {
+                throw new BadRequestException(
+                    'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+                );
+            }
+
             const appointmentData: Partial<Appointment> = {
                 user: currentUser,
                 services,
                 appointmentDate,
                 appointmentLocation,
                 notes,
+                meetingLink: needsConsultant ? meetingLink : undefined,
                 fixedPrice: totalPrice,
                 status: needsConsultant
                     ? AppointmentStatusType.PENDING
@@ -373,7 +383,37 @@ export class AppointmentsService {
         updateDto: UpdateAppointmentDto,
         currentUser: User,
     ): Promise<Appointment> {
-        const appointment = await this.findOne(id, currentUser);
+        const appointment = await this.appointmentRepository.findOne({
+            where: { id },
+            relations: {
+                user: true,
+                consultant: true,
+                services: {
+                    category: true,
+                },
+            },
+        });
+
+        if (!appointment) {
+            throw new NotFoundException('Cuộc hẹn không tồn tại');
+        }
+
+        // Validate quyền truy cập
+        this.validationService.validateUserAccess(appointment, currentUser);
+
+        // Validate meetingLink nếu có trong updateDto
+        if (updateDto.meetingLink !== undefined) {
+            const hasConsultationService = appointment.services.some(
+                (service) => service.requiresConsultant === true,
+            );
+
+            if (updateDto.meetingLink && !hasConsultationService) {
+                throw new BadRequestException(
+                    'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+                );
+            }
+        }
+
         const updatedAppointment = this.appointmentRepository.merge(
             appointment,
             updateDto,

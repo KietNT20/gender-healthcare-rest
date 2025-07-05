@@ -121,6 +121,9 @@ export class AppointmentMeetingLinkService {
             relations: {
                 consultant: true,
                 user: true,
+                services: {
+                    category: true,
+                },
             },
         });
 
@@ -135,7 +138,18 @@ export class AppointmentMeetingLinkService {
             appointment.consultant?.id !== currentUser.id
         ) {
             throw new BadRequestException(
-                'Bạn không có quyền cập nhật meeting link cho cuộc hẹn này',
+                'Bạn không có quyền cập nhật link cho cuộc hẹn này',
+            );
+        }
+
+        // Kiểm tra xem cuộc hẹn có chứa dịch vụ yêu cầu tư vấn viên không
+        const hasConsultationService = appointment.services.some(
+            (service) => service.requiresConsultant === true,
+        );
+
+        if (!hasConsultationService) {
+            throw new BadRequestException(
+                'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
             );
         }
 
@@ -169,6 +183,9 @@ export class AppointmentMeetingLinkService {
             relations: {
                 consultant: true,
                 user: true,
+                services: {
+                    category: true,
+                },
             },
         });
 
@@ -185,6 +202,17 @@ export class AppointmentMeetingLinkService {
         ) {
             throw new BadRequestException(
                 'Bạn không có quyền xem meeting link của cuộc hẹn này',
+            );
+        }
+
+        // Kiểm tra xem cuộc hẹn có chứa dịch vụ yêu cầu tư vấn viên không
+        const hasConsultationService = appointment.services.some(
+            (service) => service.requiresConsultant === true,
+        );
+
+        if (!hasConsultationService) {
+            throw new BadRequestException(
+                'Chỉ có thể xem meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
             );
         }
 
@@ -205,6 +233,9 @@ export class AppointmentMeetingLinkService {
             relations: {
                 consultant: true,
                 user: true,
+                services: {
+                    category: true,
+                },
             },
         });
 
@@ -220,6 +251,17 @@ export class AppointmentMeetingLinkService {
         ) {
             throw new BadRequestException(
                 'Bạn không có quyền xóa meeting link của cuộc hẹn này',
+            );
+        }
+
+        // Kiểm tra xem cuộc hẹn có chứa dịch vụ yêu cầu tư vấn viên không
+        const hasConsultationService = appointment.services.some(
+            (service) => service.requiresConsultant === true,
+        );
+
+        if (!hasConsultationService) {
+            throw new BadRequestException(
+                'Chỉ có thể xóa meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
             );
         }
 

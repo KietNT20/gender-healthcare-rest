@@ -7,6 +7,7 @@ import {
     IsNotEmpty,
     IsOptional,
     IsString,
+    IsUrl,
     IsUUID,
 } from 'class-validator';
 import { IsAfterNow } from 'src/decorators/is-after-now.decorator';
@@ -56,4 +57,9 @@ export class CreateAppointmentDto {
     @IsString()
     @IsOptional()
     notes?: string;
+
+    @ApiPropertyOptional({ description: 'Link meeting' })
+    @IsOptional()
+    @IsUrl()
+    meetingLink?: string;
 }

@@ -184,6 +184,41 @@ export class AppointmentNotificationService {
     }
 
     /**
+     * Gửi thông báo khi meeting link được cập nhật
+     */
+    public async sendMeetingLinkNotification(
+        appointment: Appointment,
+    ): Promise<void> {
+        try {
+            const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
+            const appointmentTime = new Date(
+                appointment.appointmentDate,
+            ).toLocaleString('vi-VN', {
+                dateStyle: 'short',
+                timeStyle: 'short',
+            });
+
+            // Tạo thông báo trong ứng dụng
+            await this.notificationsService.create({
+                userId: appointment.user.id,
+                title: 'Meeting link đã được cập nhật',
+                content: `${consultantName} đã cập nhật meeting link cho cuộc hẹn vào lúc ${appointmentTime}. Vui lòng kiểm tra thông tin chi tiết.`,
+                type: 'MEETING_LINK_UPDATED',
+                actionUrl: `/appointments/${appointment.id}`,
+            });
+
+            this.logger.log(
+                `Meeting link notification sent for appointment ${appointment.id}`,
+            );
+        } catch (error) {
+            this.logger.error(
+                `Failed to send meeting link notification for appointment ${appointment.id}`,
+                error,
+            );
+        }
+    }
+
+    /**
      * Gửi thông báo khi thông tin cuộc hẹn được cập nhật (ví dụ: đổi lịch).
      */
     public sendUpdateNotification(

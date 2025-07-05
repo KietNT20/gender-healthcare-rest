@@ -40,6 +40,7 @@ import {
     CancelAppointmentDto,
     UpdateAppointmentDto,
 } from './dto/update-appointment.dto';
+import { ConsultantAppointmentsMeetingQueryDto } from './dto/update-meeting-link.dto';
 import { Appointment } from './entities/appointment.entity';
 
 /**
@@ -577,5 +578,62 @@ export class AppointmentsService {
         } finally {
             await queryRunner.release();
         }
+    }
+
+    /**
+     * Lấy danh sách cuộc hẹn của consultant
+     */
+    async getConsultantAppointments(
+        consultant: User,
+        queryDto: ConsultantAppointmentsMeetingQueryDto,
+    ): Promise<Paginated<Appointment>> {
+        const { status, dateFrom, dateTo } = queryDto;
+
+        const queryBuilder = this.appointmentRepository
+            .createQueryBuilder('appointment')
+            .leftJoinAndSelect('appointment.user', 'user')
+            .leftJoinAndSelect('appointment.services', 'services')
+            .leftJoinAndSelect('services.category', 'category')
+            .leftJoinAndSelect(
+                'appointment.consultantAvailability',
+                'consultantAvailability',
+            )
+            .where('appointment.consultant.id = :consultantId', {
+                consultantId: consultant.id,
+            })
+            .andWhere('appointment.deletedAt IS NULL');
+
+        // Filter by status
+        if (status) {
+            queryBuilder.andWhere('appointment.status = :status', { status });
+        }
+
+        // Filter by date range
+        if (dateFrom) {
+            queryBuilder.andWhere('appointment.appointmentDate >= :dateFrom', {
+                dateFrom: new Date(dateFrom),
+            });
+        }
+
+        if (dateTo) {
+            queryBuilder.andWhere('appointment.appointmentDate <= :dateTo', {
+                dateTo: new Date(dateTo),
+            });
+        }
+
+        // Order by appointment date
+        queryBuilder.orderBy('appointment.appointmentDate', 'ASC');
+
+        const [appointments, total] = await queryBuilder.getManyAndCount();
+
+        return {
+            data: appointments,
+            meta: {
+                itemsPerPage: total,
+                totalItems: total,
+                currentPage: 1,
+                totalPages: 1,
+            },
+        };
     }
 }

@@ -6,20 +6,20 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { ContentStatusType } from 'src/enums';
+import { ContentStatusType, RolesNameEnum } from 'src/enums';
 import { Category } from 'src/modules/categories/entities/category.entity';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, SelectQueryBuilder } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { BlogNotificationService } from './blog-notification.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { GetBlogMonthYear } from './dto/get-blog.dto';
 import { PublishBlogDto } from './dto/publish-blog.dto';
 import { ReviewBlogDto } from './dto/review-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
-import { GetBlogMonthYear } from './dto/get-blog.dto';
 
 @Injectable()
 export class BlogsService {
@@ -70,16 +70,17 @@ export class BlogsService {
         // Determine status and handle auto-publish for Admin/Manager
         let finalStatus = createBlogDto.status || ContentStatusType.DRAFT;
         let publishedAt: Date | undefined;
-        let publishedByUser: any;
+        let publishedByUser: User | undefined;
 
         // Auto-publish logic for Admin/Manager
         if (
             createBlogDto.autoPublish &&
-            (userRole === 'ADMIN' || userRole === 'MANAGER')
+            (userRole === RolesNameEnum.ADMIN ||
+                userRole === RolesNameEnum.MANAGER)
         ) {
             finalStatus = ContentStatusType.PUBLISHED;
             publishedAt = new Date();
-            publishedByUser = { id: authorId };
+            publishedByUser = { id: authorId } as User;
         }
 
         // Create blog with proper type handling
@@ -714,7 +715,7 @@ export class BlogsService {
     }
 
     private applyBlogFilters(
-        queryBuilder: any,
+        queryBuilder: SelectQueryBuilder<Blog>,
         blogQueryDto: BlogQueryDto,
     ): void {
         const { title, status, categoryId } = blogQueryDto;

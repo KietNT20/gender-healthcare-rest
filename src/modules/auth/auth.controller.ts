@@ -223,8 +223,8 @@ export class AuthController {
         description: 'Invalid refresh token',
     })
     @ResponseMessage('Token refreshed successfully')
-    async refreshToken(@CurrentUser() user: RefreshTokenDto) {
-        return this.authService.refreshToken(user.refreshToken);
+    async refreshToken(@Body() body: RefreshTokenDto) {
+        return this.authService.refreshToken(body.refreshToken);
     }
 
     @Post('logout')

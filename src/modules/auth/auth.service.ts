@@ -345,11 +345,22 @@ export class AuthService {
             }
 
             // Generate new access token
-            const newPayload = { sub: user.id, email: user.email };
+            const newPayload = {
+                sub: user.id,
+                email: user.email,
+                role: user.role.name,
+            };
             const accessToken = this.jwtService.sign(newPayload);
+            const newRefreshToken = this.jwtService.sign(newPayload, {
+                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+                expiresIn: this.configService.get<string>(
+                    'JWT_REFRESH_EXPIRATION_TIME',
+                ),
+            });
 
             return {
                 accessToken,
+                newRefreshToken,
             };
         } catch (error) {
             throw new UnauthorizedException('Refresh token không hợp lệ');

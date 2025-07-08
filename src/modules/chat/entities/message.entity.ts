@@ -46,7 +46,6 @@ export class Message {
         editCount?: number;
         replyTo?: string;
         mentions?: string[];
-        [key: string]: any;
     };
 
     @Column({ default: false })

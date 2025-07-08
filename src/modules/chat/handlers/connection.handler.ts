@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 import { Server } from 'socket.io';
+import { RolesNameEnum } from 'src/enums';
 import {
     CHAT_EVENTS,
     ERROR_MESSAGES,
@@ -69,6 +70,15 @@ export class ConnectionHandler {
                 },
                 timestamp: new Date().toISOString(),
             });
+
+            // Notify other users if consultant comes online
+            if (user.role === RolesNameEnum.CONSULTANT) {
+                server.emit(CHAT_EVENTS.CONSULTANT_ONLINE, {
+                    consultantId: user.id,
+                    consultantName: user.fullName,
+                    timestamp: new Date().toISOString(),
+                });
+            }
         } catch (error) {
             this.logger.error('Error handling connection:', error);
             throw new InternalServerErrorException(

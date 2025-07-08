@@ -140,7 +140,19 @@ export class ChatService {
             (type === MessageType.FILE || type === MessageType.IMAGE) &&
             fileData
         ) {
-            message.metadata = fileData;
+            message.metadata = {
+                fileId: fileData.fileId,
+                fileName: fileData.fileName,
+                fileSize: fileData.fileSize,
+                mimeType: fileData.mimeType,
+                ...(fileData.isDocument !== undefined && {
+                    isDocument: fileData.isDocument,
+                }),
+                ...(fileData.isPublicPdf !== undefined && {
+                    isPublicPdf: fileData.isPublicPdf,
+                }),
+                ...(fileData.publicUrl && { publicUrl: fileData.publicUrl }),
+            };
             message.content = fileData.fileName;
         }
 

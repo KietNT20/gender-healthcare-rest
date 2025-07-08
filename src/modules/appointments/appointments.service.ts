@@ -772,12 +772,7 @@ export class AppointmentsService {
     async findAvailableSlots(
         findSlotsDto: FindAvailableSlotsDto,
     ): Promise<FindAvailableSlotsResponseDto> {
-        if (!findSlotsDto.serviceIds || findSlotsDto.serviceIds.length === 0) {
-            throw new BadRequestException(
-                'Vui lòng chọn ít nhất một dịch vụ tư vấn để tìm kiếm',
-            );
-        }
-
+        // Cho phép tìm kiếm slot mà không cần serviceIds (tư vấn tổng quát)
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
 

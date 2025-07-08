@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    ArrayMinSize,
     IsArray,
     IsDate,
     IsEnum,
@@ -16,14 +15,13 @@ import { LocationTypeEnum } from 'src/enums';
 export class CreateAppointmentDto {
     @ApiPropertyOptional({
         description:
-            'Mảng các ID của dịch vụ mà người dùng muốn đặt. Không bắt buộc cho tư vấn tổng quát.',
+            'Mảng các ID của dịch vụ mà người dùng muốn đặt. Để trống cho tư vấn tổng quát.',
         type: [String],
         example: ['service-uuid-1', 'service-uuid-2'],
     })
-    @IsArray()
-    @ArrayMinSize(1)
-    @IsUUID('4', { each: true })
     @IsOptional()
+    @IsArray()
+    @IsUUID('4', { each: true })
     serviceIds?: string[];
 
     @ApiPropertyOptional({

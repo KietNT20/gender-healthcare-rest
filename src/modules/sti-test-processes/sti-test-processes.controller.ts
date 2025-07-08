@@ -31,10 +31,7 @@ import { ValidationDataDto } from './dto';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
 import { StiTestBookingRequest } from './dto/sti-test-booking-request.dto';
-import {
-    StiTestProcessListResponseDto,
-    StiTestProcessResponseDto,
-} from './dto/sti-test-process-response.dto';
+import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
 import { StiTestProcessStatus } from './enums';
 import { StiTestIntegrationService } from './sti-test-integration.service';
@@ -74,7 +71,6 @@ export class StiTestProcessesController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'List of STI test processes',
-        type: StiTestProcessListResponseDto,
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
@@ -85,9 +81,7 @@ export class StiTestProcessesController {
         description:
             'Forbidden: Just admins, managers and staff can access this endpoint',
     })
-    findAll(
-        @Body(ValidationPipe) query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    findAll(@Body(ValidationPipe) query: QueryStiTestProcessDto) {
         return this.stiTestProcessesService.findAll(query);
     }
 
@@ -111,7 +105,6 @@ export class StiTestProcessesController {
     @ApiParam({ name: 'patientId', description: 'Patient ID' })
     @ApiOkResponse({
         description: 'List of STI test processes by patient ID',
-        type: StiTestProcessListResponseDto,
     })
     @ResponseMessage(
         'Get list of STI test processes by patient ID successfully',
@@ -119,7 +112,7 @@ export class StiTestProcessesController {
     findByPatientId(
         @Param('patientId', ParseUUIDPipe) patientId: string,
         @Body(ValidationPipe) query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    ) {
         return this.stiTestProcessesService.findByPatientId(patientId, query);
     }
 

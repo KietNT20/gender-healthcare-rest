@@ -47,9 +47,12 @@ export class MenstrualCycle {
     })
     user: User;
 
-    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)
+    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.menstrualCycle)
     cycleMoods: CycleMood[];
 
-    @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.cycle)
+    @OneToMany(
+        () => CycleSymptom,
+        (cycleSymptom) => cycleSymptom.menstrualCycle,
+    )
     cycleSymptoms: CycleSymptom[];
 }

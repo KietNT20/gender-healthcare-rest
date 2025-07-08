@@ -195,7 +195,7 @@ export class PaymentRepositoryService {
      * Soft delete payment
      */
     async softDeletePayment(id: string) {
-        const payment = await this.paymentRepository.findOne({ where: { id } });
+        const payment = await this.paymentRepository.findOneBy({ id });
         if (!payment) {
             throw new NotFoundException('Payment not found');
         }

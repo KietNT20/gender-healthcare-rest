@@ -70,7 +70,7 @@ export class AppointmentsController {
     @ApiOperation({
         summary: 'Book an appointment with selected consultant',
         description:
-            'Đặt cuộc hẹn với tư vấn viên đã được chọn từ danh sách available slots',
+            'Đặt cuộc hẹn với tư vấn viên. Có thể đặt tư vấn tổng quát (không truyền serviceIds) hoặc tư vấn có dịch vụ cụ thể (truyền serviceIds).',
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
@@ -112,7 +112,7 @@ export class AppointmentsController {
     @ApiOperation({
         summary: 'Find available consultation slots',
         description:
-            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+            'Tìm kiếm các slot tư vấn khả dụng. Để trống serviceIds cho tư vấn tổng quát, hoặc truyền serviceIds cho tư vấn có dịch vụ cụ thể.',
     })
     @ApiResponse({
         status: HttpStatus.OK,

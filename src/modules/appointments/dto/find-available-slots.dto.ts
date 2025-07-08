@@ -9,12 +9,15 @@ import {
 } from 'class-validator';
 
 export class FindAvailableSlotsDto {
-    @ApiProperty({
-        description: 'Danh sách ID của các dịch vụ yêu cầu',
+    @ApiPropertyOptional({
+        description:
+            'Danh sách ID của các dịch vụ yêu cầu. Để trống cho tư vấn tổng quát.',
         type: [String],
+        example: ['service-uuid-1', 'service-uuid-2'],
     })
+    @IsOptional()
     @IsUUID('4', { each: true })
-    serviceIds: string[] = [];
+    serviceIds?: string[];
 
     @ApiProperty({
         description: 'Ngày bắt đầu tìm kiếm (YYYY-MM-DD)',

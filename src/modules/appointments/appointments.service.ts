@@ -11,6 +11,8 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import {
     AppointmentStatusType,
     ConsultantSelectionType,
+    ConsultationFeeType,
+    LocationTypeEnum,
     RolesNameEnum,
     ServiceCategoryType,
     SortOrder,
@@ -92,9 +94,37 @@ export class AppointmentsService {
                     'appointmentDate must be a valid ISO 8601 date string',
                 );
             }
+
+            // Tính thời gian kết thúc dựa trên consultant hoặc mặc định
+            let appointmentDurationMinutes = 60; // Mặc định 1 giờ
+
+            // Nếu có consultantId, lấy session duration từ consultant profile
+            if (consultantId) {
+                const consultantProfile = await queryRunner.manager.findOne(
+                    User,
+                    {
+                        where: { id: consultantId },
+                        relations: { consultantProfile: true },
+                    },
+                );
+
+                // Luôn sử dụng sessionDurationMinutes từ consultant profile nếu có
+                if (consultantProfile?.consultantProfile) {
+                    const duration =
+                        consultantProfile.consultantProfile
+                            .sessionDurationMinutes;
+                    if (duration > 0) {
+                        appointmentDurationMinutes = duration;
+                    } else {
+                        appointmentDurationMinutes = 60; // Fallback
+                    }
+                }
+            }
+
             const appointmentEnd = new Date(
-                appointmentStart.getTime() + 60 * 60 * 1000,
-            ); // Giả sử mỗi lịch hẹn kéo dài 1 giờ
+                appointmentStart.getTime() +
+                    appointmentDurationMinutes * 60 * 1000,
+            );
 
             const existing = await queryRunner.manager.findOne(Appointment, {
                 where: {
@@ -113,37 +143,106 @@ export class AppointmentsService {
                 );
             }
 
-            const services = await queryRunner.manager.find(Service, {
-                where: { id: In(serviceIds) },
-                relations: {
-                    category: true,
-                },
-            });
-
-            if (services.length !== serviceIds.length) {
-                throw new NotFoundException(
-                    'Một hoặc nhiều dịch vụ không tồn tại.',
+            // Validate logic nghiệp vụ
+            if (!serviceIds?.length && !consultantId) {
+                throw new BadRequestException(
+                    'Phải cung cấp ít nhất serviceIds hoặc consultantId để tạo cuộc hẹn.',
                 );
             }
-            const totalPrice = services.reduce(
-                (sum, service) => sum + Number(service.price),
-                0,
-            );
+
+            // Xử lý services
+            let services: Service[] = [];
+            if (serviceIds?.length) {
+                services = await queryRunner.manager.find(Service, {
+                    where: { id: In(serviceIds) },
+                    relations: {
+                        category: true,
+                    },
+                });
+
+                if (services.length !== serviceIds.length) {
+                    throw new NotFoundException(
+                        'Một hoặc nhiều dịch vụ không tồn tại.',
+                    );
+                }
+            }
+
             // Phân loại dịch vụ sử dụng helper method
             // Logic: Nếu có ít nhất 1 dịch vụ cần tư vấn viên thì toàn bộ cuộc hẹn sẽ cần tư vấn viên
-            // Điều này đảm bảo tính nhất quán trong quy trình và đơn giản hóa logic booking
+            // Nếu không có service thì mặc định là cần tư vấn viên (general consultation)
             const {
                 servicesRequiringConsultant,
                 servicesNotRequiringConsultant,
                 needsConsultant,
-            } = this.categorizeServices(services);
+            } =
+                services.length > 0
+                    ? this.categorizeServices(services)
+                    : {
+                          servicesRequiringConsultant: [],
+                          servicesNotRequiringConsultant: [],
+                          needsConsultant: true, // Mặc định cần tư vấn viên khi không có service cụ thể
+                      }; // Tính tổng giá tiền dựa trên loại dịch vụ
+            let totalPrice = 0;
 
-            // Validate dịch vụ hỗn hợp và consultant requirement
-            this.validateMixedServices(
-                servicesRequiringConsultant,
-                servicesNotRequiringConsultant,
-                consultantId,
-            );
+            // Phí cho các dịch vụ không cần tư vấn viên (sử dụng service price)
+            const nonConsultantServicePrice =
+                servicesNotRequiringConsultant.reduce(
+                    (sum, service) => sum + Number(service.price),
+                    0,
+                );
+            totalPrice += nonConsultantServicePrice;
+
+            // Phí cho các dịch vụ cần tư vấn viên hoặc tư vấn tổng quát
+            if (servicesRequiringConsultant.length > 0) {
+                if (consultantId) {
+                    // Sẽ được tính sau khi lấy thông tin consultant
+                    const consultantServicePrice =
+                        servicesRequiringConsultant.reduce(
+                            (sum, service) => sum + Number(service.price),
+                            0,
+                        );
+                    totalPrice += consultantServicePrice;
+                } else {
+                    // Fallback về service price nếu chưa có consultant
+                    const consultantServicePrice =
+                        servicesRequiringConsultant.reduce(
+                            (sum, service) => sum + Number(service.price),
+                            0,
+                        );
+                    totalPrice += consultantServicePrice;
+                }
+            } else if (needsConsultant && !services.length) {
+                // Trường hợp tư vấn tổng quát (không có service cụ thể)
+                // Giá sẽ được tính sau khi có thông tin consultant
+                totalPrice = 0; // Sẽ được cập nhật sau
+            }
+
+            // Validate consultant requirement
+            if (needsConsultant && !consultantId) {
+                if (services.length > 0) {
+                    // Có services cần tư vấn viên nhưng không có consultantId
+                    const consultantServiceNames = servicesRequiringConsultant
+                        .map((s) => s.name)
+                        .join(', ');
+                    throw new BadRequestException(
+                        `Các dịch vụ: ${consultantServiceNames} yêu cầu chọn tư vấn viên. Vui lòng chọn tư vấn viên từ danh sách slot khả dụng.`,
+                    );
+                } else {
+                    // Tư vấn tổng quát nhưng không có consultantId
+                    throw new BadRequestException(
+                        'Tư vấn tổng quát yêu cầu phải chọn tư vấn viên.',
+                    );
+                }
+            }
+
+            // Validate dịch vụ hỗn hợp (chỉ khi có services)
+            if (services.length > 0) {
+                this.validateMixedServices(
+                    servicesRequiringConsultant,
+                    servicesNotRequiringConsultant,
+                    consultantId,
+                );
+            }
 
             // Validate meetingLink: chỉ cho phép khi có dịch vụ yêu cầu tư vấn viên
             if (meetingLink && !needsConsultant) {
@@ -173,6 +272,31 @@ export class AppointmentsService {
                         queryRunner.manager,
                     );
                 Object.assign(appointmentData, bookingDetails);
+
+                // Tính lại giá với consultant fee nếu có
+                if (appointmentData.consultant?.consultantProfile) {
+                    const recalculatedPrice = this.calculateAppointmentPrice(
+                        servicesRequiringConsultant,
+                        servicesNotRequiringConsultant,
+                        appointmentData.consultant.consultantProfile,
+                    );
+                    appointmentData.fixedPrice = recalculatedPrice;
+                }
+
+                // Trường hợp tư vấn tổng quát (không có service cụ thể)
+                if (
+                    !services.length &&
+                    appointmentData.consultant?.consultantProfile
+                ) {
+                    // Tính phí tư vấn tổng quát
+                    const generalConsultationPrice =
+                        this.calculateConsultationFee(
+                            appointmentData.consultant.consultantProfile,
+                            60, // Mặc định 60 phút
+                            1, // 1 session tư vấn
+                        );
+                    appointmentData.fixedPrice = generalConsultationPrice;
+                }
             } else {
                 // Dịch vụ không yêu cầu tư vấn viên (xét nghiệm, kiểm tra sức khỏe, etc.)
                 appointmentData.consultantSelectionType =
@@ -197,6 +321,15 @@ export class AppointmentsService {
 
                     if (consultant && consultant.consultantProfile) {
                         appointmentData.consultant = consultant;
+
+                        // Tính lại giá với consultant fee nếu có (trường hợp mix services)
+                        const recalculatedPrice =
+                            this.calculateAppointmentPrice(
+                                servicesRequiringConsultant,
+                                servicesNotRequiringConsultant,
+                                consultant.consultantProfile,
+                            );
+                        appointmentData.fixedPrice = recalculatedPrice;
                     }
                 }
             }
@@ -207,8 +340,12 @@ export class AppointmentsService {
             );
             const savedAppointment =
                 await queryRunner.manager.save(appointment);
-            // 2. Nếu cần tư vấn viên, tự động tạo phòng chat (Question) gắn với appointment
-            if (needsConsultant && savedAppointment.consultant) {
+            // 2. Nếu cần tư vấn viên và là tư vấn online, tự động tạo phòng chat (Question) gắn với appointment
+            if (
+                needsConsultant &&
+                savedAppointment.consultant &&
+                savedAppointment.appointmentLocation === LocationTypeEnum.ONLINE
+            ) {
                 // Kiểm tra đã có Question chưa
                 const existQuestion = await queryRunner.manager.findOne(
                     'Question',
@@ -217,12 +354,12 @@ export class AppointmentsService {
                     },
                 );
                 if (!existQuestion) {
-                    // Tạo phòng chat
+                    // Tạo phòng chat cho tư vấn online
                     await this.chatService.createQuestion(
                         {
-                            title: `Tư vấn với ${savedAppointment.consultant?.firstName || ''} ${savedAppointment.consultant?.lastName || ''}`.trim(),
+                            title: `Tư vấn online với ${savedAppointment.consultant?.firstName || ''} ${savedAppointment.consultant?.lastName || ''}`.trim(),
                             content:
-                                'Phòng chat tư vấn tự động tạo khi đặt lịch.',
+                                'Phòng chat tư vấn online tự động tạo khi đặt lịch.',
                         },
                         currentUser.id,
                         savedAppointment.id,
@@ -472,6 +609,7 @@ export class AppointmentsService {
         const { totalPrice } = this.calculateDetailedPricing(
             servicesRequiringConsultant,
             servicesNotRequiringConsultant,
+            appointment.consultant?.consultantProfile,
         );
 
         return totalPrice;
@@ -500,6 +638,7 @@ export class AppointmentsService {
         return this.calculateDetailedPricing(
             servicesRequiringConsultant,
             servicesNotRequiringConsultant,
+            appointment.consultant?.consultantProfile,
         );
     }
 
@@ -509,11 +648,27 @@ export class AppointmentsService {
     private calculateDetailedPricing(
         servicesRequiringConsultant: Service[],
         servicesNotRequiringConsultant: Service[],
+        consultantProfile?: any,
+        appointmentDurationMinutes: number = 60,
     ) {
-        const consultantServicePrice = servicesRequiringConsultant.reduce(
-            (sum, service) => sum + Number(service.price),
-            0,
-        );
+        let consultantServicePrice = 0;
+
+        // Tính phí cho dịch vụ cần tư vấn viên
+        if (servicesRequiringConsultant.length > 0) {
+            if (consultantProfile?.consultationFee) {
+                consultantServicePrice = this.calculateConsultationFee(
+                    consultantProfile,
+                    appointmentDurationMinutes,
+                    servicesRequiringConsultant.length,
+                );
+            } else {
+                // Fallback về service price
+                consultantServicePrice = servicesRequiringConsultant.reduce(
+                    (sum, service) => sum + Number(service.price),
+                    0,
+                );
+            }
+        }
 
         const nonConsultantServicePrice = servicesNotRequiringConsultant.reduce(
             (sum, service) => sum + Number(service.price),
@@ -522,15 +677,31 @@ export class AppointmentsService {
 
         const totalPrice = consultantServicePrice + nonConsultantServicePrice;
 
+        // Tính giá cho từng dịch vụ consultation
+        const consultantFeePerService =
+            servicesRequiringConsultant.length > 0
+                ? consultantServicePrice / servicesRequiringConsultant.length
+                : 0;
+
         return {
             consultantServicePrice,
             nonConsultantServicePrice,
             totalPrice,
+            feeDetails: {
+                feeType:
+                    consultantProfile?.consultationFeeType ||
+                    ConsultationFeeType.PER_SESSION,
+                baseFee: consultantProfile?.consultationFee || 0,
+                calculatedFee: consultantServicePrice,
+                appointmentDurationMinutes,
+            },
             serviceBreakdown: {
                 consultantServices: servicesRequiringConsultant.map((s) => ({
                     id: s.id,
                     name: s.name,
-                    price: s.price,
+                    price: consultantProfile?.consultationFee
+                        ? consultantFeePerService
+                        : s.price,
                 })),
                 nonConsultantServices: servicesNotRequiringConsultant.map(
                     (s) => ({
@@ -601,12 +772,7 @@ export class AppointmentsService {
     async findAvailableSlots(
         findSlotsDto: FindAvailableSlotsDto,
     ): Promise<FindAvailableSlotsResponseDto> {
-        if (!findSlotsDto.serviceIds || findSlotsDto.serviceIds.length === 0) {
-            throw new BadRequestException(
-                'Vui lòng chọn ít nhất một dịch vụ tư vấn để tìm kiếm',
-            );
-        }
-
+        // Cho phép tìm kiếm slot mà không cần serviceIds (tư vấn tổng quát)
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
 
@@ -675,5 +841,72 @@ export class AppointmentsService {
                 totalPages: 1,
             },
         };
+    }
+
+    /**
+     * Tính toán giá cuộc hẹn dựa trên consultant fee và service price
+     */
+    private calculateAppointmentPrice(
+        servicesRequiringConsultant: Service[],
+        servicesNotRequiringConsultant: Service[],
+        consultantProfile?: any,
+        appointmentDurationMinutes: number = 60, // Mặc định 1 giờ
+    ): number {
+        // Phí cho các dịch vụ không cần tư vấn viên (sử dụng service price)
+        const nonConsultantServicePrice = servicesNotRequiringConsultant.reduce(
+            (sum, service) => sum + Number(service.price),
+            0,
+        );
+
+        // Phí cho các dịch vụ cần tư vấn viên
+        let consultantServicePrice = 0;
+        if (servicesRequiringConsultant.length > 0) {
+            if (consultantProfile?.consultationFee) {
+                consultantServicePrice = this.calculateConsultationFee(
+                    consultantProfile,
+                    appointmentDurationMinutes,
+                    servicesRequiringConsultant.length,
+                );
+            } else {
+                // Fallback về service price nếu consultant chưa có consultation fee
+                consultantServicePrice = servicesRequiringConsultant.reduce(
+                    (sum, service) => sum + Number(service.price),
+                    0,
+                );
+            }
+        }
+
+        return nonConsultantServicePrice + consultantServicePrice;
+    }
+
+    /**
+     * Tính phí tư vấn dựa trên loại phí của consultant
+     */
+    private calculateConsultationFee(
+        consultantProfile: any,
+        appointmentDurationMinutes: number,
+        numberOfServices: number,
+    ): number {
+        const baseFee = Number(consultantProfile.consultationFee);
+        const feeType =
+            consultantProfile.consultationFeeType ||
+            ConsultationFeeType.PER_SESSION;
+        const sessionDuration = consultantProfile.sessionDurationMinutes || 60;
+
+        switch (feeType) {
+            case ConsultationFeeType.HOURLY:
+                // Tính theo giờ, có thể tỷ lệ theo thời gian thực tế
+                const hours = appointmentDurationMinutes / 60;
+                return baseFee * hours;
+
+            case ConsultationFeeType.PER_SERVICE:
+                // Tính theo số lượng dịch vụ cần tư vấn viên
+                return baseFee * numberOfServices;
+
+            case ConsultationFeeType.PER_SESSION:
+            default:
+                // Phí cố định cho một session, bất kể thời gian
+                return baseFee;
+        }
     }
 }

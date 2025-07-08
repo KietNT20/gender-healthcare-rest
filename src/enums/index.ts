@@ -119,3 +119,9 @@ export enum ConsultantSelectionType {
     AUTOMATIC = 'automatic',
     SERVICE_BOOKING = 'service_booking',
 }
+
+export enum ConsultationFeeType {
+    HOURLY = 'hourly', // Phí theo giờ
+    PER_SESSION = 'per_session', // Phí cố định mỗi session
+    PER_SERVICE = 'per_service', // Phí theo dịch vụ cụ thể
+}

@@ -118,16 +118,6 @@ export class PaymentsService {
     }
 
     /**
-     * Hủy thanh toán (admin use)
-     */
-    async cancelPayment(id: string, cancelDto: CancelPaymentDto) {
-        return this.paymentCallbackService.cancelPaymentFromSystem(
-            id,
-            cancelDto,
-        );
-    }
-
-    /**
      * Lấy danh sách payments của user
      */
     async getUserPayments(userId: string, status?: PaymentStatusType) {

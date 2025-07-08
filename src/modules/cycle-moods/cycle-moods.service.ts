@@ -99,7 +99,7 @@ export class CycleMoodsService {
             where: { id },
             relations: {
                 mood: true,
-                cycle: true,
+                menstrualCycle: true,
             },
         });
 

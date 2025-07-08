@@ -112,7 +112,7 @@ export class CycleSymptomsService {
             where: { id },
             relations: {
                 symptom: true,
-                cycle: true,
+                menstrualCycle: true,
             },
         });
 

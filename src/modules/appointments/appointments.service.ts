@@ -11,6 +11,7 @@ import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import {
     AppointmentStatusType,
     ConsultantSelectionType,
+    LocationTypeEnum,
     RolesNameEnum,
     ServiceCategoryType,
     SortOrder,
@@ -207,8 +208,12 @@ export class AppointmentsService {
             );
             const savedAppointment =
                 await queryRunner.manager.save(appointment);
-            // 2. Nếu cần tư vấn viên, tự động tạo phòng chat (Question) gắn với appointment
-            if (needsConsultant && savedAppointment.consultant) {
+            // 2. Nếu cần tư vấn viên và là tư vấn online, tự động tạo phòng chat (Question) gắn với appointment
+            if (
+                needsConsultant &&
+                savedAppointment.consultant &&
+                savedAppointment.appointmentLocation === LocationTypeEnum.ONLINE
+            ) {
                 // Kiểm tra đã có Question chưa
                 const existQuestion = await queryRunner.manager.findOne(
                     'Question',
@@ -217,12 +222,12 @@ export class AppointmentsService {
                     },
                 );
                 if (!existQuestion) {
-                    // Tạo phòng chat
+                    // Tạo phòng chat cho tư vấn online
                     await this.chatService.createQuestion(
                         {
-                            title: `Tư vấn với ${savedAppointment.consultant?.firstName || ''} ${savedAppointment.consultant?.lastName || ''}`.trim(),
+                            title: `Tư vấn online với ${savedAppointment.consultant?.firstName || ''} ${savedAppointment.consultant?.lastName || ''}`.trim(),
                             content:
-                                'Phòng chat tư vấn tự động tạo khi đặt lịch.',
+                                'Phòng chat tư vấn online tự động tạo khi đặt lịch.',
                         },
                         currentUser.id,
                         savedAppointment.id,

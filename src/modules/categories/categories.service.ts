@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { Repository } from 'typeorm';
+import { TreeRepository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
@@ -14,7 +14,7 @@ import { Category } from './entities/category.entity';
 export class CategoriesService {
     constructor(
         @InjectRepository(Category)
-        private categoryRepository: Repository<Category>,
+        private categoryRepository: TreeRepository<Category>,
     ) {}
 
     async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
@@ -60,6 +60,9 @@ export class CategoriesService {
             relations: {
                 children: true,
                 parent: true,
+                services: true,
+                blogs: true,
+                symptoms: true,
             },
         });
     }
@@ -70,6 +73,9 @@ export class CategoriesService {
             relations: {
                 children: true,
                 parent: true,
+                services: true,
+                blogs: true,
+                symptoms: true,
             },
         });
         if (!category) {
@@ -119,9 +125,150 @@ export class CategoriesService {
     }
 
     async remove(id: string): Promise<void> {
+        // Check if category has related data
+        const category = await this.categoryRepository.findOne({
+            where: { id },
+            relations: {
+                services: true,
+                blogs: true,
+                symptoms: true,
+                children: true,
+            },
+        });
+
+        if (!category) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+
+        // Check if category has children
+        if (category.children && category.children.length > 0) {
+            throw new ConflictException(
+                'Cannot delete category that has subcategories',
+            );
+        }
+
+        // Check if category has related data
+        if (
+            category.services?.length > 0 ||
+            category.blogs?.length > 0 ||
+            category.symptoms?.length > 0
+        ) {
+            throw new ConflictException(
+                'Cannot delete category that has related services, blogs, or symptoms',
+            );
+        }
+
         const result = await this.categoryRepository.softDelete(id);
         if (result.affected === 0) {
             throw new NotFoundException(`Category with ID ${id} not found`);
         }
+    }
+
+    async findByType(type: string): Promise<Category[]> {
+        return this.categoryRepository.find({
+            where: { type, isActive: true },
+            relations: {
+                children: true,
+                parent: true,
+                services: true,
+                blogs: true,
+                symptoms: true,
+            },
+        });
+    }
+
+    async getCategoryServices(id: string) {
+        const category = await this.categoryRepository.findOne({
+            where: { id, isActive: true },
+            relations: {
+                services: true,
+            },
+        });
+
+        if (!category) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+
+        return {
+            category: {
+                id: category.id,
+                name: category.name,
+                slug: category.slug,
+                type: category.type,
+            },
+            services: category.services,
+        };
+    }
+
+    async getCategoryBlogs(id: string) {
+        const category = await this.categoryRepository.findOne({
+            where: { id, isActive: true },
+            relations: {
+                blogs: {
+                    tags: true,
+                },
+            },
+        });
+
+        if (!category) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+
+        return {
+            category: {
+                id: category.id,
+                name: category.name,
+                slug: category.slug,
+                type: category.type,
+            },
+            blogs: category.blogs,
+        };
+    }
+
+    async getCategorySymptoms(id: string) {
+        const category = await this.categoryRepository.findOne({
+            where: { id, isActive: true },
+            relations: {
+                symptoms: true,
+            },
+        });
+
+        if (!category) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+
+        return {
+            category: {
+                id: category.id,
+                name: category.name,
+                slug: category.slug,
+                type: category.type,
+            },
+            symptoms: category.symptoms,
+        };
+    }
+
+    async getCategoryTree(): Promise<Category[]> {
+        return this.categoryRepository.findTrees();
+    }
+
+    async findCategoriesWithCounts(): Promise<Category[]> {
+        const categories = await this.categoryRepository.find({
+            where: { isActive: true },
+            relations: {
+                services: true,
+                blogs: true,
+                symptoms: true,
+            },
+        });
+
+        return categories.map((category) => ({
+            ...category,
+            counts: {
+                services: category.services?.length || 0,
+                blogs: category.blogs?.length || 0,
+                symptoms: category.symptoms?.length || 0,
+            },
+        }));
     }
 }

@@ -59,7 +59,9 @@ export class Document {
         uploadedAt?: string;
         lastAccessed?: string;
         downloadCount?: number;
-        [key: string]: any;
+        bucketType?: string;
+        cloudFrontUrl?: string;
+        isPublic?: boolean;
     };
 
     @CreateDateColumn()

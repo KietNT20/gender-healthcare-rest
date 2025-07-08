@@ -412,9 +412,7 @@ export class FilesService {
         }
 
         // Check if it's a public PDF
-        const isPublic =
-            document.metadata?.isPublic === true ||
-            document.metadata?.isPublic === 'true';
+        const isPublic = document.metadata?.isPublic === true;
         const isPdf = document.mimeType === 'application/pdf';
 
         if (!isPublic || !isPdf) {

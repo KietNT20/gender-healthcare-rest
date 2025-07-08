@@ -14,6 +14,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { GatewayResponseType } from '../types/gateway-response.type';
 
 @Entity()
 export class Payment {
@@ -40,7 +41,7 @@ export class Payment {
     paymentDate: Date;
 
     @Column({ type: 'jsonb', nullable: true })
-    gatewayResponse: any;
+    gatewayResponse: GatewayResponseType;
 
     @Column({ default: false })
     refunded: boolean;

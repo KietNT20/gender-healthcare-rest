@@ -47,7 +47,10 @@ export class ServicePackage {
     deletedAt?: Date;
 
     // Relations
-    @OneToMany(() => PackageService, (packageService) => packageService.package)
+    @OneToMany(
+        () => PackageService,
+        (packageService) => packageService.servicePackage,
+    )
     packageServices: PackageService[];
 
     @OneToMany(

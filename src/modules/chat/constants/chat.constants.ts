@@ -17,6 +17,7 @@ export const CHAT_EVENTS = {
     TYPING_STATUS: 'typing_status',
     QUESTION_UPDATED: 'question_updated',
     CONSULTANT_ASSIGNED: 'consultant_assigned',
+    CONSULTANT_ONLINE: 'consultant_online',
 
     // Error Events (Legacy - will be replaced by acknowledgements)
     JOIN_ERROR: 'join_error',

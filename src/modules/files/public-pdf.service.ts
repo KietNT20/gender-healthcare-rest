@@ -232,9 +232,7 @@ export class PublicPdfService {
     }
 
     private validatePublicPdf(document: Document): void {
-        const isPublic =
-            document.metadata?.isPublic === true ||
-            document.metadata?.isPublic === 'true';
+        const isPublic = document.metadata?.isPublic === true;
         const isPdf = document.mimeType === 'application/pdf';
 
         if (!isPublic || !isPdf) {
@@ -324,7 +322,7 @@ export class PublicPdfService {
                 downloadCount: 0,
                 bucketType: 'public',
                 cloudFrontUrl: uploadResult.cloudFrontUrl,
-                isPublic: 'true',
+                isPublic: true,
             },
         });
 

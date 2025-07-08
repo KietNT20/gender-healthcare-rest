@@ -190,7 +190,7 @@ export class StiTestIntegrationService {
             // Lấy danh sách services trong package
             const packageServices = await this.packageServiceRepository.find({
                 where: {
-                    package: { id: packageId },
+                    servicePackage: { id: packageId },
                 },
                 relations: {
                     service: true,

@@ -30,7 +30,7 @@ export class CreateCycleMoodDto {
     @IsString()
     @IsUUID('4')
     @IsNotEmpty()
-    cycleId: string;
+    menstrualCycleId: string;
 
     @ApiProperty()
     @IsString()

@@ -13,13 +13,13 @@ import { SortOrder } from 'src/enums';
 
 export class GetCycleSymptomQueryDto {
     @ApiPropertyOptional({
-        description: 'Filter by cycle ID',
+        description: 'Filter by menstrual cycle ID',
         type: String,
         format: 'uuid',
     })
     @IsUUID('4')
     @IsOptional()
-    cycleId?: string;
+    menstrualCycleId?: string;
 
     @ApiPropertyOptional({
         description: 'Filter by symptom ID',
@@ -50,11 +50,24 @@ export class GetCycleSymptomQueryDto {
 
     @ApiPropertyOptional({
         description: 'Sort by field',
-        enum: ['createdAt', 'updatedAt', 'intensity', 'symptomId', 'cycleId'],
+        enum: [
+            'createdAt',
+            'updatedAt',
+            'intensity',
+            'symptomId',
+            'menstrualCycleId',
+        ],
         default: 'createdAt',
     })
     @IsOptional()
     @IsString()
+    @IsEnum([
+        'createdAt',
+        'updatedAt',
+        'intensity',
+        'symptomId',
+        'menstrualCycleId',
+    ])
     sortBy?: string = 'createdAt';
 }
 

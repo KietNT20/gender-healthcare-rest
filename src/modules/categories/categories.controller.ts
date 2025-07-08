@@ -51,6 +51,36 @@ export class CategoriesController {
         return this.categoriesService.findAll();
     }
 
+    @Get('type/:type')
+    @ApiOperation({ summary: 'Get categories by type' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Categories found by type.',
+    })
+    findByType(@Param('type') type: string) {
+        return this.categoriesService.findByType(type);
+    }
+
+    @Get('tree/all')
+    @ApiOperation({ summary: 'Get category tree structure' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Category tree structure.',
+    })
+    getCategoryTree() {
+        return this.categoriesService.getCategoryTree();
+    }
+
+    @Get('stats/counts')
+    @ApiOperation({ summary: 'Get categories with item counts' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Categories with counts of related items.',
+    })
+    getCategoriesWithCounts() {
+        return this.categoriesService.findCategoriesWithCounts();
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get active category by ID' })
     @ApiResponse({
@@ -59,6 +89,36 @@ export class CategoriesController {
     })
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.categoriesService.findOne(id);
+    }
+
+    @Get(':id/services')
+    @ApiOperation({ summary: 'Get all services in a category' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Services in category found successfully.',
+    })
+    getCategoryServices(@Param('id', ParseUUIDPipe) id: string) {
+        return this.categoriesService.getCategoryServices(id);
+    }
+
+    @Get(':id/blogs')
+    @ApiOperation({ summary: 'Get all blogs in a category' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blogs in category found successfully.',
+    })
+    getCategoryBlogs(@Param('id', ParseUUIDPipe) id: string) {
+        return this.categoriesService.getCategoryBlogs(id);
+    }
+
+    @Get(':id/symptoms')
+    @ApiOperation({ summary: 'Get all symptoms in a category' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Symptoms in category found successfully.',
+    })
+    getCategorySymptoms(@Param('id', ParseUUIDPipe) id: string) {
+        return this.categoriesService.getCategorySymptoms(id);
     }
 
     @Patch(':id')

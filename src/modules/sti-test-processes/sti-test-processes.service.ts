@@ -5,6 +5,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { SortOrder } from 'src/enums';
 import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AppointmentsService } from '../appointments/appointments.service';
@@ -14,10 +15,7 @@ import { ServicesService } from '../services/services.service';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
-import {
-    StiTestProcessListResponseDto,
-    StiTestProcessResponseDto,
-} from './dto/sti-test-process-response.dto';
+import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
 import { StiTestProcess } from './entities/sti-test-process.entity';
 import { StiTestProcessStatus } from './enums';
@@ -141,7 +139,7 @@ export class StiTestProcessesService {
      */
     async findAll(
         query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    ): Promise<Paginated<StiTestProcessResponseDto>> {
         const {
             page = 1,
             limit = 10,
@@ -197,10 +195,12 @@ export class StiTestProcessesService {
 
         return {
             data: processedData,
-            total,
-            page,
-            limit,
-            totalPages: totalPages,
+            meta: {
+                currentPage: page,
+                totalItems: total,
+                totalPages: totalPages,
+                itemsPerPage: limit,
+            },
         };
     }
 
@@ -414,7 +414,7 @@ export class StiTestProcessesService {
     async findByPatientId(
         patientId: string,
         query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    ): Promise<Paginated<StiTestProcessResponseDto>> {
         return this.findAll({ ...query, patientId });
     }
 

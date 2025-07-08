@@ -1,12 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
+import { DeepPartial, IsNull, Repository } from 'typeorm';
+import { ServicePackage } from '../service-packages/entities/service-package.entity';
+import { Service } from '../services/entities/service.entity';
 import { CreatePackageServiceDto } from './dto/create-package-service.dto';
 import { UpdatePackageServiceDto } from './dto/update-package-service.dto';
 import { PackageService } from './entities/package-service.entity';
-import { ServicePackage } from '../service-packages/entities/service-package.entity';
-import { Service } from '../services/entities/service.entity';
-import { IsNull } from 'typeorm';
 
 @Injectable()
 export class PackageServicesService {
@@ -44,7 +43,7 @@ export class PackageServicesService {
 
         const packageService = this.packageServiceRepository.create({
             ...packageServiceData,
-            package: { id: packageId },
+            servicePackage: { id: packageId },
             service: { id: serviceId },
         });
 

@@ -72,6 +72,28 @@ export class TestResultResponseDto {
         firstName: string;
         lastName: string;
     };
+
+    @ApiPropertyOptional({
+        description: 'Thông tin documents (PDF, hình ảnh) liên quan',
+    })
+    @Expose()
+    documents?: {
+        id: string;
+        filename: string;
+        url: string;
+        type: string;
+        size: number;
+        uploadedAt: Date;
+    }[];
+
+    @ApiPropertyOptional({ description: 'Thông tin gửi thông báo' })
+    @Expose()
+    notificationInfo?: {
+        sent: boolean;
+        sentAt?: Date;
+        methods: string[]; // ['email', 'in-app']
+        canResend: boolean;
+    };
 }
 
 // Response DTO cho template

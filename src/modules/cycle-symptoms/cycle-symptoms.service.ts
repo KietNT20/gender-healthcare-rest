@@ -15,7 +15,7 @@ export class CycleSymptomsService {
         @InjectRepository(Symptom)
         private readonly symptomRepository: Repository<Symptom>,
         @InjectRepository(MenstrualCycle)
-        private readonly cycleRepository: Repository<MenstrualCycle>,
+        private readonly menstrualCycleRepository: Repository<MenstrualCycle>,
         @InjectRepository(CycleSymptom)
         private readonly cycleSymptomRepository: Repository<CycleSymptom>,
     ) {}
@@ -34,7 +34,7 @@ export class CycleSymptomsService {
         const {
             page,
             limit,
-            cycleId,
+            menstrualCycleId,
             symptomId,
             intensity,
             sortBy,
@@ -50,16 +50,22 @@ export class CycleSymptomsService {
             .leftJoinAndSelect('cycleSymptom.symptom', 'symptom')
             .leftJoinAndSelect('cycleSymptom.cycle', 'cycle');
 
-        if (cycleId) {
-            queryBuilder.andWhere('cycleSymptom.cycleId = :cycleId', {
-                cycleId,
-            });
+        if (menstrualCycleId) {
+            queryBuilder.andWhere(
+                'cycleSymptom.menstrualCycleId = :menstrualCycleId',
+                {
+                    menstrualCycleId,
+                },
+            );
 
-            const cycle = await this.cycleRepository.findOneBy({ id: cycleId });
+            const menstrualCycle =
+                await this.menstrualCycleRepository.findOneBy({
+                    id: menstrualCycleId,
+                });
 
-            if (!cycle) {
+            if (!menstrualCycle) {
                 throw new NotFoundException(
-                    `Không tìm thấy Chu kỳ kinh nguyệt có ID là ${cycleId}`,
+                    `Không tìm thấy Chu kỳ kinh nguyệt có ID là ${menstrualCycleId}`,
                 );
             }
         }

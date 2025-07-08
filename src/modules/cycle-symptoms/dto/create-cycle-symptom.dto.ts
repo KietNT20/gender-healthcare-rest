@@ -34,7 +34,7 @@ export class CreateCycleSymptomDto {
     @IsString()
     @IsUUID('4')
     @IsNotEmpty()
-    cycleId: string;
+    menstrualCycleId: string;
 
     @ApiProperty({
         description: 'ID of the symptom',

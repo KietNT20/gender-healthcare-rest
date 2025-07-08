@@ -59,8 +59,9 @@ export class PaymentsService {
         const defaultFrontendDomain =
             this.paymentLinkService.getDefaultFrontendDomain();
 
-        return this.paymentCallbackService.handleSuccessCallback(
+        return this.paymentCallbackService.handleRedirectCallback(
             orderCode,
+            false,
             defaultFrontendDomain,
         );
     }
@@ -72,8 +73,9 @@ export class PaymentsService {
         const defaultFrontendDomain =
             this.paymentLinkService.getDefaultFrontendDomain();
 
-        return this.paymentCallbackService.handleCancelCallback(
+        return this.paymentCallbackService.handleRedirectCallback(
             orderCode,
+            true,
             defaultFrontendDomain,
         );
     }
@@ -82,7 +84,7 @@ export class PaymentsService {
      * Xác thực và xử lý webhook từ PayOS
      */
     async verifyWebhook(webhookData: WebhookTypeDTO) {
-        return this.paymentCallbackService.verifyWebhook(webhookData);
+        return this.paymentCallbackService.verifyAndProcessWebhook(webhookData);
     }
 
     /**
@@ -119,7 +121,10 @@ export class PaymentsService {
      * Hủy thanh toán (admin use)
      */
     async cancelPayment(id: string, cancelDto: CancelPaymentDto) {
-        return this.paymentCallbackService.cancelPayment(id, cancelDto);
+        return this.paymentCallbackService.cancelPaymentFromSystem(
+            id,
+            cancelDto,
+        );
     }
 
     /**

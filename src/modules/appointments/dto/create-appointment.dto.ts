@@ -14,16 +14,17 @@ import { IsAfterNow } from 'src/decorators/is-after-now.decorator';
 import { LocationTypeEnum } from 'src/enums';
 
 export class CreateAppointmentDto {
-    @ApiProperty({
-        description: 'Mảng các ID của dịch vụ mà người dùng muốn đặt.',
+    @ApiPropertyOptional({
+        description:
+            'Mảng các ID của dịch vụ mà người dùng muốn đặt. Không bắt buộc cho tư vấn tổng quát.',
         type: [String],
         example: ['service-uuid-1', 'service-uuid-2'],
     })
     @IsArray()
     @ArrayMinSize(1)
     @IsUUID('4', { each: true })
-    @IsNotEmpty()
-    serviceIds: string[];
+    @IsOptional()
+    serviceIds?: string[];
 
     @ApiPropertyOptional({
         description:

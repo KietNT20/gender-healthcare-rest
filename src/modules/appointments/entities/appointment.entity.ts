@@ -132,6 +132,7 @@ export class Appointment {
     feedbacks: Feedback[];
 
     @OneToOne(() => TestResult, (testResult) => testResult.appointment)
+    @JoinColumn()
     testResult: TestResult;
 
     @OneToOne(

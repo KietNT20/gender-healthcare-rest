@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     IsBoolean,
@@ -77,9 +77,19 @@ export class CreateTestResultDto {
     @IsBoolean()
     @IsOptional()
     followUpRequired: boolean = false;
+
+    @ApiPropertyOptional({
+        description: 'Notes for follow-up actions or observations',
+        example: 'Patient should return in 2 weeks for re-evaluation.',
+    })
+    @IsString()
+    @IsOptional()
+    followUpNotes?: string;
 }
 
-export class CreateTestResultWithFileDto extends CreateTestResultDto {
+
+
+export class FileDto{
     @ApiPropertyOptional({
         type: 'string',
         format: 'binary',
@@ -87,3 +97,5 @@ export class CreateTestResultWithFileDto extends CreateTestResultDto {
     })
     file: any;
 }
+
+export class CreateTestResultWithFileDto extends  IntersectionType(CreateTestResultDto, FileDto) {}

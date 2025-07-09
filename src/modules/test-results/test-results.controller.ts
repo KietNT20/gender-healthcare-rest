@@ -18,6 +18,7 @@ import {
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
+    ApiForbiddenResponse,
     ApiOperation,
     ApiParam,
     ApiResponse,
@@ -31,7 +32,10 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
-import { CreateTestResultDto, CreateTestResultWithFileDto } from './dto/create-test-result.dto';
+import {
+    CreateTestResultDto,
+    CreateTestResultWithFileDto,
+} from './dto/create-test-result.dto';
 import { TestResultDataDto } from './dto/test-result-data.dto';
 import {
     RecommendationsResponseDto,
@@ -157,6 +161,9 @@ export class TestResultsController {
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         type: CreateTestResultWithFileDto,
+    })
+    @ApiForbiddenResponse({
+        description: 'Forbidden: Admin or Staff role required.',
     })
     @ResponseMessage('Test result created successfully.')
     create(

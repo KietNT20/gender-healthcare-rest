@@ -16,10 +16,7 @@ import {
     MeasurementUnit,
     ServiceType,
 } from '../enums/test-result.enums';
-import {
-    TestResultData,
-    TestResultItem,
-} from '../interfaces/test-result.interfaces';
+import { TestResultItem } from '../interfaces/test-result.interfaces';
 
 // DTO cho một kết quả test riêng lẻ
 export class TestResultItemDto
@@ -183,7 +180,7 @@ export class QualityControlDto {
     reviewer?: string;
 }
 
-export class TestResultDataDto implements TestResultData {
+export class TestResultDataDto {
     @ApiProperty({
         description: 'Loại dịch vụ y tế',
         enum: ServiceType,

@@ -133,7 +133,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard)
     @SubscribeMessage(CHAT_EVENTS.SEND_MESSAGE)
     async handleSendMessage(
-        @MessageBody() data: CreateChatDto & { questionId: string },
+        @MessageBody() data: CreateChatDto,
         @ConnectedSocket() client: AuthenticatedSocket,
     ) {
         try {

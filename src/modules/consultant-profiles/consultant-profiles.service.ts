@@ -128,7 +128,7 @@ export class ConsultantProfilesService {
 
         if (consultationTypes) {
             // Giả sử consultationTypes là một trường có kiểu phù hợp
-            baseWhere.consultationTypes = consultationTypes;
+            baseWhere.consultationTypes = ArrayContains([consultationTypes]);
         }
 
         if (specialties) {

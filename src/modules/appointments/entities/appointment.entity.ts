@@ -148,6 +148,7 @@ export class Appointment {
     @OneToOne(() => Question, (question) => question.appointment, {
         nullable: true,
         cascade: true,
+        eager: true,
     })
     @JoinColumn()
     question?: Question;

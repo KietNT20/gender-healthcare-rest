@@ -31,7 +31,7 @@ import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
-import { CreateTestResultDto } from './dto/create-test-result.dto';
+import { CreateTestResultDto, CreateTestResultWithFileDto } from './dto/create-test-result.dto';
 import { TestResultDataDto } from './dto/test-result-data.dto';
 import {
     RecommendationsResponseDto,
@@ -156,42 +156,7 @@ export class TestResultsController {
     })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description: 'Test result file (PDF, image, etc.)',
-                },
-                appointmentId: {
-                    type: 'string',
-                    format: 'uuid',
-                    description: 'Required for online booking cases',
-                },
-                patientId: {
-                    type: 'string',
-                    format: 'uuid',
-                    description:
-                        'Required for walk-in cases (when no appointmentId)',
-                },
-                serviceId: {
-                    type: 'string',
-                    format: 'uuid',
-                    description:
-                        'Required for walk-in cases (when no appointmentId)',
-                },
-                resultData: {
-                    type: 'object',
-                    description: 'Structured test result data',
-                },
-                resultSummary: { type: 'string' },
-                isAbnormal: { type: 'boolean' },
-                recommendation: { type: 'string' },
-                followUpRequired: { type: 'boolean' },
-                followUpNotes: { type: 'string' },
-            },
-        },
+        type: CreateTestResultWithFileDto,
     })
     @ResponseMessage('Test result created successfully.')
     create(

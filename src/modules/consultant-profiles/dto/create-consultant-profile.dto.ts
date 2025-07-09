@@ -28,7 +28,6 @@ export class CreateConsultantProfileDto {
             'Specialties of the consultant, e.g., "Cardiology", "Psychology".',
         type: [String],
     })
-    @IsNotEmpty()
     @IsArray()
     specialties: string[];
 

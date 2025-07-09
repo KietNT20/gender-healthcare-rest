@@ -39,7 +39,7 @@ export class RegisterConsultantDataDto {
     @IsString({ each: true })
     @IsNotEmpty()
     @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
-    specialties: string[];
+    specialties: Array<string>;
 
     @ApiProperty()
     @IsNotEmpty()

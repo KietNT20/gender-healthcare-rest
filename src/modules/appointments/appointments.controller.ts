@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     HttpStatus,
     Param,
@@ -11,11 +12,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import {
+    ApiBadRequestResponse,
     ApiBearerAuth,
     ApiBody,
+    ApiForbiddenResponse,
+    ApiOkResponse,
     ApiOperation,
     ApiResponse,
-    ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
@@ -25,6 +28,7 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { AppointmentAttendanceService } from './appointment-attendance.service';
+import { AppointmentMeetingLinkService } from './appointment-meeting-link.service';
 import { AppointmentsService } from './appointments.service';
 import {
     CheckInAppointmentDto,
@@ -45,8 +49,11 @@ import {
     CancelAppointmentDto,
     UpdateAppointmentDto,
 } from './dto/update-appointment.dto';
+import {
+    ConsultantAppointmentsMeetingQueryDto,
+    UpdateMeetingLinkDto,
+} from './dto/update-meeting-link.dto';
 
-@ApiTags('Appointments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -54,14 +61,16 @@ export class AppointmentsController {
     constructor(
         private readonly appointmentsService: AppointmentsService,
         private readonly attendanceService: AppointmentAttendanceService,
+        private readonly meetingLinkService: AppointmentMeetingLinkService,
     ) {}
+
     @Post()
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CUSTOMER])
     @ApiOperation({
         summary: 'Book an appointment with selected consultant',
         description:
-            'Đặt cuộc hẹn với tư vấn viên đã được chọn từ danh sách available slots',
+            'Đặt cuộc hẹn với tư vấn viên. Có thể đặt tư vấn tổng quát (không truyền serviceIds) hoặc tư vấn có dịch vụ cụ thể (truyền serviceIds).',
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
@@ -103,7 +112,7 @@ export class AppointmentsController {
     @ApiOperation({
         summary: 'Find available consultation slots',
         description:
-            'Tìm kiếm các slot tư vấn khả dụng dựa trên dịch vụ và khoảng thời gian',
+            'Tìm kiếm các slot tư vấn khả dụng. Để trống serviceIds cho tư vấn tổng quát, hoặc truyền serviceIds cho tư vấn có dịch vụ cụ thể.',
     })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -128,6 +137,29 @@ export class AppointmentsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.appointmentsService.findOne(id, currentUser);
+    }
+
+    @Get('consultant/my-appointments')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CONSULTANT])
+    @ApiOperation({
+        summary: 'Get consultant appointments',
+    })
+    @ApiOkResponse({
+        description: 'Consultant appointments retrieved successfully.',
+    })
+    @ApiForbiddenResponse({
+        description: 'Forbidden: You do not have permission (Consultant only).',
+    })
+    @ResponseMessage('Successfully retrieved consultant appointments.')
+    getConsultantAppointments(
+        @Query() queryDto: ConsultantAppointmentsMeetingQueryDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.meetingLinkService.getConsultantAppointments(
+            currentUser,
+            queryDto,
+        );
     }
 
     @Get(':id')
@@ -303,6 +335,93 @@ export class AppointmentsController {
         return this.attendanceService.processLateCheckIn(
             appointmentId,
             lateCheckInDto,
+        );
+    }
+
+    @Patch(':id/meeting-link')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    @ApiOperation({
+        summary: 'Update meeting link for appointment',
+    })
+    @ApiOkResponse({
+        description: 'Meeting link updated successfully.',
+    })
+    @ApiBadRequestResponse({
+        description: 'Invalid meeting link or insufficient permissions.',
+    })
+    @ApiForbiddenResponse({
+        description:
+            'Forbidden: You do not have permission (Consultant/Admin/Manager only).',
+    })
+    @ResponseMessage('Meeting link updated successfully.')
+    updateMeetingLink(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @Body() updateDto: UpdateMeetingLinkDto,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.meetingLinkService.updateMeetingLink(
+            appointmentId,
+            updateDto,
+            currentUser,
+        );
+    }
+
+    @Get(':id/meeting-link')
+    @ApiOperation({
+        summary: 'Get meeting link for appointment',
+        description:
+            'Lấy meeting link của cuộc hẹn (chỉ những người liên quan)',
+    })
+    @ApiOkResponse({
+        description: 'Meeting link retrieved successfully.',
+    })
+    @ApiBadRequestResponse({
+        description: 'Insufficient permissions to view meeting link.',
+    })
+    getMeetingLink(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.meetingLinkService.getMeetingLink(
+            appointmentId,
+            currentUser,
+        );
+    }
+
+    @Delete(':id/meeting-link')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    @ApiOperation({
+        summary: 'Remove meeting link from appointment',
+        description:
+            'Xóa meeting link của cuộc hẹn (Consultant/Admin/Manager only)',
+    })
+    @ApiOkResponse({
+        description: 'Meeting link removed successfully.',
+    })
+    @ApiBadRequestResponse({
+        description: 'Insufficient permissions to remove meeting link.',
+    })
+    @ApiForbiddenResponse({
+        description:
+            'Forbidden: You do not have permission (Consultant/Admin/Manager only).',
+    })
+    removeMeetingLink(
+        @Param('id', ParseUUIDPipe) appointmentId: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.meetingLinkService.removeMeetingLink(
+            appointmentId,
+            currentUser,
         );
     }
 }

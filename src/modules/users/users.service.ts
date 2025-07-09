@@ -46,7 +46,7 @@ export class UsersService {
      */
     async create(
         createUserDto: CreateUserDto,
-        actorId: string,
+        actorId?: string,
     ): Promise<UserResponseDto> {
         // Check if email already exists
         const existingUser = await this.userRepository.findOne({
@@ -106,14 +106,16 @@ export class UsersService {
 
         const savedUser = await this.userRepository.save(user);
 
-        // Write audit log
-        await this.auditLogsService.create({
-            userId: actorId,
-            action: ActionType.CREATE,
-            entityType: 'User',
-            entityId: savedUser.id,
-            newValues: savedUser,
-        });
+        if (actorId) {
+            // Write audit log
+            await this.auditLogsService.create({
+                userId: actorId,
+                action: ActionType.CREATE,
+                entityType: 'User',
+                entityId: savedUser.id,
+                newValues: savedUser,
+            });
+        }
 
         // Return user without password
         return this.toUserResponse(savedUser);
@@ -700,7 +702,7 @@ export class UsersService {
     async update(
         id: string,
         updateUserDto: UpdateUserDto,
-        actorId: string,
+        actorId?: string,
     ): Promise<UserResponseDto> {
         const userBeforeUpdate = await this.findOne(id);
         if (!userBeforeUpdate) {
@@ -767,14 +769,16 @@ export class UsersService {
         );
         const savedUser = await this.userRepository.save(updatedUserEntity);
 
-        await this.auditLogsService.create({
-            userId: actorId,
-            action: ActionType.UPDATE,
-            entityType: 'User',
-            entityId: id,
-            oldValues: userBeforeUpdate,
-            newValues: updateUserDto,
-        });
+        if (actorId) {
+            await this.auditLogsService.create({
+                userId: actorId,
+                action: ActionType.UPDATE,
+                entityType: 'User',
+                entityId: id,
+                oldValues: userBeforeUpdate,
+                newValues: updateUserDto,
+            });
+        }
 
         return this.toUserResponse(savedUser);
     }

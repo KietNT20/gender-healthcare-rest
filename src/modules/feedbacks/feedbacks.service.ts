@@ -1,20 +1,20 @@
 import {
-    Injectable,
-    NotFoundException,
     BadRequestException,
+    Injectable,
     Logger,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between, IsNull } from 'typeorm';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { UpdateFeedbackDto } from './dto/update-feedback.dto';
-import { FeedbackQueryDto } from './dto/feedback-query.dto';
-import { Feedback } from './entities/feedback.entity';
-import { User } from '../users/entities/user.entity';
-import { Service } from '../services/entities/service.entity';
-import { Appointment } from '../appointments/entities/appointment.entity';
 import { RolesNameEnum } from 'src/enums';
+import { Between, FindOptionsWhere, IsNull, Like, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
+import { Appointment } from '../appointments/entities/appointment.entity';
+import { Service } from '../services/entities/service.entity';
+import { User } from '../users/entities/user.entity';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackQueryDto } from './dto/feedback-query.dto';
+import { UpdateFeedbackDto } from './dto/update-feedback.dto';
+import { Feedback } from './entities/feedback.entity';
 
 @Injectable()
 export class FeedbacksService {
@@ -126,7 +126,9 @@ export class FeedbacksService {
             let consultant = await this.userRepository.findOne({
                 where: {
                     id: createFeedbackDto.consultantId,
-                    roleId: RolesNameEnum.CONSULTANT,
+                    role: {
+                        name: RolesNameEnum.CONSULTANT,
+                    },
                     deletedAt: IsNull(),
                 },
             });
@@ -207,24 +209,24 @@ export class FeedbacksService {
         }
 
         // Build where conditions
-        const where: any = { deletedAt: IsNull() };
+        const where: FindOptionsWhere<Feedback> = { deletedAt: IsNull() };
         if (userId) {
-            where.userId = userId;
+            where.user = { id: userId };
         }
         if (serviceId) {
-            where.serviceId = serviceId;
+            where.service = { id: serviceId };
         }
         if (appointmentId) {
-            where.appointmentId = appointmentId;
+            where.appointment = { id: appointmentId };
         }
         if (consultantId) {
-            where.consultantId = consultantId;
+            where.consultant = { id: consultantId };
         }
         if (minRating !== undefined || maxRating !== undefined) {
             where.rating = Between(minRating ?? 1, maxRating ?? 5);
         }
         if (isAnonymous !== undefined) {
-            where.isAnonymous = isAnonymous;
+            where.isAnonymous = isAnonymous === 'true' ? true : false;
         }
         if (searchComment) {
             where.comment = Like(`%${searchComment}%`);
@@ -372,7 +374,7 @@ export class FeedbacksService {
             let consultant = await this.userRepository.findOne({
                 where: {
                     id: updateFeedbackDto.consultantId,
-                    roleId: RolesNameEnum.CONSULTANT,
+                    role: { name: RolesNameEnum.CONSULTANT },
                     deletedAt: IsNull(),
                 },
             });

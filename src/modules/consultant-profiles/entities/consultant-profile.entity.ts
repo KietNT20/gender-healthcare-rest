@@ -1,4 +1,8 @@
-import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
+import {
+    ConsultationFeeType,
+    LocationTypeEnum,
+    ProfileStatusType,
+} from 'src/enums';
 import { ConsultantAvailability } from 'src/modules/consultant-availability/entities/consultant-availability.entity';
 import { Document } from 'src/modules/documents/entities/document.entity';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -73,11 +77,18 @@ export class ConsultantProfile {
     })
     consultationFee: number;
 
+    @Column({
+        type: 'enum',
+        enum: ConsultationFeeType,
+        default: ConsultationFeeType.PER_SESSION,
+    })
+    consultationFeeType: ConsultationFeeType;
+
+    @Column({ type: 'int', default: 60 })
+    sessionDurationMinutes: number; // Thời gian session chuẩn (phút)
+
     @Column({ default: 10 })
     maxAppointmentsPerDay: number;
-
-    @Column({ default: 0 })
-    version: number;
 
     @Column({ default: false })
     isVerified: boolean;

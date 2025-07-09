@@ -35,7 +35,7 @@ export class CycleMood {
         eager: true,
         cascade: true,
     })
-    cycle: MenstrualCycle;
+    menstrualCycle: MenstrualCycle;
 
     @ManyToOne(() => Mood, (mood) => mood.cycleMoods, {
         eager: true,

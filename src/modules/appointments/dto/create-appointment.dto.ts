@@ -1,28 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    ArrayMinSize,
     IsArray,
     IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
     IsString,
+    IsUrl,
     IsUUID,
 } from 'class-validator';
 import { IsAfterNow } from 'src/decorators/is-after-now.decorator';
 import { LocationTypeEnum } from 'src/enums';
 
 export class CreateAppointmentDto {
-    @ApiProperty({
-        description: 'Mảng các ID của dịch vụ mà người dùng muốn đặt.',
+    @ApiPropertyOptional({
+        description:
+            'Mảng các ID của dịch vụ mà người dùng muốn đặt. Để trống cho tư vấn tổng quát.',
         type: [String],
         example: ['service-uuid-1', 'service-uuid-2'],
     })
+    @IsOptional()
     @IsArray()
-    @ArrayMinSize(1)
     @IsUUID('4', { each: true })
-    @IsNotEmpty()
-    serviceIds: string[];
+    serviceIds?: string[];
 
     @ApiPropertyOptional({
         description:
@@ -56,4 +56,9 @@ export class CreateAppointmentDto {
     @IsString()
     @IsOptional()
     notes?: string;
+
+    @ApiPropertyOptional({ description: 'Link meeting' })
+    @IsOptional()
+    @IsUrl()
+    meetingLink?: string;
 }

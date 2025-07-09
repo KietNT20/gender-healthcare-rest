@@ -7,8 +7,8 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Service } from '../../services/entities/service.entity';
 import { ServicePackage } from '../../service-packages/entities/service-package.entity';
+import { Service } from '../../services/entities/service.entity';
 
 @Entity()
 export class PackageService {
@@ -32,7 +32,7 @@ export class PackageService {
         () => ServicePackage,
         (servicePackage) => servicePackage.packageServices,
     )
-    package: ServicePackage;
+    servicePackage: ServicePackage;
 
     @ManyToOne(() => Service, (service) => service.packageServices)
     service: Service;

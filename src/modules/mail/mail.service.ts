@@ -394,14 +394,9 @@ export class MailService {
                 },
             });
 
-            this.logger.log(
-                `Custom email sent to ${to} with template ${template}`,
-            );
+            this.logger.log(`Email sent to ${to}`);
         } catch (error) {
-            this.logger.error(
-                `Failed to send custom email to ${to}`,
-                error.stack,
-            );
+            this.logger.error(`Failed to send email to ${to}`, error.stack);
             throw error;
         }
     }

@@ -10,7 +10,11 @@ import {
     IsString,
     IsUUID,
 } from 'class-validator';
-import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
+import {
+    ConsultationFeeType,
+    LocationTypeEnum,
+    ProfileStatusType,
+} from 'src/enums';
 
 export class CreateConsultantProfileDto {
     @ApiProperty({ description: 'ID of the user this profile belongs to.' })
@@ -49,6 +53,20 @@ export class CreateConsultantProfileDto {
     @IsNumber()
     @IsPositive()
     consultationFee: number;
+
+    @ApiProperty({
+        enum: ConsultationFeeType,
+        description: 'Type of consultation fee.',
+    })
+    @IsNotEmpty()
+    @IsEnum(ConsultationFeeType)
+    consultationFeeType: ConsultationFeeType = ConsultationFeeType.PER_SESSION;
+
+    @ApiPropertyOptional({ default: 60 })
+    @IsOptional()
+    @IsNumber()
+    @IsPositive()
+    sessionDurationMinutes?: number = 60; // Default session duration in minutes
 
     @ApiPropertyOptional({ default: true })
     @IsOptional()

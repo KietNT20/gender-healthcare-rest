@@ -1,6 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import {
-    ApiOAuth2,
     ApiOkResponse,
     ApiOperation,
     ApiTags,
@@ -17,7 +16,6 @@ export class GoogleAuthenticationController {
     ) {}
 
     @Post('authenticate')
-    @ApiOAuth2(['google'])
     @ApiOperation({ summary: 'Authenticate with Google token' })
     @ApiOkResponse({ description: 'Authentication successful' })
     @ApiUnauthorizedResponse({

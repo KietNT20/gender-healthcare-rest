@@ -13,10 +13,12 @@ import {
 import {
     ApiBearerAuth,
     ApiBody,
+    ApiOkResponse,
     ApiOperation,
     ApiParam,
     ApiQuery,
     ApiResponse,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
@@ -29,7 +31,6 @@ import { RegisterDto } from './dto/register.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RefreshJwtGuard } from './guards/refresh-jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -211,20 +212,17 @@ export class AuthController {
         }
     }
 
-    @Post('refresh-token')
-    @UseGuards(RefreshJwtGuard)
+    @Put('refresh-token')
     @ApiOperation({ summary: 'Refresh access token' })
-    @ApiResponse({
-        status: HttpStatus.OK,
+    @ApiOkResponse({
         description: 'Token refreshed successfully',
     })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
+    @ApiUnauthorizedResponse({
         description: 'Invalid refresh token',
     })
     @ResponseMessage('Token refreshed successfully')
-    async refreshToken(@CurrentUser() user: RefreshTokenDto) {
-        return this.authService.refreshToken(user.refreshToken);
+    async refreshToken(@Body() body: RefreshTokenDto) {
+        return this.authService.refreshToken(body.refreshToken);
     }
 
     @Post('logout')

@@ -208,21 +208,29 @@ export class AppointmentBookingService {
             consultantId,
         } = findSlotsDto;
 
-        // Lấy thông tin services
-        const services = await manager.find(Service, {
-            where: { id: In(serviceIds) },
-            relations: {
-                category: true,
-            },
-        });
+        // Lấy thông tin services nếu có
+        let services: Service[] = [];
+        if (serviceIds && serviceIds.length > 0) {
+            services = await manager.find(Service, {
+                where: { id: In(serviceIds) },
+                relations: {
+                    category: true,
+                },
+            });
+        }
 
         // Kiểm tra xem có dịch vụ nào yêu cầu tư vấn viên không
         const consultationServices = services.filter(
             (service) => service.requiresConsultant === true,
         );
 
-        // Nếu không có dịch vụ nào yêu cầu tư vấn viên, trả về empty
-        if (consultationServices.length === 0) {
+        // Nếu không có serviceIds (tư vấn tổng quát) hoặc có dịch vụ yêu cầu tư vấn viên
+        const needsConsultant =
+            !serviceIds ||
+            serviceIds.length === 0 ||
+            consultationServices.length > 0;
+
+        if (!needsConsultant) {
             return {
                 availableSlots: [],
                 totalSlots: 0,
@@ -231,9 +239,13 @@ export class AppointmentBookingService {
             };
         }
 
-        const serviceSpecialties = consultationServices.flatMap(
-            (service) => service.specialties || [],
-        );
+        // Đối với tư vấn tổng quát, không cần kiểm tra specialty
+        const serviceSpecialties =
+            !serviceIds || serviceIds.length === 0
+                ? []
+                : consultationServices.flatMap(
+                      (service) => service.specialties || [],
+                  );
 
         // Tính toán khoảng thời gian tìm kiếm
         const searchStartDate = new Date(startDate);
@@ -267,7 +279,7 @@ export class AppointmentBookingService {
                 };
             }
 
-            // Kiểm tra specialty matching nếu có yêu cầu
+            // Kiểm tra specialty matching nếu có yêu cầu (chỉ cho tư vấn có dịch vụ cụ thể)
             if (serviceSpecialties.length > 0) {
                 const consultantSpecialties = specificProfile.specialties || [];
                 const hasMatchingSpecialty = serviceSpecialties.some(
@@ -295,16 +307,18 @@ export class AppointmentBookingService {
 
             profiles = [specificProfile];
         } else {
-            // Tìm tất cả consultant phù hợp dựa trên specialties
-            const consultantWhere: any = {
+            // Tìm tất cả tư vấn viên phù hợp
+            const whereConditions: any = {
                 profileStatus: ProfileStatusType.ACTIVE,
-                ...(serviceSpecialties.length > 0 && {
-                    specialties: In(serviceSpecialties),
-                }),
             };
 
+            // Chỉ filter theo specialty nếu có dịch vụ cụ thể yêu cầu
+            if (serviceSpecialties.length > 0) {
+                whereConditions.specialties = In(serviceSpecialties);
+            }
+
             profiles = await manager.find(ConsultantProfile, {
-                where: consultantWhere,
+                where: whereConditions,
                 relations: {
                     user: {
                         role: true,
@@ -313,12 +327,16 @@ export class AppointmentBookingService {
             });
 
             if (profiles.length === 0) {
+                const message =
+                    serviceSpecialties.length > 0
+                        ? 'Không tìm thấy tư vấn viên phù hợp với chuyên môn yêu cầu.'
+                        : 'Không tìm thấy tư vấn viên nào đang hoạt động.';
+
                 return {
                     availableSlots: [],
                     totalSlots: 0,
                     totalConsultants: 0,
-                    message:
-                        'Không tìm thấy tư vấn viên phù hợp với chuyên môn yêu cầu.',
+                    message,
                 };
             }
         }

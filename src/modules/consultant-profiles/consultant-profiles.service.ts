@@ -5,16 +5,30 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { ProfileStatusType } from 'src/enums';
+import { ProfileStatusType, SortOrder } from 'src/enums';
+import { ActionType } from 'src/enums/action-type.enum';
+import { AuditLogsService } from 'src/modules/audit-logs/audit-logs.service';
 import { MailService } from 'src/modules/mail/mail.service';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
 import { User } from 'src/modules/users/entities/user.entity';
-import { IsNull, Repository } from 'typeorm';
+import {
+    ArrayContains,
+    Between,
+    DataSource,
+    FindManyOptions,
+    FindOptionsWhere,
+    ILike,
+    IsNull,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+    Repository,
+} from 'typeorm';
 import { ConsultantScheduleGeneratorService } from './consultant-schedule-generator.service';
 import { CreateConsultantProfileDto } from './dto/create-consultant-profile.dto';
 import { QueryConsultantProfileDto } from './dto/query-consultant-profile.dto';
 import { RejectProfileDto } from './dto/review-profile.dto';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
+import { WorkingHours } from './entities/consultant-profile-data.entity';
 import { ConsultantProfile } from './entities/consultant-profile.entity';
 
 @Injectable()
@@ -26,6 +40,8 @@ export class ConsultantProfilesService {
         private readonly userRepository: Repository<User>,
         private readonly mailService: MailService,
         private readonly notificationsService: NotificationsService,
+        private readonly auditLogsService: AuditLogsService,
+        private readonly dataSource: DataSource,
         private readonly scheduleGeneratorService: ConsultantScheduleGeneratorService,
     ) {}
 
@@ -71,66 +87,114 @@ export class ConsultantProfilesService {
             status,
             isAvailable,
             minRating,
+            minConsultationFee,
+            maxConsultationFee,
+            consultationTypes,
             specialties,
-            sortBy,
-            sortOrder,
+            sortBy = 'createdAt',
+            sortOrder = SortOrder.DESC,
         } = queryDto;
 
-        const queryBuilder = this.profileRepository
-            .createQueryBuilder('profile')
-            .leftJoinAndSelect('profile.user', 'user')
-            .where('profile.deletedAt IS NULL');
-
-        if (search) {
-            queryBuilder.andWhere(
-                '(user.firstName ILIKE :search OR user.lastName ILIKE :search)',
-                { search: `%${search}%` },
-            );
-        }
+        const baseWhere: FindOptionsWhere<ConsultantProfile> = {
+            deletedAt: IsNull(),
+        };
 
         if (status) {
-            queryBuilder.andWhere('profile.profileStatus = :status', {
-                status,
-            });
+            baseWhere.profileStatus = status;
         }
 
         if (isAvailable !== undefined) {
-            queryBuilder.andWhere('profile.isAvailable = :isAvailable', {
-                isAvailable,
-            });
+            baseWhere.isAvailable = isAvailable === 'true';
         }
 
-        if (minRating) {
-            queryBuilder.andWhere('profile.rating >= :minRating', {
-                minRating,
-            });
+        if (minRating !== undefined) {
+            baseWhere.rating = MoreThanOrEqual(minRating);
+        }
+
+        // Xử lý khoảng phí tư vấn hiệu quả
+        if (
+            minConsultationFee !== undefined &&
+            maxConsultationFee !== undefined
+        ) {
+            baseWhere.consultationFee = Between(
+                minConsultationFee,
+                maxConsultationFee,
+            );
+        } else if (minConsultationFee !== undefined) {
+            baseWhere.consultationFee = MoreThanOrEqual(minConsultationFee);
+        } else if (maxConsultationFee !== undefined) {
+            baseWhere.consultationFee = LessThanOrEqual(maxConsultationFee);
+        }
+
+        if (consultationTypes) {
+            // Giả sử consultationTypes là một trường có kiểu phù hợp
+            baseWhere.consultationTypes = consultationTypes;
         }
 
         if (specialties) {
             const specialtiesArray = specialties
-                .split(',')
+                .split(', ')
                 .map((s) => s.trim())
                 .filter((s) => s.length > 0);
 
             if (specialtiesArray.length > 0) {
-                queryBuilder.andWhere(
-                    'profile.specialties && ARRAY[:...specialtiesArray]',
-                    { specialtiesArray },
-                );
+                baseWhere.specialties = ArrayContains(specialtiesArray);
             }
         }
 
-        const validSortFields = ['rating', 'consultationFee', 'createdAt'];
-        const orderBy = validSortFields.includes(sortBy)
-            ? `profile.${sortBy}`
-            : 'profile.createdAt';
-        queryBuilder.orderBy(orderBy, sortOrder);
+        // Định kiểu rõ ràng cho finalWhere để nó có thể là một object hoặc một mảng các object
+        let finalWhere:
+            | FindOptionsWhere<ConsultantProfile>
+            | FindOptionsWhere<ConsultantProfile>[];
+
+        if (search) {
+            // Nếu có `search`, tạo ra một mảng các điều kiện.
+            // TypeORM sẽ nối các điều kiện này bằng OR.
+            finalWhere = [
+                {
+                    ...baseWhere,
+                    user: {
+                        firstName: ILike(`%${search}%`),
+                    },
+                },
+                {
+                    ...baseWhere,
+                    user: {
+                        lastName: ILike(`%${search}%`),
+                    },
+                },
+            ];
+        } else {
+            finalWhere = baseWhere;
+        }
+
+        const findOptions: FindManyOptions<ConsultantProfile> = {
+            relations: {
+                user: true,
+            },
+            where: finalWhere,
+        };
+
+        const validSortFields = [
+            'rating',
+            'consultationFee',
+            'createdAt',
+            'updatedAt',
+        ];
+        const orderByField = validSortFields.includes(sortBy)
+            ? sortBy
+            : 'createdAt';
+
+        findOptions.order = {
+            [orderByField]: sortOrder as SortOrder,
+        };
 
         const skip = (page - 1) * limit;
-        const [data, totalItems] = await queryBuilder
-            .skip(skip)
-            .take(limit)
-            .getManyAndCount();
+        findOptions.skip = skip;
+        findOptions.take = limit;
+
+        const [data, totalItems] =
+            await this.profileRepository.findAndCount(findOptions);
 
         return {
             data,
@@ -159,13 +223,59 @@ export class ConsultantProfilesService {
         return profile;
     }
 
+    async getMyProfile(userId: string): Promise<ConsultantProfile> {
+        const profile = await this.profileRepository.findOne({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                isVerified: true,
+            },
+            relations: {
+                user: true,
+            },
+        });
+
+        if (!profile) {
+            throw new NotFoundException(
+                `Consultant Profile for User ID ${userId} not found.`,
+            );
+        }
+
+        return profile;
+    }
+
+    async updateMyProfile(
+        userId: string,
+        updateDto: UpdateConsultantProfileDto,
+    ): Promise<ConsultantProfile> {
+        const profile = await this.profileRepository.findOne({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                isVerified: true,
+            },
+            relations: {
+                user: true,
+            },
+        });
+
+        if (!profile) {
+            throw new NotFoundException(
+                `Consultant Profile for User ID ${userId} not found.`,
+            );
+        }
+
+        const updated = this.profileRepository.merge(profile, updateDto);
+
+        return this.profileRepository.save(updated);
+    }
+
     async update(
         id: string,
         updateDto: UpdateConsultantProfileDto,
     ): Promise<ConsultantProfile> {
-        const profile = await this.profileRepository.preload({
+        const profile = await this.profileRepository.findOneBy({
             id,
-            ...updateDto,
         });
 
         if (!profile) {
@@ -174,7 +284,9 @@ export class ConsultantProfilesService {
             );
         }
 
-        return this.profileRepository.save(profile);
+        const updated = this.profileRepository.merge(profile, updateDto);
+
+        return this.profileRepository.save(updated);
     }
 
     async remove(id: string): Promise<void> {
@@ -200,37 +312,84 @@ export class ConsultantProfilesService {
         id: string,
         adminId: string,
     ): Promise<ConsultantProfile> {
-        const profile = await this.profileRepository.findOne({
-            where: { id },
-            relations: {
-                user: true,
-            },
-        });
-        if (
-            !profile ||
-            profile.profileStatus !== ProfileStatusType.PENDING_APPROVAL
-        ) {
-            throw new NotFoundException('Pending profile not found.');
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const profile = await queryRunner.manager.findOne(
+                ConsultantProfile,
+                {
+                    where: { id },
+                    relations: {
+                        user: true,
+                    },
+                },
+            );
+
+            if (!profile) {
+                throw new NotFoundException('Consultant profile not found.');
+            }
+
+            if (profile.profileStatus !== ProfileStatusType.PENDING_APPROVAL) {
+                throw new ConflictException(
+                    'Only pending profiles can be approved.',
+                );
+            }
+
+            // Store old values for audit log
+            const oldValues = {
+                profileStatus: profile.profileStatus,
+                verifiedAt: profile.verifiedAt,
+            };
+
+            // Update profile status
+            profile.profileStatus = ProfileStatusType.ACTIVE;
+            profile.verifiedAt = new Date();
+            const updatedProfile = await queryRunner.manager.save(
+                ConsultantProfile,
+                profile,
+            );
+
+            // Create audit log
+            await this.auditLogsService.create({
+                userId: adminId,
+                action: ActionType.UPDATE,
+                entityType: 'ConsultantProfile',
+                entityId: profile.id,
+                oldValues,
+                newValues: {
+                    profileStatus: profile.profileStatus,
+                    verifiedAt: profile.verifiedAt,
+                },
+                details: `Consultant profile approved for user ${profile.user.firstName} ${profile.user.lastName}`,
+            });
+
+            // Send email notification
+            const { user } = updatedProfile;
+            const userName = `${user.firstName} ${user.lastName}`;
+            await this.mailService.sendConsultantApprovalEmail(
+                user.email,
+                userName,
+            );
+
+            // Create in-app notification
+            await this.notificationsService.create({
+                userId: user.id,
+                title: 'Hồ sơ đã được duyệt',
+                content:
+                    'Chúc mừng! Hồ sơ tư vấn viên của bạn đã được phê duyệt.',
+                type: 'PROFILE_APPROVED',
+            });
+
+            await queryRunner.commitTransaction();
+            return updatedProfile;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
         }
-
-        profile.profileStatus = ProfileStatusType.ACTIVE;
-        profile.verifiedAt = new Date();
-        const updatedProfile = await this.profileRepository.save(profile);
-
-        const { user } = updatedProfile;
-        const userName = `${user.firstName} ${user.lastName}`;
-        await this.mailService.sendConsultantApprovalEmail(
-            user.email,
-            userName,
-        );
-        await this.notificationsService.create({
-            userId: user.id,
-            title: 'Hồ sơ đã được duyệt',
-            content: 'Chúc mừng! Hồ sơ tư vấn viên của bạn đã được phê duyệt.',
-            type: 'PROFILE_APPROVED',
-        });
-
-        return updatedProfile;
     }
 
     async rejectProfile(
@@ -238,38 +397,84 @@ export class ConsultantProfilesService {
         rejectDto: RejectProfileDto,
         adminId: string,
     ): Promise<ConsultantProfile> {
-        const profile = await this.profileRepository.findOne({
-            where: { id },
-            relations: {
-                user: true,
-            },
-        });
-        if (
-            !profile ||
-            profile.profileStatus !== ProfileStatusType.PENDING_APPROVAL
-        ) {
-            throw new NotFoundException('Pending profile not found.');
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const profile = await queryRunner.manager.findOne(
+                ConsultantProfile,
+                {
+                    where: { id },
+                    relations: {
+                        user: true,
+                    },
+                },
+            );
+
+            if (!profile) {
+                throw new NotFoundException('Consultant profile not found.');
+            }
+
+            if (profile.profileStatus !== ProfileStatusType.PENDING_APPROVAL) {
+                throw new ConflictException(
+                    'Only pending profiles can be rejected.',
+                );
+            }
+
+            // Store old values for audit log
+            const oldValues = {
+                profileStatus: profile.profileStatus,
+                rejectionReason: profile.rejectionReason,
+            };
+
+            // Update profile status
+            profile.profileStatus = ProfileStatusType.REJECTED;
+            profile.rejectionReason = rejectDto.reason;
+            const updatedProfile = await queryRunner.manager.save(
+                ConsultantProfile,
+                profile,
+            );
+
+            // Create audit log
+            await this.auditLogsService.create({
+                userId: adminId,
+                action: ActionType.UPDATE,
+                entityType: 'ConsultantProfile',
+                entityId: profile.id,
+                oldValues,
+                newValues: {
+                    profileStatus: profile.profileStatus,
+                    rejectionReason: profile.rejectionReason,
+                },
+                details: `Consultant profile rejected for user ${profile.user.firstName} ${profile.user.lastName}. Reason: ${rejectDto.reason}`,
+            });
+
+            // Send email notification
+            const { user } = updatedProfile;
+            const userName = `${user.firstName} ${user.lastName}`;
+            await this.mailService.sendConsultantRejectionEmail(
+                user.email,
+                userName,
+                rejectDto.reason,
+            );
+
+            // Create in-app notification
+            await this.notificationsService.create({
+                userId: user.id,
+                title: 'Hồ sơ bị từ chối',
+                content: `Rất tiếc, hồ sơ của bạn đã bị từ chối với lý do: ${rejectDto.reason}`,
+                type: 'PROFILE_REJECTED',
+            });
+
+            await queryRunner.commitTransaction();
+            return updatedProfile;
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
         }
-
-        profile.profileStatus = ProfileStatusType.REJECTED;
-        profile.rejectionReason = rejectDto.reason;
-        const updatedProfile = await this.profileRepository.save(profile);
-
-        const { user } = updatedProfile;
-        const userName = `${user.firstName} ${user.lastName}`;
-        await this.mailService.sendConsultantRejectionEmail(
-            user.email,
-            userName,
-            rejectDto.reason,
-        );
-        await this.notificationsService.create({
-            userId: user.id,
-            title: 'Hồ sơ bị từ chối',
-            content: `Rất tiếc, hồ sơ của bạn đã bị từ chối với lý do: ${rejectDto.reason}`,
-            type: 'PROFILE_REJECTED',
-        });
-
-        return updatedProfile;
     }
 
     /**
@@ -277,7 +482,7 @@ export class ConsultantProfilesService {
      */
     async updateWorkingHoursAndGenerateSchedule(
         id: string,
-        workingHours: any,
+        workingHours: WorkingHours,
         weeksToGenerate: number = 4,
     ): Promise<ConsultantProfile> {
         const profile = await this.findOne(id);

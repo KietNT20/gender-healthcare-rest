@@ -72,7 +72,7 @@ export class GoogleAuthenticationService implements OnModuleInit {
         }
 
         const googleUser: GoogleUser = {
-            email: email.toLocaleLowerCase(),
+            email: email,
             googleId,
             firstName: given_name,
             lastName: family_name,

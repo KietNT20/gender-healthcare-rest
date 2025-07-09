@@ -15,7 +15,7 @@ export class CycleMoodsService {
         @InjectRepository(Mood)
         private readonly moodRepository: Repository<Mood>,
         @InjectRepository(MenstrualCycle)
-        private readonly cycleRepository: Repository<MenstrualCycle>,
+        private readonly menstrualCycleRepository: Repository<MenstrualCycle>,
         @InjectRepository(CycleMood)
         private readonly cycleMoodRepository: Repository<CycleMood>,
     ) {}
@@ -27,8 +27,15 @@ export class CycleMoodsService {
     async findAll(
         cycleMoodQueryDto: CycleMoodQueryDto,
     ): Promise<Paginated<CycleMood>> {
-        const { page, limit, cycleId, moodId, intensity, sortBy, sortOrder } =
-            cycleMoodQueryDto;
+        const {
+            page,
+            limit,
+            menstrualCycleId,
+            moodId,
+            intensity,
+            sortBy,
+            sortOrder,
+        } = cycleMoodQueryDto;
 
         const pageNumber = page || 1;
         const limitNumber = limit || 10;
@@ -39,16 +46,22 @@ export class CycleMoodsService {
             .leftJoinAndSelect('cycleMood.mood', 'mood')
             .leftJoinAndSelect('cycleMood.cycle', 'cycle');
 
-        if (cycleId) {
-            queryBuilder.andWhere('cycleMood.cycleId = :cycleId', {
-                cycleId,
-            });
+        if (menstrualCycleId) {
+            queryBuilder.andWhere(
+                'cycleMood.menstrualCycleId = :menstrualCycleId',
+                {
+                    menstrualCycleId,
+                },
+            );
 
-            const cycle = await this.cycleRepository.findOneBy({ id: cycleId });
+            const menstrualCycle =
+                await this.menstrualCycleRepository.findOneBy({
+                    id: menstrualCycleId,
+                });
 
-            if (!cycle) {
+            if (!menstrualCycle) {
                 throw new NotFoundException(
-                    `Không tìm thấy Chu kỳ kinh nguyệt có ID là ${cycleId}`,
+                    `Không tìm thấy Chu kỳ kinh nguyệt có ID là ${menstrualCycleId}`,
                 );
             }
         }
@@ -99,7 +112,7 @@ export class CycleMoodsService {
             where: { id },
             relations: {
                 mood: true,
-                cycle: true,
+                menstrualCycle: true,
             },
         });
 

@@ -1350,48 +1350,6 @@ AWS_SECRET_ACCESS_KEY=your-secret-key
 
 # WebSocket
 WEBSOCKET_CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
-```
-
-### 8.2 Production Deployment
-
-**Docker Compose Example:**
-
-```yaml
-version: '3.8'
-services:
-    app:
-        build: .
-        ports:
-            - '3000:3000'
-        environment:
-            - NODE_ENV=production
-            - DATABASE_URL=${DATABASE_URL}
-            - REDIS_HOST=redis
-        depends_on:
-            - postgres
-            - redis
-
-    postgres:
-        image: postgres:15
-        environment:
-            POSTGRES_DB: gender_healthcare
-            POSTGRES_USER: ${DB_USER}
-            POSTGRES_PASSWORD: ${DB_PASSWORD}
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-
-    redis:
-        image: redis:7-alpine
-        command: redis-server --requirepass ${REDIS_PASSWORD}
-        volumes:
-            - redis_data:/data
-
-volumes:
-    postgres_data:
-    redis_data:
-```
-
-### 8.3 Nginx Configuration
 
 ```nginx
 upstream backend {

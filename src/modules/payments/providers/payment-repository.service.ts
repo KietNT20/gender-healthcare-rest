@@ -42,15 +42,15 @@ export class PaymentRepositoryService {
             paymentMethod: paymentData.paymentMethod,
             status: paymentData.status,
             invoiceNumber: paymentData.invoiceNumber,
-            user: { id: paymentData.userId } as any,
+            user: { id: paymentData.userId } as User,
             ...(paymentData.packageId && {
-                servicePackage: { id: paymentData.packageId } as any,
+                servicePackage: { id: paymentData.packageId } as ServicePackage,
             }),
             ...(paymentData.appointmentId && {
-                appointment: { id: paymentData.appointmentId } as any,
+                appointment: { id: paymentData.appointmentId } as Appointment,
             }),
             ...(paymentData.serviceId && {
-                service: { id: paymentData.serviceId } as any,
+                service: { id: paymentData.serviceId } as Service,
             }),
             gatewayResponse: paymentData.gatewayResponse,
         });
@@ -195,7 +195,7 @@ export class PaymentRepositoryService {
      * Soft delete payment
      */
     async softDeletePayment(id: string) {
-        const payment = await this.paymentRepository.findOne({ where: { id } });
+        const payment = await this.paymentRepository.findOneBy({ id });
         if (!payment) {
             throw new NotFoundException('Payment not found');
         }

@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { ProcessPriority, StiSampleType, StiTestProcessStatus } from '../enums';
 
 export class StiTestProcessResponseDto {
@@ -117,22 +116,4 @@ export class StiTestProcessResponseDto {
         lastName: string;
         email: string;
     };
-}
-
-export class StiTestProcessListResponseDto {
-    @ApiProperty({ type: [StiTestProcessResponseDto] })
-    @Type(() => StiTestProcessResponseDto)
-    data: StiTestProcessResponseDto[];
-
-    @ApiProperty({ description: 'Tổng số bản ghi' })
-    total: number;
-
-    @ApiProperty({ description: 'Trang hiện tại' })
-    page: number;
-
-    @ApiProperty({ description: 'Số bản ghi trên mỗi trang' })
-    limit: number;
-
-    @ApiProperty({ description: 'Tổng số trang' })
-    totalPages: number;
 }

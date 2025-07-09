@@ -408,38 +408,6 @@ export class PaymentsController {
         );
     }
 
-    @Patch('admin/:id/cancel')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN])
-    @ApiOperation({
-        summary: 'Cancel payment (Admin)',
-        description: 'Admin hủy thanh toán bất kỳ',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Payment cancelled successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Payment not found',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description: 'Forbidden access - admin only',
-    })
-    @ResponseMessage('Admin hủy thanh toán thành công')
-    adminCancelPayment(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() cancelDto: CancelPaymentDto,
-    ) {
-        return this.paymentsService.cancelPayment(id, cancelDto);
-    }
-
     @Delete(':id')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard)

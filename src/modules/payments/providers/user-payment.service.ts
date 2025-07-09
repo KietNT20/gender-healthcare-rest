@@ -76,7 +76,10 @@ export class UserPaymentService {
             );
 
         // Delegate to callback service để cancel
-        return this.paymentCallbackService.cancelPayment(payment.id, cancelDto);
+        return this.paymentCallbackService.cancelPaymentFromSystem(
+            payment.id,
+            cancelDto,
+        );
     }
 
     /**

@@ -2,13 +2,14 @@ import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
     IsBooleanString,
     IsEnum,
+    IsIn,
     IsNumber,
     IsOptional,
     IsString,
     Min,
 } from 'class-validator';
 import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
-import { ProfileStatusType, SortOrder } from 'src/enums';
+import { LocationTypeEnum, ProfileStatusType, SortOrder } from 'src/enums';
 
 export class FilterConsultantProfileDto {
     @ApiPropertyOptional({
@@ -20,11 +21,36 @@ export class FilterConsultantProfileDto {
 
     @ApiPropertyOptional({
         description:
-            'Lọc theo chuyên môn. Có thể truyền nhiều chuyên môn, phân cách bởi dấu phẩy (e.g., "STIs,Nutrition").',
+            'Lọc theo chuyên môn. Có thể truyền nhiều chuyên môn, phân cách bởi dấu phẩy (e.g., "STIs, Nutrition").',
     })
     @IsOptional()
     @IsString()
     specialties?: string;
+
+    @ApiPropertyOptional({
+        description: 'Filter by minimum consultation fee',
+    })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    minConsultationFee?: number;
+
+    @ApiPropertyOptional({
+        description: 'Filter by maximum consultation fee',
+    })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    maxConsultationFee?: number;
+
+    @ApiPropertyOptional({
+        description: 'Filter by location type',
+        enum: LocationTypeEnum,
+        default: LocationTypeEnum.ONLINE,
+    })
+    @IsOptional()
+    @IsEnum(LocationTypeEnum)
+    consultationTypes?: LocationTypeEnum = LocationTypeEnum.ONLINE;
 
     @ApiPropertyOptional({
         enum: ProfileStatusType,
@@ -54,7 +80,10 @@ export class SortConsultantProfileDto {
         enum: [
             'rating',
             'consultationFee',
-            'experience',
+            'specialties',
+            'consultationTypes',
+            'status',
+            'isAvailable',
             'createdAt',
             'updatedAt',
         ],
@@ -62,6 +91,16 @@ export class SortConsultantProfileDto {
     })
     @IsOptional()
     @IsString()
+    @IsIn([
+        'rating',
+        'consultationFee',
+        'specialties',
+        'consultationTypes',
+        'status',
+        'isAvailable',
+        'createdAt',
+        'updatedAt',
+    ])
     sortBy: string = 'createdAt';
 
     @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })

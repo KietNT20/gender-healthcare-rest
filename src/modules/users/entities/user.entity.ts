@@ -141,13 +141,13 @@ export class User {
 
     @Column({
         type: 'jsonb',
-        default: { sms: false, push: true, email: true },
+        default: { push: true, email: true },
     })
     notificationPreferences: {
-        sms: boolean;
         push: boolean;
         email: boolean;
     };
+
     @Column({ default: false })
     healthDataConsent: boolean;
 
@@ -161,9 +161,6 @@ export class User {
     @Column({ nullable: true })
     deletedByUserId?: string;
 
-    @Column({ default: 0 })
-    version: number;
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -172,9 +169,6 @@ export class User {
 
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
-
-    @Column({ type: 'uuid', nullable: true })
-    roleId?: string;
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {

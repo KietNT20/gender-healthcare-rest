@@ -1,13 +1,13 @@
 import {
     Inject,
     Injectable,
-    InternalServerErrorException,
     Logger,
     UnauthorizedException,
 } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 import { Server } from 'socket.io';
 import { RolesNameEnum } from 'src/enums';
+import { AuthService } from 'src/modules/auth/auth.service';
 import {
     CHAT_EVENTS,
     ERROR_MESSAGES,
@@ -20,6 +20,7 @@ import {
     AuthenticatedSocket,
     UserPresence,
 } from '../interfaces/chat.interface';
+import { getWsErrorMessage } from '../utils';
 import { TypingHandler } from './typing.handler';
 
 @Injectable()
@@ -29,19 +30,31 @@ export class ConnectionHandler {
     constructor(
         @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
         private readonly typingHandler: TypingHandler,
+        private readonly authService: AuthService,
     ) {}
 
     async handleConnection(client: AuthenticatedSocket, server: Server) {
-        const user = client.user;
-
-        if (!user) {
-            throw new UnauthorizedException(
-                ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
-            );
-        }
-
         try {
-            // Store user presence in Redis with TTL
+            const authHeader = client.handshake.headers.authorization;
+            const token =
+                authHeader?.split(' ')[1] ||
+                (client.handshake.auth?.token as string) ||
+                (client.handshake.query?.token as string);
+
+            if (!token) {
+                throw new UnauthorizedException(
+                    ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
+                );
+            }
+
+            const userPayload = await this.authService.verifyToken(token);
+            if (!userPayload) {
+                throw new UnauthorizedException('Invalid or expired token.');
+            }
+
+            client.user = userPayload;
+
+            const user = client.user;
             const presence: UserPresence = {
                 userId: user.id,
                 socketId: client.id,
@@ -57,21 +70,16 @@ export class ConnectionHandler {
             );
 
             this.logger.log(
-                `Client connected: ${client.id}, User: ${user.fullName}`,
+                `Client connected: ${client.id}, User: ${user.fullName} (${user.role})`,
             );
 
             client.emit(CHAT_EVENTS.CONNECTED, {
                 status: RESPONSE_STATUS.SUCCESS,
                 message: SUCCESS_MESSAGES.CONNECTION_SUCCESS,
-                user: {
-                    id: user.id,
-                    fullName: user.fullName,
-                    role: user.role,
-                },
+                user: { id: user.id, fullName: user.fullName, role: user.role },
                 timestamp: new Date().toISOString(),
             });
 
-            // Notify other users if consultant comes online
             if (user.role === RolesNameEnum.CONSULTANT) {
                 server.emit(CHAT_EVENTS.CONSULTANT_ONLINE, {
                     consultantId: user.id,
@@ -80,10 +88,11 @@ export class ConnectionHandler {
                 });
             }
         } catch (error) {
-            this.logger.error('Error handling connection:', error);
-            throw new InternalServerErrorException(
-                ERROR_MESSAGES.CONNECTION_FAILED,
+            this.logger.error(
+                `Connection failed for socket ${client.id}: ${error.message}`,
             );
+            client.emit('error', { message: getWsErrorMessage(error) });
+            client.disconnect(true);
         }
     }
 

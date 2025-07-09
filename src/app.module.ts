@@ -1,11 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
-import {
-    ClassSerializerInterceptor,
-    HttpException,
-    Module,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -58,8 +54,8 @@ import { UsersModule } from './modules/users/users.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            // envFilePath: ['.env'],
-            envFilePath: ['.env.development.local'],
+            envFilePath: ['.env'],
+            // envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),
@@ -167,10 +163,6 @@ import { UsersModule } from './modules/users/users.module';
         {
             provide: APP_INTERCEPTOR,
             useClass: ClassSerializerInterceptor,
-        },
-        {
-            provide: APP_FILTER,
-            useClass: HttpException,
         },
     ],
     controllers: [AppController],

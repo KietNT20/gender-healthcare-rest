@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { HealthDataConsentGuard } from 'src/guards/health-data-consent.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
 import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
@@ -19,7 +20,7 @@ import { MenstrualCyclesService } from './menstrual-cycles.service';
 
 @ApiTags('Menstrual Cycles')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, HealthDataConsentGuard)
 @Controller('menstrual-cycles')
 export class MenstrualCyclesController {
     constructor(

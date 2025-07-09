@@ -5,13 +5,24 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
-import { ProfileStatusType } from 'src/enums';
+import { ProfileStatusType, SortOrder } from 'src/enums';
 import { ActionType } from 'src/enums/action-type.enum';
 import { AuditLogsService } from 'src/modules/audit-logs/audit-logs.service';
 import { MailService } from 'src/modules/mail/mail.service';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
 import { User } from 'src/modules/users/entities/user.entity';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import {
+    ArrayContains,
+    Between,
+    DataSource,
+    FindManyOptions,
+    FindOptionsWhere,
+    ILike,
+    IsNull,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+    Repository,
+} from 'typeorm';
 import { ConsultantScheduleGeneratorService } from './consultant-schedule-generator.service';
 import { CreateConsultantProfileDto } from './dto/create-consultant-profile.dto';
 import { QueryConsultantProfileDto } from './dto/query-consultant-profile.dto';
@@ -76,66 +87,114 @@ export class ConsultantProfilesService {
             status,
             isAvailable,
             minRating,
+            minConsultationFee,
+            maxConsultationFee,
+            consultationTypes,
             specialties,
-            sortBy,
-            sortOrder,
+            sortBy = 'createdAt',
+            sortOrder = SortOrder.DESC,
         } = queryDto;
 
-        const queryBuilder = this.profileRepository
-            .createQueryBuilder('profile')
-            .leftJoinAndSelect('profile.user', 'user')
-            .where('profile.deletedAt IS NULL');
-
-        if (search) {
-            queryBuilder.andWhere(
-                '(user.firstName ILIKE :search OR user.lastName ILIKE :search)',
-                { search: `%${search}%` },
-            );
-        }
+        const baseWhere: FindOptionsWhere<ConsultantProfile> = {
+            deletedAt: IsNull(),
+        };
 
         if (status) {
-            queryBuilder.andWhere('profile.profileStatus = :status', {
-                status,
-            });
+            baseWhere.profileStatus = status;
         }
 
         if (isAvailable !== undefined) {
-            queryBuilder.andWhere('profile.isAvailable = :isAvailable', {
-                isAvailable,
-            });
+            baseWhere.isAvailable = isAvailable === 'true';
         }
 
-        if (minRating) {
-            queryBuilder.andWhere('profile.rating >= :minRating', {
-                minRating,
-            });
+        if (minRating !== undefined) {
+            baseWhere.rating = MoreThanOrEqual(minRating);
+        }
+
+        // Xử lý khoảng phí tư vấn hiệu quả
+        if (
+            minConsultationFee !== undefined &&
+            maxConsultationFee !== undefined
+        ) {
+            baseWhere.consultationFee = Between(
+                minConsultationFee,
+                maxConsultationFee,
+            );
+        } else if (minConsultationFee !== undefined) {
+            baseWhere.consultationFee = MoreThanOrEqual(minConsultationFee);
+        } else if (maxConsultationFee !== undefined) {
+            baseWhere.consultationFee = LessThanOrEqual(maxConsultationFee);
+        }
+
+        if (consultationTypes) {
+            // Giả sử consultationTypes là một trường có kiểu phù hợp
+            baseWhere.consultationTypes = consultationTypes;
         }
 
         if (specialties) {
             const specialtiesArray = specialties
-                .split(',')
+                .split(', ')
                 .map((s) => s.trim())
                 .filter((s) => s.length > 0);
 
             if (specialtiesArray.length > 0) {
-                queryBuilder.andWhere(
-                    'profile.specialties && ARRAY[:...specialtiesArray]',
-                    { specialtiesArray },
-                );
+                baseWhere.specialties = ArrayContains(specialtiesArray);
             }
         }
 
-        const validSortFields = ['rating', 'consultationFee', 'createdAt'];
-        const orderBy = validSortFields.includes(sortBy)
-            ? `profile.${sortBy}`
-            : 'profile.createdAt';
-        queryBuilder.orderBy(orderBy, sortOrder);
+        // Định kiểu rõ ràng cho finalWhere để nó có thể là một object hoặc một mảng các object
+        let finalWhere:
+            | FindOptionsWhere<ConsultantProfile>
+            | FindOptionsWhere<ConsultantProfile>[];
+
+        if (search) {
+            // Nếu có `search`, tạo ra một mảng các điều kiện.
+            // TypeORM sẽ nối các điều kiện này bằng OR.
+            finalWhere = [
+                {
+                    ...baseWhere,
+                    user: {
+                        firstName: ILike(`%${search}%`),
+                    },
+                },
+                {
+                    ...baseWhere,
+                    user: {
+                        lastName: ILike(`%${search}%`),
+                    },
+                },
+            ];
+        } else {
+            finalWhere = baseWhere;
+        }
+
+        const findOptions: FindManyOptions<ConsultantProfile> = {
+            relations: {
+                user: true,
+            },
+            where: finalWhere,
+        };
+
+        const validSortFields = [
+            'rating',
+            'consultationFee',
+            'createdAt',
+            'updatedAt',
+        ];
+        const orderByField = validSortFields.includes(sortBy)
+            ? sortBy
+            : 'createdAt';
+
+        findOptions.order = {
+            [orderByField]: sortOrder as SortOrder,
+        };
 
         const skip = (page - 1) * limit;
-        const [data, totalItems] = await queryBuilder
-            .skip(skip)
-            .take(limit)
-            .getManyAndCount();
+        findOptions.skip = skip;
+        findOptions.take = limit;
+
+        const [data, totalItems] =
+            await this.profileRepository.findAndCount(findOptions);
 
         return {
             data,
@@ -162,6 +221,53 @@ export class ConsultantProfilesService {
             );
         }
         return profile;
+    }
+
+    async getMyProfile(userId: string): Promise<ConsultantProfile> {
+        const profile = await this.profileRepository.findOne({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                isVerified: true,
+            },
+            relations: {
+                user: true,
+            },
+        });
+
+        if (!profile) {
+            throw new NotFoundException(
+                `Consultant Profile for User ID ${userId} not found.`,
+            );
+        }
+
+        return profile;
+    }
+
+    async updateMyProfile(
+        userId: string,
+        updateDto: UpdateConsultantProfileDto,
+    ): Promise<ConsultantProfile> {
+        const profile = await this.profileRepository.findOne({
+            where: {
+                user: { id: userId },
+                deletedAt: IsNull(),
+                isVerified: true,
+            },
+            relations: {
+                user: true,
+            },
+        });
+
+        if (!profile) {
+            throw new NotFoundException(
+                `Consultant Profile for User ID ${userId} not found.`,
+            );
+        }
+
+        const updated = this.profileRepository.merge(profile, updateDto);
+
+        return this.profileRepository.save(updated);
     }
 
     async update(

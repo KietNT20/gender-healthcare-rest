@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsArray,
     IsEmail,
@@ -37,6 +38,7 @@ export class RegisterConsultantDataDto {
     @IsArray()
     @IsString({ each: true })
     @IsNotEmpty()
+    @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
     specialties: string[];
 
     @ApiProperty()

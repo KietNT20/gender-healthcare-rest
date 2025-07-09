@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsArray,
     IsBoolean,
@@ -25,11 +26,13 @@ export class CreateConsultantProfileDto {
 
     @ApiProperty({
         description:
-            'Specialties of the consultant, e.g., "Cardiology", "Psychology".',
+            'Chuyên môn của tư vấn viên, ví dụ: "Cardiology", "Psychology".',
         type: [String],
     })
     @IsNotEmpty()
     @IsArray()
+    @IsString({ each: true })
+    @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
     specialties: string[];
 
     @ApiProperty({

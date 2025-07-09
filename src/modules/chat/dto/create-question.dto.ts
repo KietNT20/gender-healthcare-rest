@@ -18,9 +18,4 @@ export class CreateQuestionDto {
     @IsString()
     @IsNotEmpty()
     content: string;
-
-    @ApiProperty({ description: 'Gửi câu hỏi ẩn danh', default: false })
-    @IsBoolean()
-    @IsOptional()
-    isAnonymous?: boolean = false;
 }

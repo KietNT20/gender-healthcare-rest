@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+    Allow,
     IsArray,
     IsBoolean,
     IsDateString,
@@ -44,6 +45,7 @@ export class TestResultItemDto
         example: 'Negative',
         oneOf: [{ type: 'string' }, { type: 'number' }],
     })
+    @Allow()
     value: string | number;
 
     @ApiProperty({

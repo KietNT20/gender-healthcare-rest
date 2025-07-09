@@ -412,6 +412,7 @@ export class TestResultTemplateService {
                         `Result ${index + 1}: Display name is required`,
                     );
                 }
+                // Kiểm tra value: phải có value (cho phép empty string và số 0)
                 if (result.value === undefined || result.value === null) {
                     errors.push(`Result ${index + 1}: Value is required`);
                 }

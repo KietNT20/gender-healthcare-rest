@@ -49,7 +49,7 @@ export class FilterConsultantProfileDto {
         default: LocationTypeEnum.ONLINE,
     })
     @IsOptional()
-    @IsEnum(LocationTypeEnum)
+    @IsEnum(LocationTypeEnum, { each: true })
     consultationTypes?: LocationTypeEnum = LocationTypeEnum.ONLINE;
 
     @ApiPropertyOptional({

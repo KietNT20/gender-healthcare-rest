@@ -1,13 +1,17 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     IsBoolean,
+    IsJSON,
     IsNotEmpty,
     IsOptional,
     IsString,
     IsUUID,
     ValidateIf,
-    ValidateNested,
 } from 'class-validator';
 import { TestResultDataDto } from './test-result-data.dto';
 
@@ -44,7 +48,7 @@ export class CreateTestResultDto {
         description: 'Structured result data in standardized format',
         type: TestResultDataDto,
     })
-    @ValidateNested()
+    @IsJSON()
     @Type(() => TestResultDataDto)
     resultData: TestResultDataDto;
 
@@ -77,13 +81,26 @@ export class CreateTestResultDto {
     @IsBoolean()
     @IsOptional()
     followUpRequired: boolean = false;
+
+    @ApiPropertyOptional({
+        description: 'Notes for follow-up actions or observations',
+        example: 'Patient should return in 2 weeks for re-evaluation.',
+    })
+    @IsString()
+    @IsOptional()
+    followUpNotes?: string;
 }
 
-export class CreateTestResultWithFileDto extends CreateTestResultDto {
-    @ApiPropertyOptional({
+export class FileDto {
+    @ApiProperty({
         type: 'string',
         format: 'binary',
-        description: 'The test result file (e.g., PDF report)',
+        description: 'The test result file (PDF report)',
     })
     file: any;
 }
+
+export class CreateTestResultWithFileDto extends IntersectionType(
+    CreateTestResultDto,
+    FileDto,
+) {}

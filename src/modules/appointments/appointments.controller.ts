@@ -249,7 +249,7 @@ export class AppointmentsController {
 
     @Post(':id/check-in')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER,RolesNameEnum.CONSULTANT])
     @ApiOperation({
         summary: 'Check-in patient for appointment',
         description:
@@ -268,7 +268,7 @@ export class AppointmentsController {
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
         description:
-            'Forbidden: You do not have permission (Staff/Admin/Manager only)',
+            'Forbidden: You do not have permission (Staff/Admin/Manager/Consultant only)',
     })
     @ResponseMessage('Patient checked in successfully.')
     async checkInPatient(
@@ -280,11 +280,11 @@ export class AppointmentsController {
 
     @Post(':id/mark-no-show')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER,RolesNameEnum.CONSULTANT])
     @ApiOperation({
         summary: 'Mark appointment as no-show',
         description:
-            'Đánh dấu appointment là no-show (Staff/Admin/Manager only)',
+            'Đánh dấu appointment là no-show (Staff/Admin/Manager/Consultant only)',
     })
     @ApiResponse({
         status: HttpStatus.OK,

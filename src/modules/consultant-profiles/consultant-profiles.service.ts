@@ -341,11 +341,15 @@ export class ConsultantProfilesService {
             const oldValues = {
                 profileStatus: profile.profileStatus,
                 verifiedAt: profile.verifiedAt,
+                isVerified: profile.isVerified,
+                verifiedBy: profile.verifiedBy ? profile.verifiedBy.id : null,
             };
 
             // Update profile status
             profile.profileStatus = ProfileStatusType.ACTIVE;
             profile.verifiedAt = new Date();
+            profile.isVerified = true; // Cập nhật isVerified thành true
+            
             const updatedProfile = await queryRunner.manager.save(
                 ConsultantProfile,
                 profile,
@@ -361,6 +365,7 @@ export class ConsultantProfilesService {
                 newValues: {
                     profileStatus: profile.profileStatus,
                     verifiedAt: profile.verifiedAt,
+                    isVerified: profile.isVerified,
                 },
                 details: `Consultant profile approved for user ${profile.user.firstName} ${profile.user.lastName}`,
             });

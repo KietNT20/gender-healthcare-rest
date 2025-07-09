@@ -2,7 +2,6 @@ import {
     BadRequestException,
     ConflictException,
     Injectable,
-    InternalServerErrorException,
     Logger,
     NotFoundException,
 } from '@nestjs/common';
@@ -107,6 +106,14 @@ export class AppointmentsService {
                         relations: { consultantProfile: true },
                     },
                 );
+
+                if (
+                    consultantProfile?.consultantProfile?.isVerified === false
+                ) {
+                    throw new NotFoundException(
+                        `Tư vấn viên với ID ${consultantId} không hợp lệ hoặc chưa được xác minh.`,
+                    );
+                }
 
                 // Luôn sử dụng sessionDurationMinutes từ consultant profile nếu có
                 if (consultantProfile?.consultantProfile) {
@@ -379,10 +386,7 @@ export class AppointmentsService {
         } catch (error: any) {
             await queryRunner.rollbackTransaction();
             this.logger.error(error);
-            throw new InternalServerErrorException(
-                'Không thể tạo cuộc hẹn: ' +
-                    (error instanceof Error ? error.message : 'Chưa xác định'),
-            );
+            throw error;
         } finally {
             await queryRunner.release();
         }

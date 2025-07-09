@@ -29,7 +29,6 @@ export class CreateConsultantProfileDto {
             'Chuyên môn của tư vấn viên, ví dụ: "Cardiology", "Psychology".',
         type: [String],
     })
-    @IsNotEmpty()
     @IsArray()
     @IsString({ each: true })
     @Transform(({ value }) => (typeof value === 'string' ? [value] : value))

@@ -208,17 +208,17 @@ export class TestResultDataDto implements TestResultData {
     @ApiPropertyOptional({ description: 'Thời gian lấy mẫu' })
     @IsDateString()
     @IsOptional()
-    sampleCollectedAt?: Date;
+    sampleCollectedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thời gian phân tích' })
     @IsDateString()
     @IsOptional()
-    analyzedAt?: Date;
+    analyzedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thời gian báo cáo' })
     @IsDateString()
     @IsOptional()
-    reportedAt?: Date;
+    reportedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thông tin mẫu', type: SampleInfoDto })
     @ValidateNested()

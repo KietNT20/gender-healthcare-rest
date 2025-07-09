@@ -37,7 +37,6 @@ export class RegisterConsultantDataDto {
     })
     @IsArray()
     @IsString({ each: true })
-    @IsNotEmpty()
     @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
     specialties: Array<string>;
 

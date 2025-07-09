@@ -45,7 +45,9 @@ export class PayOSService {
                 `Creating payment link for order: ${request.orderCode}`,
             );
 
-            const result = await this.payOS.createPaymentLink(request);
+            const result = await this.payOS.createPaymentLink(
+                request as CheckoutRequestType,
+            );
 
             this.logger.log(
                 `Payment link created successfully for order: ${request.orderCode}`,

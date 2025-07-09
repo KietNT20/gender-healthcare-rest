@@ -31,7 +31,6 @@ Content-Type: application/json
 {
     "title": "Câu hỏi về sức khỏe sinh sản",
     "content": "Tôi muốn tư vấn về...",
-    "isAnonymous": false
 }
 ```
 
@@ -44,7 +43,6 @@ Content-Type: application/json
         "id": "uuid-question-id",
         "title": "Câu hỏi về sức khỏe sinh sản",
         "content": "Tôi muốn tư vấn về...",
-        "isAnonymous": false,
         "customerId": "uuid-customer-id",
         "createdAt": "2025-06-30T10:00:00.000Z"
     },
@@ -720,7 +718,6 @@ Content-Type: application/json
 {
   "title": "Test Question",
   "content": "This is a test question for frontend integration",
-  "isAnonymous": false
 }
 ```
 

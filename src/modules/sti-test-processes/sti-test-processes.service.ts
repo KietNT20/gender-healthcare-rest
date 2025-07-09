@@ -1,10 +1,10 @@
 import {
-    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { SortOrder } from 'src/enums';
 import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AppointmentsService } from '../appointments/appointments.service';
@@ -14,10 +14,7 @@ import { ServicesService } from '../services/services.service';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
 import { QueryStiTestProcessDto } from './dto/query-sti-test-process.dto';
-import {
-    StiTestProcessListResponseDto,
-    StiTestProcessResponseDto,
-} from './dto/sti-test-process-response.dto';
+import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
 import { UpdateStiTestProcessDto } from './dto/update-sti-test-process.dto';
 import { StiTestProcess } from './entities/sti-test-process.entity';
 import { StiTestProcessStatus } from './enums';
@@ -141,7 +138,7 @@ export class StiTestProcessesService {
      */
     async findAll(
         query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    ): Promise<Paginated<StiTestProcessResponseDto>> {
         const {
             page = 1,
             limit = 10,
@@ -197,10 +194,12 @@ export class StiTestProcessesService {
 
         return {
             data: processedData,
-            total,
-            page,
-            limit,
-            totalPages: totalPages,
+            meta: {
+                currentPage: page,
+                totalItems: total,
+                totalPages: totalPages,
+                itemsPerPage: limit,
+            },
         };
     }
 
@@ -414,99 +413,155 @@ export class StiTestProcessesService {
     async findByPatientId(
         patientId: string,
         query: QueryStiTestProcessDto,
-    ): Promise<StiTestProcessListResponseDto> {
+    ): Promise<Paginated<StiTestProcessResponseDto>> {
         return this.findAll({ ...query, patientId });
     }
 
     /**
-     * Xóa quá trình xét nghiệm
+     * Lấy danh sách xét nghiệm STI của bệnh nhân (cho bệnh nhân xem)
      */
-    async remove(id: string): Promise<void> {
-        const stiTestProcess = await this.stiTestProcessRepository.findOne({
-            where: { id },
+    async findByPatientIdForPatient(
+        patientId: string,
+    ): Promise<StiTestProcessResponseDto[]> {
+        const processes = await this.stiTestProcessRepository.find({
+            where: { patient: { id: patientId } },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+            order: { createdAt: 'DESC' },
         });
 
-        if (!stiTestProcess) {
-            throw new NotFoundException('Không tìm thấy quá trình xét nghiệm');
-        }
-
-        // Chỉ cho phép xóa nếu chưa lấy mẫu
-        if (
-            stiTestProcess.status !== StiTestProcessStatus.ORDERED &&
-            stiTestProcess.status !== StiTestProcessStatus.CANCELLED
-        ) {
-            throw new BadRequestException(
-                'Không thể xóa quá trình xét nghiệm đã bắt đầu',
-            );
-        }
-
-        await this.stiTestProcessRepository.remove(stiTestProcess);
+        return processes.map((process) => this.transformToResponseDto(process));
     }
 
     /**
-     * Chuyển đổi entity thành response DTO
+     * Lấy chi tiết xét nghiệm STI của bệnh nhân (cho bệnh nhân xem)
+     */
+    async findByIdForPatient(
+        id: string,
+        patientId: string,
+    ): Promise<StiTestProcessResponseDto> {
+        const process = await this.stiTestProcessRepository.findOne({
+            where: {
+                id,
+                patient: { id: patientId },
+            },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+        });
+
+        if (!process) {
+            throw new NotFoundException(
+                `STI test process with ID ${id} not found or not accessible.`,
+            );
+        }
+
+        return this.transformToResponseDto(process);
+    }
+
+    /**
+     * Tìm xét nghiệm STI theo mã cho bệnh nhân
+     */
+    async findByTestCodeForPatient(
+        testCode: string,
+        patientId: string,
+    ): Promise<StiTestProcessResponseDto> {
+        const process = await this.stiTestProcessRepository.findOne({
+            where: {
+                testCode,
+                patient: { id: patientId },
+            },
+            relations: {
+                patient: true,
+                service: true,
+                appointment: true,
+                testResult: true,
+                consultantDoctor: true,
+            },
+        });
+
+        if (!process) {
+            throw new NotFoundException(
+                `STI test process with code ${testCode} not found or not accessible.`,
+            );
+        }
+
+        return this.transformToResponseDto(process);
+    }
+
+    /**
+     * Transform entity to response DTO
      */
     private transformToResponseDto(
-        entity: StiTestProcess,
+        process: StiTestProcess,
     ): StiTestProcessResponseDto {
         return {
-            id: entity.id,
-            testCode: entity.testCode,
-            status: entity.status,
-            sampleType: entity.sampleType,
-            priority: entity.priority,
-            estimatedResultDate: entity.estimatedResultDate,
-            actualResultDate: entity.actualResultDate,
-            sampleCollectionDate: entity.sampleCollectionDate,
-            sampleCollectionLocation: entity.sampleCollectionLocation,
-            processNotes: entity.processNotes,
-            labNotes: entity.labNotes,
-            sampleCollectedBy: entity.sampleCollectedBy,
-            labProcessedBy: entity.labProcessedBy,
-            requiresConsultation: entity.requiresConsultation,
-            patientNotified: entity.patientNotified,
-            resultEmailSent: entity.resultEmailSent,
-            isConfidential: entity.isConfidential,
-            createdAt: entity.createdAt,
-            updatedAt: entity.updatedAt,
-            patient: entity.patient
+            id: process.id,
+            testCode: process.testCode,
+            status: process.status,
+            sampleType: process.sampleType,
+            priority: process.priority,
+            estimatedResultDate: process.estimatedResultDate,
+            actualResultDate: process.actualResultDate,
+            sampleCollectionDate: process.sampleCollectionDate,
+            sampleCollectionLocation: process.sampleCollectionLocation,
+            processNotes: process.processNotes,
+            labNotes: process.labNotes,
+            sampleCollectedBy: process.sampleCollectedBy,
+            labProcessedBy: process.labProcessedBy,
+            requiresConsultation: process.requiresConsultation,
+            patientNotified: process.patientNotified,
+            resultEmailSent: process.resultEmailSent,
+            isConfidential: process.isConfidential,
+            createdAt: process.createdAt,
+            updatedAt: process.updatedAt,
+            patient: process.patient
                 ? {
-                      id: entity.patient.id,
-                      firstName: entity.patient.firstName,
-                      lastName: entity.patient.lastName,
-                      email: entity.patient.email,
-                      phone: entity.patient.phone,
+                      id: process.patient.id,
+                      firstName: process.patient.firstName,
+                      lastName: process.patient.lastName,
+                      email: process.patient.email,
+                      phone: process.patient.phone,
                   }
                 : undefined,
-            service: entity.service
+            service: process.service
                 ? {
-                      id: entity.service.id,
-                      name: entity.service.name,
-                      description: entity.service.description,
-                      price: Number(entity.service.price),
+                      id: process.service.id,
+                      name: process.service.name,
+                      description: process.service.description,
+                      price: process.service.price,
                   }
                 : undefined,
-            appointment: entity.appointment
+            appointment: process.appointment
                 ? {
-                      id: entity.appointment.id,
-                      appointmentDate: entity.appointment.appointmentDate,
-                      status: entity.appointment.status,
+                      id: process.appointment.id,
+                      appointmentDate: process.appointment.appointmentDate,
+                      status: process.appointment.status,
                   }
                 : undefined,
-            testResult: entity.testResult
+            testResult: process.testResult
                 ? {
-                      id: entity.testResult.id,
-                      resultSummary: entity.testResult.resultSummary,
-                      isAbnormal: entity.testResult.isAbnormal,
-                      createdAt: entity.testResult.createdAt,
+                      id: process.testResult.id,
+                      resultSummary: process.testResult.resultSummary,
+                      isAbnormal: process.testResult.isAbnormal,
+                      createdAt: process.testResult.createdAt,
                   }
                 : undefined,
-            consultantDoctor: entity.consultantDoctor
+            consultantDoctor: process.consultantDoctor
                 ? {
-                      id: entity.consultantDoctor.id,
-                      firstName: entity.consultantDoctor.firstName,
-                      lastName: entity.consultantDoctor.lastName,
-                      email: entity.consultantDoctor.email,
+                      id: process.consultantDoctor.id,
+                      firstName: process.consultantDoctor.firstName,
+                      lastName: process.consultantDoctor.lastName,
+                      email: process.consultantDoctor.email,
                   }
                 : undefined,
         };
@@ -569,5 +624,27 @@ export class StiTestProcessesService {
             },
             order: { createdAt: SortOrder.DESC },
         });
+    }
+
+    /**
+     * Xóa STI test process
+     */
+    async remove(id: string): Promise<void> {
+        const process = await this.stiTestProcessRepository.findOne({
+            where: { id },
+            relations: {
+                patient: true,
+                testResult: true,
+                appointment: true,
+            },
+        });
+
+        if (!process) {
+            throw new NotFoundException(
+                `STI test process with ID ${id} not found`,
+            );
+        }
+
+        await this.stiTestProcessRepository.remove(process);
     }
 }

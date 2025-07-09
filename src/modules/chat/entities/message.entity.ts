@@ -46,7 +46,7 @@ export class Message {
         editCount?: number;
         replyTo?: string;
         mentions?: string[];
-        [key: string]: any;
+        publicUrl?: string; // Direct public URL for public PDFs
     };
 
     @Column({ default: false })

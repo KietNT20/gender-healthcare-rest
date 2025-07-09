@@ -11,6 +11,7 @@ import { PaymentStatusType } from 'src/enums';
 import { CreateAppointmentPaymentDto } from '../dto/create-appointment-payment.dto';
 import { CreatePackagePaymentDto } from '../dto/create-package-payment.dto';
 import { CreateServicePaymentDto } from '../dto/create-service-payment.dto';
+import { GatewayResponseType } from '../types/gateway-response.type';
 import { PaymentRepositoryService } from './payment-repository.service';
 import { PaymentValidationService } from './payment-validation.service';
 import { PayOSService } from './payos.service';
@@ -29,7 +30,9 @@ export class PaymentLinkService {
         this.backendReturnUrl = process.env.BACKEND_RETURN_URL as string;
         this.backendCancelUrl = process.env.BACKEND_CANCEL_URL as string;
         this.defaultFrontendDomain =
-            (process.env.FRONTEND_URL as string) || 'http://localhost:3000';
+            (process.env.FRONTEND_URL as string) ||
+            'http://localhost:3000' ||
+            'http://localhost:5173';
 
         if (!this.backendReturnUrl || !this.backendCancelUrl) {
             throw new InternalServerErrorException(
@@ -198,6 +201,12 @@ export class PaymentLinkService {
             const paymentLinkResponse: CheckoutResponseDataType =
                 await this.payOSService.createPaymentLink(checkoutRequest);
 
+            const gatewayResponse: GatewayResponseType = {
+                ...paymentLinkResponse,
+                frontendReturnUrl,
+                frontendCancelUrl,
+            };
+
             const paymentData = {
                 amount,
                 paymentMethod: 'PayOS',
@@ -207,11 +216,7 @@ export class PaymentLinkService {
                 packageId,
                 appointmentId,
                 serviceId,
-                gatewayResponse: {
-                    ...paymentLinkResponse,
-                    frontendReturnUrl,
-                    frontendCancelUrl,
-                },
+                gatewayResponse,
             };
 
             const payment =

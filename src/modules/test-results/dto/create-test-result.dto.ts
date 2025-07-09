@@ -6,17 +6,39 @@ import {
     IsOptional,
     IsString,
     IsUUID,
+    ValidateIf,
     ValidateNested,
 } from 'class-validator';
 import { TestResultDataDto } from './test-result-data.dto';
 
 export class CreateTestResultDto {
-    @ApiProperty({
-        description: 'ID of the appointment this result belongs to',
+    @ApiPropertyOptional({
+        description:
+            'ID of the appointment this result belongs to (for online booking)',
+        example: 'Required if patientId and serviceId are not provided',
     })
     @IsUUID('4')
+    @ValidateIf((o) => !o.patientId || !o.serviceId)
     @IsNotEmpty()
-    appointmentId: string;
+    appointmentId?: string;
+
+    @ApiPropertyOptional({
+        description: 'ID of the patient (for walk-in cases)',
+        example: 'Required if appointmentId is not provided',
+    })
+    @IsUUID('4')
+    @ValidateIf((o) => !o.appointmentId)
+    @IsNotEmpty()
+    patientId?: string;
+
+    @ApiPropertyOptional({
+        description: 'ID of the service (for walk-in cases)',
+        example: 'Required if appointmentId is not provided',
+    })
+    @IsUUID('4')
+    @ValidateIf((o) => !o.appointmentId)
+    @IsNotEmpty()
+    serviceId?: string;
 
     @ApiProperty({
         description: 'Structured result data in standardized format',
@@ -58,7 +80,7 @@ export class CreateTestResultDto {
 }
 
 export class CreateTestResultWithFileDto extends CreateTestResultDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         type: 'string',
         format: 'binary',
         description: 'The test result file (e.g., PDF report)',

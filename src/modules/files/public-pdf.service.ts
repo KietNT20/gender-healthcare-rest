@@ -10,6 +10,7 @@ import { sanitizeFilename } from 'src/utils/sanitize-name.util';
 import { Repository } from 'typeorm';
 import { Document } from '../documents/entities/document.entity';
 import { AwsS3Service } from './aws-s3.service';
+import { UploadPublicPdfMetadataDto } from './dto/upload-file.dto';
 import { FileResult, UploadPublicPdfOptions } from './interfaces';
 
 @Injectable()
@@ -26,19 +27,22 @@ export class PublicPdfService {
      * Upload public PDF directly to public bucket - no queue processing
      */
     async uploadPublicPdf(
-        options: UploadPublicPdfOptions,
+        file: Express.Multer.File,
+        uploadPublicPdfBodyDto: UploadPublicPdfMetadataDto,
     ): Promise<FileResult> {
-        this.validateUploadOptions(options);
-
-        const { file, entityType, entityId, description } = options;
+        this.validateUploadOptions({
+            file,
+            entityType: uploadPublicPdfBodyDto.entityType,
+            entityId: uploadPublicPdfBodyDto.entityId,
+        });
 
         try {
             // Check for duplicates
             const fileHash = this.generateFileHash(file.buffer);
             const existingDoc = await this.findExistingDocument(
                 fileHash,
-                entityType,
-                entityId,
+                uploadPublicPdfBodyDto.entityType,
+                uploadPublicPdfBodyDto.entityId,
             );
 
             if (existingDoc) {
@@ -56,9 +60,9 @@ export class PublicPdfService {
                 fileKey,
                 fileHash,
                 uploadResult,
-                entityType,
-                entityId,
-                description,
+                entityType: uploadPublicPdfBodyDto.entityType,
+                entityId: uploadPublicPdfBodyDto.entityId,
+                description: uploadPublicPdfBodyDto.description,
             });
 
             this.logger.log(`Public PDF uploaded: ${document.id}`);
@@ -82,16 +86,16 @@ export class PublicPdfService {
         entityType: string,
         entityId: string,
     ): Promise<Document[]> {
-        const queryBuilder = this.documentRepository.createQueryBuilder('doc');
+        const queryBuilder = this.documentRepository.createQueryBuilder('document');
 
         return queryBuilder
-            .where('doc.entityType = :entityType', { entityType })
-            .andWhere('doc.entityId = :entityId', { entityId })
-            .andWhere('doc.mimeType = :mimeType', {
+            .where('document.entityType = :entityType', { entityType })
+            .andWhere('document.entityId = :entityId', { entityId })
+            .andWhere('document.mimeType = :mimeType', {
                 mimeType: 'application/pdf',
             })
-            .andWhere("doc.metadata->>'isPublic' = 'true'")
-            .orderBy('doc.createdAt', 'DESC')
+            .andWhere("document.metadata->>'isPublic' = 'true'")
+            .orderBy('document.createdAt', 'DESC')
             .getMany();
     }
 
@@ -232,9 +236,7 @@ export class PublicPdfService {
     }
 
     private validatePublicPdf(document: Document): void {
-        const isPublic =
-            document.metadata?.isPublic === true ||
-            document.metadata?.isPublic === 'true';
+        const isPublic = document.metadata?.isPublic === true;
         const isPdf = document.mimeType === 'application/pdf';
 
         if (!isPublic || !isPdf) {
@@ -324,7 +326,7 @@ export class PublicPdfService {
                 downloadCount: 0,
                 bucketType: 'public',
                 cloudFrontUrl: uploadResult.cloudFrontUrl,
-                isPublic: 'true',
+                isPublic: true,
             },
         });
 

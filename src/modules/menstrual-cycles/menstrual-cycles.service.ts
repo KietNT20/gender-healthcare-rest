@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SortOrder } from 'src/enums';
 import { MenstrualPredictionsService } from 'src/modules/menstrual-predictions/menstrual-predictions.service';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -40,7 +41,7 @@ export class MenstrualCyclesService {
         // Tìm chu kỳ gần nhất trước đó để tính độ dài chu kỳ
         const lastCycle = await this.cycleRepository.findOne({
             where: { user: { id: userId } },
-            order: { cycleStartDate: 'DESC' },
+            order: { cycleStartDate: SortOrder.DESC },
         });
 
         let cycleLength: number | undefined;
@@ -59,7 +60,6 @@ export class MenstrualCyclesService {
             cycleStartDate: startDate,
             cycleEndDate: endDate,
             periodLength,
-            notes: createDto.notes,
             // cycleLength sẽ được cập nhật khi chu kỳ tiếp theo được tạo
         });
 

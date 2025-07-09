@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolesNameEnum } from 'src/enums';
-import { Between, IsNull, Like, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, IsNull, Like, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Service } from '../services/entities/service.entity';
@@ -209,24 +209,24 @@ export class FeedbacksService {
         }
 
         // Build where conditions
-        const where: any = { deletedAt: IsNull() };
+        const where: FindOptionsWhere<Feedback> = { deletedAt: IsNull() };
         if (userId) {
-            where.userId = userId;
+            where.user = { id: userId };
         }
         if (serviceId) {
-            where.serviceId = serviceId;
+            where.service = { id: serviceId };
         }
         if (appointmentId) {
-            where.appointmentId = appointmentId;
+            where.appointment = { id: appointmentId };
         }
         if (consultantId) {
-            where.consultantId = consultantId;
+            where.consultant = { id: consultantId };
         }
         if (minRating !== undefined || maxRating !== undefined) {
             where.rating = Between(minRating ?? 1, maxRating ?? 5);
         }
         if (isAnonymous !== undefined) {
-            where.isAnonymous = isAnonymous;
+            where.isAnonymous = isAnonymous === 'true' ? true : false;
         }
         if (searchComment) {
             where.comment = Like(`%${searchComment}%`);

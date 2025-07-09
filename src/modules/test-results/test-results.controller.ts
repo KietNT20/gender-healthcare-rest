@@ -3,10 +3,12 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     ParseUUIDPipe,
     Patch,
     Post,
+    Res,
     UploadedFile,
     UseGuards,
     UseInterceptors,
@@ -18,8 +20,10 @@ import {
     ApiConsumes,
     ApiOperation,
     ApiParam,
+    ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -31,11 +35,13 @@ import { CreateTestResultDto } from './dto/create-test-result.dto';
 import { TestResultDataDto } from './dto/test-result-data.dto';
 import {
     RecommendationsResponseDto,
+    TestResultResponseDto,
     TestResultTemplateResponseDto,
     ValidationResponseDto,
 } from './dto/test-result-response.dto';
 import { UpdateTestResultDto } from './dto/update-test-result.dto';
 import { ServiceType } from './enums/test-result.enums';
+import { TestResultExportPdfService } from './services/test-result-export-pdf.service';
 import { TestResultTemplateService } from './services/test-result-template.service';
 import { TestResultsService } from './test-results.service';
 
@@ -47,6 +53,7 @@ export class TestResultsController {
     constructor(
         private readonly testResultsService: TestResultsService,
         private readonly testResultTemplateService: TestResultTemplateService,
+        private readonly testResultExportPdfService: TestResultExportPdfService,
     ) {}
 
     // Template endpoints
@@ -142,15 +149,42 @@ export class TestResultsController {
     @Post()
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Create a new test result with file upload' })
+    @ApiOperation({
+        summary: 'Create a new test result with file upload',
+        description:
+            'Support both online booking (with appointmentId) and walk-in (with patientId + serviceId)',
+    })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
             type: 'object',
             properties: {
-                file: { type: 'string', format: 'binary' },
-                appointmentId: { type: 'string', format: 'uuid' },
-                resultData: { type: 'object' },
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'Test result file (PDF, image, etc.)',
+                },
+                appointmentId: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'Required for online booking cases',
+                },
+                patientId: {
+                    type: 'string',
+                    format: 'uuid',
+                    description:
+                        'Required for walk-in cases (when no appointmentId)',
+                },
+                serviceId: {
+                    type: 'string',
+                    format: 'uuid',
+                    description:
+                        'Required for walk-in cases (when no appointmentId)',
+                },
+                resultData: {
+                    type: 'object',
+                    description: 'Structured test result data',
+                },
                 resultSummary: { type: 'string' },
                 isAbnormal: { type: 'boolean' },
                 recommendation: { type: 'string' },
@@ -206,5 +240,157 @@ export class TestResultsController {
     @ResponseMessage('Test result deleted successfully.')
     remove(@Param('id', ParseUUIDPipe) id: string) {
         return this.testResultsService.remove(id);
+    }
+
+    @Post(':id/send-notification')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({
+        summary: 'Send test result notification to patient',
+        description:
+            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân qua email và in-app notification',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @ResponseMessage('Test result notification sent successfully.')
+    async sendNotificationToPatient(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.sendNotificationToPatient(id);
+    }
+
+    @Post('appointment/:appointmentId/send-notification')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({
+        summary: 'Send test result notification by appointment ID',
+        description:
+            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân theo appointment ID',
+    })
+    @ApiParam({ name: 'appointmentId', description: 'Appointment ID' })
+    @ResponseMessage('Test result notification sent successfully.')
+    async sendNotificationByAppointmentId(
+        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
+    ) {
+        return this.testResultsService.sendNotificationByAppointmentId(
+            appointmentId,
+        );
+    }
+
+    @Get('patient/my-results')
+    @ApiOperation({
+        summary: 'Get patient own test results',
+        description: 'Bệnh nhân xem kết quả xét nghiệm của chính mình',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'List of patient test results',
+        type: [TestResultResponseDto],
+    })
+    @ResponseMessage('Get patient test results successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    async getMyTestResults(@CurrentUser() user: User) {
+        return this.testResultsService.findByPatientId(user.id);
+    }
+
+    @Get('patient/result/:id')
+    @ApiOperation({
+        summary: 'Get patient test result details',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Test result details',
+        type: TestResultResponseDto,
+    })
+    @ResponseMessage('Get test result details successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.CUSTOMER])
+    async getMyTestResultDetails(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user: User,
+    ) {
+        return this.testResultsService.findOneByPatient(id, user.id);
+    }
+
+    @Get(':id/export-pdf')
+    @ApiOperation({
+        summary: 'Export test result as PDF',
+        description: 'Xuất kết quả xét nghiệm ra file PDF để download',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF, RolesNameEnum.CUSTOMER])
+    async exportTestResultToPdf(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user: User,
+        @Res() res: Response,
+    ) {
+        const pdfBuffer =
+            await this.testResultExportPdfService.generateTestResultPdf(
+                id,
+                user,
+            );
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="test-result-${id}.pdf"`,
+            'Content-Length': pdfBuffer.length.toString(),
+        });
+
+        res.send(pdfBuffer);
+    }
+
+    @Get('consultation/:appointmentId/export-pdf')
+    @ApiOperation({
+        summary: 'Export consultation report as PDF',
+        description: 'Xuất báo cáo tư vấn trực tuyến ra file PDF',
+    })
+    @ApiParam({
+        name: 'appointmentId',
+        description: 'Consultation appointment ID',
+    })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF, RolesNameEnum.CUSTOMER])
+    async exportConsultationToPdf(
+        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
+        @CurrentUser() user: User,
+        @Res() res: Response,
+    ) {
+        const pdfBuffer =
+            await this.testResultExportPdfService.generateConsultationPdf(
+                appointmentId,
+                user,
+            );
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="consultation-${appointmentId}.pdf"`,
+            'Content-Length': pdfBuffer.length.toString(),
+        });
+
+        res.send(pdfBuffer);
+    }
+
+    @Get('sti/:stiProcessId/export-pdf')
+    @ApiOperation({
+        summary: 'Export STI test result as PDF',
+        description:
+            'Xuất kết quả xét nghiệm STI ra file PDF với format chuyên biệt',
+    })
+    @ApiParam({ name: 'stiProcessId', description: 'STI test process ID' })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF, RolesNameEnum.CUSTOMER])
+    async exportStiTestResultToPdf(
+        @Param('stiProcessId', ParseUUIDPipe) stiProcessId: string,
+        @CurrentUser() user: User,
+        @Res() res: Response,
+    ) {
+        const pdfBuffer =
+            await this.testResultExportPdfService.generateStiTestResultPdf(
+                stiProcessId,
+                user,
+            );
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="sti-result-${stiProcessId}.pdf"`,
+            'Content-Length': pdfBuffer.length.toString(),
+        });
+
+        res.send(pdfBuffer);
     }
 }

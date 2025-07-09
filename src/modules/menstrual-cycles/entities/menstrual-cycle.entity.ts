@@ -31,34 +31,6 @@ export class MenstrualCycle {
     @Column({ nullable: true })
     periodLength?: number;
 
-    @Column({ type: 'text', array: true, nullable: true })
-    symptoms?: string[];
-
-    @Column({ type: 'text', nullable: true })
-    notes?: string;
-
-    @Column({ nullable: true })
-    flowIntensity?: number;
-
-    @Column({ type: 'text', array: true, nullable: true })
-    mood?: string[];
-
-    @Column({ nullable: true })
-    painLevel?: number;
-
-    @Column({
-        type: 'text',
-        array: true,
-        nullable: true,
-    })
-    medicationTaken?: string[];
-
-    @Column({ type: 'decimal', precision: 4, scale: 1, nullable: true })
-    temperature?: number;
-
-    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    weight?: number;
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -75,9 +47,12 @@ export class MenstrualCycle {
     })
     user: User;
 
-    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.cycle)
+    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.menstrualCycle)
     cycleMoods: CycleMood[];
 
-    @OneToMany(() => CycleSymptom, (cycleSymptom) => cycleSymptom.cycle)
+    @OneToMany(
+        () => CycleSymptom,
+        (cycleSymptom) => cycleSymptom.menstrualCycle,
+    )
     cycleSymptoms: CycleSymptom[];
 }

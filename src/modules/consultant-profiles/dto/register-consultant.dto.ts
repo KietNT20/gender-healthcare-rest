@@ -7,6 +7,7 @@ import {
     IsString,
     MinLength,
 } from 'class-validator';
+import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
 export class RegisterConsultantDataDto {
     @ApiProperty()
@@ -51,6 +52,7 @@ export class RegisterConsultantDataDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     bio?: string;
 }
 

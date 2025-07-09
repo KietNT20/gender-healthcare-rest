@@ -8,6 +8,7 @@ import {
     IsString,
     IsUUID,
 } from 'class-validator';
+import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
 export class UploadImageMetadataDto {
     @ApiProperty({
@@ -32,6 +33,7 @@ export class UploadImageMetadataDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     altText?: string;
 
     @ApiPropertyOptional({
@@ -57,7 +59,7 @@ export class UploadImageDto extends UploadImageMetadataDto {
         format: 'binary',
         description: 'Image file to upload',
     })
-    file: Express.Multer.File;
+    file: any;
 }
 
 export class UploadDocumentMetadataDto {
@@ -82,6 +84,7 @@ export class UploadDocumentMetadataDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     name?: string;
 
     @ApiPropertyOptional({
@@ -89,6 +92,7 @@ export class UploadDocumentMetadataDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     description?: string;
 
     @ApiPropertyOptional({
@@ -96,13 +100,13 @@ export class UploadDocumentMetadataDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     documentType?: string;
 
-    @ApiPropertyOptional({
+    @ApiProperty({
         description: 'Mark document as containing sensitive information',
         default: false,
     })
-    @IsOptional()
     @IsBoolean()
     isSensitive: boolean = false;
 }
@@ -113,26 +117,7 @@ export class UploadDocumentDto extends UploadDocumentMetadataDto {
         format: 'binary',
         description: 'Document file to upload',
     })
-    file: Express.Multer.File;
-}
-
-export class BulkUploadDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    entityType?: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsUUID()
-    entityId?: string;
-
-    @ApiPropertyOptional({
-        default: false,
-    })
-    @IsOptional()
-    @IsBoolean()
-    isPublic: boolean = false;
+    file: any;
 }
 
 export class TestUploadDto {
@@ -176,7 +161,7 @@ export class UploadPublicPdfMetadataDto {
         example: '550e8400-e29b-41d4-a716-446655440000',
     })
     @IsNotEmpty({ message: 'Entity ID is required' })
-    @IsUUID(4, { message: 'Entity ID must be a valid UUID' })
+    @IsUUID('4', { message: 'Entity ID must be a valid UUID' })
     entityId: string;
 
     @ApiPropertyOptional({
@@ -185,6 +170,7 @@ export class UploadPublicPdfMetadataDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     description?: string;
 }
 
@@ -194,5 +180,5 @@ export class UploadPublicPdfDto extends UploadPublicPdfMetadataDto {
         format: 'binary',
         description: 'PDF file to upload',
     })
-    file: Express.Multer.File;
+    file: any;
 }

@@ -25,9 +25,11 @@ export class MenstrualCycle {
     @Column({ type: 'date', nullable: true })
     cycleEndDate?: Date;
 
+    // Độ dài chu kỳ kinh nguyệt (ngày)
     @Column({ nullable: true })
     cycleLength?: number;
 
+    // Hành kinh trung bình (ngày)
     @Column({ nullable: true })
     periodLength?: number;
 

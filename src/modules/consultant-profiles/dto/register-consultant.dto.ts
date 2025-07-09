@@ -36,8 +36,7 @@ export class RegisterConsultantDataDto {
     })
     @IsArray()
     @IsString({ each: true })
-    @IsNotEmpty()
-    specialties: string[];
+    specialties: Array<string>;
 
     @ApiProperty()
     @IsNotEmpty()

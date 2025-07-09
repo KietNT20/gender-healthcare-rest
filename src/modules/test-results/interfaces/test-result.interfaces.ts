@@ -45,9 +45,9 @@ export interface TestResultData {
     testCode?: string; // Mã xét nghiệm nội bộ
 
     // Thời gian thực hiện
-    sampleCollectedAt?: Date; // Thời gian lấy mẫu
-    analyzedAt?: Date; // Thời gian phân tích
-    reportedAt?: Date; // Thời gian báo cáo
+    sampleCollectedAt?: string; // Thời gian lấy mẫu
+    analyzedAt?: string; // Thời gian phân tích
+    reportedAt?: string; // Thời gian báo cáo
 
     // Thông tin mẫu
     sampleInfo?: {

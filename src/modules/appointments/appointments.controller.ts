@@ -16,6 +16,7 @@ import {
     ApiBearerAuth,
     ApiBody,
     ApiForbiddenResponse,
+    ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
     ApiResponse,
@@ -83,6 +84,9 @@ export class AppointmentsController {
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
         description: 'Forbidden: You do not have permission ( Customer only ).',
+    })
+    @ApiNotFoundResponse({
+        description: 'Consultant not found or not available.',
     })
     create(
         @Body() createAppointmentDto: CreateAppointmentDto,

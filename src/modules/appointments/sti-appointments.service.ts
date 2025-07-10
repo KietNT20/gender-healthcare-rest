@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType, RolesNameEnum, SortOrder } from 'src/enums';
 import { Between, DataSource, Repository } from 'typeorm';
+import { Category } from '../categories/entities/category.entity';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
@@ -29,6 +30,8 @@ export class StiAppointmentsService {
         private readonly serviceRepository: Repository<Service>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(Category)
+        private readonly categoryRepository: Repository<Category>,
         private readonly dataSource: DataSource,
         private readonly notificationService: AppointmentNotificationService,
     ) {}
@@ -167,6 +170,9 @@ export class StiAppointmentsService {
     private async validateStiService(stiServiceId: string): Promise<Service> {
         const service = await this.serviceRepository.findOne({
             where: { id: stiServiceId },
+            relations: {
+                category: true,
+            },
         });
 
         if (!service) {
@@ -178,7 +184,8 @@ export class StiAppointmentsService {
         // Check if service is related to STI testing (assuming name or description contains STI)
         if (
             !service.name.toLowerCase().includes('sti') &&
-            !service.description.toLowerCase().includes('sti')
+            !service.description.toLowerCase().includes('sti') &&
+            !service.category.type.toLowerCase().includes('sti_test')
         ) {
             throw new BadRequestException(
                 'Dịch vụ được chọn không phải là dịch vụ xét nghiệm STI',

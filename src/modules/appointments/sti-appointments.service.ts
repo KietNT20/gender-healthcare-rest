@@ -6,7 +6,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AppointmentStatusType, RolesNameEnum } from 'src/enums';
+import { AppointmentStatusType, RolesNameEnum, SortOrder } from 'src/enums';
 import { Between, DataSource, Repository } from 'typeorm';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
@@ -202,7 +202,9 @@ export class StiAppointmentsService {
     private async validateConsultant(consultantId: string): Promise<User> {
         const consultant = await this.userRepository.findOne({
             where: { id: consultantId },
-            relations: ['role'],
+            relations: {
+                role: true,
+            },
         });
 
         if (!consultant) {
@@ -297,9 +299,12 @@ export class StiAppointmentsService {
             where: {
                 user: { id: userId },
             },
-            relations: ['services', 'consultant'],
+            relations: {
+                services: true,
+                consultant: true,
+            },
             order: {
-                appointmentDate: 'DESC',
+                appointmentDate: SortOrder.DESC,
             },
         });
     }
@@ -320,7 +325,9 @@ export class StiAppointmentsService {
                 id: appointmentId,
                 user: { id: userId },
             },
-            relations: ['services'],
+            relations: {
+                services: true,
+            },
         });
 
         if (!appointment) {
@@ -388,6 +395,7 @@ export class StiAppointmentsService {
                 `Sending STI appointment cancellation notification for appointment ${appointment.id}`,
             );
 
+            appointment.cancellationReason = reason;
             // Gửi thông báo hủy lịch hẹn
             this.notificationService.sendCancellationNotifications(appointment);
 
@@ -417,7 +425,11 @@ export class StiAppointmentsService {
                 id: appointmentId,
                 user: { id: userId },
             },
-            relations: ['services', 'consultant', 'user'],
+            relations: {
+                services: true,
+                consultant: true,
+                user: true,
+            },
         });
 
         if (!appointment) {

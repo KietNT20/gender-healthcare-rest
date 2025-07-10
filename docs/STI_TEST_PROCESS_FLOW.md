@@ -243,20 +243,17 @@ graph TD
 ### Thông tin được theo dõi:
 
 1. **Thời gian**:
-
     - `createdAt`, `updatedAt` - Thời gian tạo và cập nhật
     - `estimatedResultDate` - Thời gian dự kiến có kết quả
     - `actualResultDate` - Thời gian thực tế có kết quả
     - `sampleCollectionDate` - Thời gian lấy mẫu
 
 2. **Người thực hiện**:
-
     - `sampleCollectedBy` - Người lấy mẫu
     - `labProcessedBy` - Phòng lab xử lý
     - `consultantDoctor` - Bác sĩ tư vấn
 
 3. **Tracking Flags**:
-
     - `requiresConsultation` - Cần tư vấn hay không
     - `patientNotified` - Đã thông báo cho bệnh nhân
     - `resultEmailSent` - Đã gửi email kết quả
@@ -291,7 +288,7 @@ graph TD
 
 ### STI Service Integration Rules:
 
-- Chỉ các service có category type = 'test' mới được coi là STI test
+- Chỉ các service có category type = 'sti_test' mới được coi là STI test
 - Service name/description phải chứa các từ khóa STI: 'sti', 'std', 'hiv', 'syphilis', 'gonorrhea', 'chlamydia', 'herpes', 'hpv', 'hepatitis b', 'hepatitis c'
 - Service phải có trạng thái isActive = true
 

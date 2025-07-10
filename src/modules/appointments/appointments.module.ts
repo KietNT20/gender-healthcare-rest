@@ -5,6 +5,7 @@ import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { Service } from '../services/entities/service.entity';
+import { User } from '../users/entities/user.entity';
 import { AppointmentAttendanceService } from './appointment-attendance.service';
 import { AppointmentBookingService } from './appointment-booking.service';
 import { AppointmentMeetingLinkService } from './appointment-meeting-link.service';
@@ -13,16 +14,18 @@ import { AppointmentValidationService } from './appointment-validation.service';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 import { Appointment } from './entities/appointment.entity';
+import { StiAppointmentsController } from './sti-appointments.controller';
+import { StiAppointmentsService } from './sti-appointments.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Appointment, Service]),
+        TypeOrmModule.forFeature([Appointment, Service, User]),
         ChatModule,
         MailModule,
         NotificationsModule,
         forwardRef(() => PaymentsModule),
     ],
-    controllers: [AppointmentsController],
+    controllers: [AppointmentsController, StiAppointmentsController],
     providers: [
         AppointmentsService,
         AppointmentBookingService,
@@ -30,7 +33,12 @@ import { Appointment } from './entities/appointment.entity';
         AppointmentNotificationService,
         AppointmentAttendanceService,
         AppointmentMeetingLinkService,
+        StiAppointmentsService,
     ],
-    exports: [AppointmentsService, AppointmentAttendanceService],
+    exports: [
+        AppointmentsService,
+        AppointmentAttendanceService,
+        StiAppointmentsService,
+    ],
 })
 export class AppointmentsModule {}

@@ -169,10 +169,10 @@ export class ContraceptiveRemindersService {
         if (job) {
             // Hủy job lặp lại
             const repeatableJobs =
-                await this.notificationQueue.getRepeatableJobs();
+                await this.notificationQueue.getJobSchedulers();
             const jobToCancel = repeatableJobs.find((j) => j.id === jobId);
             if (jobToCancel) {
-                await this.notificationQueue.removeRepeatableByKey(
+                await this.notificationQueue.removeJobScheduler(
                     jobToCancel.key,
                 );
                 this.logger.log(`Đã hủy job lặp lại: ${jobId}`);

@@ -50,9 +50,6 @@ export class ContraceptiveReminder {
     @Column({ type: 'text', nullable: true })
     reminderMessage?: string;
 
-    @Column({ default: 0 })
-    snoozeCount: number;
-
     @CreateDateColumn()
     createdAt: Date;
 

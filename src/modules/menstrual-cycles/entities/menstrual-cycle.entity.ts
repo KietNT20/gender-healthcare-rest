@@ -1,4 +1,4 @@
-import { CycleMood } from 'src/modules/cycle-moods/entities/cycle-mood.entity';
+
 import { CycleSymptom } from 'src/modules/cycle-symptoms/entities/cycle-symptom.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -46,9 +46,6 @@ export class MenstrualCycle {
         onDelete: 'CASCADE',
     })
     user: User;
-
-    @OneToMany(() => CycleMood, (cycleMood) => cycleMood.menstrualCycle)
-    cycleMoods: CycleMood[];
 
     @OneToMany(
         () => CycleSymptom,

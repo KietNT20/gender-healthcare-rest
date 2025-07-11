@@ -58,14 +58,10 @@ export class TestResult {
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    @OneToMany(() => Document, (document) => document.testResult, {
-        cascade: true,
-    })
+    @OneToMany(() => Document, (document) => document.testResult)
     documents: Document[];
 
-    @OneToOne(() => Appointment, (appointment) => appointment.testResult, {
-        onDelete: 'CASCADE',
-    })
+    @OneToOne(() => Appointment, (appointment) => appointment.testResult)
     appointment: Appointment;
 
     @ManyToOne(() => Service)

@@ -63,9 +63,7 @@ export class TestResult {
     })
     documents: Document[];
 
-    @OneToOne(() => Appointment, (appointment) => appointment.testResult, {
-        onDelete: 'CASCADE',
-    })
+    @OneToOne(() => Appointment, (appointment) => appointment.testResult)
     appointment: Appointment;
 
     @ManyToOne(() => Service)

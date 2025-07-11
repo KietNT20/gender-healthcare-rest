@@ -75,12 +75,16 @@ export class Document {
 
     // Relations
     @ManyToOne(() => TestResult, (testResult) => testResult.documents, {
-        onDelete: 'CASCADE',
+        eager: true,
+        onDelete: 'SET NULL',
     })
     @Index()
     testResult: TestResult;
 
-    @ManyToOne(() => User, (user) => user.documents)
+    @ManyToOne(() => User, (user) => user.documents, {
+        eager: true,
+        onDelete: 'SET NULL',
+    })
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.file)
@@ -90,7 +94,7 @@ export class Document {
         () => ConsultantProfile,
         (consultantProfile) => consultantProfile.documents,
         {
-            nullable: true,
+            eager: true,
             onDelete: 'CASCADE',
         },
     )

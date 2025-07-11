@@ -16,10 +16,11 @@ import { AppointmentsService } from './appointments.service';
 import { Appointment } from './entities/appointment.entity';
 import { StiAppointmentsController } from './sti-appointments.controller';
 import { StiAppointmentsService } from './sti-appointments.service';
+import { Category } from '../categories/entities/category.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Appointment, Service, User]),
+        TypeOrmModule.forFeature([Appointment, Service, User, Category]),
         ChatModule,
         MailModule,
         NotificationsModule,

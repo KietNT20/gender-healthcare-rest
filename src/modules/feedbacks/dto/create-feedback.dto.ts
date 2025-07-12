@@ -59,6 +59,7 @@ export class CreateFeedbackDto {
     @ApiProperty({
         description: 'Feedback is anonymous or not',
         required: false,
+        example: false,
     })
     @IsOptional()
     @IsBoolean()

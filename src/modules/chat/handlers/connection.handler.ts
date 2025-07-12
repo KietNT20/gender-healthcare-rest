@@ -35,11 +35,11 @@ export class ConnectionHandler {
 
     async handleConnection(client: AuthenticatedSocket, server: Server) {
         try {
-            const authHeader = client.handshake.headers.authorization;
-            const token =
-                authHeader?.split(' ')[1] ||
-                (client.handshake.auth?.token as string) ||
-                (client.handshake.query?.token as string);
+            const authHeader = client.handshake.headers.authorization || client.handshake.auth?.token as string;
+            console.log(client.handshake.auth?.token)
+            const token = authHeader?.split(' ')[1] 
+
+
 
             if (!token) {
                 throw new UnauthorizedException(

@@ -71,11 +71,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         @ConnectedSocket() client: AuthenticatedSocket,
     ) {
         try {
-            await this.roomHandler.handleJoinQuestion(
-                data,
-                client,
-                this.server,
-            );
+            await this.roomHandler.handleJoinQuestion(data, client);
 
             // Send success acknowledgement
             return {
@@ -106,11 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         @ConnectedSocket() client: AuthenticatedSocket,
     ) {
         try {
-            await this.roomHandler.handleLeaveQuestion(
-                data,
-                client,
-                this.server,
-            );
+            await this.roomHandler.handleLeaveQuestion(data, client);
 
             return {
                 status: RESPONSE_STATUS.SUCCESS,

@@ -7,7 +7,7 @@ import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { GetServiceQueryDto, ServiceQueryDto } from './dto/service-query.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()

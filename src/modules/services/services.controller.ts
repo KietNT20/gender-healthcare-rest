@@ -9,6 +9,7 @@ import {
     Patch,
     Post,
     Put,
+    Query,
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
@@ -31,6 +32,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 import { ServiceImageService } from './service-image.service';
 import { ServicesService } from './services.service';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Controller('services')
 export class ServicesController {
@@ -72,7 +74,7 @@ export class ServicesController {
      * @param query Query parameters for pagination and filtering
      * @returns List of services with pagination metadata
      */
-    @Post('search')
+    @Get('search')
     @ApiOperation({
         summary: 'Get a list of services with pagination and filters',
     })
@@ -80,13 +82,9 @@ export class ServicesController {
         status: HttpStatus.OK,
         description: 'Services retrieved successfully',
     })
-    @ApiBody({ type: ServiceQueryDto })
     @ResponseMessage('Services retrieved successfully')
-    findAll(
-        @Body(ValidationPipe)
-        query: ServiceQueryDto,
-    ) {
-        return this.servicesService.findAll(query);
+    async search(@Query() serviceQueryDto: ServiceQueryDto): Promise<Paginated<Service>> {
+        return this.servicesService.findAll(serviceQueryDto);
     }
 
     /**

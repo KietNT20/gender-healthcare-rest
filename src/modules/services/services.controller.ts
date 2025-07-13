@@ -27,12 +27,11 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateServiceImageDto } from './dto/create-service-image.dto';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 import { ServiceImageService } from './service-image.service';
 import { ServicesService } from './services.service';
-import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import {ServiceQueryDto } from './dto/service-query.dto';
 
 @Controller('services')
 export class ServicesController {
@@ -74,7 +73,7 @@ export class ServicesController {
      * @param query Query parameters for pagination and filtering
      * @returns List of services with pagination metadata
      */
-    @Get('search')
+    @Get()
     @ApiOperation({
         summary: 'Get a list of services with pagination and filters',
     })
@@ -83,7 +82,7 @@ export class ServicesController {
         description: 'Services retrieved successfully',
     })
     @ResponseMessage('Services retrieved successfully')
-    async search(@Query() serviceQueryDto: ServiceQueryDto): Promise<Paginated<Service>> {
+    async search(@Query() serviceQueryDto: ServiceQueryDto){
         return this.servicesService.findAll(serviceQueryDto);
     }
 

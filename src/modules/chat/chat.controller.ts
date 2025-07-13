@@ -32,6 +32,10 @@ import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
+import {
+    SendFileMessageBodyDto,
+    SendFileMessageDto,
+} from './dto/send-file-messsage.dto';
 import { SendPublicPdfMessageDto } from './dto/send-public-pdf-message.dto';
 
 @ApiTags('Chat')
@@ -104,39 +108,19 @@ export class ChatController {
     })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description: 'File to upload (image or document)',
-                },
-                content: {
-                    type: 'string',
-                    description: 'Optional message content/description',
-                },
-                type: {
-                    type: 'string',
-                    enum: Object.values(MessageType),
-                    description:
-                        'Message type - will be auto-detected if not provided based on file MIME type. Note: Both files and images are stored as IMAGE type in database for compatibility.',
-                },
-            },
-            required: ['file'],
-        },
+        type: SendFileMessageBodyDto,
     })
     async sendFileMessage(
         @Param('questionId') questionId: string,
         @UploadedFile() file: Express.Multer.File,
-        @Body() body: { content?: string; type?: MessageType },
+        @Body() sendFileMessageDto: SendFileMessageDto,
         @CurrentUser() user: User,
     ) {
         const userId = user.id;
-        const content = body.content || file.originalname;
+        const content = sendFileMessageDto.content || file.originalname;
 
         // Auto-detect file type based on MIME type if not explicitly provided
-        let type = body.type;
+        let type = sendFileMessageDto.type;
         if (!type) {
             type = file.mimetype.startsWith('image/')
                 ? MessageType.IMAGE
@@ -146,9 +130,11 @@ export class ChatController {
         const message = await this.chatService.sendMessageWithFile(
             questionId,
             userId,
-            content,
             file,
-            type,
+            {
+                content,
+                type,
+            },
         );
 
         return {

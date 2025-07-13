@@ -29,11 +29,13 @@ export class ContractFile {
     // Relations
     @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {
         onDelete: 'CASCADE',
+        eager: true,
     })
     contract: EmploymentContract;
 
     @ManyToOne(() => Document, (document) => document.contractFiles, {
         onDelete: 'CASCADE',
+        eager: true,
     })
     file: Document;
 }

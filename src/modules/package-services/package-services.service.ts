@@ -53,14 +53,14 @@ export class PackageServicesService {
     async findAll() {
         return this.packageServiceRepository.find({
             where: { deletedAt: IsNull() },
-            relations: ['package', 'service'],
+            relations: ['servicePackage', 'service'],
         });
     }
 
     async findOne(id: string) {
         const packageService = await this.packageServiceRepository.findOne({
             where: { id, deletedAt: IsNull() },
-            relations: ['package', 'service'],
+            relations: ['servicePackage', 'service'],
         });
         if (!packageService) {
             throw new NotFoundException(

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+    IsBoolean,
     IsDate,
     IsEmail,
     IsEnum,
@@ -69,4 +70,12 @@ export class CreateUserDto {
     @IsOptional()
     @IsString()
     locale?: string = 'vi';
+
+    @ApiPropertyOptional({
+        description: 'Đồng ý cho phép thu thập dữ liệu sức khỏe',
+        default: false,
+    })
+    @IsOptional()
+    @IsBoolean()
+    healthDataConsent?: boolean = false;
 }

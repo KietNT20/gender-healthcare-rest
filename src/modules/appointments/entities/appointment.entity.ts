@@ -132,6 +132,7 @@ export class Appointment {
     feedbacks: Feedback[];
 
     @OneToOne(() => TestResult, (testResult) => testResult.appointment)
+    @JoinColumn()
     testResult: TestResult;
 
     @OneToOne(
@@ -147,6 +148,7 @@ export class Appointment {
     @OneToOne(() => Question, (question) => question.appointment, {
         nullable: true,
         cascade: true,
+        eager: true,
     })
     @JoinColumn()
     question?: Question;

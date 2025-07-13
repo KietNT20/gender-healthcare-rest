@@ -4,6 +4,8 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as PDFDocument from 'pdfkit';
 import { RolesNameEnum } from 'src/enums';
 import { Appointment } from 'src/modules/appointments/entities/appointment.entity';
@@ -19,6 +21,46 @@ export class TestResultExportPdfService {
         private readonly testResultRepository: Repository<TestResult>,
         private readonly dataSource: DataSource,
     ) {}
+
+    /**
+     * Register Vietnamese font for PDF
+     */
+    private registerVietnameseFont(doc: typeof PDFDocument): void {
+        try {
+            const fontPath = path.join(
+                __dirname,
+                '../../../assets/fonts/Montserrat-VariableFont_wght.ttf',
+            );
+            if (fs.existsSync(fontPath)) {
+                doc.font(fontPath);
+                return;
+            }
+        } catch (error) {
+            console.warn('Could not load custom font, using fallback');
+        }
+
+        // Fallback to system fonts
+        doc.font('Times New Roman');
+    }
+
+    /**
+     * Format Vietnamese date
+     */
+    private formatVietnameseDate(date: Date): string {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    /**
+     * Format Vietnamese time
+     */
+    private formatVietnameseTime(date: Date): string {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
 
     /**
      * Generate PDF for test result
@@ -57,16 +99,19 @@ export class TestResultExportPdfService {
             const doc = new PDFDocument();
             const buffers: Buffer[] = [];
 
+            // Register Vietnamese font
+            this.registerVietnameseFont(doc);
+
             doc.on('data', (chunk) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
             // PDF Header
             doc.fontSize(20)
-                .text('Test Result Report', 50, 50)
+                .text('BÁO CÁO KẾT QUẢ XÉT NGHIỆM', 50, 50)
                 .fontSize(12)
                 .text(
-                    'Generated on: ' + new Date().toLocaleDateString('vi-VN'),
+                    'Ngày tạo: ' + this.formatVietnameseDate(new Date()),
                     50,
                     80,
                 );
@@ -76,38 +121,42 @@ export class TestResultExportPdfService {
 
             // Patient Information
             doc.fontSize(16)
-                .text('Patient Information', 50, 120)
+                .text('THÔNG TIN BỆNH NHÂN', 50, 120)
                 .fontSize(12)
                 .text(
-                    `Name: ${testResult.user.firstName} ${testResult.user.lastName}`,
+                    `Họ và tên: ${testResult.user.firstName} ${testResult.user.lastName}`,
                     50,
                     150,
                 )
                 .text(`Email: ${testResult.user.email}`, 50, 170)
-                .text(`Phone: ${testResult.user.phone || 'N/A'}`, 50, 190);
+                .text(
+                    `Số điện thoại: ${testResult.user.phone || 'Không có'}`,
+                    50,
+                    190,
+                );
 
             // Service Information
             doc.fontSize(16)
-                .text('Service Information', 50, 220)
+                .text('THÔNG TIN DỊCH VỤ', 50, 220)
                 .fontSize(12)
-                .text(`Service: ${testResult.service.name}`, 50, 250)
+                .text(`Dịch vụ: ${testResult.service.name}`, 50, 250)
                 .text(
-                    `Description: ${testResult.service.description || 'N/A'}`,
+                    `Mô tả: ${testResult.service.description || 'Không có'}`,
                     50,
                     270,
                 );
 
             // Test Result Information
             doc.fontSize(16)
-                .text('Test Result Details', 50, 300)
+                .text('CHI TIẾT KẾT QUẢ XÉT NGHIỆM', 50, 300)
                 .fontSize(12)
                 .text(
-                    `Test Date: ${testResult.createdAt.toLocaleDateString('vi-VN')}`,
+                    `Ngày xét nghiệm: ${this.formatVietnameseDate(testResult.createdAt)}`,
                     50,
                     330,
                 )
                 .text(
-                    `Status: ${testResult.isAbnormal ? 'Abnormal' : 'Normal'}`,
+                    `Tình trạng: ${testResult.isAbnormal ? 'Bất thường' : 'Bình thường'}`,
                     50,
                     350,
                 );
@@ -115,7 +164,7 @@ export class TestResultExportPdfService {
             // Result Summary
             if (testResult.resultSummary) {
                 doc.fontSize(14)
-                    .text('Result Summary:', 50, 380)
+                    .text('Tóm tắt kết quả:', 50, 380)
                     .fontSize(12)
                     .text(testResult.resultSummary, 50, 400, {
                         width: 500,
@@ -126,7 +175,7 @@ export class TestResultExportPdfService {
             // Recommendation
             if (testResult.recommendation) {
                 doc.fontSize(14)
-                    .text('Recommendation:', 50, 460)
+                    .text('Khuyến nghị:', 50, 460)
                     .fontSize(12)
                     .text(testResult.recommendation, 50, 480, {
                         width: 500,
@@ -136,7 +185,7 @@ export class TestResultExportPdfService {
 
             // Footer
             doc.fontSize(10).text(
-                'This document is generated electronically and is valid without signature.',
+                'Tài liệu này được tạo tự động bằng hệ thống điện tử và có giá trị mà không cần chữ ký.',
                 50,
                 750,
                 {
@@ -189,16 +238,19 @@ export class TestResultExportPdfService {
             const doc = new PDFDocument();
             const buffers: Buffer[] = [];
 
+            // Register Vietnamese font
+            this.registerVietnameseFont(doc);
+
             doc.on('data', (chunk) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
             // PDF Header
             doc.fontSize(20)
-                .text('Consultation Report', 50, 50)
+                .text('BÁO CÁO TƯ VẤN KHÁM BỆNH', 50, 50)
                 .fontSize(12)
                 .text(
-                    'Generated on: ' + new Date().toLocaleDateString('vi-VN'),
+                    'Ngày tạo: ' + this.formatVietnameseDate(new Date()),
                     50,
                     80,
                 );
@@ -208,34 +260,38 @@ export class TestResultExportPdfService {
 
             // Patient Information
             doc.fontSize(16)
-                .text('Patient Information', 50, 120)
+                .text('THÔNG TIN BỆNH NHÂN', 50, 120)
                 .fontSize(12)
                 .text(
-                    `Name: ${appointment.user.firstName} ${appointment.user.lastName}`,
+                    `Họ và tên: ${appointment.user.firstName} ${appointment.user.lastName}`,
                     50,
                     150,
                 )
                 .text(`Email: ${appointment.user.email}`, 50, 170)
-                .text(`Phone: ${appointment.user.phone || 'N/A'}`, 50, 190);
+                .text(
+                    `Số điện thoại: ${appointment.user.phone || 'Không có'}`,
+                    50,
+                    190,
+                );
 
             // Appointment Details
             doc.fontSize(16)
-                .text('Appointment Details', 50, 220)
+                .text('THÔNG TIN LỊCH HẸN', 50, 220)
                 .fontSize(12)
                 .text(
-                    `Date: ${appointment.appointmentDate.toLocaleDateString('vi-VN')}`,
+                    `Ngày: ${this.formatVietnameseDate(appointment.appointmentDate)}`,
                     50,
                     250,
                 )
                 .text(
-                    `Time: ${appointment.appointmentDate.toLocaleTimeString('vi-VN')}`,
+                    `Thời gian: ${this.formatVietnameseTime(appointment.appointmentDate)}`,
                     50,
                     270,
                 )
-                .text(`Status: ${appointment.status}`, 50, 290);
+                .text(`Trạng thái: ${appointment.status}`, 50, 290);
 
             // Services
-            doc.fontSize(16).text('Services', 50, 320).fontSize(12);
+            doc.fontSize(16).text('DỊCH VỤ', 50, 320).fontSize(12);
 
             let yPosition = 350;
             appointment.services.forEach((service, index) => {
@@ -256,7 +312,7 @@ export class TestResultExportPdfService {
             // Consultation Notes
             if (appointment.notes) {
                 doc.fontSize(16)
-                    .text('Consultation Notes', 50, yPosition)
+                    .text('GHI CHÚ TƯ VẤN', 50, yPosition)
                     .fontSize(12)
                     .text(appointment.notes, 50, yPosition + 30, {
                         width: 500,
@@ -268,17 +324,17 @@ export class TestResultExportPdfService {
             // Test Results (if available)
             if (appointment.testResult) {
                 doc.fontSize(16)
-                    .text('Test Results', 50, yPosition)
+                    .text('KẾT QUẢ XÉT NGHIỆM', 50, yPosition)
                     .fontSize(12)
                     .text(
-                        `Status: ${appointment.testResult.isAbnormal ? 'Abnormal' : 'Normal'}`,
+                        `Tình trạng: ${appointment.testResult.isAbnormal ? 'Bất thường' : 'Bình thường'}`,
                         50,
                         yPosition + 30,
                     );
 
                 if (appointment.testResult.resultSummary) {
                     doc.text(
-                        `Summary: ${appointment.testResult.resultSummary}`,
+                        `Tóm tắt: ${appointment.testResult.resultSummary}`,
                         50,
                         yPosition + 50,
                         {
@@ -292,7 +348,7 @@ export class TestResultExportPdfService {
 
             // Footer
             doc.fontSize(10).text(
-                'This document is generated electronically and is valid without signature.',
+                'Tài liệu này được tạo tự động bằng hệ thống điện tử và có giá trị mà không cần chữ ký.',
                 50,
                 750,
                 {
@@ -347,16 +403,19 @@ export class TestResultExportPdfService {
             const doc = new PDFDocument();
             const buffers: Buffer[] = [];
 
+            // Register Vietnamese font
+            this.registerVietnameseFont(doc);
+
             doc.on('data', (chunk) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
             // PDF Header
             doc.fontSize(20)
-                .text('STI Test Result Report', 50, 50)
+                .text('BÁO CÁO KẾT QUẢ XÉT NGHIỆM STI', 50, 50)
                 .fontSize(12)
                 .text(
-                    'Generated on: ' + new Date().toLocaleDateString('vi-VN'),
+                    'Ngày tạo: ' + this.formatVietnameseDate(new Date()),
                     50,
                     80,
                 );
@@ -366,48 +425,50 @@ export class TestResultExportPdfService {
 
             // Patient Information
             doc.fontSize(16)
-                .text('Patient Information', 50, 120)
+                .text('THÔNG TIN BỆNH NHÂN', 50, 120)
                 .fontSize(12)
                 .text(
-                    `Name: ${stiProcess.patient.firstName} ${stiProcess.patient.lastName}`,
+                    `Họ và tên: ${stiProcess.patient.firstName} ${stiProcess.patient.lastName}`,
                     50,
                     150,
                 )
                 .text(`Email: ${stiProcess.patient.email}`, 50, 170)
-                .text(`Phone: ${stiProcess.patient.phone || 'N/A'}`, 50, 190);
+                .text(
+                    `Số điện thoại: ${stiProcess.patient.phone || 'Không có'}`,
+                    50,
+                    190,
+                );
 
             // Test Information
             doc.fontSize(16)
-                .text('Test Information', 50, 220)
+                .text('THÔNG TIN XÉT NGHIỆM', 50, 220)
                 .fontSize(12)
-                .text(`Test Code: ${stiProcess.testCode}`, 50, 250)
-                .text(`Service: ${stiProcess.service.name}`, 50, 270)
-                .text(`Sample Type: ${stiProcess.sampleType}`, 50, 290)
-                .text(`Status: ${stiProcess.status}`, 50, 310)
-                .text(`Priority: ${stiProcess.priority}`, 50, 330);
+                .text(`Mã xét nghiệm: ${stiProcess.testCode}`, 50, 250)
+                .text(`Dịch vụ: ${stiProcess.service.name}`, 50, 270)
+                .text(`Loại mẫu: ${stiProcess.sampleType}`, 50, 290)
+                .text(`Trạng thái: ${stiProcess.status}`, 50, 310)
+                .text(`Mức độ ưu tiên: ${stiProcess.priority}`, 50, 330);
 
             // Sample Collection Details
-            doc.fontSize(16)
-                .text('Sample Collection Details', 50, 360)
-                .fontSize(12);
+            doc.fontSize(16).text('CHI TIẾT LẤY MẪU', 50, 360).fontSize(12);
 
             if (stiProcess.sampleCollectionDate) {
                 doc.text(
-                    `Collection Date: ${stiProcess.sampleCollectionDate.toLocaleDateString('vi-VN')}`,
+                    `Ngày lấy mẫu: ${this.formatVietnameseDate(stiProcess.sampleCollectionDate)}`,
                     50,
                     390,
                 );
             }
             if (stiProcess.sampleCollectionLocation) {
                 doc.text(
-                    `Collection Location: ${stiProcess.sampleCollectionLocation}`,
+                    `Địa điểm lấy mẫu: ${stiProcess.sampleCollectionLocation}`,
                     50,
                     410,
                 );
             }
             if (stiProcess.sampleCollectedBy) {
                 doc.text(
-                    `Collected By: ${stiProcess.sampleCollectedBy}`,
+                    `Người lấy mẫu: ${stiProcess.sampleCollectedBy}`,
                     50,
                     430,
                 );
@@ -417,22 +478,22 @@ export class TestResultExportPdfService {
             let yPosition = 460;
             if (stiProcess.testResult) {
                 doc.fontSize(16)
-                    .text('Test Results', 50, yPosition)
+                    .text('KẾT QUẢ XÉT NGHIỆM', 50, yPosition)
                     .fontSize(12)
                     .text(
-                        `Result Status: ${stiProcess.testResult.isAbnormal ? 'Abnormal' : 'Normal'}`,
+                        `Tình trạng kết quả: ${stiProcess.testResult.isAbnormal ? 'Bất thường' : 'Bình thường'}`,
                         50,
                         yPosition + 30,
                     )
                     .text(
-                        `Result Date: ${stiProcess.actualResultDate ? stiProcess.actualResultDate.toLocaleDateString('vi-VN') : 'N/A'}`,
+                        `Ngày có kết quả: ${stiProcess.actualResultDate ? this.formatVietnameseDate(stiProcess.actualResultDate) : 'Chưa có'}`,
                         50,
                         yPosition + 50,
                     );
 
                 if (stiProcess.testResult.resultSummary) {
                     doc.fontSize(14)
-                        .text('Result Summary:', 50, yPosition + 80)
+                        .text('Tóm tắt kết quả:', 50, yPosition + 80)
                         .fontSize(12)
                         .text(
                             stiProcess.testResult.resultSummary,
@@ -448,7 +509,7 @@ export class TestResultExportPdfService {
 
                 if (stiProcess.testResult.recommendation) {
                     doc.fontSize(14)
-                        .text('Recommendation:', 50, yPosition + 20)
+                        .text('Khuyến nghị:', 50, yPosition + 20)
                         .fontSize(12)
                         .text(
                             stiProcess.testResult.recommendation,
@@ -463,16 +524,16 @@ export class TestResultExportPdfService {
                 }
             } else {
                 doc.fontSize(16)
-                    .text('Test Results', 50, yPosition)
+                    .text('KẾT QUẢ XÉT NGHIỆM', 50, yPosition)
                     .fontSize(12)
-                    .text('Results are not yet available.', 50, yPosition + 30);
+                    .text('Kết quả chưa sẵn sàng.', 50, yPosition + 30);
                 yPosition += 60;
             }
 
             // Process Notes
             if (stiProcess.processNotes) {
                 doc.fontSize(14)
-                    .text('Process Notes:', 50, yPosition + 20)
+                    .text('Ghi chú quá trình:', 50, yPosition + 20)
                     .fontSize(12)
                     .text(stiProcess.processNotes, 50, yPosition + 40, {
                         width: 500,
@@ -484,7 +545,7 @@ export class TestResultExportPdfService {
             // Lab Notes
             if (stiProcess.labNotes) {
                 doc.fontSize(14)
-                    .text('Lab Notes:', 50, yPosition + 20)
+                    .text('Ghi chú phòng thí nghiệm:', 50, yPosition + 20)
                     .fontSize(12)
                     .text(stiProcess.labNotes, 50, yPosition + 40, {
                         width: 500,
@@ -496,10 +557,10 @@ export class TestResultExportPdfService {
             // Consultant Information
             if (stiProcess.consultantDoctor) {
                 doc.fontSize(14)
-                    .text('Consultant Doctor:', 50, yPosition + 20)
+                    .text('Bác sĩ tư vấn:', 50, yPosition + 20)
                     .fontSize(12)
                     .text(
-                        `Dr. ${stiProcess.consultantDoctor.firstName} ${stiProcess.consultantDoctor.lastName}`,
+                        `BS. ${stiProcess.consultantDoctor.firstName} ${stiProcess.consultantDoctor.lastName}`,
                         50,
                         yPosition + 40,
                     );
@@ -509,7 +570,7 @@ export class TestResultExportPdfService {
             // Footer
             doc.fontSize(10)
                 .text(
-                    'This document is generated electronically and is valid without signature.',
+                    'Tài liệu này được tạo tự động bằng hệ thống điện tử và có giá trị mà không cần chữ ký.',
                     50,
                     750,
                     {
@@ -518,7 +579,7 @@ export class TestResultExportPdfService {
                     },
                 )
                 .text(
-                    'CONFIDENTIAL - This document contains sensitive medical information.',
+                    'BẢO MẬT - Tài liệu này chứa thông tin y tế nhạy cảm.',
                     50,
                     765,
                     {

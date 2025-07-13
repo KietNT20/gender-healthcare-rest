@@ -1,5 +1,4 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -27,14 +26,12 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesNameEnum } from 'src/enums';
 import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { FileResult, UploadPublicPdfOptions } from './interfaces';
+import {
+    UploadPublicPdfDto,
+    UploadPublicPdfMetadataDto,
+} from './dto/upload-file.dto';
+import { FileResult } from './interfaces';
 import { PublicPdfService } from './public-pdf.service';
-
-class UploadPublicPdfDto {
-    entityType: string;
-    entityId: string;
-    description?: string;
-}
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('public-pdfs')
@@ -50,42 +47,11 @@ export class PublicPdfController {
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         description: 'PDF file and metadata',
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description: 'PDF file to upload',
-                },
-                entityType: {
-                    type: 'string',
-                    description: 'Type of entity (e.g., blog, service, etc.)',
-                },
-                entityId: {
-                    type: 'string',
-                    description: 'ID of the entity',
-                },
-                description: {
-                    type: 'string',
-                    description: 'Optional description of the PDF',
-                },
-            },
-            required: ['file', 'entityType', 'entityId'],
-        },
+        type: UploadPublicPdfDto,
     })
     @ApiResponse({
         status: HttpStatus.CREATED,
         description: 'PDF uploaded successfully',
-        schema: {
-            type: 'object',
-            properties: {
-                id: { type: 'string' },
-                url: { type: 'string' },
-                originalName: { type: 'string' },
-                size: { type: 'number' },
-            },
-        },
     })
     @Roles([
         RolesNameEnum.ADMIN,
@@ -94,20 +60,12 @@ export class PublicPdfController {
     ])
     async uploadPublicPdf(
         @UploadedFile() file: Express.Multer.File,
-        @Body() uploadDto: UploadPublicPdfDto,
+        @Body() uploadPublicPdfBodyDto: UploadPublicPdfMetadataDto,
     ): Promise<FileResult> {
-        if (!file) {
-            throw new BadRequestException('PDF file is required');
-        }
-
-        const options: UploadPublicPdfOptions = {
+        return this.publicPdfService.uploadPublicPdf(
             file,
-            entityType: uploadDto.entityType,
-            entityId: uploadDto.entityId,
-            description: uploadDto.description,
-        };
-
-        return this.publicPdfService.uploadPublicPdf(options);
+            uploadPublicPdfBodyDto,
+        );
     }
 
     @Get('entity/:entityType/:entityId')

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsArray,
     IsEmail,
@@ -7,6 +8,7 @@ import {
     IsString,
     MinLength,
 } from 'class-validator';
+import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
 export class RegisterConsultantDataDto {
     @ApiProperty()
@@ -35,8 +37,8 @@ export class RegisterConsultantDataDto {
     })
     @IsArray()
     @IsString({ each: true })
-    @IsNotEmpty()
-    specialties: string[];
+    @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
+    specialties: Array<string>;
 
     @ApiProperty()
     @IsNotEmpty()
@@ -51,6 +53,7 @@ export class RegisterConsultantDataDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     bio?: string;
 }
 

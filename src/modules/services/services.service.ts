@@ -1,14 +1,14 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { SortOrder, LocationTypeEnum } from 'src/enums';
 import { IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
+import { GetServiceQueryDto, ServiceQueryDto } from './dto/service-query.dto';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()
 export class ServicesService {
@@ -57,7 +57,7 @@ export class ServicesService {
             isActive: createServiceDto.isActive ?? true,
             featured: createServiceDto.featured ?? false,
             requiresConsultant: createServiceDto.requiresConsultant ?? false,
-            location: createServiceDto.location ?? LocationTypeEnum.OFFICE, // Use enum value
+            location: createServiceDto.location ?? LocationTypeEnum.OFFICE,
         });
 
         // Assign slug separately
@@ -67,9 +67,9 @@ export class ServicesService {
     }
 
     /**
-     * Retrieve a list of services with pagination, filtering, and sorting
-     * @param serviceQueryDto Query parameters for pagination, filtering, and sorting
-     * @returns List of services with pagination metadata
+     * Retrieve a list of services with filtering, sorting, and pagination
+     * @param serviceQueryDto Query parameters for filtering, sorting, and pagination
+     * @returns Paginated list of services
      */
     async findAll(
         serviceQueryDto: ServiceQueryDto,
@@ -89,10 +89,10 @@ export class ServicesService {
             requiresConsultant,
             categoryId,
             location,
-            page = 1,
-            limit = 10,
             sortBy = 'createdAt',
             sortOrder = SortOrder.DESC,
+            page = 1,
+            limit = 10,
         } = serviceQueryDto;
 
         if (search) {
@@ -131,9 +131,6 @@ export class ServicesService {
             queryBuilder.andWhere('service.location = :location', { location });
         }
 
-        const offset = (page - 1) * limit;
-        queryBuilder.skip(offset).take(limit);
-
         const allowedSortFields = [
             'name',
             'price',
@@ -147,6 +144,11 @@ export class ServicesService {
             : 'createdAt';
         queryBuilder.orderBy(`service.${sortField}`, sortOrder);
 
+        // Apply pagination
+        const offset = (page - 1) * limit;
+        queryBuilder.skip(offset).take(limit);
+
+        // Execute and format response
         const [services, totalItems] = await queryBuilder.getManyAndCount();
 
         return {
@@ -227,7 +229,7 @@ export class ServicesService {
             category: categoryRef ? { id: categoryRef.id } : undefined,
             requiresConsultant:
                 updateDto.requiresConsultant ?? service.requiresConsultant,
-            location: updateDto.location ?? service.location, // Preserve existing location if not provided
+            location: updateDto.location ?? service.location,
         });
 
         // Save and return entity

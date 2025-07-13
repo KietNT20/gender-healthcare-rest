@@ -34,9 +34,6 @@ export class Question {
     })
     status: QuestionStatusType;
 
-    @Column({ default: false })
-    isAnonymous: boolean;
-
     @CreateDateColumn()
     createdAt: Date;
 

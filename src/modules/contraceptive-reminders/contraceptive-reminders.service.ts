@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
-import { ReminderFrequencyType, ReminderStatusType } from 'src/enums';
+import {
+    ReminderFrequencyType,
+    ReminderStatusType,
+    SortOrder,
+} from 'src/enums';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateContraceptiveReminderDto } from './dto/create-contraceptive-reminder.dto';
@@ -52,7 +56,7 @@ export class ContraceptiveRemindersService {
     async findAll(userId: string): Promise<ContraceptiveReminder[]> {
         return this.reminderRepository.find({
             where: { user: { id: userId } },
-            order: { createdAt: 'DESC' },
+            order: { createdAt: SortOrder.DESC },
         });
     }
 
@@ -165,10 +169,10 @@ export class ContraceptiveRemindersService {
         if (job) {
             // Hủy job lặp lại
             const repeatableJobs =
-                await this.notificationQueue.getRepeatableJobs();
+                await this.notificationQueue.getJobSchedulers();
             const jobToCancel = repeatableJobs.find((j) => j.id === jobId);
             if (jobToCancel) {
-                await this.notificationQueue.removeRepeatableByKey(
+                await this.notificationQueue.removeJobScheduler(
                     jobToCancel.key,
                 );
                 this.logger.log(`Đã hủy job lặp lại: ${jobId}`);

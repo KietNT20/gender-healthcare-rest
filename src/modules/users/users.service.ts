@@ -6,7 +6,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { RolesNameEnum } from 'src/enums';
@@ -951,6 +951,27 @@ export class UsersService {
             lastLogin: new Date(),
             updatedAt: new Date(),
         });
+    }
+
+    /**
+     * Cập nhật trạng thái đồng ý cho việc thu thập dữ liệu sức khỏe
+     */
+    async updateHealthDataConsent(
+        userId: string,
+        consent: boolean,
+    ): Promise<UserResponseDto> {
+        const user = await this.findOne(userId);
+
+        if (!user) {
+            throw new NotFoundException('Người dùng không tồn tại');
+        }
+
+        await this.userRepository.update(userId, {
+            healthDataConsent: consent,
+        });
+
+        const updatedUser = await this.findOne(userId);
+        return plainToInstance(UserResponseDto, updatedUser);
     }
 
     private async generateUniqueSlug(

@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
+import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
 export class SendPublicPdfMessageDto {
     @ApiPropertyOptional({
@@ -8,6 +9,7 @@ export class SendPublicPdfMessageDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     content?: string;
 
     @ApiPropertyOptional({
@@ -16,5 +18,6 @@ export class SendPublicPdfMessageDto {
     })
     @IsOptional()
     @IsString()
+    @TransformEmptyStringToUndefined()
     description?: string;
 }

@@ -13,21 +13,27 @@ export class MenstrualPrediction {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    // Ngày bắt đầu chu kỳ kinh nguyệt dự đoán
     @Column({ type: 'date' })
     predictedCycleStart: Date;
 
+    // Ngày kết thúc chu kỳ kinh nguyệt dự đoán
     @Column({ type: 'date' })
     predictedCycleEnd: Date;
 
+    // Ngày bắt đầu thời kỳ rụng trứng dự đoán
     @Column({ type: 'date' })
     predictedFertileStart: Date;
 
+    // Ngày kết thúc thời kỳ rụng trứng dự đoán
     @Column({ type: 'date' })
     predictedFertileEnd: Date;
 
+    // Ngày rụng trứng dự đoán
     @Column({ type: 'date' })
     predictedOvulationDate: Date;
 
+    // Độ chính xác của dự đoán (0.00 - 1.00)
     @Column({
         type: 'decimal',
         precision: 4,

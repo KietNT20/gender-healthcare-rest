@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+    Allow,
     IsArray,
     IsBoolean,
     IsDateString,
@@ -15,10 +16,7 @@ import {
     MeasurementUnit,
     ServiceType,
 } from '../enums/test-result.enums';
-import {
-    TestResultData,
-    TestResultItem,
-} from '../interfaces/test-result.interfaces';
+import { TestResultItem } from '../interfaces/test-result.interfaces';
 
 // DTO cho một kết quả test riêng lẻ
 export class TestResultItemDto
@@ -44,6 +42,7 @@ export class TestResultItemDto
         example: 'Negative',
         oneOf: [{ type: 'string' }, { type: 'number' }],
     })
+    @Allow()
     value: string | number;
 
     @ApiProperty({
@@ -181,7 +180,7 @@ export class QualityControlDto {
     reviewer?: string;
 }
 
-export class TestResultDataDto implements TestResultData {
+export class TestResultDataDto {
     @ApiProperty({
         description: 'Loại dịch vụ y tế',
         enum: ServiceType,
@@ -206,17 +205,17 @@ export class TestResultDataDto implements TestResultData {
     @ApiPropertyOptional({ description: 'Thời gian lấy mẫu' })
     @IsDateString()
     @IsOptional()
-    sampleCollectedAt?: Date;
+    sampleCollectedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thời gian phân tích' })
     @IsDateString()
     @IsOptional()
-    analyzedAt?: Date;
+    analyzedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thời gian báo cáo' })
     @IsDateString()
     @IsOptional()
-    reportedAt?: Date;
+    reportedAt?: string;
 
     @ApiPropertyOptional({ description: 'Thông tin mẫu', type: SampleInfoDto })
     @ValidateNested()

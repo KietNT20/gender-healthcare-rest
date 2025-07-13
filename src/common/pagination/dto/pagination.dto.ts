@@ -2,13 +2,19 @@ import { ApiPropertyOptional } from '@nestjs/swagger/dist/decorators/api-propert
 import { IsOptional, IsPositive, Max, Min } from 'class-validator';
 
 export class PaginationDto {
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({
+        description: 'Số trang',
+        default: 1,
+    })
     @IsOptional()
     @IsPositive()
     @Min(1)
     page?: number = 1;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({
+        description: 'Số lượng bản ghi trên mỗi trang',
+        default: 10,
+    })
     @IsOptional()
     @IsPositive()
     @Min(1)

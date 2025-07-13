@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsArray,
     IsBoolean,
@@ -10,7 +11,11 @@ import {
     IsString,
     IsUUID,
 } from 'class-validator';
-import { LocationTypeEnum, ProfileStatusType } from 'src/enums';
+import {
+    ConsultationFeeType,
+    LocationTypeEnum,
+    ProfileStatusType,
+} from 'src/enums';
 
 export class CreateConsultantProfileDto {
     @ApiProperty({ description: 'ID of the user this profile belongs to.' })
@@ -21,11 +26,12 @@ export class CreateConsultantProfileDto {
 
     @ApiProperty({
         description:
-            'Specialties of the consultant, e.g., "Cardiology", "Psychology".',
+            'Chuyên môn của tư vấn viên, ví dụ: "Cardiology", "Psychology".',
         type: [String],
     })
-    @IsNotEmpty()
     @IsArray()
+    @IsString({ each: true })
+    @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
     specialties: string[];
 
     @ApiProperty({
@@ -49,6 +55,20 @@ export class CreateConsultantProfileDto {
     @IsNumber()
     @IsPositive()
     consultationFee: number;
+
+    @ApiProperty({
+        enum: ConsultationFeeType,
+        description: 'Type of consultation fee.',
+    })
+    @IsNotEmpty()
+    @IsEnum(ConsultationFeeType)
+    consultationFeeType: ConsultationFeeType = ConsultationFeeType.PER_SESSION;
+
+    @ApiPropertyOptional({ default: 60 })
+    @IsOptional()
+    @IsNumber()
+    @IsPositive()
+    sessionDurationMinutes?: number = 60; // Default session duration in minutes
 
     @ApiPropertyOptional({ default: true })
     @IsOptional()

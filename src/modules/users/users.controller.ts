@@ -12,7 +12,12 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOkResponse,
+    ApiOperation,
+    ApiResponse,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -22,6 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateManyUsersDto } from './dto/create-many-users.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserQueryDto } from './dto/query-user.dto';
+import { UpdateHealthDataConsentDto } from './dto/update-health-data-consent.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto, UpdateProfileDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
@@ -120,6 +126,26 @@ export class UsersController {
         @Body() changePasswordDto: ChangePasswordDto,
     ) {
         return this.usersService.changePassword(user.id, changePasswordDto);
+    }
+
+    @Patch('me/health-data-consent')
+    @ApiOperation({
+        summary: 'Update health data consent',
+        description:
+            'Cập nhật trạng thái đồng ý cho việc thu thập dữ liệu sức khỏe',
+    })
+    @ApiOkResponse({
+        description: 'Cập nhật trạng thái đồng ý thành công',
+    })
+    @ResponseMessage('Cập nhật trạng thái đồng ý thành công')
+    updateHealthDataConsent(
+        @CurrentUser() user: User,
+        @Body() updateConsentDto: UpdateHealthDataConsentDto,
+    ) {
+        return this.usersService.updateHealthDataConsent(
+            user.id,
+            updateConsentDto.healthDataConsent,
+        );
     }
 
     @Get(':id')

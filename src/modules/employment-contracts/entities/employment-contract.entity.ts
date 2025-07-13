@@ -52,7 +52,10 @@ export class EmploymentContract {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.employmentContracts)
+    @ManyToOne(() => User, (user) => user.employmentContracts, {
+        onDelete: 'SET NULL',
+        eager: true,
+    })
     user: User;
 
     @OneToMany(() => ContractFile, (contractFile) => contractFile.contract)

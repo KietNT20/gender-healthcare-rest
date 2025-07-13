@@ -33,11 +33,7 @@ export class RoomHandler {
         private readonly typingHandler: TypingHandler,
     ) {}
 
-    async handleJoinQuestion(
-        data: JoinRoomData,
-        client: AuthenticatedSocket,
-        server: Server,
-    ) {
+    async handleJoinQuestion(data: JoinRoomData, client: AuthenticatedSocket) {
         if (!client.user) {
             throw new UnauthorizedException(
                 ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
@@ -119,11 +115,7 @@ export class RoomHandler {
         }
     }
 
-    async handleLeaveQuestion(
-        data: JoinRoomData,
-        client: AuthenticatedSocket,
-        server: Server,
-    ) {
+    async handleLeaveQuestion(data: JoinRoomData, client: AuthenticatedSocket) {
         if (!client.user) return;
 
         const { questionId } = data;

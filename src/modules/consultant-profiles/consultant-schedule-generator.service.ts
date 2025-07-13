@@ -1,9 +1,4 @@
-import {
-    BadRequestException,
-    Injectable,
-    InternalServerErrorException,
-    Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ConsultantAvailability } from '../consultant-availability/entities/consultant-availability.entity';
@@ -153,7 +148,7 @@ export class ConsultantScheduleGeneratorService {
             this.logger.error(
                 `Lỗi khi tạo availability slot cho ngày ${date.toISOString().split('T')[0]} từ ${timeSlot.startTime} đến ${timeSlot.endTime}: ${error.message}`,
             );
-            throw new InternalServerErrorException();
+            throw error;
         }
     }
 

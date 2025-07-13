@@ -1,9 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 
@@ -20,11 +19,7 @@ async function bootstrap() {
         }),
     );
     // Global filters
-    const { httpAdapter } = app.get(HttpAdapterHost);
-    app.useGlobalFilters(
-        new AllExceptionsFilter(httpAdapter),
-        new HttpExceptionFilter(),
-    );
+    app.useGlobalFilters(new HttpExceptionFilter());
     // WebSocket Adapter
     const redisIoAdapter = new RedisIoAdapter(app);
     await redisIoAdapter.connectToRedis();
@@ -46,7 +41,9 @@ async function bootstrap() {
         .build();
     const documentFactory = () =>
         SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api', app, documentFactory);
+    SwaggerModule.setup('api', app, documentFactory, {
+        jsonDocumentUrl: '/api/swagger.json',
+    });
 
     await app.listen(process.env.PORT ?? 3000);
 }

@@ -50,10 +50,10 @@ export class CreateContraceptiveReminderDto {
     @ApiProperty({
         description: 'Tần suất nhắc nhở',
         enum: ReminderFrequencyType,
-        default: ReminderFrequencyType.DAILY,
+        default: ReminderFrequencyType.WEEKLY,
     })
     @IsEnum(ReminderFrequencyType)
-    frequency: ReminderFrequencyType;
+    frequency: ReminderFrequencyType = ReminderFrequencyType.WEEKLY;
 
     @ApiPropertyOptional({
         description:

@@ -21,7 +21,6 @@ import { ConsultantAvailabilityModule } from './modules/consultant-availability/
 import { ConsultantProfilesModule } from './modules/consultant-profiles/consultant-profiles.module';
 import { ContraceptiveRemindersModule } from './modules/contraceptive-reminders/contraceptive-reminders.module';
 import { ContractFilesModule } from './modules/contract-files/contract-files.module';
-import { CycleMoodsModule } from './modules/cycle-moods/cycle-moods.module';
 import { CycleSymptomsModule } from './modules/cycle-symptoms/cycle-symptoms.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { EmploymentContractsModule } from './modules/employment-contracts/employment-contracts.module';
@@ -34,7 +33,6 @@ import mailConfig from './modules/mail/config/mail.config';
 import { MailModule } from './modules/mail/mail.module';
 import { MenstrualCyclesModule } from './modules/menstrual-cycles/menstrual-cycles.module';
 import { MenstrualPredictionsModule } from './modules/menstrual-predictions/menstrual-predictions.module';
-import { MoodsModule } from './modules/moods/moods.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PackageServiceUsageModule } from './modules/package-service-usage/package-service-usage.module';
 import { PackageServicesModule } from './modules/package-services/package-services.module';
@@ -123,7 +121,6 @@ import { UsersModule } from './modules/users/users.module';
         ConsultantProfilesModule,
         ContractFilesModule,
         ContraceptiveRemindersModule,
-        CycleMoodsModule,
         CycleSymptomsModule,
         DocumentsModule,
         EmploymentContractsModule,
@@ -132,7 +129,6 @@ import { UsersModule } from './modules/users/users.module';
         MailModule,
         MenstrualCyclesModule,
         MenstrualPredictionsModule,
-        MoodsModule,
         NotificationsModule,
         PackageServiceUsageModule,
         PackageServicesModule,

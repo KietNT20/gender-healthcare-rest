@@ -20,6 +20,7 @@ import { FilesService } from '../files/files.service';
 import { FileResult } from '../files/interfaces';
 import { User } from '../users/entities/user.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
+import { SendFileMessageDto } from './dto/send-file-messsage.dto';
 import { Message } from './entities/message.entity';
 import { Question } from './entities/question.entity';
 import {
@@ -383,16 +384,15 @@ export class ChatService {
     async sendMessageWithFile(
         questionId: string,
         senderId: string,
-        content: string,
         file: Express.Multer.File,
-        type: MessageType = MessageType.FILE,
+        sendFileMessageDto: SendFileMessageDto,
     ): Promise<MessageWithSender> {
         try {
             let uploadResult: FileResult;
             let messageType: MessageType;
 
             if (
-                type === MessageType.IMAGE ||
+                sendFileMessageDto.type === MessageType.IMAGE ||
                 file.mimetype.startsWith('image/')
             ) {
                 // Use uploadImage for actual image files
@@ -410,16 +410,17 @@ export class ChatService {
                     file,
                     entityType: 'message_document',
                     entityId: questionId,
-                    description: content || file.originalname,
+                    description:
+                        sendFileMessageDto.content || file.originalname,
                 });
                 // Use IMAGE type in database but mark as document in metadata
                 messageType = MessageType.IMAGE;
             }
 
             return await this.createMessage({
-                content: content || file.originalname,
+                content: sendFileMessageDto.content || file.originalname,
                 type:
-                    type === MessageType.IMAGE
+                    sendFileMessageDto.type === MessageType.IMAGE
                         ? MessageType.IMAGE
                         : MessageType.FILE,
                 questionId,

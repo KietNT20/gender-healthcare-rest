@@ -93,7 +93,7 @@ export class FeedbackQueryDto {
     })
     @IsOptional()
     @IsBooleanString()
-    isAnonymous?: string = 'true';
+    isAnonymous?: string;
 
     @ApiPropertyOptional({ description: 'Search keyword in comment' })
     @IsOptional()

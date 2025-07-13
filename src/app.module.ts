@@ -5,8 +5,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
@@ -52,7 +50,6 @@ import { UsersModule } from './modules/users/users.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            // envFilePath: ['.env'],
             envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
@@ -86,12 +83,6 @@ import { UsersModule } from './modules/users/users.module';
                 autoLoadEntities: true,
                 logging: true,
                 dropSchema: false,
-                ssl: {
-                    rejectUnauthorized: true,
-                    ca: readFileSync(
-                        join(process.cwd(), 'certs', 'global-bundle.pem'),
-                    ).toString(),
-                },
             }),
             inject: [ConfigService],
         }),

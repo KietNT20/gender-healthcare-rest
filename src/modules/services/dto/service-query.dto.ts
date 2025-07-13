@@ -13,15 +13,14 @@ import {
 import { LocationTypeEnum, SortOrder } from 'src/enums';
 
 export class ServiceQueryDto {
-    @ApiPropertyOptional({ description: 'Số trang', default: 1, example: 1 })
+    @ApiPropertyOptional({ description: 'Số trang', default: 1})
     @IsOptional()
     @IsPositive()
     page?: number = 1;
 
     @ApiPropertyOptional({
         description: 'Số bản ghi mỗi trang',
-        default: 10,
-        example: 10,
+        default: 10
     })
     @IsOptional()
     @IsPositive()
@@ -60,13 +59,13 @@ export class ServiceQueryDto {
     @IsString()
     categoryId?: string;
 
-    @ApiPropertyOptional({ description: 'Giá tối thiểu', example: 0 })
+    @ApiPropertyOptional({ description: 'Giá tối thiểu'})
     @IsOptional()
     @IsNumber()
     @Min(0)
     minPrice?: number;
 
-    @ApiPropertyOptional({ description: 'Giá tối đa', example: 1000000 })
+    @ApiPropertyOptional({ description: 'Giá tối đa' })
     @IsOptional()
     @IsNumber()
     @Min(0)

@@ -423,6 +423,8 @@ export class UsersService {
             where: { id, deletedAt: IsNull() },
             relations: {
                 role: true,
+                consultantProfile: true,
+                consultantAvailabilities: true,
             },
         });
 

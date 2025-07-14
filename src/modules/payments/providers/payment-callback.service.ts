@@ -49,7 +49,7 @@ export class PaymentCallbackService {
         if (!payment) {
             return this.paymentValidationService.createRedirectResponse(
                 `${defaultFrontendDomain}/payment/error`,
-                { code: '01', error: 'Payment not found' },
+                { code: '02', error: 'Payment not found' }, // 02 = INVALID_PARAM
             );
         }
 
@@ -100,12 +100,12 @@ export class PaymentCallbackService {
             } else if (paymentInfo.status === PayOSPaymentStatus.CANCELLED) {
                 return this.paymentValidationService.createRedirectResponse(
                     cancelUrl,
-                    { code: '01', status: 'CANCELLED' },
+                    { code: '01', status: 'CANCELLED' }, // 01 = FAILED
                 );
             } else if (paymentInfo.status === PayOSPaymentStatus.PROCESSING) {
                 return this.paymentValidationService.createRedirectResponse(
                     `${defaultFrontendDomain}/payment/processing?orderId=${orderCode}`,
-                    { code: '01', status: 'PROCESSING' },
+                    { code: '01', status: 'PROCESSING' }, // 01 = FAILED (chưa thành công)
                 );
             }
         } catch (error) {
@@ -115,7 +115,7 @@ export class PaymentCallbackService {
         // Mặc định chuyển về trang lỗi nếu không xác định được
         return this.paymentValidationService.createRedirectResponse(
             `${defaultFrontendDomain}/payment/error`,
-            { code: '01', error: 'Payment status could not be confirmed.' },
+            { code: '02', error: 'Payment status could not be confirmed.' }, // 02 = INVALID_PARAM
         );
     }
 

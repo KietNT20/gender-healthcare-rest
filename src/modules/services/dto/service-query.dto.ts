@@ -1,12 +1,10 @@
 import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
-    IsBoolean,
     IsBooleanString,
     IsEnum,
     IsIn,
     IsNumber,
     IsOptional,
-    IsPositive,
     IsString,
     IsUUID,
     Min,

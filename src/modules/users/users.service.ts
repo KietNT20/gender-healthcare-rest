@@ -343,7 +343,6 @@ export class UsersService {
     async findAll(
         userQueryDto: UserQueryDto,
     ): Promise<Paginated<UserResponseDto>> {
-        console.log('userQueryDto', userQueryDto);
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
             .where('user.deletedAt IS NULL');
@@ -424,6 +423,8 @@ export class UsersService {
             where: { id, deletedAt: IsNull() },
             relations: {
                 role: true,
+                consultantProfile: true,
+                consultantAvailabilities: true,
             },
         });
 

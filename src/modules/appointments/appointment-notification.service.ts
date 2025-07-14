@@ -424,4 +424,17 @@ export class AppointmentNotificationService {
             `${reminderType} reminder sent for appointment ${appointment.id}`,
         );
     }
+
+    /**
+     * Gửi yêu cầu feedback sau khi appointment hoàn thành
+     */
+    public sendFeedbackRequest(appointment: Appointment): void {
+        this.notificationsService.create({
+            userId: appointment.user.id,
+            title: 'Mời bạn đánh giá cuộc hẹn',
+            content: `Cảm ơn bạn đã sử dụng dịch vụ. Vui lòng để lại đánh giá cho cuộc hẹn với tư vấn viên.`,
+            type: 'APPOINTMENT_FEEDBACK_REQUEST',
+            actionUrl: `/appointments/${appointment.id}/feedback`,
+        });
+    }
 }

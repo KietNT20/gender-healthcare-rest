@@ -86,6 +86,25 @@ export class ServicesController {
         return this.servicesService.findAll(serviceQueryDto);
     }
 
+
+    /**
+     * Get a list of STI services
+     * @returns List of STI services
+     */
+    @Get('sti')
+    @ApiOperation({
+        summary: 'Get a list of STI services',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI services retrieved successfully',
+        type: [Service],
+    })
+    @ResponseMessage('STI services retrieved successfully')
+    async getStiServices() {
+        return this.servicesService.findAllStiServices();
+    }
+
     /**
      * Get a service by slug
      * @param slug Service slug

@@ -1,8 +1,4 @@
-import {
-    ApiProperty,
-    ApiPropertyOptional,
-    IntersectionType,
-} from '@nestjs/swagger';
+import { ApiPropertyOptional, IntersectionType } from '@nestjs/swagger';
 import {
     IsDateString,
     IsEnum,
@@ -14,56 +10,57 @@ import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { AppointmentStatusType, SortOrder } from 'src/enums';
 
 export class UpdateMeetingLinkDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'Meeting link (Google Meet, Zoom, etc.)',
-        required: false,
     })
-    @IsOptional()
     @IsString()
     @IsUrl({}, { message: 'Meeting link must be a valid URL' })
+    @IsOptional()
     meetingLink?: string;
 }
 
 export class ConsultantAppointmentsMeetingFilterDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'Filter by appointment status',
-        required: false,
         enum: AppointmentStatusType,
     })
-    @IsOptional()
     @IsEnum(AppointmentStatusType)
+    @IsOptional()
     status?: AppointmentStatusType;
 
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'Filter by appointment date (from)',
-        required: false,
         example: '2024-01-01',
     })
-    @IsOptional()
     @IsDateString()
+    @IsOptional()
     dateFrom?: string;
 
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'Filter by appointment date (to)',
-        required: false,
         example: '2024-12-31',
     })
-    @IsOptional()
     @IsDateString()
+    @IsOptional()
     dateTo?: string;
 
     @ApiPropertyOptional({
-        enum: ['status'],
-        default: 'status',
+        description: 'Field to sort by',
+        enum: ['status', 'appointmentDate', 'createdAt', 'updatedAt'],
+        default: 'appointmentDate',
     })
     @IsString()
     @IsOptional()
-    sortBy?: string = 'status';
+    sortBy?: string = 'appointmentDate';
 
-    @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })
+    @ApiPropertyOptional({
+        description: 'Sort order',
+        enum: SortOrder,
+        default: SortOrder.ASC,
+    })
     @IsEnum(SortOrder)
     @IsOptional()
-    sortOrder?: SortOrder = SortOrder.DESC;
+    sortOrder?: SortOrder = SortOrder.ASC;
 }
 
 export class ConsultantAppointmentsMeetingQueryDto extends IntersectionType(

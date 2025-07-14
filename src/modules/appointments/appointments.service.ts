@@ -22,8 +22,11 @@ import {
     FindManyOptions,
     In,
     IsNull,
+    LessThanOrEqual,
+    MoreThanOrEqual,
     Repository,
 } from 'typeorm';
+import { ChatRoomCleanupService } from '../chat/chat-room-cleanup.service';
 import { ChatService } from '../chat/chat.service';
 import { Question } from '../chat/entities/question.entity';
 import { Service } from '../services/entities/service.entity';
@@ -60,6 +63,7 @@ export class AppointmentsService {
         private readonly notificationService: AppointmentNotificationService,
         private readonly validationService: AppointmentValidationService,
         private readonly chatService: ChatService,
+        private readonly chatRoomCleanupService: ChatRoomCleanupService,
     ) {}
 
     /**
@@ -559,7 +563,26 @@ export class AppointmentsService {
             appointment,
             updateDto,
         );
-        return this.appointmentRepository.save(updatedAppointment);
+        const savedAppointment =
+            await this.appointmentRepository.save(updatedAppointment);
+
+        // Cleanup chat room if appointment status changed to final status
+        if (updateDto.status && updateDto.status !== appointment.status) {
+            try {
+                await this.chatRoomCleanupService.cleanupRoomOnAppointmentStatusChange(
+                    savedAppointment.id,
+                    updateDto.status,
+                );
+            } catch (error) {
+                this.logger.error(
+                    'Error cleaning up chat room on status change:',
+                    error,
+                );
+                // Don't throw error here to avoid breaking the main flow
+            }
+        }
+
+        return savedAppointment;
     }
 
     /**
@@ -585,6 +608,20 @@ export class AppointmentsService {
 
         const savedAppointment =
             await this.appointmentRepository.save(appointment);
+
+        // Cleanup chat room when appointment is cancelled
+        try {
+            await this.chatRoomCleanupService.cleanupRoomOnAppointmentStatusChange(
+                savedAppointment.id,
+                AppointmentStatusType.CANCELLED,
+            );
+        } catch (error) {
+            this.logger.error(
+                'Error cleaning up chat room on cancellation:',
+                error,
+            );
+            // Don't throw error here to avoid breaking the main flow
+        }
 
         // Ủy thác việc gửi thông báo
         this.notificationService.sendCancellationNotifications(
@@ -797,52 +834,60 @@ export class AppointmentsService {
         consultant: User,
         queryDto: ConsultantAppointmentsMeetingQueryDto,
     ): Promise<Paginated<Appointment>> {
-        const { status, dateFrom, dateTo } = queryDto;
+        const {
+            status,
+            dateFrom,
+            dateTo,
+            limit = 10,
+            page = 1,
+            sortBy = 'appointmentDate',
+            sortOrder = SortOrder.ASC,
+        } = queryDto;
 
-        const queryBuilder = this.appointmentRepository
-            .createQueryBuilder('appointment')
-            .leftJoinAndSelect('appointment.user', 'user')
-            .leftJoinAndSelect('appointment.services', 'services')
-            .leftJoinAndSelect('services.category', 'category')
-            .leftJoinAndSelect(
-                'appointment.consultantAvailability',
-                'consultantAvailability',
-            )
-            .where('appointment.consultant.id = :consultantId', {
-                consultantId: consultant.id,
-            })
-            .andWhere('appointment.deletedAt IS NULL');
+        const where: FindManyOptions<Appointment>['where'] = {
+            consultant: { id: consultant.id },
+            deletedAt: IsNull(),
+        };
 
-        // Filter by status
         if (status) {
-            queryBuilder.andWhere('appointment.status = :status', { status });
+            where.status = status;
         }
 
-        // Filter by date range
-        if (dateFrom) {
-            queryBuilder.andWhere('appointment.appointmentDate >= :dateFrom', {
-                dateFrom: new Date(dateFrom),
+        if (dateFrom && dateTo) {
+            where.appointmentDate = Between(
+                new Date(dateFrom),
+                new Date(dateTo),
+            );
+        } else if (dateFrom) {
+            where.appointmentDate = MoreThanOrEqual(new Date(dateFrom));
+        } else if (dateTo) {
+            where.appointmentDate = LessThanOrEqual(new Date(dateTo));
+        }
+
+        const [appointments, total] =
+            await this.appointmentRepository.findAndCount({
+                where,
+                relations: {
+                    user: true,
+                    services: {
+                        category: true,
+                    },
+                    consultantAvailability: true,
+                },
+                order: {
+                    [sortBy]: sortOrder,
+                },
+                skip: (page - 1) * limit,
+                take: limit,
             });
-        }
-
-        if (dateTo) {
-            queryBuilder.andWhere('appointment.appointmentDate <= :dateTo', {
-                dateTo: new Date(dateTo),
-            });
-        }
-
-        // Order by appointment date
-        queryBuilder.orderBy('appointment.appointmentDate', 'ASC');
-
-        const [appointments, total] = await queryBuilder.getManyAndCount();
 
         return {
             data: appointments,
             meta: {
-                itemsPerPage: total,
+                itemsPerPage: limit,
                 totalItems: total,
-                currentPage: 1,
-                totalPages: 1,
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
             },
         };
     }

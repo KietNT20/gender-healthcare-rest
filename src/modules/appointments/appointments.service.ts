@@ -587,6 +587,10 @@ export class AppointmentsService {
                 );
                 // Don't throw error here to avoid breaking the main flow
             }
+            // Gửi yêu cầu feedback nếu appointment hoàn thành
+            if (updateDto.status === AppointmentStatusType.COMPLETED) {
+                this.notificationService.sendFeedbackRequest(savedAppointment);
+            }
         }
 
         return savedAppointment;

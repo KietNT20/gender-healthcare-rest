@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType, RolesNameEnum, SortOrder } from 'src/enums';
-import { Between, DataSource, Repository } from 'typeorm';
+import { Between, DataSource, Like, Raw, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
@@ -302,19 +302,31 @@ export class StiAppointmentsService {
      * @returns Danh sách lịch hẹn STI
      */
     async getUserStiAppointments(userId: string): Promise<Appointment[]> {
-        return await this.appointmentRepository.find({
-            where: {
-                user: { id: userId },
+    return await this.appointmentRepository.find({
+        where: {
+            user: { id: userId },
+            services: {
+                // Sử dụng Raw để kiểm tra điều kiện tương tự isStiAppointment
+                name: Raw(alias => `LOWER(${alias}) LIKE '%sti%'`),
+                // hoặc description chứa 'sti'
+                description: Raw(alias => `LOWER(${alias}) LIKE '%sti%'`),
+                // hoặc category.type chứa 'sti_test'
+                category: {
+                    type: Raw(alias => `LOWER(${alias}) LIKE '%sti_test%'`),
+                },
             },
-            relations: {
-                services: true,
-                consultant: true,
+        },
+        relations: {
+            services: {
+                category: true, // Đảm bảo lấy thông tin category để kiểm tra type
             },
-            order: {
-                appointmentDate: SortOrder.DESC,
-            },
-        });
-    }
+            consultant: true,
+        },
+        order: {
+            appointmentDate: SortOrder.DESC,
+        },
+    });
+}
 
     /**
      * Hủy lịch hẹn STI
@@ -448,7 +460,8 @@ export class StiAppointmentsService {
         const isStiAppointment = appointment.services.some(
             (service) =>
                 service.name.toLowerCase().includes('sti') ||
-                service.description.toLowerCase().includes('sti'),
+                service.description.toLowerCase().includes('sti') ||
+                service.category.type.toLowerCase().includes('sti_test'),
         );
 
         if (!isStiAppointment) {

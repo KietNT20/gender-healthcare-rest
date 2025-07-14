@@ -546,6 +546,13 @@ export class AppointmentsService {
         // Validate quyền truy cập
         this.validationService.validateUserAccess(appointment, currentUser);
 
+        if (updateDto.status && updateDto.status !== appointment.status) {
+            this.validationService.validateStatusTransition(
+                appointment.status,
+                updateDto.status,
+            );
+        }
+
         // Validate meetingLink nếu có trong updateDto
         if (updateDto.meetingLink !== undefined) {
             const hasConsultationService = appointment.services.some(

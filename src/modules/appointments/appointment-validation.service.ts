@@ -15,6 +15,28 @@ import { Appointment } from './entities/appointment.entity';
 @Injectable()
 export class AppointmentValidationService {
     /**
+     * Định nghĩa các bước chuyển trạng thái hợp lệ.
+     * Key: Trạng thái hiện tại
+     * Value: Mảng các trạng thái tiếp theo có thể chuyển đến
+     */
+    private readonly validTransitions: Partial<
+        Record<AppointmentStatusType, AppointmentStatusType[]>
+    > = {
+        [AppointmentStatusType.CONFIRMED]: [
+            AppointmentStatusType.CHECKED_IN,
+            AppointmentStatusType.CANCELLED,
+        ],
+        [AppointmentStatusType.CHECKED_IN]: [
+            AppointmentStatusType.IN_PROGRESS,
+            AppointmentStatusType.CANCELLED,
+        ],
+        [AppointmentStatusType.IN_PROGRESS]: [AppointmentStatusType.COMPLETED],
+        [AppointmentStatusType.COMPLETED]: [],
+        [AppointmentStatusType.CANCELLED]: [],
+        [AppointmentStatusType.NO_SHOW]: [],
+    };
+
+    /**
      * Kiểm tra xem người dùng hiện tại có quyền xem hoặc chỉnh sửa một cuộc hẹn cụ thể hay không.
      * @param appointment - Đối tượng cuộc hẹn cần kiểm tra.
      * @param user - Người dùng hiện tại đang thực hiện yêu cầu.
@@ -38,15 +60,39 @@ export class AppointmentValidationService {
     /**
      * Kiểm tra xem một cuộc hẹn có thể bị hủy hay không dựa trên trạng thái hiện tại của nó.
      * @param appointment - Đối tượng cuộc hẹn cần kiểm tra.
-     * @throws {BadRequestException} Nếu cuộc hẹn đã hoàn thành hoặc đã bị hủy trước đó.
+     * @throws {BadRequestException} Nếu cuộc hẹn đã hoàn thành, đã bị hủy, hoặc đang diễn ra.
      */
     public validateCancellation(appointment: Appointment): void {
+        const nonCancellableStatuses = [
+            AppointmentStatusType.COMPLETED,
+            AppointmentStatusType.CANCELLED,
+            AppointmentStatusType.IN_PROGRESS,
+        ];
+
+        if (nonCancellableStatuses.includes(appointment.status)) {
+            throw new BadRequestException(
+                `Không thể hủy cuộc hẹn với trạng thái '${appointment.status}'.`,
+            );
+        }
+    }
+
+    /**
+     * Kiểm tra xem việc chuyển từ trạng thái hiện tại sang trạng thái mới có hợp lệ không.
+     * @param currentStatus - Trạng thái hiện tại của cuộc hẹn.
+     * @param nextStatus - Trạng thái mới được yêu cầu.
+     * @throws {BadRequestException} Nếu việc chuyển đổi không hợp lệ.
+     */
+    public validateStatusTransition(
+        currentStatus: AppointmentStatusType,
+        nextStatus: AppointmentStatusType,
+    ): void {
+        // Nếu không có định nghĩa cho trạng thái hiện tại, hoặc trạng thái tiếp theo không nằm trong danh sách hợp lệ
         if (
-            appointment.status === AppointmentStatusType.COMPLETED ||
-            appointment.status === AppointmentStatusType.CANCELLED
+            !this.validTransitions[currentStatus] ||
+            !this.validTransitions[currentStatus].includes(nextStatus)
         ) {
             throw new BadRequestException(
-                'Không thể hủy cuộc hẹn đã hoàn thành hoặc đã bị hủy.',
+                `Không thể chuyển trạng thái từ '${currentStatus}' sang '${nextStatus}'.`,
             );
         }
     }

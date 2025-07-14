@@ -2,6 +2,7 @@ import {
     BadRequestException,
     Injectable,
     InternalServerErrorException,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import {
@@ -21,6 +22,8 @@ import { PayOSService } from './payos.service';
 
 @Injectable()
 export class PaymentCallbackService {
+    private readonly logger = new Logger(PaymentCallbackService.name);
+
     constructor(
         private readonly payOSService: PayOSService,
         private readonly paymentRepositoryService: PaymentRepositoryService,
@@ -94,9 +97,19 @@ export class PaymentCallbackService {
                     successUrl,
                     { code: '00', status: 'PAID' },
                 );
+            } else if (paymentInfo.status === PayOSPaymentStatus.CANCELLED) {
+                return this.paymentValidationService.createRedirectResponse(
+                    cancelUrl,
+                    { code: '01', status: 'CANCELLED' },
+                );
+            } else if (paymentInfo.status === PayOSPaymentStatus.PROCESSING) {
+                return this.paymentValidationService.createRedirectResponse(
+                    `${defaultFrontendDomain}/payment/processing?orderId=${orderCode}`,
+                    { code: '01', status: 'PROCESSING' },
+                );
             }
         } catch (error) {
-            console.error('Callback verification failed:', error.message);
+            this.logger.error('Callback verification failed:', error.message);
         }
 
         // Mặc định chuyển về trang lỗi nếu không xác định được
@@ -153,6 +166,22 @@ export class PaymentCallbackService {
                     webhookData,
                     paymentInfo,
                 });
+            } else if (paymentInfo.status === PayOSPaymentStatus.PROCESSING) {
+                // Payment is still being processed, update gateway response but keep payment pending
+                await this.processProcessingPayment(payment, {
+                    webhookData,
+                    paymentInfo,
+                });
+            } else {
+                // Handle PENDING or any other unknown status
+                payment.gatewayResponse.payosStatus =
+                    paymentInfo.status as PayOSPaymentStatus;
+                payment.gatewayResponse.webhookData = webhookData;
+                payment.gatewayResponse.paymentInfo = paymentInfo;
+                await this.paymentRepositoryService.updatePayment(payment);
+                this.logger.log(
+                    `Payment ${orderCode} status: ${paymentInfo.status}`,
+                );
             }
 
             return { success: true, message: 'Webhook processed successfully' };
@@ -227,7 +256,11 @@ export class PaymentCallbackService {
             paymentInfo?: PaymentLinkDataType;
         },
     ) {
-        if (payment.status !== PaymentStatusType.PENDING) return;
+        if (
+            payment.status !== PaymentStatusType.PENDING &&
+            payment.status !== PaymentStatusType.PROCESSING
+        )
+            return;
 
         payment.status = PaymentStatusType.COMPLETED;
         payment.paymentDate = new Date();
@@ -250,7 +283,11 @@ export class PaymentCallbackService {
             payosCancelResult?: PaymentLinkDataType | null;
         },
     ) {
-        if (payment.status !== PaymentStatusType.PENDING) return;
+        if (
+            payment.status !== PaymentStatusType.PENDING &&
+            payment.status !== PaymentStatusType.PROCESSING
+        )
+            return;
 
         payment.status = PaymentStatusType.CANCELLED;
         payment.gatewayResponse.payosStatus = PayOSPaymentStatus.CANCELLED;
@@ -262,5 +299,25 @@ export class PaymentCallbackService {
         payment.gatewayResponse.payosCancelResult = data.payosCancelResult;
 
         await this.paymentRepositoryService.updatePayment(payment);
+    }
+
+    private async processProcessingPayment(
+        payment: Payment,
+        data: {
+            webhookData?: WebhookDataType;
+            paymentInfo?: PaymentLinkDataType;
+        },
+    ) {
+        // Chỉ chuyển từ PENDING sang PROCESSING, không chuyển ngược lại
+        if (payment.status === PaymentStatusType.PENDING) {
+            payment.status = PaymentStatusType.PROCESSING;
+        }
+
+        payment.gatewayResponse.payosStatus = PayOSPaymentStatus.PROCESSING;
+        payment.gatewayResponse.webhookData = data.webhookData;
+        payment.gatewayResponse.paymentInfo = data.paymentInfo;
+
+        await this.paymentRepositoryService.updatePayment(payment);
+        this.logger.log(`Payment ${payment.id} is being processed by PayOS`);
     }
 }

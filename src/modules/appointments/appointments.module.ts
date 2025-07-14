@@ -40,6 +40,7 @@ import { StiAppointmentsService } from './sti-appointments.service';
         AppointmentsService,
         AppointmentAttendanceService,
         StiAppointmentsService,
+        AppointmentNotificationService,
     ],
 })
 export class AppointmentsModule {}

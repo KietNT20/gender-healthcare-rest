@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Category } from '../categories/entities/category.entity';
 import { ChatModule } from '../chat/chat.module';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -16,7 +17,6 @@ import { AppointmentsService } from './appointments.service';
 import { Appointment } from './entities/appointment.entity';
 import { StiAppointmentsController } from './sti-appointments.controller';
 import { StiAppointmentsService } from './sti-appointments.service';
-import { Category } from '../categories/entities/category.entity';
 
 @Module({
     imports: [
@@ -40,6 +40,7 @@ import { Category } from '../categories/entities/category.entity';
         AppointmentsService,
         AppointmentAttendanceService,
         StiAppointmentsService,
+        AppointmentNotificationService,
     ],
 })
 export class AppointmentsModule {}

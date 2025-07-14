@@ -210,7 +210,7 @@ export class AppointmentsController {
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
         description:
-            'Forbidden: You do not have permission ( Admin, Manager, Consultant only ).',
+            'Forbidden: You do not have permission ( Admin, Manager, Consultant, Staff only ).',
     })
     @ResponseMessage('Successfully updated appointment status.')
     updateStatus(
@@ -249,11 +249,11 @@ export class AppointmentsController {
 
     @Post(':id/check-in')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER,RolesNameEnum.CONSULTANT])
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.CONSULTANT])
     @ApiOperation({
         summary: 'Check-in patient for appointment',
         description:
-            'Check-in bệnh nhân tại cơ sở y tế (Staff/Admin/Manager only)',
+            'Check-in bệnh nhân tại cơ sở y tế (Staff/Consultant only)',
     })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -280,7 +280,12 @@ export class AppointmentsController {
 
     @Post(':id/mark-no-show')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER,RolesNameEnum.CONSULTANT])
+    @Roles([
+        RolesNameEnum.STAFF,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.CONSULTANT,
+    ])
     @ApiOperation({
         summary: 'Mark appointment as no-show',
         description:
@@ -298,7 +303,7 @@ export class AppointmentsController {
     @ApiResponse({
         status: HttpStatus.FORBIDDEN,
         description:
-            'Forbidden: You do not have permission (Staff/Admin/Manager only)',
+            'Forbidden: You do not have permission (Staff/Admin/Manager/Consultant only)',
     })
     @ResponseMessage('Appointment marked as no-show successfully.')
     async markNoShow(
@@ -310,11 +315,16 @@ export class AppointmentsController {
 
     @Post(':id/late-check-in')
     @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @Roles([
+        RolesNameEnum.STAFF,
+        RolesNameEnum.CONSULTANT,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
     @ApiOperation({
         summary: 'Process late check-in for appointment',
         description:
-            'Xử lý check-in trễ cho appointment (Staff/Admin/Manager only)',
+            'Xử lý check-in trễ cho appointment (Staff/Admin/Manager/Consultant only)',
     })
     @ApiResponse({
         status: HttpStatus.OK,

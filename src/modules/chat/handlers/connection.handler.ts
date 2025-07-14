@@ -37,7 +37,7 @@ export class ConnectionHandler {
         try {
             const authHeader =
                 client.handshake.headers.authorization ||
-                client.handshake.auth?.token as string;
+                (client.handshake.auth?.token as string);
 
             const token = authHeader?.split(' ')[1];
 
@@ -172,6 +172,148 @@ export class ConnectionHandler {
         } catch (error) {
             this.logger.error('Error getting user presence:', error);
             return null;
+        }
+    }
+
+    async cleanupOfflineUsers() {
+        try {
+            this.logger.log('Starting offline users cleanup...');
+
+            const pattern = `${REDIS_KEYS.USER_PRESENCE}*`;
+            const presenceKeys = await this.redisClient.keys(pattern);
+
+            let cleanupCount = 0;
+            const now = Date.now();
+            const offlineThreshold = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+            for (const presenceKey of presenceKeys) {
+                try {
+                    const presenceData =
+                        await this.redisClient.get(presenceKey);
+                    if (!presenceData) continue;
+
+                    const presence: UserPresence = JSON.parse(presenceData);
+                    const lastSeenAge = now - presence.lastSeen;
+
+                    // If user has been offline for more than threshold, cleanup their data
+                    if (lastSeenAge > offlineThreshold) {
+                        const userId = presence.userId;
+
+                        // Get user's rooms for cleanup
+                        const userRoomsKey = `${REDIS_KEYS.USER_ROOMS}${userId}`;
+                        const userRooms =
+                            await this.redisClient.sMembers(userRoomsKey);
+
+                        const multi = this.redisClient.multi();
+
+                        // Remove user from all question rooms
+                        for (const questionId of userRooms) {
+                            multi.sRem(
+                                `${REDIS_KEYS.QUESTION_USERS}${questionId}`,
+                                userId,
+                            );
+                            // Remove from typing status
+                            multi.del(
+                                `${REDIS_KEYS.TYPING_USERS}${questionId}:${userId}`,
+                            );
+                        }
+
+                        // Remove user presence and rooms data
+                        multi.del(presenceKey);
+                        multi.del(userRoomsKey);
+
+                        await multi.exec();
+                        cleanupCount++;
+
+                        this.logger.debug(
+                            `Cleaned up offline user: ${presence.fullName} (${userId}), last seen: ${new Date(presence.lastSeen).toISOString()}`,
+                        );
+                    }
+                } catch (error) {
+                    this.logger.error(
+                        `Error cleaning up user from key ${presenceKey}:`,
+                        error,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Offline users cleanup completed. Cleaned up ${cleanupCount} users`,
+            );
+            return cleanupCount;
+        } catch (error) {
+            this.logger.error('Error during offline users cleanup:', error);
+            throw error;
+        }
+    }
+
+    async cleanupCompletedChatRooms() {
+        try {
+            this.logger.log('Starting completed chat rooms cleanup...');
+
+            let cleanupCount = 0;
+
+            // Get all question room keys
+            const questionUsersPattern = `${REDIS_KEYS.QUESTION_USERS}*`;
+            const questionKeys =
+                await this.redisClient.keys(questionUsersPattern);
+
+            for (const questionKey of questionKeys) {
+                try {
+                    // Extract question ID from key
+                    const questionId = questionKey.replace(
+                        REDIS_KEYS.QUESTION_USERS,
+                        '',
+                    );
+
+                    // Here we would need to query the database to check if the appointment is completed
+                    // For now, we'll use a simple approach: if no users have been active in the room for 30 days
+                    const roomUsers =
+                        await this.redisClient.sMembers(questionKey);
+
+                    // If room is empty or has been inactive, check if we should clean it up
+                    if (roomUsers.length === 0) {
+                        // Check if this room has been inactive for a long time
+                        // We can use the TTL or check room activity
+                        const ttl = await this.redisClient.ttl(questionKey);
+
+                        // If TTL is close to expiring or room is empty, clean up related data
+                        if (ttl < 300) {
+                            // Less than 5 minutes left
+                            const multi = this.redisClient.multi();
+
+                            // Clean up all related Redis data for this question
+                            multi.del(questionKey);
+                            multi.del(
+                                `${REDIS_KEYS.TYPING_USERS}${questionId}*`,
+                            );
+
+                            await multi.exec();
+                            cleanupCount++;
+
+                            this.logger.debug(
+                                `Cleaned up inactive chat room: ${questionId}`,
+                            );
+                        }
+                    }
+                } catch (error) {
+                    this.logger.error(
+                        `Error cleaning up chat room ${questionKey}:`,
+                        error,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Completed chat rooms cleanup finished. Cleaned up ${cleanupCount} rooms`,
+            );
+            return cleanupCount;
+        } catch (error) {
+            this.logger.error(
+                'Error during completed chat rooms cleanup:',
+                error,
+            );
+            throw error;
         }
     }
 }

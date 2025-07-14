@@ -345,7 +345,8 @@ export class StiAppointmentsService {
         const isStiAppointment = appointment.services.some(
             (service) =>
                 service.name.toLowerCase().includes('sti') ||
-                service.description.toLowerCase().includes('sti'),
+                service.description.toLowerCase().includes('sti') ||
+                service.category.type.toLowerCase().includes('sti_test'),
         );
 
         if (!isStiAppointment) {

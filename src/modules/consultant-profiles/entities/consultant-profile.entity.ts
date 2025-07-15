@@ -128,7 +128,7 @@ export class ConsultantProfile {
     @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
         nullable: true,
     })
-    verifiedBy: User;
+    verifiedBy?: User;
 
     @OneToMany(
         () => ConsultantAvailability,

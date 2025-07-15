@@ -359,7 +359,7 @@ export class ConsultantProfilesService {
             await this.auditLogsService.create({
                 userId: adminId,
                 action: ActionType.UPDATE,
-                entityType: 'ConsultantProfile',
+                entityType: 'consultant_profile',
                 entityId: profile.id,
                 oldValues,
                 newValues: {
@@ -445,7 +445,7 @@ export class ConsultantProfilesService {
             await this.auditLogsService.create({
                 userId: adminId,
                 action: ActionType.UPDATE,
-                entityType: 'ConsultantProfile',
+                entityType: 'consultant_profile',
                 entityId: profile.id,
                 oldValues,
                 newValues: {

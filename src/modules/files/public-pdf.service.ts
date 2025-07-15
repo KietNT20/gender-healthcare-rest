@@ -350,7 +350,7 @@ export class PublicPdfService {
     private getPublicAccessUrl(document: Document): string {
         return (
             document.metadata?.cloudFrontUrl ||
-            `https://your-public-cloudfront-domain/${document.path}`
+            `${process.env.AWS_PUBLIC_CLOUDFRONT_URL}/${document.path}`
         );
     }
 

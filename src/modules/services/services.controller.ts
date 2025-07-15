@@ -31,7 +31,7 @@ import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 import { ServiceImageService } from './service-image.service';
 import { ServicesService } from './services.service';
-import {ServiceQueryDto } from './dto/service-query.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 
 @Controller('services')
 export class ServicesController {
@@ -82,10 +82,9 @@ export class ServicesController {
         description: 'Services retrieved successfully',
     })
     @ResponseMessage('Services retrieved successfully')
-    async search(@Query() serviceQueryDto: ServiceQueryDto){
+    async search(@Query() serviceQueryDto: ServiceQueryDto) {
         return this.servicesService.findAll(serviceQueryDto);
     }
-
 
     /**
      * Get a list of STI services

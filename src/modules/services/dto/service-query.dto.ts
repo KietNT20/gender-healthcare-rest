@@ -46,7 +46,7 @@ export class GetServiceQueryDto {
     @IsString()
     categoryId?: string;
 
-    @ApiPropertyOptional({ description: 'Giá tối thiểu'})
+    @ApiPropertyOptional({ description: 'Giá tối thiểu' })
     @IsOptional()
     @IsNumber()
     @Min(0)
@@ -81,7 +81,6 @@ export class GetServiceQueryDto {
     @IsOptional()
     @IsBooleanString()
     requiresConsultant?: string;
-
 
     @ApiPropertyOptional({
         description: 'Địa điểm cung cấp dịch vụ',

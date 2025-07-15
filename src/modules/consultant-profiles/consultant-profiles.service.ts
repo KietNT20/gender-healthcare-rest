@@ -349,7 +349,7 @@ export class ConsultantProfilesService {
             profile.profileStatus = ProfileStatusType.ACTIVE;
             profile.verifiedAt = new Date();
             profile.isVerified = true; // Cập nhật isVerified thành true
-            
+
             const updatedProfile = await queryRunner.manager.save(
                 ConsultantProfile,
                 profile,

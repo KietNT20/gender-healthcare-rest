@@ -120,19 +120,22 @@ export class ConsultantProfile {
     // Relations
     @OneToOne(() => User, (user) => user.consultantProfile, {
         cascade: true,
+        eager: true,
     })
     @JoinColumn()
     user: User;
 
     @ManyToOne(() => User, (user) => user.verifiedConsultantProfiles, {
         nullable: true,
-        cascade: true,
     })
     verifiedBy: User;
 
     @OneToMany(
         () => ConsultantAvailability,
         (availability) => availability.consultantProfile,
+        {
+            cascade: true,
+        },
     )
     availabilities: ConsultantAvailability[];
 

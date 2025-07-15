@@ -61,8 +61,6 @@ export class ContraceptiveReminder {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.contraceptiveReminders, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => User, (user) => user.contraceptiveReminders)
     user: User;
 }

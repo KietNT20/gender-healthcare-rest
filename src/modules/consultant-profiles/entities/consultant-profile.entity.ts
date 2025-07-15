@@ -133,9 +133,14 @@ export class ConsultantProfile {
     @OneToMany(
         () => ConsultantAvailability,
         (availability) => availability.consultantProfile,
+        {
+            cascade: true,
+        },
     )
     availabilities: ConsultantAvailability[];
 
-    @OneToMany(() => Document, (document) => document.consultantProfile)
+    @OneToMany(() => Document, (document) => document.consultantProfile, {
+        cascade: true,
+    })
     documents: Document[];
 }

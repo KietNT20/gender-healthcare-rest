@@ -91,7 +91,7 @@ export class EmploymentContractsService {
         // Step 1: Upload the file using FilesService. It will be private by default.
         const uploadedDocument = await this.filesService.uploadDocument({
             file,
-            entityType: 'employment-contract',
+            entityType: 'employment_contract',
             entityId: contractId,
             description: `Contract file for ${contract.contractNumber}`,
             isSensitive: true,

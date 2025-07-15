@@ -1,4 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
     Allow,
@@ -53,7 +57,7 @@ export class UploadImageMetadataDto {
     isPublic: boolean = true;
 }
 
-export class UploadImageDto extends UploadImageMetadataDto {
+export class ImageFileUploadDto {
     @ApiProperty({
         type: 'string',
         format: 'binary',
@@ -61,6 +65,11 @@ export class UploadImageDto extends UploadImageMetadataDto {
     })
     file: any;
 }
+
+export class UploadImageDto extends IntersectionType(
+    ImageFileUploadDto,
+    UploadImageMetadataDto,
+) {}
 
 export class UploadDocumentMetadataDto {
     @ApiProperty({
@@ -174,7 +183,7 @@ export class UploadPublicPdfMetadataDto {
     description?: string;
 }
 
-export class UploadPublicPdfDto extends UploadPublicPdfMetadataDto {
+export class PdfFileDto {
     @ApiProperty({
         type: 'string',
         format: 'binary',
@@ -182,3 +191,8 @@ export class UploadPublicPdfDto extends UploadPublicPdfMetadataDto {
     })
     file: any;
 }
+
+export class UploadPublicPdfDto extends IntersectionType(
+    PdfFileDto,
+    UploadPublicPdfMetadataDto,
+) {}

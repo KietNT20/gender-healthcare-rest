@@ -58,8 +58,6 @@ export class MenstrualPrediction {
     updatedAt: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.menstrualPredictions, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => User, (user) => user.menstrualPredictions)
     user: User;
 }

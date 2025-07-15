@@ -154,7 +154,7 @@ export class MailService {
                 context: {
                     ...testDetails,
                     appName: 'Dịch vụ Y tế Giới tính',
-                    loginUrl: `${this.configService.get<string>('APP_URL')}/login`,
+                    loginUrl: `${this.configService.get<string>('FRONTEND_URL')}`,
                 },
             });
 
@@ -241,7 +241,7 @@ export class MailService {
                 context: {
                     userName,
                     appName: 'Dịch vụ Y tế Giới tính',
-                    loginUrl: `${this.configService.get<string>('FRONTEND_URL')}/login`,
+                    loginUrl: `${this.configService.get<string>('FRONTEND_URL')}`,
                     supportEmail: this.configService.get<string>('MAIL_FROM'),
                 },
             });
@@ -265,7 +265,7 @@ export class MailService {
         email: string,
         userName: string,
     ): Promise<void> {
-        const loginUrl = `${this.configService.get<string>('FRONTEND_URL')}/login`;
+        const loginUrl = `${this.configService.get<string>('FRONTEND_URL')}`;
 
         try {
             await this.mailerService.sendMail({

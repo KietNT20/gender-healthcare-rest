@@ -1,4 +1,3 @@
-
 import { CycleSymptom } from 'src/modules/cycle-symptoms/entities/cycle-symptom.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
@@ -44,9 +43,7 @@ export class MenstrualCycle {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.menstrualCycles, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => User, (user) => user.menstrualCycles)
     user: User;
 
     @OneToMany(

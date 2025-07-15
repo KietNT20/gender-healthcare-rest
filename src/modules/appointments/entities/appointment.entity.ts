@@ -104,7 +104,6 @@ export class Appointment {
 
     // Relations
     @ManyToOne(() => User, (user) => user.appointments, {
-        onDelete: 'CASCADE',
         eager: true,
     })
     user: User;

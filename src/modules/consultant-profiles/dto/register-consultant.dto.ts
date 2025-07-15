@@ -1,4 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
     IsArray,
@@ -57,7 +61,7 @@ export class RegisterConsultantDataDto {
     bio?: string;
 }
 
-export class RegisterConsultantDto extends RegisterConsultantDataDto {
+export class RegisterConsultantFileDto {
     @ApiProperty({
         type: 'string',
         format: 'binary',
@@ -74,3 +78,8 @@ export class RegisterConsultantDto extends RegisterConsultantDataDto {
     })
     certificates: any[];
 }
+
+export class RegisterConsultantDto extends IntersectionType(
+    RegisterConsultantDataDto,
+    RegisterConsultantFileDto,
+) {}

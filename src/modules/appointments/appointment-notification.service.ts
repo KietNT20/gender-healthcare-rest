@@ -18,7 +18,8 @@ export class AppointmentNotificationService {
     ) {}
 
     /**
-     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.
+     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.\
+     * Thông báo này sẽ được gửi đến cả người dùng và tư vấn viên.
      */
     public sendCreationNotifications(appointment: Appointment): void {
         if (!appointment.consultant) {
@@ -73,6 +74,7 @@ export class AppointmentNotificationService {
 
     /**
      * Gửi thông báo khi tư vấn viên xác nhận một cuộc hẹn.
+     * Thông báo này sẽ được gửi đến người dùng và có thể bao gồm thông tin chi tiết về cuộc hẹn.
      */
     public sendConsultantConfirmationNotification(
         appointment: Appointment,
@@ -423,5 +425,18 @@ export class AppointmentNotificationService {
         this.logger.log(
             `${reminderType} reminder sent for appointment ${appointment.id}`,
         );
+    }
+
+    /**
+     * Gửi yêu cầu feedback sau khi appointment hoàn thành
+     */
+    public sendFeedbackRequest(appointment: Appointment): void {
+        this.notificationsService.create({
+            userId: appointment.user.id,
+            title: 'Mời bạn đánh giá cuộc hẹn',
+            content: `Cảm ơn bạn đã sử dụng dịch vụ. Vui lòng để lại đánh giá cho cuộc hẹn với tư vấn viên.`,
+            type: 'APPOINTMENT_FEEDBACK_REQUEST',
+            actionUrl: `/appointments/${appointment.id}/feedback`,
+        });
     }
 }

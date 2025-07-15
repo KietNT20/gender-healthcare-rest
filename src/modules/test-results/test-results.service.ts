@@ -114,7 +114,7 @@ export class TestResultsService {
             // 1. Upload file document
             const uploadedDocument = await this.filesService.uploadDocument({
                 file,
-                entityType: 'test-result',
+                entityType: 'test_result',
                 entityId: appointment?.id || user.id, // Dùng appointment.id nếu có, không thì dùng user.id
                 description: `Test result for ${service.name}`,
                 isSensitive: true,

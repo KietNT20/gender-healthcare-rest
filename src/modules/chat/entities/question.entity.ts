@@ -47,7 +47,9 @@ export class Question {
     @ManyToOne(() => User, (user) => user.questions)
     user: User;
 
-    @OneToMany(() => Message, (message) => message.question)
+    @OneToMany(() => Message, (message) => message.question, {
+        cascade: true,
+    })
     messages: Message[];
 
     @OneToOne(() => Appointment, (appointment) => appointment.question, {

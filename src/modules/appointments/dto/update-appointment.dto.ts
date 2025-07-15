@@ -1,9 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { AppointmentStatusType } from 'src/enums';
 
 export class UpdateAppointmentDto {
-    @ApiPropertyOptional({
+    @ApiProperty({
         description:
             'Cập nhật trạng thái của cuộc hẹn (chỉ dành cho Tư vấn viên/Admin).',
         enum: [
@@ -15,8 +15,7 @@ export class UpdateAppointmentDto {
         ],
     })
     @IsEnum(AppointmentStatusType)
-    @IsOptional()
-    status?: AppointmentStatusType;
+    status: AppointmentStatusType;
 
     @ApiPropertyOptional({ description: 'Link phòng họp cho tư vấn online.' })
     @IsString()

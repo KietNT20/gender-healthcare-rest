@@ -1,4 +1,8 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import {
+    ApiProperty,
+    ApiPropertyOptional,
+    IntersectionType,
+} from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
@@ -21,3 +25,17 @@ export class SendPublicPdfMessageDto {
     @TransformEmptyStringToUndefined()
     description?: string;
 }
+
+class FileUploadDto {
+    @ApiProperty({
+        type: 'string',
+        format: 'binary',
+        description: 'File to upload (PDF file)',
+    })
+    file: any;
+}
+
+export class SendPublicPdfMessageBodyDto extends IntersectionType(
+    FileUploadDto,
+    SendPublicPdfMessageDto,
+) {}

@@ -111,7 +111,7 @@ export class UsersService {
             await this.auditLogsService.create({
                 userId: actorId,
                 action: ActionType.CREATE,
-                entityType: 'User',
+                entityType: 'user',
                 entityId: savedUser.id,
                 newValues: savedUser,
             });
@@ -343,7 +343,6 @@ export class UsersService {
     async findAll(
         userQueryDto: UserQueryDto,
     ): Promise<Paginated<UserResponseDto>> {
-        console.log('userQueryDto', userQueryDto);
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
             .where('user.deletedAt IS NULL');
@@ -424,6 +423,8 @@ export class UsersService {
             where: { id, deletedAt: IsNull() },
             relations: {
                 role: true,
+                consultantProfile: true,
+                consultantAvailabilities: true,
             },
         });
 
@@ -773,7 +774,7 @@ export class UsersService {
             await this.auditLogsService.create({
                 userId: actorId,
                 action: ActionType.UPDATE,
-                entityType: 'User',
+                entityType: 'user',
                 entityId: id,
                 oldValues: userBeforeUpdate,
                 newValues: updateUserDto,
@@ -895,7 +896,7 @@ export class UsersService {
         await this.auditLogsService.create({
             userId: deletedByUserId,
             action: ActionType.DELETE,
-            entityType: 'User',
+            entityType: 'user',
             entityId: id,
             oldValues: userToRemove,
         });

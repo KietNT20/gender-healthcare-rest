@@ -33,13 +33,11 @@ export class CycleSymptom {
     // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms, {
         eager: true,
-        cascade: true,
     })
     menstrualCycle: MenstrualCycle;
 
     @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms, {
         eager: true,
-        cascade: true,
     })
     symptom: Symptom;
 }

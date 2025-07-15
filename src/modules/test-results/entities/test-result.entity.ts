@@ -58,7 +58,9 @@ export class TestResult {
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    @OneToMany(() => Document, (document) => document.testResult)
+    @OneToMany(() => Document, (document) => document.testResult, {
+        cascade: true,
+    })
     documents: Document[];
 
     @OneToOne(() => Appointment, (appointment) => appointment.testResult)

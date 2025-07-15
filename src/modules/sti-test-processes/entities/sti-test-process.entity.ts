@@ -117,6 +117,7 @@ export class StiTestProcess {
     // Quan hệ với TestResult (kết quả xét nghiệm)
     @OneToOne(() => TestResult, (testResult) => testResult.stiTestProcess, {
         cascade: true,
+        nullable: true,
     })
     @JoinColumn()
     testResult?: TestResult;

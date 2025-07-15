@@ -128,7 +128,7 @@ export class AuthService {
         await this.auditLogsService.create({
             userId: user.id,
             action: ActionType.LOGIN,
-            entityType: 'User',
+            entityType: 'user',
             entityId: user.id,
             details: 'User logged in successfully.',
         });
@@ -187,7 +187,7 @@ export class AuthService {
         await this.auditLogsService.create({
             userId: user.id,
             action: ActionType.VERIFY_EMAIL,
-            entityType: 'User',
+            entityType: 'user',
             entityId: user.id,
             details: 'User verified their email address.',
         });
@@ -319,7 +319,7 @@ export class AuthService {
         await this.auditLogsService.create({
             userId: user.id,
             action: ActionType.CHANGE_PASSWORD,
-            entityType: 'User',
+            entityType: 'user',
             entityId: user.id,
             details: 'User reset password via forgot password link.',
         });
@@ -374,7 +374,7 @@ export class AuthService {
         await this.auditLogsService.create({
             userId: userId,
             action: ActionType.LOGOUT,
-            entityType: 'User',
+            entityType: 'user',
             entityId: userId,
             details: 'User logged out successfully.',
         });

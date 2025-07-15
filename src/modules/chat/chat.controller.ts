@@ -36,7 +36,10 @@ import {
     SendFileMessageBodyDto,
     SendFileMessageDto,
 } from './dto/send-file-messsage.dto';
-import { SendPublicPdfMessageDto } from './dto/send-public-pdf-message.dto';
+import {
+    SendPublicPdfMessageBodyDto,
+    SendPublicPdfMessageDto,
+} from './dto/send-public-pdf-message.dto';
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -151,25 +154,7 @@ export class ChatController {
     })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                    description: 'PDF file to upload to public bucket',
-                },
-                content: {
-                    type: 'string',
-                    description: 'Optional message content/description',
-                },
-                description: {
-                    type: 'string',
-                    description: 'Description of the PDF document',
-                },
-            },
-            required: ['file'],
-        },
+        type: SendPublicPdfMessageBodyDto,
     })
     @ApiResponse({
         status: HttpStatus.CREATED,

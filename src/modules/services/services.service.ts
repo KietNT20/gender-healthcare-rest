@@ -7,7 +7,7 @@ import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { GetServiceQueryDto, ServiceQueryDto } from './dto/service-query.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()
@@ -160,6 +160,28 @@ export class ServicesService {
                 totalPages: Math.ceil(totalItems / limit),
             },
         };
+    }
+
+    /**
+     * Retrieve a list of STI services
+     * @returns List of STI services
+     */
+    async findAllStiServices(): Promise<Service[]> {
+        const queryBuilder = this.serviceRepo
+            .createQueryBuilder('service')
+            .leftJoinAndSelect('service.category', 'category')
+            .leftJoinAndSelect('service.images', 'images')
+            .where('service.deletedAt IS NULL')
+            .andWhere(
+                '(LOWER(service.name) LIKE :name OR LOWER(service.description) LIKE :description OR LOWER(category.type) LIKE :categoryType)',
+                {
+                    name: '%sti%',
+                    description: '%sti%',
+                    categoryType: '%sti_test%',
+                },
+            );
+
+        return await queryBuilder.getMany();
     }
 
     /**

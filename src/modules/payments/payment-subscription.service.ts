@@ -2,6 +2,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType } from 'src/enums';
 import { Repository } from 'typeorm';
+import { AppointmentNotificationService } from '../appointments/appointment-notification.service';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { UserPackageSubscriptionsService } from '../user-package-subscriptions/user-package-subscriptions.service';
 import { Payment } from './entities/payment.entity';
@@ -13,6 +14,7 @@ export class PaymentSubscriptionService {
         private readonly appointmentRepository: Repository<Appointment>,
         @Inject(forwardRef(() => UserPackageSubscriptionsService))
         private readonly userPackageSubscriptionsService: UserPackageSubscriptionsService,
+        private readonly appointmentNotificationService: AppointmentNotificationService,
     ) {}
 
     /**
@@ -75,8 +77,9 @@ export class PaymentSubscriptionService {
             if (payment.appointment.status === AppointmentStatusType.PENDING) {
                 payment.appointment.status = AppointmentStatusType.CONFIRMED;
                 await this.appointmentRepository.save(payment.appointment);
-                console.log(
-                    `Xác nhận appointment ${payment.appointment.id} sau thanh toán thành công`,
+                // Gửi notification khi appointment được xác nhận
+                this.appointmentNotificationService.sendConsultantConfirmationNotification(
+                    payment.appointment,
                 );
             }
         } catch (error) {

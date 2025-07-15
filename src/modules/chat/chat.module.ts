@@ -6,6 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { User } from '../users/entities/user.entity';
 import { ChatCleanupService } from './chat-cleanup.service';
+import { ChatRoomCleanupService } from './chat-room-cleanup.service';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
@@ -96,6 +97,7 @@ import { RedisHelperService } from './redis-helper.service';
         ChatGateway,
         ChatService,
         ChatCleanupService,
+        ChatRoomCleanupService,
         RedisHelperService,
         RedisHealthService,
         RedisWsThrottleGuard,
@@ -106,6 +108,6 @@ import { RedisHelperService } from './redis-helper.service';
         MessageHandler,
         TypingHandler,
     ],
-    exports: [ChatService],
+    exports: [ChatService, ChatRoomCleanupService],
 })
 export class ChatModule {}

@@ -5,9 +5,7 @@ import { RedisClientType } from 'redis';
 export class RedisHelperService implements OnModuleDestroy {
     private readonly logger = new Logger(RedisHelperService.name);
 
-    constructor(
-        @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
-    ) {}
+    constructor(@Inject('REDIS_CLIENT') private redisClient: RedisClientType) {}
 
     async onModuleDestroy() {
         try {

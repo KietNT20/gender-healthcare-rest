@@ -59,18 +59,12 @@ export class Image {
     @ManyToOne(() => User, (user) => user.images)
     user: User;
 
-    @ManyToOne(() => Blog, (blog) => blog.images, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => Blog, (blog) => blog.images)
     blog: Blog;
 
-    @ManyToOne(() => Service, (service) => service.images, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => Service, (service) => service.images)
     service: Service;
 
-    @ManyToOne(() => Feedback, (feedback) => feedback.images, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => Feedback, (feedback) => feedback.images)
     feedback: Feedback;
 }

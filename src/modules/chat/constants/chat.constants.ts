@@ -36,8 +36,8 @@ export const ROOM_PATTERNS = {
 // TTL Values (in seconds)
 export const TTL_VALUES = {
     USER_PRESENCE: 300, // 5 minutes
-    QUESTION_USERS: 3600, // 1 hour
-    USER_ROOMS: 3600, // 1 hour
+    QUESTION_USERS: 1800, // 30 minutes
+    USER_ROOMS: 1800, // 30 minutes
     TYPING_STATUS: 10, // 10 seconds
     INDIVIDUAL_TYPING: 5, // 5 seconds
 } as const;

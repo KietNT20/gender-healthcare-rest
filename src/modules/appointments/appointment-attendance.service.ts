@@ -272,7 +272,6 @@ export class AppointmentAttendanceService {
     }
 
     // Private helper methods
-
     private async findAppointmentById(
         appointmentId: string,
     ): Promise<Appointment> {

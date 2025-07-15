@@ -95,7 +95,6 @@ export class Document {
         (consultantProfile) => consultantProfile.documents,
         {
             eager: true,
-            onDelete: 'CASCADE',
         },
     )
     @Index()

@@ -8,11 +8,9 @@ export class RedisHealthService {
     private isRedisHealthy = false;
     private lastHealthCheck = new Date();
 
-    constructor(
-        @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
-    ) {}
+    constructor(@Inject('REDIS_CLIENT') private redisClient: RedisClientType) {}
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_MINUTE)
     async checkRedisHealth() {
         try {
             const start = Date.now();

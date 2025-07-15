@@ -64,7 +64,6 @@ export class ConsultantProfilesController {
     async register(
         @Body() registerDto: RegisterConsultantDataDto,
         @UploadedFiles()
-        @UploadedFiles()
         files: {
             cv?: Express.Multer.File;
             certificates?: Express.Multer.File[];

@@ -248,4 +248,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     public async cleanupExpiredData() {
         await this.typingHandler.cleanupExpiredData();
     }
+
+    // Cleanup offline users and their related data
+    public async cleanupOfflineUsers() {
+        await this.connectionHandler.cleanupOfflineUsers();
+    }
+
+    // Cleanup completed chat rooms
+    public async cleanupCompletedChatRooms() {
+        await this.connectionHandler.cleanupCompletedChatRooms();
+    }
 }

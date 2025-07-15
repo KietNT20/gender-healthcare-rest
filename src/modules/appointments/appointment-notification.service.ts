@@ -18,7 +18,8 @@ export class AppointmentNotificationService {
     ) {}
 
     /**
-     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.
+     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.\
+     * Thông báo này sẽ được gửi đến cả người dùng và tư vấn viên.
      */
     public sendCreationNotifications(appointment: Appointment): void {
         if (!appointment.consultant) {
@@ -73,6 +74,7 @@ export class AppointmentNotificationService {
 
     /**
      * Gửi thông báo khi tư vấn viên xác nhận một cuộc hẹn.
+     * Thông báo này sẽ được gửi đến người dùng và có thể bao gồm thông tin chi tiết về cuộc hẹn.
      */
     public sendConsultantConfirmationNotification(
         appointment: Appointment,

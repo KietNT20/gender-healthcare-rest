@@ -172,7 +172,6 @@ export class User {
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {
-        cascade: true,
         eager: true,
     })
     role: Role;
@@ -260,7 +259,9 @@ export class User {
     auditLogs: AuditLog[];
 
     // Employment contract relations
-    @OneToMany(() => EmploymentContract, (contract) => contract.user)
+    @OneToMany(() => EmploymentContract, (contract) => contract.user, {
+        cascade: true,
+    })
     employmentContracts: EmploymentContract[];
 
     // Package subscription relations

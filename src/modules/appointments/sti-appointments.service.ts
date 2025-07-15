@@ -302,31 +302,33 @@ export class StiAppointmentsService {
      * @returns Danh sách lịch hẹn STI
      */
     async getUserStiAppointments(userId: string): Promise<Appointment[]> {
-    return await this.appointmentRepository.find({
-        where: {
-            user: { id: userId },
-            services: {
-                // Sử dụng Raw để kiểm tra điều kiện tương tự isStiAppointment
-                name: Raw(alias => `LOWER(${alias}) LIKE '%sti%'`),
-                // hoặc description chứa 'sti'
-                description: Raw(alias => `LOWER(${alias}) LIKE '%sti%'`),
-                // hoặc category.type chứa 'sti_test'
-                category: {
-                    type: Raw(alias => `LOWER(${alias}) LIKE '%sti_test%'`),
+        return await this.appointmentRepository.find({
+            where: {
+                user: { id: userId },
+                services: {
+                    // Sử dụng Raw để kiểm tra điều kiện tương tự isStiAppointment
+                    name: Raw((alias) => `LOWER(${alias}) LIKE '%sti%'`),
+                    // hoặc description chứa 'sti'
+                    description: Raw((alias) => `LOWER(${alias}) LIKE '%sti%'`),
+                    // hoặc category.type chứa 'sti_test'
+                    category: {
+                        type: Raw(
+                            (alias) => `LOWER(${alias}) LIKE '%sti_test%'`,
+                        ),
+                    },
                 },
             },
-        },
-        relations: {
-            services: {
-                category: true, // Đảm bảo lấy thông tin category để kiểm tra type
+            relations: {
+                services: {
+                    category: true, // Đảm bảo lấy thông tin category để kiểm tra type
+                },
+                consultant: true,
             },
-            consultant: true,
-        },
-        order: {
-            appointmentDate: SortOrder.DESC,
-        },
-    });
-}
+            order: {
+                appointmentDate: SortOrder.DESC,
+            },
+        });
+    }
 
     /**
      * Hủy lịch hẹn STI

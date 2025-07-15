@@ -86,7 +86,8 @@ export class PublicPdfService {
         entityType: string,
         entityId: string,
     ): Promise<Document[]> {
-        const queryBuilder = this.documentRepository.createQueryBuilder('document');
+        const queryBuilder =
+            this.documentRepository.createQueryBuilder('document');
 
         return queryBuilder
             .where('document.entityType = :entityType', { entityType })

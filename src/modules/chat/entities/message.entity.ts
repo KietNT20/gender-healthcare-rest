@@ -61,9 +61,7 @@ export class Message {
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
 
-    @ManyToOne(() => Question, (question) => question.messages, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => Question, (question) => question.messages)
     question: Question;
 
     @ManyToOne(() => User, (user) => user.messages, {

@@ -2,8 +2,10 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
+import { TestResultDetails } from '../mail/interfaces';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { CreateNotificationDto } from './../notifications/dto/create-notification.dto';
 
 @Processor(QUEUE_NAMES.TEST_RESULT_NOTIFICATION)
 @Injectable()
@@ -31,7 +33,10 @@ export class TestResultNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendNotification(job: Job) {
-        const { notificationData } = job.data;
+        const { notificationData } = job.data as {
+            notificationData: CreateNotificationDto;
+        };
+
         try {
             await this.notificationsService.create(notificationData);
             this.logger.log(
@@ -47,7 +52,10 @@ export class TestResultNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendResultEmail(job: Job) {
-        const { email, data } = job.data;
+        const { email, data } = job.data as {
+            email: string;
+            data: TestResultDetails;
+        };
         try {
             await this.mailService.sendTestResultNotification(email, data);
             this.logger.log(`Sent test result email to ${email}`);

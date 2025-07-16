@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
-import { RolesNameEnum } from 'src/enums';
+import { PriorityType, RolesNameEnum, SortOrder } from 'src/enums';
 import { DataSource, Repository } from 'typeorm';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Document } from '../documents/entities/document.entity';
@@ -36,6 +36,7 @@ export class TestResultsService {
     async create(
         createDto: CreateTestResultDto,
         file: Express.Multer.File,
+        priority: PriorityType,
     ): Promise<TestResult> {
         if (!file) {
             throw new BadRequestException('Test result file is required.');
@@ -160,7 +161,7 @@ export class TestResultsService {
             await queryRunner.commitTransaction();
 
             // 5. Send notifications (after transaction commits)
-            this.sendResultNotifications(user, savedTestResult);
+            this.sendResultNotifications(user, savedTestResult, priority);
 
             return savedTestResult;
         } catch (error) {
@@ -171,7 +172,11 @@ export class TestResultsService {
         }
     }
 
-    private async sendResultNotifications(user: User, testResult: TestResult) {
+    private async sendResultNotifications(
+        user: User,
+        testResult: TestResult,
+        priority: PriorityType,
+    ) {
         const userName = `${user.firstName} ${user.lastName}`;
         const resultDate = new Date(testResult.createdAt).toLocaleDateString(
             'vi-VN',
@@ -183,6 +188,7 @@ export class TestResultsService {
                 title: 'Kết quả xét nghiệm của bạn đã có',
                 content: `Kết quả cho dịch vụ ${testResult.service.name} của bạn đã có. Hãy nhấn để xem chi tiết.`,
                 type: 'TEST_RESULT_READY',
+                priority: priority,
                 actionUrl: testResult.appointment
                     ? `/results/appointment/${testResult.appointment.id}`
                     : `/results/${testResult.id}`,
@@ -236,8 +242,8 @@ export class TestResultsService {
         return this.testResultMapperService.toResponseDto(testResult);
     }
 
-    findAll() {
-        const testResults = this.testResultRepository.find({
+    async findAll(): Promise<TestResult[]> {
+        const testResults = await this.testResultRepository.find({
             relations: {
                 user: true,
                 appointment: true,
@@ -246,12 +252,10 @@ export class TestResultsService {
             },
         });
 
-        return testResults.then((results) =>
-            this.testResultMapperService.toResponseDtos(results),
-        );
+        return testResults;
     }
 
-    async findOne(id: string) {
+    async findOne(id: string): Promise<TestResult> {
         const result = await this.testResultRepository.findOneBy({ id });
         if (!result) {
             throw new NotFoundException(`Test result with ID ${id} not found.`);
@@ -259,7 +263,10 @@ export class TestResultsService {
         return result;
     }
 
-    async update(id: string, updateDto: UpdateTestResultDto) {
+    async update(
+        id: string,
+        updateDto: UpdateTestResultDto,
+    ): Promise<TestResult> {
         const result = await this.testResultRepository.preload({
             id: id,
             ...updateDto,
@@ -272,7 +279,7 @@ export class TestResultsService {
         return this.testResultRepository.save(result);
     }
 
-    async remove(id: string) {
+    async remove(id: string): Promise<TestResult> {
         const result = await this.testResultRepository.findOne({
             where: { id },
             relations: {
@@ -332,6 +339,7 @@ export class TestResultsService {
      */
     async sendNotificationToPatient(
         id: string,
+        priority: PriorityType,
     ): Promise<{ success: boolean; message: string }> {
         const testResult = await this.testResultRepository.findOne({
             where: { id },
@@ -354,7 +362,11 @@ export class TestResultsService {
         }
 
         try {
-            await this.sendResultNotifications(testResult.user, testResult);
+            await this.sendResultNotifications(
+                testResult.user,
+                testResult,
+                priority,
+            );
 
             // Cập nhật flag đã gửi thông báo
             await this.testResultRepository.update(id, {
@@ -377,6 +389,7 @@ export class TestResultsService {
      */
     async sendNotificationByAppointmentId(
         appointmentId: string,
+        priority: PriorityType,
     ): Promise<{ success: boolean; message: string }> {
         const testResult = await this.testResultRepository.findOne({
             where: { appointment: { id: appointmentId } },
@@ -393,7 +406,7 @@ export class TestResultsService {
             );
         }
 
-        return this.sendNotificationToPatient(testResult.id);
+        return this.sendNotificationToPatient(testResult.id, priority);
     }
 
     /**
@@ -407,7 +420,7 @@ export class TestResultsService {
                 service: true,
                 documents: true,
             },
-            order: { createdAt: 'DESC' },
+            order: { createdAt: SortOrder.DESC },
         });
 
         return this.testResultMapperService.toResponseDtos(testResults);

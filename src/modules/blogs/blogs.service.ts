@@ -570,7 +570,6 @@ export class BlogsService {
             case ContentStatusType.REJECTED:
                 await this.blogNotificationService.notifyBlogRejected(
                     updatedBlog,
-                    reviewerId,
                     reviewBlogDto.rejectionReason,
                 );
                 break;

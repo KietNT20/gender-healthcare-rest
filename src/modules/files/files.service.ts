@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import * as crypto from 'crypto';
-import { THIRTY_DAYS } from 'src/constant';
+import { QUEUE_NAMES, THIRTY_DAYS } from 'src/constant';
 import { SortOrder } from 'src/enums';
 import { sanitizeFilename } from 'src/utils/sanitize-name.util';
 import { FindOptionsWhere, Repository } from 'typeorm';
@@ -29,7 +29,7 @@ export class FilesService {
 
     constructor(
         private readonly s3Service: AwsS3Service,
-        @InjectQueue('image-processing') private imageQueue: Queue,
+        @InjectQueue(QUEUE_NAMES.IMAGE_PROCESSING) private imageQueue: Queue,
         @InjectRepository(Document)
         private readonly documentRepository: Repository<Document>,
         @InjectRepository(Image)

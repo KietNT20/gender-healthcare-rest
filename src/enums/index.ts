@@ -33,7 +33,6 @@ export enum ContentStatusType {
 }
 
 export enum ContractStatusType {
-    PENDING = 'pending',
     ACTIVE = 'active',
     EXPIRED = 'expired',
     TERMINATED = 'terminated',

@@ -36,32 +36,32 @@ export class StiAppointmentsController {
     ) {}
 
     /**
-     * Tạo lịch hẹn xét nghiệm STI
+     * Create an STI testing appointment
      */
     @Post()
     @ApiOperation({
-        summary: 'Đặt lịch xét nghiệm STI',
-        description: 'Tạo lịch hẹn mới cho việc xét nghiệm STI',
+        summary: 'Book an STI testing appointment',
+        description: 'Create a new appointment for STI testing',
     })
     @ApiBody({ type: CreateStiAppointmentDto })
     @ApiResponse({
         status: HttpStatus.CREATED,
-        description: 'Lịch hẹn STI đã được tạo thành công',
+        description: 'STI appointment has been successfully created',
         type: Appointment,
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Dữ liệu đầu vào không hợp lệ',
+        description: 'Invalid input data',
     })
     @ApiResponse({
         status: HttpStatus.CONFLICT,
-        description: 'Có xung đột với lịch hẹn khác',
+        description: 'There is a conflict with another appointment',
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Không tìm thấy dịch vụ hoặc tư vấn viên',
+        description: 'Service or counselor not found',
     })
-    @ResponseMessage('Đặt lịch xét nghiệm STI thành công')
+    @ResponseMessage('Successfully booked STI testing appointment')
     async createStiAppointment(
         @Body() createStiAppointmentDto: CreateStiAppointmentDto,
         @CurrentUser() currentUser: User,
@@ -73,20 +73,19 @@ export class StiAppointmentsController {
     }
 
     /**
-     * Lấy danh sách lịch hẹn STI của người dùng
+     * Get the user's list of STI appointments
      */
     @Get()
     @ApiOperation({
-        summary: 'Lấy danh sách lịch hẹn STI',
-        description:
-            'Lấy tất cả lịch hẹn xét nghiệm STI của người dùng hiện tại',
+        summary: 'Get STI appointments list',
+        description: 'Get all STI testing appointments for the current user',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Danh sách lịch hẹn STI',
+        description: 'List of STI appointments',
         type: [Appointment],
     })
-    @ResponseMessage('Lấy danh sách lịch hẹn STI thành công')
+    @ResponseMessage('Successfully retrieved STI appointments list')
     async getUserStiAppointments(
         @CurrentUser() currentUser: User,
     ): Promise<Appointment[]> {
@@ -96,37 +95,37 @@ export class StiAppointmentsController {
     }
 
     /**
-     * Hủy lịch hẹn STI
+     * Cancel an STI appointment
      */
     @Delete(':id')
     @ApiOperation({
-        summary: 'Hủy lịch hẹn STI',
-        description: 'Hủy lịch hẹn xét nghiệm STI đã đặt',
+        summary: 'Cancel STI appointment',
+        description: 'Cancel a booked STI testing appointment',
     })
     @ApiParam({
         name: 'id',
-        description: 'ID của lịch hẹn STI cần hủy',
+        description: 'ID of the STI appointment to cancel',
         type: String,
         format: 'uuid',
     })
     @ApiBody({
         type: CancelStiAppointmentDto,
-        description: 'Thông tin hủy lịch hẹn',
+        description: 'Appointment cancellation information',
         required: false,
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Hủy lịch hẹn STI thành công',
+        description: 'STI appointment cancelled successfully',
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Không tìm thấy lịch hẹn',
+        description: 'Appointment not found',
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: 'Không thể hủy lịch hẹn này',
+        description: 'This appointment cannot be cancelled',
     })
-    @ResponseMessage('Hủy lịch hẹn STI thành công')
+    @ResponseMessage('Successfully cancelled STI appointment')
     async cancelStiAppointment(
         @Param('id', ParseUUIDPipe) appointmentId: string,
         @CurrentUser() currentUser: User,
@@ -140,29 +139,29 @@ export class StiAppointmentsController {
     }
 
     /**
-     * Lấy thông tin chi tiết lịch hẹn STI
+     * Get STI appointment details
      */
     @Get(':id')
     @ApiOperation({
-        summary: 'Lấy thông tin chi tiết lịch hẹn STI',
-        description: 'Lấy thông tin chi tiết của một lịch hẹn STI cụ thể',
+        summary: 'Get STI appointment details',
+        description: 'Get the details of a specific STI appointment',
     })
     @ApiParam({
         name: 'id',
-        description: 'ID của lịch hẹn STI',
+        description: 'ID of the STI appointment',
         type: String,
         format: 'uuid',
     })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'Thông tin chi tiết lịch hẹn STI',
+        description: 'STI appointment details',
         type: Appointment,
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
-        description: 'Không tìm thấy lịch hẹn',
+        description: 'Appointment not found',
     })
-    @ResponseMessage('Lấy thông tin lịch hẹn STI thành công')
+    @ResponseMessage('Successfully retrieved STI appointment details')
     async getStiAppointmentById(
         @Param('id', ParseUUIDPipe) appointmentId: string,
         @CurrentUser() currentUser: User,

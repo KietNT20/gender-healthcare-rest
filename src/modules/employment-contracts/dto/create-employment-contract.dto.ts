@@ -49,11 +49,11 @@ export class CreateEmploymentContractDto {
     @ApiPropertyOptional({
         description: 'Contract status',
         enum: ContractStatusType,
-        default: ContractStatusType.PENDING,
+        default: ContractStatusType.ACTIVE,
     })
     @IsEnum(ContractStatusType)
     @IsOptional()
-    status?: ContractStatusType = ContractStatusType.PENDING;
+    status?: ContractStatusType = ContractStatusType.ACTIVE;
 
     @ApiPropertyOptional({ description: 'Additional notes or description' })
     @IsString()

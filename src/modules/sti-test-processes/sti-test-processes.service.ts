@@ -1,15 +1,16 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
     ConflictException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { QUEUE_NAMES } from 'src/constant';
 import { SortOrder } from 'src/enums';
 import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AppointmentsService } from '../appointments/appointments.service';
-import { MailService } from '../mail/mail.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { ServicesService } from '../services/services.service';
 import { UsersService } from '../users/users.service';
 import { CreateStiTestProcessDto } from './dto/create-sti-test-process.dto';
@@ -24,11 +25,11 @@ export class StiTestProcessesService {
     constructor(
         @InjectRepository(StiTestProcess)
         private readonly stiTestProcessRepository: Repository<StiTestProcess>,
-        private readonly notificationsService: NotificationsService,
-        private readonly mailService: MailService,
         private readonly usersService: UsersService,
         private readonly servicesService: ServicesService,
         private readonly appointmentsService: AppointmentsService,
+        @InjectQueue(QUEUE_NAMES.STI_TEST_PROCESS_NOTIFICATION)
+        private readonly notificationQueue: Queue,
     ) {}
     /**
      * Tạo mã xét nghiệm ngẫu nhiên
@@ -355,13 +356,14 @@ export class StiTestProcessesService {
                     patient: true,
                 },
             });
-
             if (process && process.patient) {
-                await this.notificationsService.create({
-                    userId: process.patient.id,
-                    title: 'Cập nhật xét nghiệm STI',
-                    content: message,
-                    type: 'sti_test_update',
+                await this.notificationQueue.add('send-sti-notification', {
+                    notificationData: {
+                        userId: process.patient.id,
+                        title: 'Cập nhật xét nghiệm STI',
+                        content: message,
+                        type: 'sti_test_update',
+                    },
                 });
             }
         } catch (error) {
@@ -383,19 +385,17 @@ export class StiTestProcessesService {
                     testResult: true,
                 },
             });
-
             if (process && process.patient && !process.resultEmailSent) {
-                await this.mailService.sendTestResultNotification(
-                    process.patient.email,
-                    {
+                await this.notificationQueue.add('send-sti-result-email', {
+                    email: process.patient.email,
+                    data: {
                         userName: `${process.patient.firstName} ${process.patient.lastName}`,
                         testType: `Xét nghiệm STI - ${process.testCode}`,
                         resultDate: new Date().toLocaleDateString('vi-VN'),
                         isAbnormal: process.testResult?.isAbnormal || false,
                         recommendation: process.testResult?.recommendation,
                     },
-                );
-
+                });
                 // Cập nhật flag đã gửi email
                 await this.stiTestProcessRepository.update(processId, {
                     resultEmailSent: true,

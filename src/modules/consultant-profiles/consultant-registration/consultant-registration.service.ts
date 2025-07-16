@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
     ConflictException,
     Injectable,
@@ -6,14 +7,14 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
 import slugify from 'slugify';
+import { QUEUE_NAMES } from 'src/constant';
 import { ProfileStatusType, RolesNameEnum } from 'src/enums';
 import { HashingProvider } from 'src/modules/auth/providers/hashing.provider';
 import { Document } from 'src/modules/documents/entities/document.entity';
 import { FilesService } from 'src/modules/files/files.service';
 import { FileResult } from 'src/modules/files/interfaces';
-import { MailService } from 'src/modules/mail/mail.service';
-import { NotificationsService } from 'src/modules/notifications/notifications.service';
 import { Role } from 'src/modules/roles/entities/role.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { DataSource, In, Repository } from 'typeorm';
@@ -34,8 +35,8 @@ export class ConsultantRegistrationService {
         private readonly filesService: FilesService,
         private readonly hashingProvider: HashingProvider,
         private readonly dataSource: DataSource,
-        private readonly notificationsService: NotificationsService,
-        private readonly mailService: MailService,
+        @InjectQueue(QUEUE_NAMES.CONSULTANT_REGISTRATION_NOTIFICATION)
+        private notificationQueue: Queue,
     ) {}
 
     async register(
@@ -113,7 +114,7 @@ export class ConsultantRegistrationService {
                         file: files.cv[0],
                         entityType: 'consultant_profile',
                         entityId: savedProfile.id,
-                        description: 'Curriculum Vitae',
+                        description: 'This is the CV of the consultant',
                         isSensitive: true,
                     }),
                 );
@@ -126,7 +127,8 @@ export class ConsultantRegistrationService {
                             file: certFile,
                             entityType: 'consultant_profile',
                             entityId: savedProfile.id,
-                            description: 'Certificate',
+                            description:
+                                'This is the certificate of the consultant',
                             isSensitive: true,
                         }),
                     );
@@ -157,7 +159,6 @@ export class ConsultantRegistrationService {
 
             try {
                 const consultantName = `${savedUser.firstName} ${savedUser.lastName}`;
-
                 const adminsAndManagers = await this.userRepository.find({
                     where: {
                         role: {
@@ -169,26 +170,27 @@ export class ConsultantRegistrationService {
                         isActive: true,
                     },
                 });
-
                 const reviewUrl =
                     `${process.env.FRONTEND_URL}/admin/profiles/${savedProfile.id}` ||
                     `http://localhost:3000/admin/profiles/${savedProfile.id}`;
-
                 for (const admin of adminsAndManagers) {
-                    // Gửi thông báo trong ứng dụng
-                    await this.notificationsService.create({
-                        userId: admin.id,
-                        title: 'Hồ sơ tư vấn viên mới',
-                        content: `Có hồ sơ mới từ tư vấn viên "${consultantName}" đang chờ được duyệt.`,
-                        type: 'NEW_PROFILE_PENDING',
-                        actionUrl: reviewUrl,
-                    });
-
-                    await this.mailService.sendNewProfilePendingReviewEmail(
-                        admin.email,
-                        `${admin.firstName} ${admin.lastName}`,
-                        consultantName,
-                        reviewUrl,
+                    await this.notificationQueue.add(
+                        'send-new-profile-pending',
+                        {
+                            notificationData: {
+                                userId: admin.id,
+                                title: 'Hồ sơ tư vấn viên mới',
+                                content: `Có hồ sơ mới từ tư vấn viên "${consultantName}" đang chờ được duyệt.`,
+                                type: 'NEW_PROFILE_PENDING',
+                                actionUrl: reviewUrl,
+                            },
+                            emailData: {
+                                to: admin.email,
+                                adminName: `${admin.firstName} ${admin.lastName}`,
+                                consultantName,
+                                reviewUrl,
+                            },
+                        },
                     );
                 }
                 this.logger.log(

@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ContractStatusType } from 'src/enums';
 import { Repository } from 'typeorm';
 import { ContractFilesService } from '../contract-files/contract-files.service';
 import { FilesService } from '../files/files.service';
 import { User } from '../users/entities/user.entity';
 import { CreateEmploymentContractDto } from './dto/create-employment-contract.dto';
+import { RenewEmploymentContractDto } from './dto/renew-employment-contract.dto';
 import { UpdateEmploymentContractDto } from './dto/update-employment-contract.dto';
 import { EmploymentContract } from './entities/employment-contract.entity';
 
@@ -12,7 +14,7 @@ import { EmploymentContract } from './entities/employment-contract.entity';
 export class EmploymentContractsService {
     constructor(
         @InjectRepository(EmploymentContract)
-        private readonly contractRepository: Repository<EmploymentContract>,
+        private readonly employmentContractRepository: Repository<EmploymentContract>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly filesService: FilesService,
@@ -31,15 +33,15 @@ export class EmploymentContractsService {
             );
         }
 
-        const contract = this.contractRepository.create({
+        const contract = this.employmentContractRepository.create({
             ...createDto,
             user,
         });
-        return this.contractRepository.save(contract);
+        return this.employmentContractRepository.save(contract);
     }
 
     async findAll(): Promise<EmploymentContract[]> {
-        return this.contractRepository.find({
+        return this.employmentContractRepository.find({
             relations: {
                 user: true,
                 contractFiles: {
@@ -50,7 +52,7 @@ export class EmploymentContractsService {
     }
 
     async findOne(id: string): Promise<EmploymentContract> {
-        const contract = await this.contractRepository.findOne({
+        const contract = await this.employmentContractRepository.findOne({
             where: { id },
             relations: {
                 user: true,
@@ -70,21 +72,21 @@ export class EmploymentContractsService {
         updateDto: UpdateEmploymentContractDto,
     ): Promise<EmploymentContract> {
         const contract = await this.findOne(id);
-        this.contractRepository.merge(contract, updateDto);
-        return this.contractRepository.save(contract);
+        this.employmentContractRepository.merge(contract, updateDto);
+        return this.employmentContractRepository.save(contract);
     }
 
     async remove(id: string): Promise<void> {
-        const contract = await this.findOne(id);
-        // Note: This only soft-deletes the contract, not the associated files.
-        // You might want to add logic to delete files if needed.
-        await this.contractRepository.softDelete(id);
+        const result = await this.employmentContractRepository.softDelete(id);
+        if (result.affected === 0) {
+            throw new NotFoundException(`Contract with ID ${id} not found.`);
+        }
     }
 
     async attachFile(
         contractId: string,
         file: Express.Multer.File,
-        fileType?: string,
+        fileType: string = 'contract',
     ): Promise<EmploymentContract> {
         const contract = await this.findOne(contractId);
 
@@ -107,5 +109,35 @@ export class EmploymentContractsService {
 
         // Step 3: Return the updated contract with the new file included.
         return this.findOne(contractId);
+    }
+
+    async renew(
+        oldContractId: string,
+        renewalData: RenewEmploymentContractDto,
+        file: Express.Multer.File,
+    ): Promise<EmploymentContract> {
+        const oldContract = await this.findOne(oldContractId);
+        oldContract.status = ContractStatusType.RENEWED;
+        await this.employmentContractRepository.save(oldContract);
+
+        const newContract = this.employmentContractRepository.create({
+            ...oldContract,
+            id: undefined,
+            contractNumber: oldContract.contractNumber,
+            startDate: renewalData.startDate,
+            endDate: renewalData.endDate,
+            status: ContractStatusType.ACTIVE,
+            contractFiles: [],
+        });
+        const savedNewContract =
+            await this.employmentContractRepository.save(newContract);
+
+        return this.attachFile(savedNewContract.id, file, 'contract');
+    }
+
+    async terminate(id: string): Promise<EmploymentContract> {
+        const contract = await this.findOne(id);
+        contract.status = ContractStatusType.TERMINATED;
+        return this.employmentContractRepository.save(contract);
     }
 }

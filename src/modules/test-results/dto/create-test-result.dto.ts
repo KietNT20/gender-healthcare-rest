@@ -6,6 +6,7 @@ import {
 import { Type } from 'class-transformer';
 import {
     IsBoolean,
+    IsEnum,
     IsJSON,
     IsNotEmpty,
     IsOptional,
@@ -13,6 +14,7 @@ import {
     IsUUID,
     ValidateIf,
 } from 'class-validator';
+import { PriorityType } from 'src/enums';
 import { TestResultDataDto } from './test-result-data.dto';
 
 export class CreateTestResultDto {
@@ -89,6 +91,13 @@ export class CreateTestResultDto {
     @IsString()
     @IsOptional()
     followUpNotes?: string;
+
+    @ApiProperty({
+        description: 'Priority of the notification',
+        enum: PriorityType,
+    })
+    @IsEnum(PriorityType)
+    priorityNotification: PriorityType;
 }
 
 export class FileDto {
@@ -104,3 +113,12 @@ export class CreateTestResultWithFileDto extends IntersectionType(
     CreateTestResultDto,
     FileDto,
 ) {}
+
+export class SendNotificationDto {
+    @ApiProperty({
+        description: 'Priority of the notification',
+        enum: PriorityType,
+    })
+    @IsEnum(PriorityType)
+    priorityNotification: PriorityType;
+}

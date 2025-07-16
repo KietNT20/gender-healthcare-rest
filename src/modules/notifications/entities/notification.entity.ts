@@ -37,7 +37,7 @@ export class Notification {
         enum: PriorityType,
         nullable: true,
     })
-    priority: PriorityType;
+    priority?: PriorityType;
 
     @CreateDateColumn()
     createdAt: Date;

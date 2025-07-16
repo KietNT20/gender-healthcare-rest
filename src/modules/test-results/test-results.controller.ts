@@ -35,6 +35,7 @@ import { User } from 'src/modules/users/entities/user.entity';
 import {
     CreateTestResultDto,
     CreateTestResultWithFileDto,
+    SendNotificationDto,
 } from './dto/create-test-result.dto';
 import { TestResultDataDto } from './dto/test-result-data.dto';
 import {
@@ -170,7 +171,11 @@ export class TestResultsController {
         @Body() createTestResultDto: CreateTestResultDto,
         @UploadedFile() file: Express.Multer.File,
     ) {
-        return this.testResultsService.create(createTestResultDto, file);
+        return this.testResultsService.create(
+            createTestResultDto,
+            file,
+            createTestResultDto.priorityNotification,
+        );
     }
 
     @Get('appointment/:appointmentId')
@@ -223,8 +228,14 @@ export class TestResultsController {
     })
     @ApiParam({ name: 'id', description: 'Test result ID' })
     @ResponseMessage('Test result notification sent successfully.')
-    async sendNotificationToPatient(@Param('id', ParseUUIDPipe) id: string) {
-        return this.testResultsService.sendNotificationToPatient(id);
+    async sendNotificationToPatient(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() sendNotificationDto: SendNotificationDto,
+    ) {
+        return this.testResultsService.sendNotificationToPatient(
+            id,
+            sendNotificationDto.priorityNotification,
+        );
     }
 
     @Post('appointment/:appointmentId/send-notification')
@@ -238,9 +249,11 @@ export class TestResultsController {
     @ResponseMessage('Test result notification sent successfully.')
     async sendNotificationByAppointmentId(
         @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
+        @Body() sendNotificationDto: SendNotificationDto,
     ) {
         return this.testResultsService.sendNotificationByAppointmentId(
             appointmentId,
+            sendNotificationDto.priorityNotification,
         );
     }
 

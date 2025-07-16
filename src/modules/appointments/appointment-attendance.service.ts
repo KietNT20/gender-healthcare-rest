@@ -8,6 +8,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType } from 'src/enums';
 import { In, Repository } from 'typeorm';
+import { ChatRoomCleanupService } from '../chat/chat-room-cleanup.service';
 import { Service } from '../services/entities/service.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import {
@@ -31,6 +32,7 @@ export class AppointmentAttendanceService {
         @InjectRepository(Service)
         private readonly serviceRepository: Repository<Service>,
         private readonly notificationService: AppointmentNotificationService,
+        private readonly chatRoomCleanupService: ChatRoomCleanupService, // Thêm dòng này
     ) {}
 
     /**
@@ -430,8 +432,21 @@ export class AppointmentAttendanceService {
     private async releaseAppointmentResources(
         appointment: Appointment,
     ): Promise<void> {
-        // Logic giải phóng tài nguyên (phòng khám, thiết bị, etc.)
-        this.logger.log(`Released resources for appointment ${appointment.id}`);
+        // Cleanup chat room nếu có service
+        try {
+            await this.chatRoomCleanupService.cleanupRoomOnAppointmentStatusChange(
+                appointment.id,
+                appointment.status,
+            );
+            this.logger.log(
+                `Cleaned up chat room for appointment ${appointment.id}`,
+            );
+        } catch (error) {
+            this.logger.error(
+                `Error cleaning up chat room for appointment ${appointment.id}:`,
+                error,
+            );
+        }
     }
 
     private async processAutoCancellation(

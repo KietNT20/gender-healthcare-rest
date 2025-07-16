@@ -1,10 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
-@Processor('sti-test-process-notification')
+@Processor(QUEUE_NAMES.STI_TEST_PROCESS_NOTIFICATION)
 @Injectable()
 export class StiTestProcessNotificationProcessor extends WorkerHost {
     private readonly logger = new Logger(

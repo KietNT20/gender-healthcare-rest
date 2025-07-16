@@ -349,7 +349,7 @@ export class ConsultantProfilesService {
             profile.profileStatus = ProfileStatusType.ACTIVE;
             profile.verifiedAt = new Date();
             profile.isVerified = true; // Cập nhật isVerified thành true
-            
+
             const updatedProfile = await queryRunner.manager.save(
                 ConsultantProfile,
                 profile,
@@ -359,7 +359,7 @@ export class ConsultantProfilesService {
             await this.auditLogsService.create({
                 userId: adminId,
                 action: ActionType.UPDATE,
-                entityType: 'ConsultantProfile',
+                entityType: 'consultant_profile',
                 entityId: profile.id,
                 oldValues,
                 newValues: {
@@ -445,7 +445,7 @@ export class ConsultantProfilesService {
             await this.auditLogsService.create({
                 userId: adminId,
                 action: ActionType.UPDATE,
-                entityType: 'ConsultantProfile',
+                entityType: 'consultant_profile',
                 entityId: profile.id,
                 oldValues,
                 newValues: {

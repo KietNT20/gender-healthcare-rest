@@ -86,7 +86,8 @@ export class PublicPdfService {
         entityType: string,
         entityId: string,
     ): Promise<Document[]> {
-        const queryBuilder = this.documentRepository.createQueryBuilder('document');
+        const queryBuilder =
+            this.documentRepository.createQueryBuilder('document');
 
         return queryBuilder
             .where('document.entityType = :entityType', { entityType })
@@ -349,7 +350,7 @@ export class PublicPdfService {
     private getPublicAccessUrl(document: Document): string {
         return (
             document.metadata?.cloudFrontUrl ||
-            `https://your-public-cloudfront-domain/${document.path}`
+            `${process.env.AWS_PUBLIC_CLOUDFRONT_URL}/${document.path}`
         );
     }
 

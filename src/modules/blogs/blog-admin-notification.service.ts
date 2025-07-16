@@ -1,215 +1,81 @@
-import { Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ContentStatusType, PriorityType, RolesNameEnum } from 'src/enums';
-import { IsNull, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import { NotificationsService } from '../notifications/notifications.service';
-import { User } from '../users/entities/user.entity';
-import { BlogNotificationService } from './blog-notification.service';
-import { Blog } from './entities/blog.entity';
+import { Queue } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
 
 @Injectable()
 export class BlogAdminNotificationService {
+    private readonly logger = new Logger(BlogAdminNotificationService.name);
+
     constructor(
-        @InjectRepository(Blog)
-        private readonly blogRepository: Repository<Blog>,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        private readonly blogNotificationService: BlogNotificationService,
-        private readonly notificationsService: NotificationsService,
+        @InjectQueue(QUEUE_NAMES.BLOG_ADMIN_NOTIFICATION)
+        private readonly adminBlogQueue: Queue,
     ) {}
 
     /**
      * Chạy cron job mỗi ngày lúc 9:00 AM để thông báo về blogs pending review
      */
-    @Cron(CronExpression.EVERY_DAY_AT_9AM)
-    async sendDailyPendingBlogsNotification() {
-        const pendingBlogsCount = await this.blogRepository.count({
-            where: {
-                status: ContentStatusType.PENDING_REVIEW,
-                deletedAt: IsNull(),
+    @Cron(CronExpression.EVERY_DAY_AT_9AM, { name: 'daily_pending_blogs' })
+    triggerDailyPendingBlogsNotification() {
+        this.logger.log('Triggering daily pending blogs report...');
+        this.adminBlogQueue.add(
+            'send-daily-pending-report',
+            {},
+            {
+                removeOnComplete: true,
+                removeOnFail: true,
             },
-        });
-
-        if (pendingBlogsCount > 0) {
-            const adminUsers = await this.userRepository.find({
-                where: [
-                    { role: { name: RolesNameEnum.ADMIN } },
-                    { role: { name: RolesNameEnum.MANAGER } },
-                ],
-                relations: {
-                    role: true,
-                },
-            });
-
-            const adminIds = adminUsers.map((user) => user.id);
-
-            await this.blogNotificationService.notifyAdminBlogsPendingReview(
-                adminIds,
-                pendingBlogsCount,
-            );
-        }
+        );
     }
 
     /**
      * Thông báo ngay lập tức khi có blog pending review quá lâu (> 3 ngày)
      */
-    @Cron(CronExpression.EVERY_6_HOURS)
-    async sendOverduePendingBlogsNotification() {
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        const overdueBlogsCount = await this.blogRepository.count({
-            where: {
-                status: ContentStatusType.PENDING_REVIEW,
-                updatedAt: LessThanOrEqual(threeDaysAgo),
-                deletedAt: IsNull(),
+    @Cron(CronExpression.EVERY_6_HOURS, { name: 'overdue_pending_blogs' })
+    triggerOverduePendingBlogsNotification() {
+        this.logger.log('Triggering overdue pending blogs report...');
+        this.adminBlogQueue.add(
+            'send-overdue-pending-report',
+            {},
+            {
+                removeOnComplete: true,
+                removeOnFail: true,
             },
-        });
-
-        if (overdueBlogsCount > 0) {
-            const adminUsers = await this.userRepository.find({
-                where: [
-                    { role: { name: RolesNameEnum.ADMIN } },
-                    { role: { name: RolesNameEnum.MANAGER } },
-                ],
-                relations: {
-                    role: true,
-                },
-            });
-
-            const adminIds = adminUsers.map((user) => user.id);
-
-            // Custom notification for overdue blogs
-            const promises = adminIds.map((adminId) =>
-                this.notificationsService.create({
-                    userId: adminId,
-                    title: '⚠️ Blog quá hạn duyệt',
-                    content: `Có ${overdueBlogsCount} blog đã chờ duyệt quá 3 ngày. Vui lòng xử lý khẩn cấp!`,
-                    type: 'ADMIN_BLOGS_OVERDUE',
-                    priority: PriorityType.URGENT,
-                    actionUrl:
-                        '/admin/blogs?status=pending_review&overdue=true',
-                }),
-            );
-
-            await Promise.all(promises);
-        }
+        );
     }
 
     /**
      * Thống kê hàng tuần về blog activities
      */
-    @Cron('0 9 * * 1') // Every Monday at 9AM
-    async sendWeeklyBlogStatistics() {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const [publishedCount, rejectedCount, approvedCount] =
-            await Promise.all([
-                this.blogRepository.count({
-                    where: {
-                        status: ContentStatusType.PUBLISHED,
-                        publishedAt: MoreThanOrEqual(oneWeekAgo),
-                        deletedAt: IsNull(),
-                    },
-                }),
-                this.blogRepository.count({
-                    where: {
-                        status: ContentStatusType.REJECTED,
-                        updatedAt: MoreThanOrEqual(oneWeekAgo),
-                        deletedAt: IsNull(),
-                    },
-                }),
-                this.blogRepository.count({
-                    where: {
-                        status: ContentStatusType.APPROVED,
-                        updatedAt: MoreThanOrEqual(oneWeekAgo),
-                        deletedAt: IsNull(),
-                    },
-                }),
-            ]);
-
-        const adminUsers = await this.userRepository.find({
-            where: [
-                { role: { name: RolesNameEnum.ADMIN } },
-                { role: { name: RolesNameEnum.MANAGER } },
-            ],
-            relations: {
-                role: true,
+    @Cron(CronExpression.EVERY_WEEK, { name: 'weekly_blog_stats' })
+    triggerWeeklyBlogStatistics() {
+        this.logger.log('Triggering weekly blog statistics report...');
+        this.adminBlogQueue.add(
+            'send-weekly-stats-report',
+            {},
+            {
+                removeOnComplete: true,
+                removeOnFail: true,
             },
-        });
-
-        const adminIds = adminUsers.map((user) => user.id);
-
-        const promises = adminIds.map((adminId) =>
-            this.notificationsService.create({
-                userId: adminId,
-                title: '📊 Báo cáo blog tuần này',
-                content: `Tuần vừa qua: ${publishedCount} blog xuất bản, ${approvedCount} blog duyệt, ${rejectedCount} blog từ chối.`,
-                type: 'ADMIN_WEEKLY_STATS',
-                priority: PriorityType.LOW,
-                actionUrl: '/admin/dashboard/blog-statistics',
-            }),
         );
-
-        await Promise.all(promises);
     }
 
     /**
      * Thống kê hàng tháng về số blog được tạo, đang chờ duyệt và được duyệt
      */
-    @Cron('0 9 1 * *') // Every 1st day of month at 9AM
-    async sendMonthlyBlogStatistics() {
-        const now = new Date();
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        const [createdCount, pendingCount, approvedCount] = await Promise.all([
-            // Blogs created this month
-            this.blogRepository.count({
-                where: {
-                    createdAt: MoreThanOrEqual(firstDayOfMonth),
-                    deletedAt: IsNull(),
-                },
-            }),
-            // Blogs pending review
-            this.blogRepository.count({
-                where: {
-                    status: ContentStatusType.PENDING_REVIEW,
-                    deletedAt: IsNull(),
-                },
-            }),
-            // Blogs approved this month
-            this.blogRepository.count({
-                where: {
-                    status: ContentStatusType.APPROVED,
-                    updatedAt: MoreThanOrEqual(firstDayOfMonth),
-                    deletedAt: IsNull(),
-                },
-            }),
-        ]);
-
-        const adminUsers = await this.userRepository.find({
-            where: [
-                { role: { name: RolesNameEnum.ADMIN } },
-                { role: { name: RolesNameEnum.MANAGER } },
-            ],
-            relations: {
-                role: true,
+    @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON, {
+        name: 'monthly_blog_stats',
+    })
+    triggerMonthlyBlogStatistics() {
+        this.logger.log('Triggering monthly blog statistics report...');
+        this.adminBlogQueue.add(
+            'send-monthly-stats-report',
+            {},
+            {
+                removeOnComplete: true,
+                removeOnFail: true,
             },
-        });
-
-        const adminIds = adminUsers.map((user) => user.id);
-
-        const promises = adminIds.map((adminId) =>
-            this.notificationsService.create({
-                userId: adminId,
-                title: '📈 Báo cáo blog tháng này',
-                content: `Tháng này: ${createdCount} blog được tạo, ${pendingCount} blog đang chờ duyệt, ${approvedCount} blog được duyệt.`,
-                type: 'ADMIN_MONTHLY_STATS',
-                priority: PriorityType.LOW,
-                actionUrl: '/admin/dashboard/blog-statistics',
-            }),
         );
-
-        await Promise.all(promises);
     }
 }

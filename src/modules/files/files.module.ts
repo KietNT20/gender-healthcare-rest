@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { Document } from '../documents/entities/document.entity';
 import { Image } from '../images/entities/image.entity';
 import { AwsS3Service } from './aws-s3.service';
@@ -16,7 +17,7 @@ import { PublicPdfService } from './public-pdf.service';
         TypeOrmModule.forFeature([Document, Image]),
         ConfigModule.forFeature(awsConfig),
         BullModule.registerQueue({
-            name: 'image-processing',
+            name: QUEUE_NAMES.IMAGE_PROCESSING,
         }),
     ],
     controllers: [FilesController],

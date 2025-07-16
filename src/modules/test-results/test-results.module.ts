@@ -1,5 +1,7 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Document } from '../documents/entities/document.entity';
 import { FilesModule } from '../files/files.module';
@@ -12,6 +14,7 @@ import { TestResultExportPdfService } from './services/test-result-export-pdf.se
 import { TestResultMapperService } from './services/test-result-mapper.service';
 import { TestResultTemplateService } from './services/test-result-template.service';
 import { TestResultsController } from './test-results.controller';
+import { TestResultNotificationProcessor } from './test-results.processor';
 import { TestResultsService } from './test-results.service';
 
 @Module({
@@ -26,6 +29,9 @@ import { TestResultsService } from './test-results.service';
         FilesModule,
         NotificationsModule,
         MailModule,
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.TEST_RESULT_NOTIFICATION,
+        }),
     ],
     controllers: [TestResultsController],
     providers: [
@@ -33,6 +39,7 @@ import { TestResultsService } from './test-results.service';
         TestResultTemplateService,
         TestResultMapperService,
         TestResultExportPdfService,
+        TestResultNotificationProcessor,
     ],
     exports: [
         TestResultsService,

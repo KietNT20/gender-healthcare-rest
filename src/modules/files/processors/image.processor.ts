@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as sharp from 'sharp';
+import { QUEUE_NAMES } from 'src/constant';
 import { AwsS3Service, FileMetadata } from '../aws-s3.service';
 import { FilesService } from '../files.service';
 
@@ -75,7 +76,7 @@ export interface ProcessedImageResult {
  * @description A BullMQ worker responsible for handling image processing jobs.
  * It downloads an image, optimizes it, generates thumbnails, and uploads the results to S3.
  */
-@Processor('image-processing')
+@Processor(QUEUE_NAMES.IMAGE_PROCESSING)
 export class ImageProcessor extends WorkerHost {
     private readonly logger = new Logger(ImageProcessor.name);
 

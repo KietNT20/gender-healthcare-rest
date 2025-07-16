@@ -1,6 +1,8 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
-import { NotificationsService } from 'src/modules/notifications/notifications.service';
-import { MailService } from '../mail/mail.service';
+import { Queue } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
+import { NotificationType } from '../notifications/processors/notification.processor';
 import { Appointment } from './entities/appointment.entity';
 
 /**
@@ -13,14 +15,17 @@ export class AppointmentNotificationService {
     private readonly logger = new Logger(AppointmentNotificationService.name);
 
     constructor(
-        private readonly notificationsService: NotificationsService,
-        private readonly mailService: MailService,
+        @InjectQueue(QUEUE_NAMES.APPOINTMENT_NOTIFICATION)
+        private readonly notificationQueue: Queue,
     ) {}
 
     /**
-     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.
+     * Gửi thông báo xác nhận khi một cuộc hẹn tư vấn được tạo.\
+     * Thông báo này sẽ được gửi đến cả người dùng và tư vấn viên.
      */
-    public sendCreationNotifications(appointment: Appointment): void {
+    public async sendCreationNotifications(
+        appointment: Appointment,
+    ): Promise<void> {
         if (!appointment.consultant) {
             this.logger.warn(
                 `Attempted to send creation notification for appointment ${appointment.id} without a consultant.`,
@@ -37,64 +42,71 @@ export class AppointmentNotificationService {
             { hour: '2-digit', minute: '2-digit' },
         );
 
-        this.mailService
-            .sendAppointmentConfirmation(appointment.user.email, {
+        // Đẩy job gửi email vào queue
+        await this.notificationQueue.add('send-confirmation-email', {
+            email: appointment.user.email,
+            data: {
                 userName: customerName,
                 consultantName,
                 appointmentDate,
                 appointmentTime,
                 serviceName: appointment.services.map((s) => s.name).join(', '),
                 appointmentLocation: appointment.appointmentLocation,
-            })
-            .catch((err) =>
-                this.logger.error(
-                    `Failed to send confirmation email for appointment ${appointment.id}`,
-                    err,
-                ),
-            );
-
-        // Logic tạo thông báo trong ứng dụng vẫn được giữ lại ở đây
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: 'Lịch hẹn đã được tạo',
-            content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} ngày ${appointmentDate} đang chờ xác nhận.`,
-            type: 'APPOINTMENT_CREATED',
-            actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        this.notificationsService.create({
-            userId: appointment.consultant.id,
-            title: 'Bạn có lịch hẹn mới',
-            content: `Bạn có một lịch hẹn mới từ ${customerName} vào lúc ${appointmentTime} ngày ${appointmentDate}. Vui lòng xác nhận.`,
-            type: 'APPOINTMENT_REQUEST',
-            actionUrl: `/consultant/appointments/${appointment.id}`,
+        // Đẩy job gửi notification cho user
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: 'Lịch hẹn đã được tạo',
+                content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} ngày ${appointmentDate} đang chờ xác nhận.`,
+                type: NotificationType.APPOINTMENT_CREATED,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
+        });
+
+        // Đẩy job gửi notification cho consultant
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.consultant.id,
+                title: 'Bạn có lịch hẹn mới',
+                content: `Bạn có một lịch hẹn mới từ ${customerName} vào lúc ${appointmentTime} ngày ${appointmentDate}. Vui lòng xác nhận.`,
+                type: NotificationType.APPOINTMENT_REQUEST,
+                actionUrl: `/consultant/appointments/${appointment.id}`,
+            },
         });
     }
 
     /**
      * Gửi thông báo khi tư vấn viên xác nhận một cuộc hẹn.
+     * Thông báo này sẽ được gửi đến người dùng và có thể bao gồm thông tin chi tiết về cuộc hẹn.
      */
-    public sendConsultantConfirmationNotification(
+    public async sendConsultantConfirmationNotification(
         appointment: Appointment,
-    ): void {
+    ): Promise<void> {
         const appointmentTime = new Date(
             appointment.appointmentDate,
         ).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
         const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
 
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: 'Lịch hẹn đã được xác nhận',
-            content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} đã được xác nhận.`,
-            type: 'APPOINTMENT_CONFIRMED',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: 'Lịch hẹn đã được xác nhận',
+                content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} đã được xác nhận.`,
+                type: NotificationType.APPOINTMENT_CONFIRMED,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
     }
 
     /**
      * Gửi thông báo khi một cuộc hẹn bị hủy.
      */
-    public sendCancellationNotifications(appointment: Appointment): void {
+    public async sendCancellationNotifications(
+        appointment: Appointment,
+    ): Promise<void> {
         const { user, consultant, cancelledBy, cancellationReason } =
             appointment;
 
@@ -117,50 +129,53 @@ export class AppointmentNotificationService {
         const recipientName = `${recipient.firstName} ${recipient.lastName}`;
         const notificationTitle = 'Thông báo: Lịch hẹn đã bị hủy';
 
-        this.notificationsService.create({
-            userId: recipient.id,
-            title: notificationTitle,
-            content: `Lịch hẹn của bạn vào lúc ${appointmentTime} đã bị hủy bởi ${cancellerName}${reasonText}.`,
-            type: 'APPOINTMENT_CANCELLED',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: recipient.id,
+                title: notificationTitle,
+                content: `Lịch hẹn của bạn vào lúc ${appointmentTime} đã bị hủy bởi ${cancellerName}${reasonText}.`,
+                type: NotificationType.APPOINTMENT_CANCELLED,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        this.mailService
-            .sendAppointmentCancellation(recipient.email, {
+        await this.notificationQueue.add('send-cancellation-email', {
+            email: recipient.email,
+            data: {
                 recipientName,
                 appointmentTime,
                 cancellerName,
                 cancellationReason:
                     cancellationReason || 'Không có lý do được cung cấp',
-            })
-            .catch((err) =>
-                this.logger.error(
-                    `Failed to send cancellation email for appointment ${appointment.id}`,
-                    err,
-                ),
-            );
+            },
+        });
     }
 
     /**
      * Gửi thông báo nhắc nhở về một cuộc hẹn sắp diễn ra.
      * (Hàm này nên được gọi bởi một cron job)
      */
-    public sendReminderNotification(appointment: Appointment): void {
+    public async sendReminderNotification(
+        appointment: Appointment,
+    ): Promise<void> {
         const appointmentTime = new Date(
             appointment.appointmentDate,
         ).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
         const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
 
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: 'Nhắc nhở lịch hẹn sắp tới',
-            content: `Bạn có một cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
-            type: 'APPOINTMENT_REMINDER',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: 'Nhắc nhở lịch hẹn sắp tới',
+                content: `Bạn có một cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
+                type: NotificationType.APPOINTMENT_REMINDER,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        this.mailService
-            .sendAppointmentReminder(appointment.user.email, {
+        await this.notificationQueue.add('send-reminder-email', {
+            email: appointment.user.email,
+            data: {
                 userName: `${appointment.user.firstName} ${appointment.user.lastName}`,
                 consultantName,
                 appointmentDate: new Date(
@@ -174,13 +189,8 @@ export class AppointmentNotificationService {
                 }),
                 meetingLink: appointment.meetingLink,
                 serviceName: appointment.services.map((s) => s.name).join(', '),
-            })
-            .catch((err) =>
-                this.logger.error(
-                    `Failed to send reminder email for appointment ${appointment.id}`,
-                    err,
-                ),
-            );
+            },
+        });
     }
 
     /**
@@ -189,42 +199,32 @@ export class AppointmentNotificationService {
     public async sendMeetingLinkNotification(
         appointment: Appointment,
     ): Promise<void> {
-        try {
-            const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
-            const appointmentTime = new Date(
-                appointment.appointmentDate,
-            ).toLocaleString('vi-VN', {
-                dateStyle: 'short',
-                timeStyle: 'short',
-            });
+        const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
+        const appointmentTime = new Date(
+            appointment.appointmentDate,
+        ).toLocaleString('vi-VN', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        });
 
-            // Tạo thông báo trong ứng dụng
-            await this.notificationsService.create({
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
                 userId: appointment.user.id,
                 title: 'Meeting link đã được cập nhật',
                 content: `${consultantName} đã cập nhật meeting link cho cuộc hẹn vào lúc ${appointmentTime}. Vui lòng kiểm tra thông tin chi tiết.`,
-                type: 'MEETING_LINK_UPDATED',
+                type: NotificationType.MEETING_LINK_UPDATED,
                 actionUrl: `/appointments/${appointment.id}`,
-            });
-
-            this.logger.log(
-                `Meeting link notification sent for appointment ${appointment.id}`,
-            );
-        } catch (error) {
-            this.logger.error(
-                `Failed to send meeting link notification for appointment ${appointment.id}`,
-                error,
-            );
-        }
+            },
+        });
     }
 
     /**
      * Gửi thông báo khi thông tin cuộc hẹn được cập nhật (ví dụ: đổi lịch).
      */
-    public sendUpdateNotification(
+    public async sendUpdateNotification(
         appointment: Appointment,
         oldTime: string,
-    ): void {
+    ): Promise<void> {
         const newTime = new Date(appointment.appointmentDate).toLocaleString(
             'vi-VN',
             { dateStyle: 'short', timeStyle: 'short' },
@@ -232,23 +232,25 @@ export class AppointmentNotificationService {
         const title = 'Lịch hẹn đã được cập nhật';
         const content = `Lịch hẹn của bạn đã được dời từ ${oldTime} sang ${newTime}. Vui lòng kiểm tra lại thông tin chi tiết.`;
 
-        // Thông báo cho khách hàng
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title,
-            content,
-            type: 'APPOINTMENT_UPDATED',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title,
+                content,
+                type: NotificationType.APPOINTMENT_UPDATED,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        // Thông báo cho tư vấn viên
         if (appointment.consultant?.id) {
-            this.notificationsService.create({
-                userId: appointment.consultant.id,
-                title,
-                content: `Lịch hẹn với khách hàng ${appointment.user.firstName} ${appointment.user.lastName} đã được dời từ ${oldTime} sang ${newTime}.`,
-                type: 'APPOINTMENT_UPDATED',
-                actionUrl: `/consultant/appointments/${appointment.id}`,
+            await this.notificationQueue.add('send-appointment-notification', {
+                notificationData: {
+                    userId: appointment.consultant.id,
+                    title,
+                    content: `Lịch hẹn với khách hàng ${appointment.user.firstName} ${appointment.user.lastName} đã được dời từ ${oldTime} sang ${newTime}.`,
+                    type: NotificationType.APPOINTMENT_UPDATED,
+                    actionUrl: `/consultant/appointments/${appointment.id}`,
+                },
             });
         }
     }
@@ -264,20 +266,17 @@ export class AppointmentNotificationService {
             appointment.appointmentDate,
         ).toLocaleString('vi-VN');
 
-        // Thông báo cho staff/consultant
         if (appointment.consultant?.id) {
-            this.notificationsService.create({
-                userId: appointment.consultant.id,
-                title: 'Bệnh nhân đã check-in',
-                content: `${customerName} đã check-in cho cuộc hẹn lúc ${appointmentTime}`,
-                type: 'PATIENT_CHECKED_IN',
-                actionUrl: `/consultant/appointments/${appointment.id}`,
+            await this.notificationQueue.add('send-appointment-notification', {
+                notificationData: {
+                    userId: appointment.consultant.id,
+                    title: 'Bệnh nhân đã check-in',
+                    content: `${customerName} đã check-in cho cuộc hẹn lúc ${appointmentTime}`,
+                    type: NotificationType.PATIENT_CHECKED_IN,
+                    actionUrl: `/consultant/appointments/${appointment.id}`,
+                },
             });
         }
-
-        this.logger.log(
-            `Check-in notification sent for appointment ${appointment.id}`,
-        );
     }
 
     /**
@@ -291,38 +290,25 @@ export class AppointmentNotificationService {
             appointment.appointmentDate,
         ).toLocaleString('vi-VN');
 
-        // Thông báo cho khách hàng
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: 'Lịch hẹn bị đánh dấu No-Show',
-            content: `Cuộc hẹn của bạn lúc ${appointmentTime} đã bị đánh dấu no-show do không có mặt. Vui lòng liên hệ để đặt lại lịch.`,
-            type: 'APPOINTMENT_NO_SHOW',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: 'Lịch hẹn bị đánh dấu No-Show',
+                content: `Cuộc hẹn của bạn lúc ${appointmentTime} đã bị đánh dấu no-show do không có mặt. Vui lòng liên hệ để đặt lại lịch.`,
+                type: NotificationType.APPOINTMENT_NO_SHOW,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        // Gửi email no-show với link đặt lại lịch
-        this.mailService
-            .sendEmail(
-                appointment.user.email,
-                'Thông báo: Lịch hẹn No-Show',
-                'appointment-no-show',
-                {
-                    userName: customerName,
-                    appointmentTime,
-                    reason: appointment.cancellationReason,
-                    rescheduleLink: `${process.env.FRONTEND_URL}/appointments/reschedule/${appointment.id}`,
-                },
-            )
-            .catch((err) =>
-                this.logger.error(
-                    `Failed to send no-show email for appointment ${appointment.id}`,
-                    err,
-                ),
-            );
-
-        this.logger.log(
-            `No-show notification sent for appointment ${appointment.id}`,
-        );
+        await this.notificationQueue.add('send-no-show-email', {
+            email: appointment.user.email,
+            data: {
+                userName: customerName,
+                appointmentTime,
+                reason: appointment.cancellationReason,
+                rescheduleLink: `${process.env.FRONTEND_URL}/appointments/reschedule/${appointment.id}`,
+            },
+        });
     }
 
     /**
@@ -341,20 +327,17 @@ export class AppointmentNotificationService {
                 (1000 * 60),
         );
 
-        // Thông báo cho consultant
         if (appointment.consultant?.id) {
-            this.notificationsService.create({
-                userId: appointment.consultant.id,
-                title: 'Bệnh nhân đến trễ',
-                content: `${customerName} đã check-in trễ ${lateMinutes} phút cho cuộc hẹn lúc ${appointmentTime}`,
-                type: 'PATIENT_LATE_ARRIVAL',
-                actionUrl: `/consultant/appointments/${appointment.id}`,
+            await this.notificationQueue.add('send-appointment-notification', {
+                notificationData: {
+                    userId: appointment.consultant.id,
+                    title: 'Bệnh nhân đến trễ',
+                    content: `${customerName} đã check-in trễ ${lateMinutes} phút cho cuộc hẹn lúc ${appointmentTime}`,
+                    type: NotificationType.PATIENT_LATE_ARRIVAL,
+                    actionUrl: `/consultant/appointments/${appointment.id}`,
+                },
             });
         }
-
-        this.logger.log(
-            `Late arrival notification sent for appointment ${appointment.id}`,
-        );
     }
 
     /**
@@ -386,18 +369,19 @@ export class AppointmentNotificationService {
             reminderMessage = '30 phút';
         }
 
-        // Thông báo in-app
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: `Nhắc nhở lịch hẹn (${reminderMessage})`,
-            content: `Bạn có cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
-            type: 'APPOINTMENT_REMINDER',
-            actionUrl: `/appointments/${appointment.id}`,
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: `Nhắc nhở lịch hẹn (${reminderMessage})`,
+                content: `Bạn có cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
+                type: NotificationType.APPOINTMENT_REMINDER,
+                actionUrl: `/appointments/${appointment.id}`,
+            },
         });
 
-        // Gửi email reminder
-        this.mailService
-            .sendAppointmentReminder(appointment.user.email, {
+        await this.notificationQueue.add('send-reminder-email', {
+            email: appointment.user.email,
+            data: {
                 userName: customerName,
                 consultantName,
                 appointmentDate: new Date(
@@ -412,29 +396,22 @@ export class AppointmentNotificationService {
                 meetingLink: appointment.meetingLink,
                 serviceName:
                     appointment.services?.map((s) => s.name).join(', ') || '',
-            })
-            .catch((err) =>
-                this.logger.error(
-                    `Failed to send ${reminderType} reminder email for appointment ${appointment.id}`,
-                    err,
-                ),
-            );
-
-        this.logger.log(
-            `${reminderType} reminder sent for appointment ${appointment.id}`,
-        );
+            },
+        });
     }
 
     /**
      * Gửi yêu cầu feedback sau khi appointment hoàn thành
      */
-    public sendFeedbackRequest(appointment: Appointment): void {
-        this.notificationsService.create({
-            userId: appointment.user.id,
-            title: 'Mời bạn đánh giá cuộc hẹn',
-            content: `Cảm ơn bạn đã sử dụng dịch vụ. Vui lòng để lại đánh giá cho cuộc hẹn với tư vấn viên.`,
-            type: 'APPOINTMENT_FEEDBACK_REQUEST',
-            actionUrl: `/appointments/${appointment.id}/feedback`,
+    public async sendFeedbackRequest(appointment: Appointment): Promise<void> {
+        await this.notificationQueue.add('send-appointment-notification', {
+            notificationData: {
+                userId: appointment.user.id,
+                title: 'Mời bạn đánh giá cuộc hẹn',
+                content: `Cảm ơn bạn đã sử dụng dịch vụ. Vui lòng để lại đánh giá cho cuộc hẹn với tư vấn viên.`,
+                type: NotificationType.APPOINTMENT_FEEDBACK_REQUEST,
+                actionUrl: `/appointments/${appointment.id}/feedback`,
+            },
         });
     }
 }

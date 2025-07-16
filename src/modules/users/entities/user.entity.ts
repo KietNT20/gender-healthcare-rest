@@ -172,7 +172,6 @@ export class User {
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {
-        cascade: true,
         eager: true,
     })
     role: Role;
@@ -223,13 +222,19 @@ export class User {
     consultantFeedbacks: Feedback[];
 
     // Cycle tracking relations
-    @OneToMany(() => MenstrualCycle, (cycle) => cycle.user)
+    @OneToMany(() => MenstrualCycle, (cycle) => cycle.user, {
+        cascade: true,
+    })
     menstrualCycles: MenstrualCycle[];
 
-    @OneToMany(() => ContraceptiveReminder, (reminder) => reminder.user)
+    @OneToMany(() => ContraceptiveReminder, (reminder) => reminder.user, {
+        cascade: true,
+    })
     contraceptiveReminders: ContraceptiveReminder[];
 
-    @OneToMany(() => MenstrualPrediction, (prediction) => prediction.user)
+    @OneToMany(() => MenstrualPrediction, (prediction) => prediction.user, {
+        cascade: true,
+    })
     menstrualPredictions: MenstrualPrediction[];
 
     // Payment relations
@@ -237,7 +242,9 @@ export class User {
     payments: Payment[];
 
     // Notification relations
-    @OneToMany(() => Notification, (notification) => notification.user)
+    @OneToMany(() => Notification, (notification) => notification.user, {
+        cascade: true,
+    })
     notifications: Notification[];
 
     // Test result relations
@@ -252,7 +259,9 @@ export class User {
     @OneToMany(() => Document, (document) => document.user)
     documents: Document[];
 
-    @OneToMany(() => Image, (image) => image.user)
+    @OneToMany(() => Image, (image) => image.user, {
+        cascade: true,
+    })
     images: Image[];
 
     // Audit log relations
@@ -260,7 +269,9 @@ export class User {
     auditLogs: AuditLog[];
 
     // Employment contract relations
-    @OneToMany(() => EmploymentContract, (contract) => contract.user)
+    @OneToMany(() => EmploymentContract, (contract) => contract.user, {
+        cascade: true,
+    })
     employmentContracts: EmploymentContract[];
 
     // Package subscription relations

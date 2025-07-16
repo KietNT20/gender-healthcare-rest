@@ -1,5 +1,7 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { AppointmentsModule } from '../appointments/appointments.module';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -11,6 +13,7 @@ import { UsersModule } from '../users/users.module';
 import { StiTestProcess } from './entities/sti-test-process.entity';
 import { StiTestIntegrationService } from './sti-test-integration.service';
 import { StiTestProcessesController } from './sti-test-processes.controller';
+import { StiTestProcessNotificationProcessor } from './sti-test-processes.processor';
 import { StiTestProcessesService } from './sti-test-processes.service';
 import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
 
@@ -23,12 +26,16 @@ import { StiTestWorkflowService } from './workflow/sti-test-workflow.service';
         UsersModule,
         ServicesModule,
         AppointmentsModule,
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.STI_TEST_PROCESS_NOTIFICATION,
+        }),
     ],
     controllers: [StiTestProcessesController],
     providers: [
         StiTestProcessesService,
         StiTestWorkflowService,
         StiTestIntegrationService,
+        StiTestProcessNotificationProcessor,
     ],
     exports: [
         StiTestProcessesService,

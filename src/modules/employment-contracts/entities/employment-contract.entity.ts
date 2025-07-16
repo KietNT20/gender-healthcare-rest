@@ -33,7 +33,7 @@ export class EmploymentContract {
     @Column({
         type: 'enum',
         enum: ContractStatusType,
-        default: ContractStatusType.PENDING,
+        default: ContractStatusType.ACTIVE,
     })
     @Index()
     status: ContractStatusType;

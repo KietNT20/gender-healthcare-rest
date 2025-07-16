@@ -1,6 +1,14 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import {
+    MenstrualCycleDetails,
+    SendAppointmentCancellation,
+    SendAppointmentConfirmation,
+    SendAppointmentReminder,
+    SendContraceptiveReminder,
+    TestResultDetails,
+} from './interfaces';
 
 @Injectable()
 export class MailService {
@@ -73,15 +81,7 @@ export class MailService {
 
     async sendAppointmentConfirmation(
         email: string,
-        appointmentDetails: {
-            userName: string;
-            consultantName: string;
-            appointmentDate: string;
-            appointmentTime: string;
-            meetingLink?: string;
-            serviceName: string;
-            appointmentLocation: string;
-        },
+        appointmentDetails: SendAppointmentConfirmation,
     ): Promise<void> {
         try {
             await this.mailerService.sendMail({
@@ -106,14 +106,7 @@ export class MailService {
 
     async sendAppointmentReminder(
         email: string,
-        appointmentDetails: {
-            userName: string;
-            consultantName: string;
-            appointmentDate: string;
-            appointmentTime: string;
-            meetingLink?: string;
-            serviceName: string;
-        },
+        appointmentDetails: SendAppointmentReminder,
     ): Promise<void> {
         try {
             await this.mailerService.sendMail({
@@ -138,13 +131,7 @@ export class MailService {
 
     async sendTestResultNotification(
         email: string,
-        testDetails: {
-            userName: string;
-            testType: string;
-            resultDate: string;
-            isAbnormal: boolean;
-            recommendation?: string;
-        },
+        testDetails: TestResultDetails,
     ): Promise<void> {
         try {
             await this.mailerService.sendMail({
@@ -170,11 +157,7 @@ export class MailService {
 
     async sendContraceptiveReminder(
         email: string,
-        reminderDetails: {
-            userName: string;
-            contraceptiveType: string;
-            reminderMessage?: string;
-        },
+        reminderDetails: SendContraceptiveReminder,
     ): Promise<void> {
         try {
             await this.mailerService.sendMail({
@@ -199,11 +182,7 @@ export class MailService {
 
     async sendMenstrualCycleReminder(
         email: string,
-        cycleDetails: {
-            userName: string;
-            cycleType: 'ovulation' | 'period_start' | 'fertile_window';
-            predictedDate: string;
-        },
+        menstrualCycleDetails: MenstrualCycleDetails,
     ): Promise<void> {
         const subjects = {
             ovulation: 'Ngày rụng trứng dự kiến',
@@ -214,10 +193,10 @@ export class MailService {
         try {
             await this.mailerService.sendMail({
                 to: email,
-                subject: subjects[cycleDetails.cycleType],
+                subject: subjects[menstrualCycleDetails.menstrualCycleType],
                 template: './menstrual-cycle-reminder',
                 context: {
-                    ...cycleDetails,
+                    ...menstrualCycleDetails,
                     appName: 'Dịch vụ Y tế Giới tính',
                 },
             });
@@ -361,12 +340,7 @@ export class MailService {
 
     async sendAppointmentCancellation(
         email: string,
-        context: {
-            recipientName: string;
-            appointmentTime: string;
-            cancellerName: string;
-            cancellationReason: string;
-        },
+        context: SendAppointmentCancellation,
     ): Promise<void> {
         await this.sendEmail(
             email,

@@ -15,7 +15,7 @@ export class BlogNotificationProcessor extends WorkerHost {
 
     async process(job: Job<any, any, string>) {
         switch (job.name) {
-            case 'send-notification':
+            case 'send-blog-notification':
                 await this.handleSendNotification(job);
                 break;
             default:

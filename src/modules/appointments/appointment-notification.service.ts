@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
+import { NotificationType } from '../notifications/processors/notification.processor';
 import { Appointment } from './entities/appointment.entity';
 
 /**
@@ -55,23 +56,23 @@ export class AppointmentNotificationService {
         });
 
         // Đẩy job gửi notification cho user
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Lịch hẹn đã được tạo',
                 content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} ngày ${appointmentDate} đang chờ xác nhận.`,
-                type: 'APPOINTMENT_CREATED',
+                type: NotificationType.APPOINTMENT_CREATED,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
 
         // Đẩy job gửi notification cho consultant
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.consultant.id,
                 title: 'Bạn có lịch hẹn mới',
                 content: `Bạn có một lịch hẹn mới từ ${customerName} vào lúc ${appointmentTime} ngày ${appointmentDate}. Vui lòng xác nhận.`,
-                type: 'APPOINTMENT_REQUEST',
+                type: NotificationType.APPOINTMENT_REQUEST,
                 actionUrl: `/consultant/appointments/${appointment.id}`,
             },
         });
@@ -89,12 +90,12 @@ export class AppointmentNotificationService {
         ).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
         const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Lịch hẹn đã được xác nhận',
                 content: `Lịch hẹn của bạn với ${consultantName} vào lúc ${appointmentTime} đã được xác nhận.`,
-                type: 'APPOINTMENT_CONFIRMED',
+                type: NotificationType.APPOINTMENT_CONFIRMED,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -128,12 +129,12 @@ export class AppointmentNotificationService {
         const recipientName = `${recipient.firstName} ${recipient.lastName}`;
         const notificationTitle = 'Thông báo: Lịch hẹn đã bị hủy';
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: recipient.id,
                 title: notificationTitle,
                 content: `Lịch hẹn của bạn vào lúc ${appointmentTime} đã bị hủy bởi ${cancellerName}${reasonText}.`,
-                type: 'APPOINTMENT_CANCELLED',
+                type: NotificationType.APPOINTMENT_CANCELLED,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -162,12 +163,12 @@ export class AppointmentNotificationService {
         ).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
         const consultantName = `${appointment.consultant?.firstName} ${appointment.consultant?.lastName}`;
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Nhắc nhở lịch hẹn sắp tới',
                 content: `Bạn có một cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
-                type: 'APPOINTMENT_REMINDER',
+                type: NotificationType.APPOINTMENT_REMINDER,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -206,12 +207,12 @@ export class AppointmentNotificationService {
             timeStyle: 'short',
         });
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Meeting link đã được cập nhật',
                 content: `${consultantName} đã cập nhật meeting link cho cuộc hẹn vào lúc ${appointmentTime}. Vui lòng kiểm tra thông tin chi tiết.`,
-                type: 'MEETING_LINK_UPDATED',
+                type: NotificationType.MEETING_LINK_UPDATED,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -231,23 +232,23 @@ export class AppointmentNotificationService {
         const title = 'Lịch hẹn đã được cập nhật';
         const content = `Lịch hẹn của bạn đã được dời từ ${oldTime} sang ${newTime}. Vui lòng kiểm tra lại thông tin chi tiết.`;
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title,
                 content,
-                type: 'APPOINTMENT_UPDATED',
+                type: NotificationType.APPOINTMENT_UPDATED,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
 
         if (appointment.consultant?.id) {
-            await this.notificationQueue.add('send-notification', {
+            await this.notificationQueue.add('send-appointment-notification', {
                 notificationData: {
                     userId: appointment.consultant.id,
                     title,
                     content: `Lịch hẹn với khách hàng ${appointment.user.firstName} ${appointment.user.lastName} đã được dời từ ${oldTime} sang ${newTime}.`,
-                    type: 'APPOINTMENT_UPDATED',
+                    type: NotificationType.APPOINTMENT_UPDATED,
                     actionUrl: `/consultant/appointments/${appointment.id}`,
                 },
             });
@@ -266,12 +267,12 @@ export class AppointmentNotificationService {
         ).toLocaleString('vi-VN');
 
         if (appointment.consultant?.id) {
-            await this.notificationQueue.add('send-notification', {
+            await this.notificationQueue.add('send-appointment-notification', {
                 notificationData: {
                     userId: appointment.consultant.id,
                     title: 'Bệnh nhân đã check-in',
                     content: `${customerName} đã check-in cho cuộc hẹn lúc ${appointmentTime}`,
-                    type: 'PATIENT_CHECKED_IN',
+                    type: NotificationType.PATIENT_CHECKED_IN,
                     actionUrl: `/consultant/appointments/${appointment.id}`,
                 },
             });
@@ -289,12 +290,12 @@ export class AppointmentNotificationService {
             appointment.appointmentDate,
         ).toLocaleString('vi-VN');
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Lịch hẹn bị đánh dấu No-Show',
                 content: `Cuộc hẹn của bạn lúc ${appointmentTime} đã bị đánh dấu no-show do không có mặt. Vui lòng liên hệ để đặt lại lịch.`,
-                type: 'APPOINTMENT_NO_SHOW',
+                type: NotificationType.APPOINTMENT_NO_SHOW,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -327,12 +328,12 @@ export class AppointmentNotificationService {
         );
 
         if (appointment.consultant?.id) {
-            await this.notificationQueue.add('send-notification', {
+            await this.notificationQueue.add('send-appointment-notification', {
                 notificationData: {
                     userId: appointment.consultant.id,
                     title: 'Bệnh nhân đến trễ',
                     content: `${customerName} đã check-in trễ ${lateMinutes} phút cho cuộc hẹn lúc ${appointmentTime}`,
-                    type: 'PATIENT_LATE_ARRIVAL',
+                    type: NotificationType.PATIENT_LATE_ARRIVAL,
                     actionUrl: `/consultant/appointments/${appointment.id}`,
                 },
             });
@@ -368,12 +369,12 @@ export class AppointmentNotificationService {
             reminderMessage = '30 phút';
         }
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: `Nhắc nhở lịch hẹn (${reminderMessage})`,
                 content: `Bạn có cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
-                type: 'APPOINTMENT_REMINDER',
+                type: NotificationType.APPOINTMENT_REMINDER,
                 actionUrl: `/appointments/${appointment.id}`,
             },
         });
@@ -403,12 +404,12 @@ export class AppointmentNotificationService {
      * Gửi yêu cầu feedback sau khi appointment hoàn thành
      */
     public async sendFeedbackRequest(appointment: Appointment): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-appointment-notification', {
             notificationData: {
                 userId: appointment.user.id,
                 title: 'Mời bạn đánh giá cuộc hẹn',
                 content: `Cảm ơn bạn đã sử dụng dịch vụ. Vui lòng để lại đánh giá cho cuộc hẹn với tư vấn viên.`,
-                type: 'APPOINTMENT_FEEDBACK_REQUEST',
+                type: NotificationType.APPOINTMENT_FEEDBACK_REQUEST,
                 actionUrl: `/appointments/${appointment.id}/feedback`,
             },
         });

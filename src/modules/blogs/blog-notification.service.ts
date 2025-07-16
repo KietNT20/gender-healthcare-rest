@@ -27,7 +27,7 @@ export class BlogNotificationService {
      * Thông báo khi blog được submit for review
      */
     async notifyBlogSubmittedForReview(blog: Blog): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
                 title: '📝 Blog đã được gửi để duyệt',
@@ -43,11 +43,11 @@ export class BlogNotificationService {
      * Thông báo khi blog được approve
      */
     async notifyBlogApproved(blog: Blog): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '✅ Blog đã được duyệt',
-                content: `Chúc mừng! Blog "${blog.title}" của bạn đã được duyệt và sẵn sàng để publish.`,
+                title: '✅ Bài viết đã được duyệt',
+                content: `Chúc mừng! Bài viết "${blog.title}" của bạn đã được duyệt và sẵn sàng để công khai.`,
                 type: 'BLOG_APPROVED',
                 priority: PriorityType.HIGH,
                 actionUrl: `/blogs/${blog.id}`,
@@ -67,11 +67,11 @@ export class BlogNotificationService {
             ? `\n\nLý do từ chối: ${rejectionReason}`
             : '';
 
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '❌ Blog bị từ chối',
-                content: `Blog "${blog.title}" của bạn đã bị từ chối.${reasonText}\n\nBạn có thể chỉnh sửa và gửi lại để duyệt.`,
+                title: '❌ Bài viết bị từ chối',
+                content: `Bài viết "${blog.title}" của bạn đã bị từ chối.${reasonText}\n\nBạn có thể chỉnh sửa và gửi lại để duyệt.`,
                 type: 'BLOG_REJECTED',
                 priority: PriorityType.HIGH,
                 actionUrl: `/blogs/${blog.id}`,
@@ -87,11 +87,11 @@ export class BlogNotificationService {
         revisionNotes?: string,
     ): Promise<void> {
         const notesText = revisionNotes ? `\n\nGhi chú: ${revisionNotes}` : '';
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '✏️ Blog cần chỉnh sửa',
-                content: `Blog "${blog.title}" của bạn cần chỉnh sửa thêm.${notesText}\n\nVui lòng cập nhật và gửi lại để duyệt.`,
+                title: '✏️ Bài viết cần chỉnh sửa',
+                content: `Bài viết "${blog.title}" của bạn cần chỉnh sửa thêm.${notesText}\n\nVui lòng cập nhật và gửi lại để duyệt.`,
                 type: 'BLOG_NEEDS_REVISION',
                 priority: PriorityType.NORMAL,
                 actionUrl: `/blogs/${blog.id}`,
@@ -103,11 +103,11 @@ export class BlogNotificationService {
      * Thông báo khi blog được publish
      */
     async notifyBlogPublished(blog: Blog): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '🚀 Blog đã được xuất bản',
-                content: `Tuyệt vời! Blog "${blog.title}" của bạn đã được xuất bản và có thể xem công khai.`,
+                title: '🚀 Bài viết đã được xuất bản',
+                content: `Tuyệt vời! Bài viết "${blog.title}" của bạn đã được xuất bản và có thể xem công khai.`,
                 type: 'BLOG_PUBLISHED',
                 priority: PriorityType.HIGH,
                 actionUrl: `/blogs/public/slug/${blog.slug}`,
@@ -119,11 +119,11 @@ export class BlogNotificationService {
      * Thông báo khi blog được archive
      */
     async notifyBlogArchived(blog: Blog): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '📦 Blog đã được lưu trữ',
-                content: `Blog "${blog.title}" của bạn đã được chuyển vào lưu trữ.`,
+                title: '📦 Bài viết đã được lưu trữ',
+                content: `Bài viết "${blog.title}" của bạn đã được chuyển vào lưu trữ.`,
                 type: 'BLOG_ARCHIVED',
                 priority: PriorityType.LOW,
                 actionUrl: `/blogs/${blog.id}`,
@@ -138,11 +138,11 @@ export class BlogNotificationService {
         blog: Blog,
         milestone: number,
     ): Promise<void> {
-        await this.notificationQueue.add('send-notification', {
+        await this.notificationQueue.add('send-blog-notification', {
             notificationData: {
                 userId: blog.author.id,
-                title: '👀 Blog đạt milestone lượt xem',
-                content: `Chúc mừng! Blog "${blog.title}" của bạn đã đạt ${milestone.toLocaleString()} lượt xem.`,
+                title: '👀 Bài viết đạt milestone lượt xem',
+                content: `Chúc mừng! Bài viết "${blog.title}" của bạn đã đạt ${milestone.toLocaleString()} lượt xem.`,
                 type: 'BLOG_VIEWS_MILESTONE',
                 priority: PriorityType.NORMAL,
                 actionUrl: `/blogs/public/slug/${blog.slug}`,
@@ -158,7 +158,7 @@ export class BlogNotificationService {
         pendingCount: number,
     ): Promise<void> {
         const jobs = adminIds.map((adminId) =>
-            this.notificationQueue.add('send-notification', {
+            this.notificationQueue.add('send-blog-notification', {
                 notificationData: {
                     userId: adminId,
                     title: '📋 Có blog cần duyệt',

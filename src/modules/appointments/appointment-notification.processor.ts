@@ -22,7 +22,7 @@ export class AppointmentNotificationProcessor extends WorkerHost {
             case 'send-confirmation-email':
                 await this.handleSendConfirmationEmail(job);
                 break;
-            case 'send-notification':
+            case 'send-appointment-notification':
                 await this.handleSendNotification(job);
                 break;
             // Thêm các case khác nếu cần

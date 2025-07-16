@@ -628,6 +628,7 @@ export class BlogsService {
 
         return updatedBlog;
     }
+    
     async submitForReview(id: string, authorId: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },

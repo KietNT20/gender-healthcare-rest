@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { MailModule } from '../mail/mail.module';
 import { User } from '../users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
@@ -12,7 +13,7 @@ import { NotificationProcessor } from './processors/notification.processor';
     imports: [
         TypeOrmModule.forFeature([Notification, User]),
         BullModule.registerQueue({
-            name: 'notification-queue',
+            name: QUEUE_NAMES.NOTIFICATION_QUEUE,
         }),
         MailModule,
     ],

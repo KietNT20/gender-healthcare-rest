@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
 import { SortOrder } from 'src/enums';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
 import { IsNull, Repository } from 'typeorm';
@@ -21,7 +22,8 @@ export class MenstrualPredictionsService {
         private readonly predictionRepository: Repository<MenstrualPrediction>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectQueue('notification-queue') private notificationQueue: Queue,
+        @InjectQueue(QUEUE_NAMES.NOTIFICATION_QUEUE)
+        private notificationQueue: Queue,
     ) {}
 
     async predictAndUpdate(userId: string): Promise<MenstrualPrediction> {

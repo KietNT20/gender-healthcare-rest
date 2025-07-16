@@ -16,12 +16,17 @@ import {
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
+    ApiOkResponse,
     ApiOperation,
     ApiTags,
 } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateEmploymentContractDto } from './dto/create-employment-contract.dto';
+import {
+    RenewEmploymentContractBodyDto,
+    RenewEmploymentContractDto,
+} from './dto/renew-employment-contract.dto';
 import { UpdateEmploymentContractDto } from './dto/update-employment-contract.dto';
 import { EmploymentContractsService } from './employment-contracts.service';
 
@@ -52,7 +57,7 @@ export class EmploymentContractsController {
             type: 'object',
             properties: {
                 file: { type: 'string', format: 'binary' },
-                fileType: { type: 'string', example: 'Signed PDF' },
+                fileType: { type: 'string', example: 'contract' },
             },
         },
     })
@@ -60,9 +65,29 @@ export class EmploymentContractsController {
     attachFile(
         @Param('id', ParseUUIDPipe) id: string,
         @UploadedFile() file: Express.Multer.File,
-        @Body('fileType') fileType?: string,
+        @Body('fileType') fileType: string = 'contract',
     ) {
         return this.employmentContractsService.attachFile(id, file, fileType);
+    }
+
+    @Post(':id/renew')
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiOperation({
+        summary: 'Renew an employment contract and upload the new document',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        type: RenewEmploymentContractBodyDto,
+    })
+    @ApiOkResponse({
+        description: 'The newly created and renewed contract object.',
+    })
+    renew(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() renewalData: RenewEmploymentContractDto,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        return this.employmentContractsService.renew(id, renewalData, file);
     }
 
     @Get()

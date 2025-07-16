@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
     BadRequestException,
     ForbiddenException,
@@ -5,13 +6,13 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
 import { RolesNameEnum } from 'src/enums';
 import { DataSource, Repository } from 'typeorm';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Document } from '../documents/entities/document.entity';
 import { FilesService } from '../files/files.service';
-import { MailService } from '../mail/mail.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateTestResultDto } from './dto/create-test-result.dto';
@@ -26,10 +27,10 @@ export class TestResultsService {
         @InjectRepository(TestResult)
         private readonly testResultRepository: Repository<TestResult>,
         private readonly filesService: FilesService,
-        private readonly notificationsService: NotificationsService,
-        private readonly mailService: MailService,
         private readonly dataSource: DataSource,
         private readonly testResultMapperService: TestResultMapperService,
+        @InjectQueue(QUEUE_NAMES.TEST_RESULT_NOTIFICATION)
+        private notificationQueue: Queue,
     ) {}
 
     async create(
@@ -175,25 +176,28 @@ export class TestResultsService {
         const resultDate = new Date(testResult.createdAt).toLocaleDateString(
             'vi-VN',
         );
-
         // In-app notification
-        this.notificationsService.create({
-            userId: user.id,
-            title: 'Kết quả xét nghiệm của bạn đã có',
-            content: `Kết quả cho dịch vụ ${testResult.service.name} của bạn đã có. Hãy nhấn để xem chi tiết.`,
-            type: 'TEST_RESULT_READY',
-            actionUrl: testResult.appointment
-                ? `/results/appointment/${testResult.appointment.id}`
-                : `/results/${testResult.id}`,
+        await this.notificationQueue.add('send-test-result-notification', {
+            notificationData: {
+                userId: user.id,
+                title: 'Kết quả xét nghiệm của bạn đã có',
+                content: `Kết quả cho dịch vụ ${testResult.service.name} của bạn đã có. Hãy nhấn để xem chi tiết.`,
+                type: 'TEST_RESULT_READY',
+                actionUrl: testResult.appointment
+                    ? `/results/appointment/${testResult.appointment.id}`
+                    : `/results/${testResult.id}`,
+            },
         });
-
         // Email notification
-        this.mailService.sendTestResultNotification(user.email, {
-            userName,
-            testType: testResult.service.name,
-            resultDate,
-            isAbnormal: testResult.isAbnormal,
-            recommendation: testResult.recommendation,
+        await this.notificationQueue.add('send-test-result-email', {
+            email: user.email,
+            data: {
+                userName,
+                testType: testResult.service.name,
+                resultDate,
+                isAbnormal: testResult.isAbnormal,
+                recommendation: testResult.recommendation,
+            },
         });
     }
 

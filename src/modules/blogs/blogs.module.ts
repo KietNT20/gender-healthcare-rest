@@ -1,5 +1,7 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { Category } from '../categories/entities/category.entity';
 import { Image } from '../images/entities/image.entity';
 import { ImagesModule } from '../images/images.module';
@@ -12,6 +14,8 @@ import { BlogImageService } from './blogs-image.service';
 import { BlogsController } from './blogs.controller';
 import { BlogsService } from './blogs.service';
 import { Blog } from './entities/blog.entity';
+import { BlogAdminNotificationProcessor } from './processors/blog-admin-notification.processor';
+import { BlogNotificationProcessor } from './processors/blog-notification.processor';
 
 @Module({
     imports: [
@@ -19,6 +23,12 @@ import { Blog } from './entities/blog.entity';
         ImagesModule,
         TagsModule,
         NotificationsModule,
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.BLOG_ADMIN_NOTIFICATION,
+        }),
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.BLOG_NOTIFICATION,
+        }),
     ],
     controllers: [BlogsController],
     providers: [
@@ -26,6 +36,8 @@ import { Blog } from './entities/blog.entity';
         BlogImageService,
         BlogNotificationService,
         BlogAdminNotificationService,
+        BlogAdminNotificationProcessor,
+        BlogNotificationProcessor,
     ],
     exports: [
         BlogsService,

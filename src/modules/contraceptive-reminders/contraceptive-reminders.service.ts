@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
 import {
     ReminderFrequencyType,
     ReminderStatusType,
@@ -27,7 +28,8 @@ export class ContraceptiveRemindersService {
         private readonly reminderRepository: Repository<ContraceptiveReminder>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectQueue('notification-queue') private notificationQueue: Queue,
+        @InjectQueue(QUEUE_NAMES.NOTIFICATION_QUEUE)
+        private notificationQueue: Queue,
     ) {}
 
     async create(

@@ -1,5 +1,7 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { Category } from '../categories/entities/category.entity';
 import { ChatModule } from '../chat/chat.module';
 import { MailModule } from '../mail/mail.module';
@@ -10,6 +12,7 @@ import { User } from '../users/entities/user.entity';
 import { AppointmentAttendanceService } from './appointment-attendance.service';
 import { AppointmentBookingService } from './appointment-booking.service';
 import { AppointmentMeetingLinkService } from './appointment-meeting-link.service';
+import { AppointmentNotificationProcessor } from './appointment-notification.processor';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import { AppointmentValidationService } from './appointment-validation.service';
 import { AppointmentsController } from './appointments.controller';
@@ -25,6 +28,9 @@ import { StiAppointmentsService } from './sti-appointments.service';
         MailModule,
         NotificationsModule,
         forwardRef(() => PaymentsModule),
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.APPOINTMENT_NOTIFICATION,
+        }),
     ],
     controllers: [AppointmentsController, StiAppointmentsController],
     providers: [
@@ -35,6 +41,7 @@ import { StiAppointmentsService } from './sti-appointments.service';
         AppointmentAttendanceService,
         AppointmentMeetingLinkService,
         StiAppointmentsService,
+        AppointmentNotificationProcessor,
     ],
     exports: [
         AppointmentsService,

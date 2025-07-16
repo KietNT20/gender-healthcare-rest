@@ -104,10 +104,7 @@ export class BlogsService {
 
         // Send notification if auto-published
         if (finalStatus === ContentStatusType.PUBLISHED) {
-            await this.blogNotificationService.notifyBlogPublished(
-                savedBlog,
-                authorId,
-            );
+            await this.blogNotificationService.notifyBlogPublished(savedBlog);
         }
         return savedBlog;
     }
@@ -568,7 +565,6 @@ export class BlogsService {
             case ContentStatusType.APPROVED:
                 await this.blogNotificationService.notifyBlogApproved(
                     updatedBlog,
-                    reviewerId,
                 );
                 break;
             case ContentStatusType.REJECTED:
@@ -581,7 +577,6 @@ export class BlogsService {
             case ContentStatusType.NEEDS_REVISION:
                 await this.blogNotificationService.notifyBlogNeedsRevision(
                     updatedBlog,
-                    reviewerId,
                     reviewBlogDto.revisionNotes,
                 );
                 break;
@@ -621,10 +616,7 @@ export class BlogsService {
         const updatedBlog = await this.findOne(id);
 
         // Send notification
-        await this.blogNotificationService.notifyBlogPublished(
-            updatedBlog,
-            publisherId,
-        );
+        await this.blogNotificationService.notifyBlogPublished(updatedBlog);
 
         return updatedBlog;
     }
@@ -680,10 +672,7 @@ export class BlogsService {
         const updatedBlog = await this.findOne(id);
 
         // Send notification
-        await this.blogNotificationService.notifyBlogArchived(
-            updatedBlog,
-            userId,
-        );
+        await this.blogNotificationService.notifyBlogArchived(updatedBlog);
 
         return updatedBlog;
     }
@@ -775,10 +764,7 @@ export class BlogsService {
         const updatedBlog = await this.findOne(id);
 
         // Send notification
-        await this.blogNotificationService.notifyBlogPublished(
-            updatedBlog,
-            publisherId,
-        );
+        await this.blogNotificationService.notifyBlogPublished(updatedBlog);
 
         return updatedBlog;
     }

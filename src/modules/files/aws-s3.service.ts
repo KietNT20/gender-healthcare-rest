@@ -15,6 +15,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { THIRTY_DAYS } from 'src/constant';
 import awsConfig from './config/aws.config';
 
 export interface UploadResult {
@@ -395,7 +396,10 @@ export class AwsS3Service {
     /**
      * Generate signed URL for temporary access (mainly for private files)
      */
-    async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+    async getSignedUrl(
+        key: string,
+        expiresIn: number = THIRTY_DAYS,
+    ): Promise<string> {
         // First check if file is in public bucket
         try {
             const publicBucket = this.getBucketConfig(key, {
@@ -591,7 +595,10 @@ export class AwsS3Service {
     /**
      * Get public URL for public files, signed URL for private files
      */
-    async getAccessUrl(key: string, expiresIn: number = 3600): Promise<string> {
+    async getAccessUrl(
+        key: string,
+        expiresIn: number = THIRTY_DAYS,
+    ): Promise<string> {
         return this.getSignedUrl(key, expiresIn);
     }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SortOrder } from 'src/enums';
 import { MenstrualPredictionsService } from 'src/modules/menstrual-predictions/menstrual-predictions.service';
@@ -51,6 +55,32 @@ export class MenstrualCyclesService {
                     new Date(lastCycle.cycleStartDate).getTime()) /
                     (1000 * 3600 * 24),
             );
+        }
+
+        // Lấy 5 chu kỳ gần nhất (chưa tính chu kỳ mới)
+        const recentCycles = await this.cycleRepository.find({
+            where: { user: { id: userId } },
+            order: { cycleStartDate: SortOrder.DESC },
+            take: 5,
+        });
+
+        // Tạo mảng tạm gồm 5 chu kỳ cũ + chu kỳ mới (chưa lưu)
+        const tempCycles = [
+            {
+                ...new MenstrualCycle(),
+                cycleLength,
+            },
+            ...recentCycles,
+        ].filter((c) => typeof c.cycleLength === 'number' && c.cycleLength > 0);
+
+        if (this.isIrregularCycle(tempCycles)) {
+            throw new BadRequestException(
+                'Chu kỳ của bạn có dấu hiệu rối loạn, vui lòng xác nhận lại dữ liệu hoặc tham khảo ý kiến bác sĩ.',
+            );
+        }
+
+        // Đến đây mới tạo và lưu chu kỳ mới
+        if (lastCycle) {
             // Cập nhật độ dài cho chu kỳ trước đó
             await this.cycleRepository.update(lastCycle.id, { cycleLength });
         }
@@ -110,5 +140,25 @@ export class MenstrualCyclesService {
         const cycle = await this.findOne(id, userId);
         await this.cycleRepository.softDelete(cycle.id);
         await this.predictionsService.predictAndUpdate(userId);
+    }
+
+    // Kiểm tra rối loạn chu kỳ: nếu có chu kỳ lệch quá threshold ngày so với trung bình thì coi là rối loạn
+    private isIrregularCycle(
+        cycles: MenstrualCycle[] = [],
+        threshold = 7,
+    ): boolean {
+        if (!Array.isArray(cycles) || cycles.length < 2) return false;
+        const cycleLengths = cycles
+            .map((c) => c?.cycleLength)
+            .filter(
+                (length): length is number =>
+                    typeof length === 'number' && length > 0,
+            );
+        if (cycleLengths.length < 2) return false;
+        const avg =
+            cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length;
+        return cycleLengths.some(
+            (length) => Math.abs(length - avg) > threshold,
+        );
     }
 }

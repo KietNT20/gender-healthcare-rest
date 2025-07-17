@@ -21,6 +21,7 @@ import {
     ApiQuery,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { THIRTY_DAYS } from 'src/constant';
 import { sanitizeFilename } from 'src/utils/sanitize-name.util';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
@@ -167,11 +168,12 @@ export class FilesController {
         name: 'expiresIn',
         required: false,
         type: Number,
-        description: 'Expiration time for signed URL (seconds), default 3600',
+        description:
+            'Expiration time for signed URL (seconds), default 30 days',
     })
     async getImageAccessUrl(
         @Param('id', ParseUUIDPipe) id: string,
-        @Query('expiresIn') expiresIn: number = 3600,
+        @Query('expiresIn') expiresIn: number = THIRTY_DAYS,
     ) {
         return this.filesService.getImageWithAccessUrl(id, expiresIn);
     }
@@ -188,11 +190,12 @@ export class FilesController {
         name: 'expiresIn',
         required: false,
         type: Number,
-        description: 'Expiration time for signed URL (seconds), default 3600',
+        description:
+            'Expiration time for signed URL (seconds), default 30 days',
     })
     async getDocumentAccessUrl(
         @Param('id', ParseUUIDPipe) id: string,
-        @Query('expiresIn') expiresIn: number = 3600,
+        @Query('expiresIn') expiresIn: number = THIRTY_DAYS,
     ) {
         return this.filesService.getDocumentWithAccessUrl(id, expiresIn);
     }

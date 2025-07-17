@@ -65,6 +65,17 @@ export class MenstrualCyclesService {
 
         const savedCycle = await this.cycleRepository.save(newCycle);
 
+        // Kiểm tra rối loạn chu kỳ sau khi lưu chu kỳ mới
+        const recentCycles = await this.cycleRepository.find({
+            where: { user: { id: userId } },
+            order: { cycleStartDate: SortOrder.DESC },
+            take: 6,
+        });
+        if (this.isIrregularCycle(recentCycles)) {
+            throw new Error(
+                'Chu kỳ của bạn có dấu hiệu rối loạn, vui lòng xác nhận lại dữ liệu hoặc tham khảo ý kiến bác sĩ.',
+            );
+        }
         // Kích hoạt dịch vụ dự đoán sau khi tạo chu kỳ mới
         await this.predictionsService.predictAndUpdate(userId);
 
@@ -110,5 +121,25 @@ export class MenstrualCyclesService {
         const cycle = await this.findOne(id, userId);
         await this.cycleRepository.softDelete(cycle.id);
         await this.predictionsService.predictAndUpdate(userId);
+    }
+
+    // Kiểm tra rối loạn chu kỳ: nếu có chu kỳ lệch quá threshold ngày so với trung bình thì coi là rối loạn
+    private isIrregularCycle(
+        cycles: MenstrualCycle[] = [],
+        threshold = 7,
+    ): boolean {
+        if (!Array.isArray(cycles) || cycles.length < 2) return false;
+        const cycleLengths = cycles
+            .map((c) => c?.cycleLength)
+            .filter(
+                (length): length is number =>
+                    typeof length === 'number' && length > 0,
+            );
+        if (cycleLengths.length < 2) return false;
+        const avg =
+            cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length;
+        return cycleLengths.some(
+            (length) => Math.abs(length - avg) > threshold,
+        );
     }
 }

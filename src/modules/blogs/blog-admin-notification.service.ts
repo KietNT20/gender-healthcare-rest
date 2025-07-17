@@ -10,7 +10,7 @@ export class BlogAdminNotificationService {
 
     constructor(
         @InjectQueue(QUEUE_NAMES.BLOG_ADMIN_NOTIFICATION)
-        private readonly adminBlogQueue: Queue,
+        private adminBlogQueue: Queue,
     ) {}
 
     /**

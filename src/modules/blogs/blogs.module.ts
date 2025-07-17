@@ -23,12 +23,14 @@ import { BlogNotificationProcessor } from './processors/blog-notification.proces
         ImagesModule,
         TagsModule,
         NotificationsModule,
-        BullModule.registerQueue({
-            name: QUEUE_NAMES.BLOG_ADMIN_NOTIFICATION,
-        }),
-        BullModule.registerQueue({
-            name: QUEUE_NAMES.BLOG_NOTIFICATION,
-        }),
+        BullModule.registerQueue(
+            {
+                name: QUEUE_NAMES.BLOG_ADMIN_NOTIFICATION,
+            },
+            {
+                name: QUEUE_NAMES.BLOG_NOTIFICATION,
+            },
+        ),
     ],
     controllers: [BlogsController],
     providers: [

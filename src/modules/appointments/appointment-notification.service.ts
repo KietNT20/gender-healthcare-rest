@@ -16,7 +16,7 @@ export class AppointmentNotificationService {
 
     constructor(
         @InjectQueue(QUEUE_NAMES.APPOINTMENT_NOTIFICATION)
-        private readonly notificationQueue: Queue,
+        private notificationQueue: Queue,
     ) {}
 
     /**

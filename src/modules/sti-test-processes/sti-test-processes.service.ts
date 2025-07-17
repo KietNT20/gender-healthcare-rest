@@ -29,7 +29,7 @@ export class StiTestProcessesService {
         private readonly servicesService: ServicesService,
         private readonly appointmentsService: AppointmentsService,
         @InjectQueue(QUEUE_NAMES.STI_TEST_PROCESS_NOTIFICATION)
-        private readonly notificationQueue: Queue,
+        private notificationQueue: Queue,
     ) {}
     /**
      * Tạo mã xét nghiệm ngẫu nhiên

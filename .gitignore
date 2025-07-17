@@ -1,4 +1,5 @@
-# compiled output
+# compiled output\
+/cursor
 /dist
 /node_modules
 /build

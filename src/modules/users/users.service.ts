@@ -442,7 +442,7 @@ export class UsersService {
 
         if (!user) {
             throw new NotFoundException(
-                'Không tìm thấy người dùng với email này',
+                'Không tìm thấy tài khoản với email này',
             );
         }
 

@@ -11,6 +11,7 @@ import { ActionType } from 'src/enums/action-type.enum';
 import { v4 as uuidv4 } from 'uuid';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { MailService } from '../mail/mail.service';
+import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -89,39 +90,8 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        // Find user by email
-        const user = await this.usersService.findByEmailWithPassword(
-            loginDto.email,
-        );
-        if (!user) {
-            throw new UnauthorizedException('Tài khoản không tồn tại');
-        }
-
-        // Check if account is active
-        if (!user.isActive) {
-            throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
-        }
-
-        if (!user.password) {
-            throw new BadRequestException('Password not found');
-        }
-
-        // Verify password
-        const isPasswordValid = await this.hashingProvider.comparePassword(
-            loginDto.password,
-            user.password,
-        );
-        if (!isPasswordValid) {
-            // Increment login attempts
-            await this.usersService.incrementLoginAttempts(user.id);
-            throw new UnauthorizedException(
-                'Email hoặc mật khẩu không chính xác',
-            );
-        }
-
-        // Reset login attempts on successful login
+        const user = await this.validateUser(loginDto.email, loginDto.password);
         await this.usersService.resetLoginAttempts(user.id);
-
         // Update last login
         await this.usersService.updateLastLogin(user.id);
 
@@ -404,5 +374,35 @@ export class AuthService {
         } catch (error) {
             throw new UnauthorizedException('Invalid token');
         }
+    }
+
+    async validateUser(email: string, password: string): Promise<User> {
+        const user = await this.usersService.findByEmailWithPassword(email);
+        if (!user) {
+            throw new UnauthorizedException('Không tìm thấy tài khoản của bạn');
+        }
+
+        // Check if account is active
+        if (!user.isActive) {
+            throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
+        }
+
+        if (!user.password) {
+            throw new BadRequestException('Vui lòng nhập mật khẩu');
+        }
+
+        const isPasswordValid = await this.hashingProvider.comparePassword(
+            password,
+            user.password,
+        );
+
+        if (!isPasswordValid) {
+            await this.usersService.incrementLoginAttempts(user.id);
+            throw new BadRequestException(
+                'Mật khẩu không chính xác, vui lòng thử lại.',
+            );
+        }
+
+        return user;
     }
 }

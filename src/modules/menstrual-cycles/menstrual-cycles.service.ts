@@ -104,7 +104,7 @@ export class MenstrualCyclesService {
     async findAll(userId: string): Promise<MenstrualCycle[]> {
         return this.cycleRepository.find({
             where: { user: { id: userId } },
-            order: { cycleStartDate: 'DESC' },
+            order: { cycleStartDate: SortOrder.DESC },
         });
     }
 

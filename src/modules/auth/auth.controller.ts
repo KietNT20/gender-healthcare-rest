@@ -237,6 +237,8 @@ export class AuthController {
     }
 
     @Get('me')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Get current authenticated user profile' })
     @ApiResponse({
         status: HttpStatus.OK,
@@ -247,8 +249,6 @@ export class AuthController {
         description: 'User not authenticated',
     })
     @ResponseMessage('User profile retrieved')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
     async getProfile(@CurrentUser() user: User) {
         // Return user without sensitive information
         const { password, refreshToken, ...userProfile } = user;

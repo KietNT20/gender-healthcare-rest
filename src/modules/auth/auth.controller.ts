@@ -31,7 +31,6 @@ import { RegisterDto } from './dto/register.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -57,7 +56,6 @@ export class AuthController {
     }
 
     @Post('login')
-    @UseGuards(LocalAuthGuard)
     @ApiOperation({ summary: 'Login user and get access tokens' })
     @ApiResponse({
         status: HttpStatus.OK,

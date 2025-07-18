@@ -12,11 +12,9 @@ import googleAuthConfig from './config/google-auth.config';
 import { GoogleAuthenticationController } from './google-authentication/google-authentication.controller';
 import { GoogleAuthenticationService } from './google-authentication/google-authentication.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { BcryptProvider } from './providers/bcrypt.provider';
 import { HashingProvider } from './providers/hashing.provider';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
 import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
 
 @Module({
@@ -40,10 +38,8 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
     providers: [
         AuthService,
         JwtStrategy,
-        LocalStrategy,
         RefreshJwtStrategy,
         JwtAuthGuard,
-        LocalAuthGuard,
         RoleGuard,
         {
             provide: HashingProvider,
@@ -52,12 +48,6 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
         GoogleAuthenticationService,
     ],
     controllers: [AuthController, GoogleAuthenticationController],
-    exports: [
-        AuthService,
-        JwtAuthGuard,
-        RoleGuard,
-        LocalAuthGuard,
-        HashingProvider,
-    ],
+    exports: [AuthService, JwtAuthGuard, RoleGuard, HashingProvider],
 })
 export class AuthModule {}

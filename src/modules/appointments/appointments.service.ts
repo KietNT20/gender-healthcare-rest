@@ -13,7 +13,6 @@ import {
     ConsultationFeeType,
     LocationTypeEnum,
     RolesNameEnum,
-    ServiceCategoryType,
     SortOrder,
 } from 'src/enums';
 import {
@@ -213,7 +212,7 @@ export class AppointmentsService {
             // Flow: Chỉ có consultantId (dành cho tư vấn riêng với tư vấn viên, không có service cụ thể)
             if (!services.length && consultantId) {
                 // Lấy lại consultantProfile nếu chưa có
-                let consultantProfileEntity: User | null =
+                const consultantProfileEntity: User | null =
                     await queryRunner.manager.findOne(User, {
                         where: {
                             id: consultantId,
@@ -440,7 +439,7 @@ export class AppointmentsService {
 
             // Flow: Gửi thông báo xác nhận cho tư vấn viên nếu cần
             if (needsConsultant && savedAppointment.consultant) {
-                this.notificationService.sendConsultantConfirmationNotification(
+                await this.notificationService.sendConsultantConfirmationNotification(
                     savedAppointment,
                 );
             }
@@ -651,7 +650,9 @@ export class AppointmentsService {
             }
             // Gửi yêu cầu feedback nếu appointment hoàn thành
             if (updateDto.status === AppointmentStatusType.COMPLETED) {
-                this.notificationService.sendFeedbackRequest(savedAppointment);
+                await this.notificationService.sendFeedbackRequest(
+                    savedAppointment,
+                );
             }
         }
 
@@ -697,7 +698,7 @@ export class AppointmentsService {
         }
 
         // Ủy thác việc gửi thông báo
-        this.notificationService.sendCancellationNotifications(
+        await this.notificationService.sendCancellationNotifications(
             savedAppointment,
         );
 
@@ -833,16 +834,11 @@ export class AppointmentsService {
      */
     private categorizeServices(services: Service[]) {
         const servicesRequiringConsultant = services.filter(
-            (s) =>
-                s.requiresConsultant === true ||
-                s.category.type === ServiceCategoryType.CONSULTATION,
+            (s) => s.requiresConsultant === true,
         );
         const servicesNotRequiringConsultant = services.filter(
-            (s) =>
-                s.requiresConsultant !== true &&
-                s.category.type !== ServiceCategoryType.CONSULTATION,
+            (s) => s.requiresConsultant !== true,
         );
-
         return {
             servicesRequiringConsultant,
             servicesNotRequiringConsultant,
@@ -1017,10 +1013,11 @@ export class AppointmentsService {
             Number(consultantProfile.sessionDurationMinutes) || 60;
 
         switch (feeType) {
-            case ConsultationFeeType.HOURLY:
+            case ConsultationFeeType.HOURLY: {
                 // Tính theo giờ, có thể tỷ lệ theo thời gian thực tế
                 const hours = appointmentDurationMinutes / 60;
                 return baseFee * hours;
+            }
 
             case ConsultationFeeType.PER_SERVICE:
                 // Tính theo số lượng dịch vụ cần tư vấn viên
@@ -1028,7 +1025,7 @@ export class AppointmentsService {
 
             case ConsultationFeeType.PER_SESSION:
                 return baseFee;
-            default:
+            default: {
                 // Phí cố định cho một session, sử dụng sessionDurationMinutes từ consultant profile
                 // Nếu appointment duration khác với session duration, có thể điều chỉnh tỷ lệ
                 if (appointmentDurationMinutes !== sessionDurationMinutes) {
@@ -1037,6 +1034,7 @@ export class AppointmentsService {
                     return baseFee * sessionRatio;
                 }
                 return baseFee;
+            }
         }
     }
 }

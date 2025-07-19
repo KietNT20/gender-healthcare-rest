@@ -7,8 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatusType, RolesNameEnum, SortOrder } from 'src/enums';
-import { Between, DataSource, Like, Raw, Repository } from 'typeorm';
-import { Category } from '../categories/entities/category.entity';
+import { Between, DataSource, Raw, Repository } from 'typeorm';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { AppointmentNotificationService } from './appointment-notification.service';
@@ -30,8 +29,6 @@ export class StiAppointmentsService {
         private readonly serviceRepository: Repository<Service>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        @InjectRepository(Category)
-        private readonly categoryRepository: Repository<Category>,
         private readonly dataSource: DataSource,
         private readonly notificationService: AppointmentNotificationService,
     ) {}
@@ -69,7 +66,7 @@ export class StiAppointmentsService {
             }
 
             // Validate sample collection date
-            await this.validateSampleCollectionDate(sampleCollectionDate);
+            this.validateSampleCollectionDate(sampleCollectionDate);
 
             // Check for conflicts
             await this.checkForConflicts(currentUser.id, sampleCollectionDate);
@@ -121,7 +118,7 @@ export class StiAppointmentsService {
         } catch (error) {
             await queryRunner.rollbackTransaction();
             this.logger.error(
-                `Failed to create STI appointment: ${error.message}`,
+                `Failed to create STI appointment: ${error instanceof Error ? error.message : String(error)}`,
             );
             throw error;
         } finally {
@@ -142,11 +139,13 @@ export class StiAppointmentsService {
             );
 
             // Gửi thông báo tạo lịch hẹn
-            this.notificationService.sendCreationNotifications(appointment);
+            await this.notificationService.sendCreationNotifications(
+                appointment,
+            );
 
             // Gửi thông báo cho tư vấn viên nếu có
             if (appointment.consultant) {
-                this.notificationService.sendConsultantConfirmationNotification(
+                await this.notificationService.sendConsultantConfirmationNotification(
                     appointment,
                 );
             }
@@ -156,7 +155,7 @@ export class StiAppointmentsService {
             );
         } catch (error) {
             this.logger.error(
-                `Failed to send STI appointment notification: ${error.message}`,
+                `Failed to send STI appointment notification: ${error instanceof Error ? error.message : String(error)}`,
             );
             // Không throw error để không làm gián đoạn việc tạo appointment
         }
@@ -239,9 +238,7 @@ export class StiAppointmentsService {
      * Validate sample collection date
      * @param sampleCollectionDate - Ngày lấy mẫu
      */
-    private async validateSampleCollectionDate(
-        sampleCollectionDate: Date,
-    ): Promise<void> {
+    private validateSampleCollectionDate(sampleCollectionDate: Date): void {
         const now = new Date();
         if (sampleCollectionDate <= now) {
             throw new BadRequestException(
@@ -419,14 +416,16 @@ export class StiAppointmentsService {
 
             appointment.cancellationReason = reason;
             // Gửi thông báo hủy lịch hẹn
-            this.notificationService.sendCancellationNotifications(appointment);
+            await this.notificationService.sendCancellationNotifications(
+                appointment,
+            );
 
             this.logger.log(
                 `STI appointment cancellation notification sent successfully for appointment ${appointment.id}`,
             );
         } catch (error) {
             this.logger.error(
-                `Failed to send STI appointment cancellation notification: ${error.message}`,
+                `Failed to send STI appointment cancellation notification:${error instanceof Error ? error.message : String(error)}`,
             );
             // Không throw error để không làm gián đoạn việc hủy appointment
         }

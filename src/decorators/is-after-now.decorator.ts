@@ -18,6 +18,7 @@ export class IsAfterNowConstraint implements ValidatorConstraintInterface {
      * @param args - Các đối số validation.
      * @returns `true` nếu hợp lệ, `false` nếu không hợp lệ.
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     validate(value: any, _args: ValidationArguments) {
         // Chỉ thực hiện kiểm tra nếu giá trị là một đối tượng Date hợp lệ
         if (!(value instanceof Date)) {

@@ -25,7 +25,7 @@ export class TransformInterceptor<T>
             this.reflector.get(ResponseMessage, context.getClass());
 
         return next.handle().pipe(
-            map((data) => ({
+            map((data: T) => ({
                 success: true,
                 message: customMessage,
                 data,

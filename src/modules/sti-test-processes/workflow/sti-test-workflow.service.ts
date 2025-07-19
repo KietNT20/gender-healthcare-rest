@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
 import { StiTestProcess } from '../entities/sti-test-process.entity';
-import { StiTestProcessStatus } from '../enums';
+import { DeliveryMethod, StiTestProcessStatus } from '../enums';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
 export interface WorkflowStep {
@@ -245,7 +245,7 @@ export class StiTestWorkflowService {
         }
 
         // Thực hiện validation cho bước mới (nếu cần)
-        await this.validateTransition(
+        this.validateTransition(
             currentProcess.status,
             newStatus,
             validationData,
@@ -261,11 +261,11 @@ export class StiTestWorkflowService {
     /**
      * Validation cho việc chuyển đổi trạng thái
      */
-    private async validateTransition(
+    private validateTransition(
         currentStatus: StiTestProcessStatus,
         newStatus: StiTestProcessStatus,
         validationData?: ValidationDataDto,
-    ): Promise<void> {
+    ): void {
         const targetStep = this.workflow.get(newStatus);
         if (!targetStep) return;
 
@@ -453,7 +453,7 @@ export class StiTestWorkflowService {
     private validateSpecialFormats(validationData?: ValidationDataDto): void {
         // Validate email format if delivery method is email
         if (
-            validationData?.deliveryMethod === 'email' &&
+            validationData?.deliveryMethod === DeliveryMethod.EMAIL &&
             validationData?.deliveredBy
         ) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

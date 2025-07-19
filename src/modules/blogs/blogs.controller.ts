@@ -238,8 +238,11 @@ export class BlogsController {
         description: 'Blog submitted for review successfully',
     })
     @ResponseMessage('Blog submitted for review successfully')
-    async submitForReview(@Param('id', ParseUUIDPipe) id: string) {
-        return this.blogsService.submitForReview(id);
+    async submitForReview(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.blogsService.submitForReview(id, currentUser);
     }
 
     @Patch(':id/review')
@@ -331,7 +334,10 @@ export class BlogsController {
         description: 'Blog archived successfully',
     })
     @ResponseMessage('Blog archived successfully')
-    async archiveBlog(@Param('id', ParseUUIDPipe) id: string) {
-        return this.blogsService.archiveBlog(id);
+    async archiveBlog(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.blogsService.archiveBlog(id, currentUser);
     }
 }

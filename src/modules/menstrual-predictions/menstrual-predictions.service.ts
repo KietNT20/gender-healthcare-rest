@@ -194,14 +194,14 @@ export class MenstrualPredictionsService {
 
         for (const type of jobTypes) {
             const jobId = `prediction-${type}-${userId}`;
-            const job = await Job.fromId(this.notificationQueue, jobId);
-            if (job) {
-                try {
+            try {
+                const job = await Job.fromId(this.notificationQueue, jobId);
+                if (job) {
                     await job.remove();
                     this.logger.log(`Đã xóa job cũ: ${jobId}`);
-                } catch (error) {
-                    this.logger.error(`Lỗi khi xóa job ${jobId}:`, error);
                 }
+            } catch (error) {
+                this.logger.error(`Lỗi khi xóa job ${jobId}:`, error);
             }
         }
     }

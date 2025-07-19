@@ -399,7 +399,6 @@ export class UserDashboardService {
                 });
             } else if (periodType === 'quarter') {
                 // Tính theo quý
-                const targetDate = new Date(currentDate);
                 const currentQuarter = Math.floor(currentDate.getMonth() / 3);
                 const targetQuarter = currentQuarter - i;
 

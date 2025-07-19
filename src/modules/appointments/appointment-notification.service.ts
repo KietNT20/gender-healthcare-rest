@@ -348,24 +348,20 @@ export class AppointmentNotificationService {
         minutesBefore: number,
     ): Promise<void> {
         const customerName = `${appointment.user.firstName} ${appointment.user.lastName}`;
-        const consultantName = appointment.consultant
+        const consultantFullName = appointment.consultant
             ? `${appointment.consultant.firstName} ${appointment.consultant.lastName}`
             : 'N/A';
         const appointmentTime = new Date(
             appointment.appointmentDate,
         ).toLocaleString('vi-VN');
 
-        let reminderType = '';
         let reminderMessage = '';
 
         if (minutesBefore >= 24 * 60) {
-            reminderType = '24h';
             reminderMessage = '24 giờ';
         } else if (minutesBefore >= 2 * 60) {
-            reminderType = '2h';
             reminderMessage = '2 giờ';
         } else {
-            reminderType = '30min';
             reminderMessage = '30 phút';
         }
 
@@ -373,7 +369,7 @@ export class AppointmentNotificationService {
             notificationData: {
                 userId: appointment.user.id,
                 title: `Nhắc nhở lịch hẹn (${reminderMessage})`,
-                content: `Bạn có cuộc hẹn với ${consultantName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
+                content: `Bạn có cuộc hẹn với ${consultantFullName} vào lúc ${appointmentTime}. Vui lòng chuẩn bị.`,
                 type: NotificationType.APPOINTMENT_REMINDER,
                 actionUrl: `/appointments/${appointment.id}`,
             },
@@ -383,7 +379,7 @@ export class AppointmentNotificationService {
             email: appointment.user.email,
             data: {
                 userName: customerName,
-                consultantName,
+                consultantFullName,
                 appointmentDate: new Date(
                     appointment.appointmentDate,
                 ).toLocaleDateString('vi-VN'),

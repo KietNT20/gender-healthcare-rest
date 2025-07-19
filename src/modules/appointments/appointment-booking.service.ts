@@ -9,7 +9,13 @@ import {
     ProfileStatusType,
     RolesNameEnum,
 } from 'src/enums';
-import { EntityManager, In, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import {
+    EntityManager,
+    FindOptionsWhere,
+    In,
+    LessThanOrEqual,
+    MoreThanOrEqual,
+} from 'typeorm';
 import { ConsultantAvailability } from '../consultant-availability/entities/consultant-availability.entity';
 import { ConsultantProfile } from '../consultant-profiles/entities/consultant-profile.entity';
 import { Service } from '../services/entities/service.entity';
@@ -308,7 +314,7 @@ export class AppointmentBookingService {
             profiles = [specificProfile];
         } else {
             // Tìm tất cả tư vấn viên phù hợp
-            const whereConditions: any = {
+            const whereConditions: FindOptionsWhere<ConsultantProfile> = {
                 profileStatus: ProfileStatusType.ACTIVE,
             };
 

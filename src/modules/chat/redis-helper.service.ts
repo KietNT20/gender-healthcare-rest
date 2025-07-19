@@ -133,22 +133,6 @@ export class RedisHelperService implements OnModuleDestroy {
     }
 
     /**
-     * Execute multiple commands atomically
-     */
-    async executeMulti(commands: Array<() => any>): Promise<any[]> {
-        try {
-            const multi = this.redisClient.multi();
-
-            commands.forEach((command) => command());
-
-            return await multi.exec();
-        } catch (error) {
-            this.logger.error('Error executing multi commands:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Get keys by pattern
      */
     async getKeysByPattern(pattern: string): Promise<string[]> {

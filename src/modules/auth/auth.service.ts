@@ -358,7 +358,7 @@ export class AuthService {
                 accessToken,
                 newRefreshToken,
             };
-        } catch (error) {
+        } catch {
             throw new UnauthorizedException('Refresh token không hợp lệ');
         }
     }
@@ -397,7 +397,7 @@ export class AuthService {
                 isActive: user.isActive,
                 emailVerified: user.emailVerified,
             };
-        } catch (error) {
+        } catch {
             throw new UnauthorizedException('Invalid token');
         }
     }

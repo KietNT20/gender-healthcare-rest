@@ -230,7 +230,7 @@ export class ChatService {
                             // For public PDFs, use the stored public URL
                             return {
                                 ...message,
-                                fileUrl: message.metadata.publicUrl as string,
+                                fileUrl: message.metadata.publicUrl,
                             };
                         } else if (message.metadata?.fileId) {
                             // For other files, get the access URL
@@ -246,7 +246,9 @@ export class ChatService {
                     } catch (error) {
                         this.logger.warn(
                             `Failed to get file URL for message ${message.id}:`,
-                            error.message,
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
                         );
                     }
                 }
@@ -389,7 +391,6 @@ export class ChatService {
     ): Promise<MessageWithSender> {
         try {
             let uploadResult: FileResult;
-            let messageType: MessageType;
 
             if (
                 sendFileMessageDto.type === MessageType.IMAGE ||
@@ -403,7 +404,6 @@ export class ChatService {
                     isPublic: false,
                     generateThumbnails: true,
                 });
-                messageType = MessageType.IMAGE;
             } else {
                 // Use uploadDocument for non-image files (FILE type)
                 uploadResult = await this.filesService.uploadDocument({
@@ -413,8 +413,6 @@ export class ChatService {
                     description:
                         sendFileMessageDto.content || file.originalname,
                 });
-                // Use IMAGE type in database but mark as document in metadata
-                messageType = MessageType.IMAGE;
             }
 
             return await this.createMessage({
@@ -533,7 +531,7 @@ export class ChatService {
                 if (message.type === MessageType.PUBLIC_PDF) {
                     // For public PDFs, return the stored public URL or get it from service
                     if (message.metadata.publicUrl) {
-                        return message.metadata.publicUrl as string;
+                        return message.metadata.publicUrl;
                     } else {
                         const pdfWithUrl =
                             await this.filesService.getPublicPdfWithAccessUrl(
@@ -691,7 +689,7 @@ export class ChatService {
         // Sử dụng entityManager nếu được truyền vào (để dùng chung transaction)
         if (entityManager) {
             const savedQuestion = await entityManager.save(Question, question);
-            return savedQuestion as Question;
+            return savedQuestion;
         }
 
         return this.questionRepository.save(question) as unknown as Question;

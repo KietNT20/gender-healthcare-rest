@@ -183,7 +183,7 @@ export class MenstrualPredictionsService {
                     },
                 );
                 this.logger.log(
-                    `Đã lên lịch thông báo ${notif.type} cho user ${userId} vào lúc ${notificationDate}`,
+                    `Đã lên lịch thông báo ${notif.type} cho user ${userId} vào lúc ${notificationDate.toISOString()}`,
                 );
             }
         }

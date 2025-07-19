@@ -62,7 +62,10 @@ export class PaymentSubscriptionService {
                 );
             console.log('Đã tạo subscription thành công:', subscription.id);
         } catch (error) {
-            console.error('Lỗi tạo subscription:', error.message);
+            console.error(
+                'Lỗi tạo subscription:',
+                error instanceof Error ? error.message : String(error),
+            );
             // Không throw error để tránh ảnh hưởng đến flow thanh toán
         }
     }
@@ -78,12 +81,15 @@ export class PaymentSubscriptionService {
                 payment.appointment.status = AppointmentStatusType.CONFIRMED;
                 await this.appointmentRepository.save(payment.appointment);
                 // Gửi notification khi appointment được xác nhận
-                this.appointmentNotificationService.sendConsultantConfirmationNotification(
+                await this.appointmentNotificationService.sendConsultantConfirmationNotification(
                     payment.appointment,
                 );
             }
         } catch (error) {
-            console.error('Lỗi cập nhật appointment status:', error.message);
+            console.error(
+                'Lỗi cập nhật appointment status:',
+                error instanceof Error ? error.message : String(error),
+            );
         }
     }
 }

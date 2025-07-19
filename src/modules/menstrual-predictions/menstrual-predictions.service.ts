@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
 import { SortOrder } from 'src/enums';
 import { MenstrualCycle } from 'src/modules/menstrual-cycles/entities/menstrual-cycle.entity';
@@ -191,14 +191,16 @@ export class MenstrualPredictionsService {
 
     private async removeOldPredictionJobs(userId: string) {
         const jobTypes = ['period_start', 'fertile_window', 'ovulation'];
+
         for (const type of jobTypes) {
             const jobId = `prediction-${type}-${userId}`;
-            // Correctly find and remove scheduled (delayed) jobs
-            const jobs = await this.notificationQueue.getJobs(['delayed']);
-            for (const job of jobs) {
-                if (job.id === jobId) {
+            const job = await Job.fromId(this.notificationQueue, jobId);
+            if (job) {
+                try {
                     await job.remove();
                     this.logger.log(`Đã xóa job cũ: ${jobId}`);
+                } catch (error) {
+                    this.logger.error(`Lỗi khi xóa job ${jobId}:`, error);
                 }
             }
         }

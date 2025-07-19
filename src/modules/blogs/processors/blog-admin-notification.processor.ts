@@ -54,7 +54,7 @@ export class BlogAdminNotificationProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(
                 `Job ${job.name} (${job.id}) failed.`,
-                error.stack,
+                error instanceof Error ? error.stack : error,
             );
             throw error;
         }

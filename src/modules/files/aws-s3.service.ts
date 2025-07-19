@@ -291,8 +291,11 @@ export class AwsS3Service {
                 );
 
                 return buffer;
-            } catch (error) {
+            } catch {
                 // Continue to next bucket if file not found
+                this.logger.warn(
+                    `File not found in bucket ${bucketConfig.name} for key: ${key}`,
+                );
                 continue;
             }
         }
@@ -327,8 +330,11 @@ export class AwsS3Service {
                 );
                 deleted = true;
                 break; // Stop after successful deletion
-            } catch (error) {
+            } catch {
                 // Continue to next bucket
+                this.logger.warn(
+                    `File not found in bucket ${bucketConfig.name} for deletion: ${key}`,
+                );
                 continue;
             }
         }
@@ -382,8 +388,11 @@ export class AwsS3Service {
                     bucket: bucketConfig.name,
                     isPublic: bucketConfig.isPublic,
                 };
-            } catch (error) {
+            } catch {
                 // Continue to next bucket
+                this.logger.warn(
+                    `File metadata not found in bucket ${bucketConfig.name} for key: ${key}`,
+                );
                 continue;
             }
         }
@@ -415,8 +424,11 @@ export class AwsS3Service {
             // File exists in public bucket, return direct URL
             this.logger.log(`Returning public URL for ${key}`);
             return this.getCloudFrontUrl(key, publicBucket);
-        } catch (error) {
+        } catch {
             // File not in public bucket, try private bucket with signed URL
+            this.logger.log(
+                `File not found in public bucket, generating signed URL for ${key}`,
+            );
         }
 
         try {
@@ -452,7 +464,7 @@ export class AwsS3Service {
         try {
             await this.getFileMetadata(key);
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     }

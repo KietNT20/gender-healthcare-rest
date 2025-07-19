@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { MessageType } from 'src/enums';
+import { MessageType, RolesNameEnum } from 'src/enums';
 import { Message } from 'src/modules/chat/entities/message.entity';
 
 export interface CreateMessageData {
@@ -31,7 +31,7 @@ export interface AuthenticatedSocket extends Socket {
     user?: {
         id: string;
         email: string;
-        role: string;
+        role: RolesNameEnum;
         fullName: string;
     };
     questionId?: string;
@@ -41,7 +41,7 @@ export interface UserPresence {
     userId: string;
     socketId: string;
     fullName: string;
-    role: string;
+    role: RolesNameEnum;
     lastSeen: number;
 }
 

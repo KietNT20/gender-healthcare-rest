@@ -836,12 +836,12 @@ export class AppointmentsService {
         const servicesRequiringConsultant = services.filter(
             (s) =>
                 s.requiresConsultant === true ||
-                s.category.type === 'consultation',
+                s.category?.type === 'consultation',
         );
         const servicesNotRequiringConsultant = services.filter(
             (s) =>
                 s.requiresConsultant !== true &&
-                s.category.type !== 'consultation',
+                s.category?.type !== 'consultation',
         );
         return {
             servicesRequiringConsultant,

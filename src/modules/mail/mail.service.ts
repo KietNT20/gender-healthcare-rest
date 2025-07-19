@@ -43,7 +43,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send email verification to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -73,7 +73,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send password reset email to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -98,7 +98,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send appointment confirmation to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -123,7 +123,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send appointment reminder to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -149,7 +149,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send test result notification to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -174,7 +174,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send contraceptive reminder to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -205,7 +205,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send menstrual cycle reminder to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -229,7 +229,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send welcome email to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -261,7 +261,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send consultant approval email to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -278,7 +278,7 @@ export class MailService {
         userName: string,
         reason: string,
     ): Promise<void> {
-        const supportEmail = this.configService.get('MAIL_FROM');
+        const supportEmail = this.configService.get<string>('MAIL_FROM');
 
         try {
             await this.mailerService.sendMail({
@@ -296,7 +296,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send consultant rejection email to ${email}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error;
         }
@@ -333,7 +333,7 @@ export class MailService {
         } catch (error) {
             this.logger.error(
                 `Failed to send new profile review email to ${adminEmail}`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -370,7 +370,10 @@ export class MailService {
 
             this.logger.log(`Email sent to ${to}`);
         } catch (error) {
-            this.logger.error(`Failed to send email to ${to}`, error.stack);
+            this.logger.error(
+                `Failed to send email to ${to}`,
+                error instanceof Error ? error.stack : undefined,
+            );
             throw error;
         }
     }

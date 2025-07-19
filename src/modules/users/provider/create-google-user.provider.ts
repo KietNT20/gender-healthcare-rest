@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+    ConflictException,
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { RolesNameEnum } from 'src/enums';
@@ -43,17 +47,8 @@ export class CreateGoogleUserProvider {
 
             return await this.usersRepository.save(user);
         } catch (error) {
-            if (error.code === '23505') {
-                if (error.detail?.includes('email')) {
-                    throw new ConflictException('Email already exists');
-                }
-                if (error.detail?.includes('slug')) {
-                    throw new ConflictException('Username already exists');
-                }
-            }
-            throw new ConflictException('Could not create user', {
-                description: error.message,
-            });
+            // throw Unauthorised exception if not Authorised
+            throw new UnauthorizedException(error);
         }
     }
 

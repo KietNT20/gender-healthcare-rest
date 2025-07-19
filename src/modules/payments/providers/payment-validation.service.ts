@@ -1,7 +1,7 @@
 import {
     BadRequestException,
     Injectable,
-    NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -19,11 +19,13 @@ export class PaymentValidationService {
      */
     async validateUser(userId: string) {
         const user = await this.userRepository.findOne({
-            where: { id: userId, deletedAt: IsNull() },
+            where: { id: userId, deletedAt: IsNull(), isActive: true },
         });
 
         if (!user) {
-            throw new NotFoundException(`User with ID '${userId}' not found`);
+            throw new UnauthorizedException(
+                `User with ID '${userId}' unauthorized or does not exist.`,
+            );
         }
 
         return user;
@@ -85,7 +87,7 @@ export class PaymentValidationService {
         const url = new URL(baseUrl);
         Object.keys(params).forEach((key) => {
             if (params[key] !== undefined && params[key] !== null) {
-                url.searchParams.append(key, params[key].toString());
+                url.searchParams.append(key, String(params[key]));
             }
         });
 

@@ -3,6 +3,7 @@ import {
     InternalServerErrorException,
     Logger,
 } from '@nestjs/common';
+import PayOS from '@payos/node';
 import {
     CheckoutRequestType,
     CheckoutResponseDataType,
@@ -10,7 +11,6 @@ import {
     WebhookDataType,
     WebhookType,
 } from '@payos/node/lib/type';
-import PayOS = require('@payos/node');
 
 @Injectable()
 export class PayOSService {
@@ -45,9 +45,7 @@ export class PayOSService {
                 `Creating payment link for order: ${request.orderCode}`,
             );
 
-            const result = await this.payOS.createPaymentLink(
-                request as CheckoutRequestType,
-            );
+            const result = await this.payOS.createPaymentLink(request);
 
             this.logger.log(
                 `Payment link created successfully for order: ${request.orderCode}`,
@@ -56,9 +54,11 @@ export class PayOSService {
         } catch (error) {
             this.logger.error(
                 `Failed to create payment link for order: ${request.orderCode}`,
-                error.stack,
+                error instanceof Error ? error.stack : String(error),
             );
-            throw new Error(`Failed to create payment link: ${error.message}`);
+            throw new Error(
+                `Failed to create payment link: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -81,10 +81,10 @@ export class PayOSService {
         } catch (error) {
             this.logger.error(
                 `Failed to get payment info for order: ${orderCode}`,
-                error.stack,
+                error instanceof Error ? error.stack : String(error),
             );
             throw new Error(
-                `Failed to get payment information: ${error.message}`,
+                `Failed to get payment information: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
     }
@@ -113,9 +113,11 @@ export class PayOSService {
         } catch (error) {
             this.logger.error(
                 `Failed to cancel payment link for order: ${orderCode}`,
-                error.stack,
+                error instanceof Error ? error.stack : String(error),
             );
-            throw new Error(`Failed to cancel payment link: ${error.message}`);
+            throw new Error(
+                `Failed to cancel payment link: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -135,9 +137,11 @@ export class PayOSService {
         } catch (error) {
             this.logger.error(
                 `Failed to confirm webhook URL: ${webhookUrl}`,
-                error.stack,
+                error instanceof Error ? error.stack : String(error),
             );
-            throw new Error(`Failed to confirm webhook: ${error.message}`);
+            throw new Error(
+                `Failed to confirm webhook: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -159,16 +163,18 @@ export class PayOSService {
         } catch (error) {
             this.logger.error(
                 `Failed to verify webhook data for order: ${webhookData.data?.orderCode}`,
-                error.stack,
+                error instanceof Error ? error.stack : String(error),
             );
-            throw new Error(`Invalid webhook signature: ${error.message}`);
+            throw new Error(
+                `Invalid webhook signature: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
     /**
      * Kiểm tra trạng thái kết nối PayOS
      */
-    async healthCheck(): Promise<{ status: string; timestamp: Date }> {
+    healthCheck(): { status: string; timestamp: Date } {
         try {
             // Có thể test bằng cách gọi một API đơn giản
             // Hiện tại chỉ return status based on initialization
@@ -177,7 +183,10 @@ export class PayOSService {
                 timestamp: new Date(),
             };
         } catch (error) {
-            this.logger.error('PayOS health check failed', error.stack);
+            this.logger.error(
+                'PayOS health check failed',
+                error instanceof Error ? error.stack : String(error),
+            );
             return {
                 status: 'error',
                 timestamp: new Date(),

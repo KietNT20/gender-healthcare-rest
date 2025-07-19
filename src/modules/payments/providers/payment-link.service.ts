@@ -30,9 +30,7 @@ export class PaymentLinkService {
         this.backendReturnUrl = process.env.BACKEND_RETURN_URL as string;
         this.backendCancelUrl = process.env.BACKEND_CANCEL_URL as string;
         this.defaultFrontendDomain =
-            (process.env.FRONTEND_URL as string) ||
-            'http://localhost:3000' ||
-            'http://localhost:5173';
+            (process.env.FRONTEND_URL as string) || 'http://localhost:3000';
 
         if (!this.backendReturnUrl || !this.backendCancelUrl) {
             throw new InternalServerErrorException(
@@ -70,7 +68,7 @@ export class PaymentLinkService {
             amount: finalAmount,
             itemName,
             description: shortDescription,
-            userId,
+            userId: user.id,
             packageId,
             frontendReturnUrl:
                 frontendReturnUrl ||
@@ -151,7 +149,7 @@ export class PaymentLinkService {
             amount: finalAmount,
             itemName,
             description: shortDescription,
-            userId,
+            userId: user.id,
             serviceId,
             frontendReturnUrl:
                 frontendReturnUrl ||
@@ -230,7 +228,7 @@ export class PaymentLinkService {
             };
         } catch (error) {
             throw new BadRequestException(
-                `Failed to create payment link: ${error.message}`,
+                `Failed to create payment link: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
     }

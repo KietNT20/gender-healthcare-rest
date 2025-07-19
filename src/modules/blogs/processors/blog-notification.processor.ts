@@ -2,6 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
+import { CreateNotificationDto } from 'src/modules/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
 
 @Processor(QUEUE_NAMES.BLOG_NOTIFICATION)
@@ -24,7 +25,9 @@ export class BlogNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendNotification(job: Job) {
-        const { notificationData } = job.data;
+        const { notificationData } = job.data as {
+            notificationData: CreateNotificationDto;
+        };
         try {
             await this.notificationsService.create(notificationData);
             this.logger.log(

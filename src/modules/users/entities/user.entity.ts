@@ -122,6 +122,7 @@ export class User {
         length: 255,
         nullable: true,
     })
+    @Exclude()
     passwordResetToken?: string;
 
     @Column({
@@ -156,6 +157,7 @@ export class User {
         nullable: true,
         select: false,
     })
+    @Exclude()
     refreshToken?: string;
 
     @Column({ nullable: true })

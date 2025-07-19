@@ -834,10 +834,14 @@ export class AppointmentsService {
      */
     private categorizeServices(services: Service[]) {
         const servicesRequiringConsultant = services.filter(
-            (s) => s.requiresConsultant === true,
+            (s) =>
+                s.requiresConsultant === true ||
+                s.category?.type === 'consultation',
         );
         const servicesNotRequiringConsultant = services.filter(
-            (s) => s.requiresConsultant !== true,
+            (s) =>
+                s.requiresConsultant !== true &&
+                s.category?.type !== 'consultation',
         );
         return {
             servicesRequiringConsultant,

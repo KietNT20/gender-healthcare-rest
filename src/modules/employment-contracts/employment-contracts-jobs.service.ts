@@ -68,7 +68,7 @@ export class EmploymentContractJobsService {
         } catch (error) {
             this.logger.error(
                 'Đã xảy ra lỗi khi xử lý hợp đồng hết hạn:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -168,7 +168,7 @@ export class EmploymentContractJobsService {
         } catch (error) {
             this.logger.error(
                 'Đã xảy ra lỗi khi xử lý chấm dứt hợp đồng:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -250,7 +250,7 @@ export class EmploymentContractJobsService {
         } catch (error) {
             this.logger.error(
                 'Lỗi khi xử lý gửi thông báo hợp đồng sắp hết hạn:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }

@@ -3,7 +3,6 @@ import {
     InternalServerErrorException,
     Logger,
 } from '@nestjs/common';
-import PayOS from '@payos/node';
 import {
     CheckoutRequestType,
     CheckoutResponseDataType,
@@ -11,6 +10,7 @@ import {
     WebhookDataType,
     WebhookType,
 } from '@payos/node/lib/type';
+import PayOS = require('@payos/node');
 
 @Injectable()
 export class PayOSService {

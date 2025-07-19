@@ -80,7 +80,7 @@ export class PackageServicesService {
     }
 
     async remove(id: string) {
-        const packageService = await this.findOne(id);
+        await this.findOne(id);
         await this.packageServiceRepository.softDelete(id);
     }
 }

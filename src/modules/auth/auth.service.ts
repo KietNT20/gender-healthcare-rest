@@ -14,6 +14,7 @@ import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { JwtPayload } from './interfaces';
 import { HashingProvider } from './providers/hashing.provider';
 
 @Injectable()
@@ -130,7 +131,7 @@ export class AuthService {
         });
 
         // Generate tokens
-        const payload = {
+        const payload: JwtPayload = {
             sub: user.id,
             email: user.email,
             role: user.role.name,
@@ -327,7 +328,7 @@ export class AuthService {
 
     async refreshToken(refreshToken: string) {
         try {
-            const payload = this.jwtService.verify(refreshToken, {
+            const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
             });
 
@@ -382,7 +383,7 @@ export class AuthService {
 
     async verifyToken(token: string) {
         try {
-            const payload = this.jwtService.verify(token);
+            const payload = this.jwtService.verify<JwtPayload>(token);
             const user = await this.usersService.findOne(payload.sub);
 
             if (!user) {

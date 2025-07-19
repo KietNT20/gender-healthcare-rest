@@ -106,6 +106,7 @@ export class User {
         length: 255,
         nullable: true,
     })
+    @Exclude()
     emailVerificationToken?: string;
 
     @Column({

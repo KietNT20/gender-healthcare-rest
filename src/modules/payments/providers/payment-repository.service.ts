@@ -353,7 +353,7 @@ export class PaymentRepositoryService {
             totalAmountPaid: Number(totalPaidResult?.total) || 0,
             paymentsByStatus: paymentsByStatus.reduce((acc, item) => {
                 acc[item.status] = Number(item.count);
-                return acc;
+                return acc as Record<PaymentStatusType, number>;
             }, {}),
             packagesPurchased,
             appointmentsPaid,

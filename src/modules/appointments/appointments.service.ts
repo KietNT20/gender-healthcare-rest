@@ -13,6 +13,7 @@ import {
     ConsultationFeeType,
     LocationTypeEnum,
     RolesNameEnum,
+    ServiceCategoryType,
     SortOrder,
 } from 'src/enums';
 import {
@@ -833,15 +834,26 @@ export class AppointmentsService {
      * Phân loại dịch vụ thành những dịch vụ cần và không cần tư vấn viên
      */
     private categorizeServices(services: Service[]) {
+        // Validate data integrity - ensure all services have categories
+        const servicesWithoutCategory = services.filter((s) => !s.category);
+        if (servicesWithoutCategory.length > 0) {
+            const serviceNames = servicesWithoutCategory
+                .map((s) => s.name)
+                .join(', ');
+            throw new BadRequestException(
+                `Các dịch vụ sau không có danh mục: ${serviceNames}. Vui lòng liên hệ quản trị viên để cập nhật thông tin dịch vụ.`,
+            );
+        }
+
         const servicesRequiringConsultant = services.filter(
             (s) =>
                 s.requiresConsultant === true ||
-                s.category?.type === 'consultation',
+                s.category.type === ServiceCategoryType.CONSULTATION.toString(),
         );
         const servicesNotRequiringConsultant = services.filter(
             (s) =>
                 s.requiresConsultant !== true &&
-                s.category?.type !== 'consultation',
+                s.category.type !== ServiceCategoryType.CONSULTATION.toString(),
         );
         return {
             servicesRequiringConsultant,

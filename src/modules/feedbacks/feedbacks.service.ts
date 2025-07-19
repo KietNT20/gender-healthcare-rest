@@ -408,6 +408,12 @@ export class FeedbacksService {
     }
 
     async remove(id: string): Promise<void> {
+        const feedback = await this.feedbackRepository.findOneBy({ id });
+        if (!feedback) {
+            throw new NotFoundException(
+                `Feedback with ID: ( ${id} ) not found`,
+            );
+        }
         await this.feedbackRepository.softDelete(id);
     }
 }

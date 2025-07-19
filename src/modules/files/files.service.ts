@@ -498,7 +498,9 @@ export class FilesService {
         });
 
         if (!document) {
-            throw new NotFoundException('Document not found');
+            throw new NotFoundException(
+                `Document with ID: ( ${documentId} ) not found`,
+            );
         }
 
         try {

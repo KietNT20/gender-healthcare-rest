@@ -132,6 +132,12 @@ export class PackageServiceUsageService {
     }
 
     async remove(id: string): Promise<{ message: string }> {
+        const packageServiceUsage = await this.findOne(id);
+        if (!packageServiceUsage) {
+            throw new NotFoundException(
+                `Package service usage with ID: ( ${id} ) not found`,
+            );
+        }
         await this.packageServiceUsageRepository.softDelete(id);
         return { message: 'Package service usage deleted successfully' };
     }

@@ -620,7 +620,7 @@ export class BlogsService {
 
         return updatedBlog;
     }
-    async submitForReview(id: string, authorId: string): Promise<Blog> {
+    async submitForReview(id: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
@@ -641,9 +641,6 @@ export class BlogsService {
         await this.blogRepository.update(id, {
             status: ContentStatusType.PENDING_REVIEW,
             updatedAt: new Date(),
-            author: {
-                id: authorId,
-            },
         });
 
         const updatedBlog = await this.findOne(id);

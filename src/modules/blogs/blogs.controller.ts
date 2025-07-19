@@ -238,11 +238,8 @@ export class BlogsController {
         description: 'Blog submitted for review successfully',
     })
     @ResponseMessage('Blog submitted for review successfully')
-    async submitForReview(
-        @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() currentUser: User,
-    ) {
-        return this.blogsService.submitForReview(id, currentUser.id);
+    async submitForReview(@Param('id', ParseUUIDPipe) id: string) {
+        return this.blogsService.submitForReview(id);
     }
 
     @Patch(':id/review')

@@ -80,6 +80,12 @@ export class PackageServicesService {
     }
 
     async remove(id: string) {
+        const packageService = await this.findOne(id);
+        if (!packageService) {
+            throw new NotFoundException(
+                `Package service with ID: ( ${id} ) not found`,
+            );
+        }
         await this.packageServiceRepository.softDelete(id);
     }
 }

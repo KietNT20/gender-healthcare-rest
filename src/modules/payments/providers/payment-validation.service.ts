@@ -1,10 +1,11 @@
 import {
     BadRequestException,
     Injectable,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Injectable()
@@ -18,13 +19,24 @@ export class PaymentValidationService {
      * Validate user existence
      */
     async validateUser(userId: string) {
+        // First check if user exists (including deleted users)
         const user = await this.userRepository.findOne({
-            where: { id: userId, deletedAt: IsNull(), isActive: true },
+            where: { id: userId },
         });
 
         if (!user) {
+            throw new NotFoundException(`User with ID '${userId}' not found.`);
+        }
+
+        // Check if user is deleted
+        if (user.deletedAt) {
+            throw new NotFoundException(`User with ID '${userId}' not found.`);
+        }
+
+        // Check if user is active
+        if (!user.isActive) {
             throw new UnauthorizedException(
-                `User with ID '${userId}' unauthorized or does not exist.`,
+                `User with ID '${userId}' is inactive.`,
             );
         }
 

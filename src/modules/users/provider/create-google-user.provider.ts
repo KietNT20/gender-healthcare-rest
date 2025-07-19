@@ -1,8 +1,4 @@
-import {
-    ConflictException,
-    Injectable,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { RolesNameEnum } from 'src/enums';
@@ -47,8 +43,30 @@ export class CreateGoogleUserProvider {
 
             return await this.usersRepository.save(user);
         } catch (error) {
-            // throw Unauthorised exception if not Authorised
-            throw new UnauthorizedException(error);
+            // Handle database constraint violations
+            if (error.code === '23505') {
+                // PostgreSQL unique constraint violation
+                if (error.constraint?.includes('email')) {
+                    throw new ConflictException('Email already exists');
+                }
+                if (error.constraint?.includes('google_id')) {
+                    throw new ConflictException(
+                        'Google account already linked',
+                    );
+                }
+                // Generic unique constraint violation
+                throw new ConflictException(
+                    'User with this information already exists',
+                );
+            }
+
+            // Handle other database errors
+            if (error.code && error.code.startsWith('23')) {
+                throw new ConflictException('Database constraint violation');
+            }
+
+            // Re-throw the original error for other cases
+            throw error;
         }
     }
 

@@ -5,7 +5,9 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 import { Roles } from 'src/decorators/roles.decorator';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -20,7 +22,8 @@ export class RoleGuard implements CanActivate {
             return true; // No roles required, allow access
         }
 
-        const { user } = context.switchToHttp().getRequest();
+        const request = context.switchToHttp().getRequest<Request>();
+        const user = request.user as User;
 
         if (!user) {
             throw new ForbiddenException('User not authenticated');

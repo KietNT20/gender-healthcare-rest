@@ -3,8 +3,10 @@ import {
     ExecutionContext,
     ForbiddenException,
     Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Request } from 'express';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -16,11 +18,11 @@ export class HealthDataConsentGuard implements CanActivate {
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const request = context.switchToHttp().getRequest();
-        const user = request.user;
+        const request = context.switchToHttp().getRequest<Request>();
+        const user = request.user as User;
 
         if (!user) {
-            throw new ForbiddenException('Unauthorized access');
+            throw new UnauthorizedException('Yêu cầu cần được xác thực');
         }
 
         // Fetch fresh user data to check consent
@@ -29,7 +31,7 @@ export class HealthDataConsentGuard implements CanActivate {
         });
 
         if (!currentUser) {
-            throw new ForbiddenException('User not found');
+            throw new ForbiddenException('Không có quyền truy cập');
         }
 
         if (!currentUser.healthDataConsent) {

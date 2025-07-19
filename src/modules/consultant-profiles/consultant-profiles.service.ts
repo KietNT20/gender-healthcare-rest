@@ -186,7 +186,7 @@ export class ConsultantProfilesService {
             : 'createdAt';
 
         findOptions.order = {
-            [orderByField]: sortOrder as SortOrder,
+            [orderByField]: sortOrder,
         };
 
         const skip = (page - 1) * limit;

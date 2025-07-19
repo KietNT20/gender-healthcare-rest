@@ -11,7 +11,6 @@ import {
     Put,
     Query,
     UseGuards,
-    ValidationPipe,
 } from '@nestjs/common';
 import {
     ApiBearerAuth,
@@ -27,11 +26,11 @@ import { RoleGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateServiceImageDto } from './dto/create-service-image.dto';
 import { CreateServiceDto } from './dto/create-service.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
 import { ServiceImageService } from './service-image.service';
 import { ServicesService } from './services.service';
-import { ServiceQueryDto } from './dto/service-query.dto';
 
 @Controller('services')
 export class ServicesController {

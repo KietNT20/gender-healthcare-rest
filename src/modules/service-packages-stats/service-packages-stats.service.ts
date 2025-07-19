@@ -377,10 +377,12 @@ export class ServicePackagesStatsService {
                 column.eachCell(
                     { includeEmpty: true },
                     (cell: ExcelJS.Cell) => {
-                        const columnLength = cell.value
+                        const cellLength = cell.value
                             ? cell.value.toString().length
                             : 0;
-                        maxLength = Math.max(maxLength, columnLength);
+                        if (cellLength > maxLength) {
+                            maxLength = cellLength;
+                        }
                     },
                 );
                 // Thêm padding và căn chỉnh với tiêu đề

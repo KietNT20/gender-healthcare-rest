@@ -12,14 +12,14 @@ export enum RolesNameEnum {
 }
 
 export enum AppointmentStatusType {
-    PENDING = 'pending',
-    CONFIRMED = 'confirmed',
-    CHECKED_IN = 'checked_in',
-    IN_PROGRESS = 'in_progress',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled',
-    RESCHEDULED = 'rescheduled',
-    NO_SHOW = 'no_show',
+    PENDING = 'pending', // Chờ xác nhận
+    CONFIRMED = 'confirmed', // Đã xác nhận
+    CHECKED_IN = 'checked_in', // Đã check in
+    IN_PROGRESS = 'in_progress', // Đang diễn ra
+    COMPLETED = 'completed', // Đã hoàn thành
+    CANCELLED = 'cancelled', // Đã hủy
+    RESCHEDULED = 'rescheduled', // Đã chuyển lịch
+    NO_SHOW = 'no_show', // Không đến
 }
 
 export enum ContentStatusType {
@@ -91,6 +91,7 @@ export enum ReminderStatusType {
 export enum ServiceCategoryType {
     CONSULTATION = 'consultation',
     TEST = 'test',
+    STI_TEST = 'sti_test',
     TREATMENT = 'treatment',
     PACKAGE = 'package',
 }

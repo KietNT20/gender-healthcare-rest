@@ -1,13 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateFeedbackDto } from './create-feedback.dto';
-import {
-    IsInt,
-    IsOptional,
-    IsString,
-    IsArray,
-    IsBoolean,
-} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
+import { CreateFeedbackDto } from './create-feedback.dto';
 
 export class UpdateFeedbackDto extends PartialType(CreateFeedbackDto) {
     @ApiProperty({

@@ -36,7 +36,7 @@ export class TestResultExportPdfService {
                 return;
             }
         } catch (error) {
-            console.warn('Could not load custom font, using fallback');
+            console.warn('Could not load custom font, using fallback', error);
         }
 
         // Fallback to system fonts
@@ -102,7 +102,7 @@ export class TestResultExportPdfService {
             // Register Vietnamese font
             this.registerVietnameseFont(doc);
 
-            doc.on('data', (chunk) => buffers.push(chunk));
+            doc.on('data', (chunk: Buffer) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
@@ -241,7 +241,7 @@ export class TestResultExportPdfService {
             // Register Vietnamese font
             this.registerVietnameseFont(doc);
 
-            doc.on('data', (chunk) => buffers.push(chunk));
+            doc.on('data', (chunk: Buffer) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
@@ -406,7 +406,7 @@ export class TestResultExportPdfService {
             // Register Vietnamese font
             this.registerVietnameseFont(doc);
 
-            doc.on('data', (chunk) => buffers.push(chunk));
+            doc.on('data', (chunk: Buffer) => buffers.push(chunk));
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 

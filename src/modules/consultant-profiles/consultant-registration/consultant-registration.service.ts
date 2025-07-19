@@ -170,9 +170,9 @@ export class ConsultantRegistrationService {
                         isActive: true,
                     },
                 });
-                const reviewUrl =
-                    `${process.env.FRONTEND_URL}/admin/profiles/${savedProfile.id}` ||
-                    `http://localhost:3000/admin/profiles/${savedProfile.id}`;
+                const reviewUrl = process.env.FRONTEND_URL
+                    ? `${process.env.FRONTEND_URL}/admin/profiles/${savedProfile.id}`
+                    : `http://localhost:3000/admin/profiles/${savedProfile.id}`;
                 for (const admin of adminsAndManagers) {
                     await this.notificationQueue.add(
                         'send-new-profile-pending',
@@ -199,7 +199,9 @@ export class ConsultantRegistrationService {
             } catch (notificationError) {
                 this.logger.error(
                     'Failed to send notification to admins/managers',
-                    notificationError.stack,
+                    notificationError instanceof Error
+                        ? notificationError.stack
+                        : String(notificationError),
                 );
             }
 
@@ -213,8 +215,7 @@ export class ConsultantRegistrationService {
             await queryRunner.rollbackTransaction();
             this.logger.error(
                 'Consultant registration failed',
-                error.stack,
-                error,
+                error instanceof Error ? error.stack : String(error),
             );
             throw new InternalServerErrorException(
                 'Could not register consultant.',

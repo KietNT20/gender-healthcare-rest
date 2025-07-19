@@ -42,18 +42,34 @@ export class CreateGoogleUserProvider {
             });
 
             return await this.usersRepository.save(user);
-        } catch (error) {
+        } catch (error: any) {
+            // Handle database constraint violations
             if (error.code === '23505') {
-                if (error.detail?.includes('email')) {
+                // PostgreSQL unique constraint violation
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                if (error.constraint?.includes('email')) {
                     throw new ConflictException('Email already exists');
                 }
-                if (error.detail?.includes('slug')) {
-                    throw new ConflictException('Username already exists');
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                if (error.constraint?.includes('google_id')) {
+                    throw new ConflictException(
+                        'Google account already linked',
+                    );
                 }
+                // Generic unique constraint violation
+                throw new ConflictException(
+                    'User with this information already exists',
+                );
             }
-            throw new ConflictException('Could not create user', {
-                description: error.message,
-            });
+
+            // Handle other database errors
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            if (error.code && error.code.startsWith('23')) {
+                throw new ConflictException('Database constraint violation');
+            }
+
+            // Re-throw the original error for other cases
+            throw error;
         }
     }
 

@@ -74,7 +74,10 @@ export class MessageHandler {
                 `Message sent in question ${questionId} by user ${client.user.id}`,
             );
         } catch (error) {
-            this.logger.error(`Failed to send message:`, error.message);
+            this.logger.error(
+                `Failed to send message:`,
+                error instanceof Error ? error.message : String(error),
+            );
             throw error;
         }
     }
@@ -103,15 +106,14 @@ export class MessageHandler {
                     timestamp: new Date().toISOString(),
                 });
         } catch (error) {
-            this.logger.error(`Failed to mark message as read:`, error.message);
+            this.logger.error(
+                `Failed to mark message as read:`,
+                error instanceof Error ? error.message : String(error),
+            );
         }
     }
 
-    async notifyQuestionUpdate(
-        questionId: string,
-        updateData: any,
-        server: Server,
-    ) {
+    notifyQuestionUpdate(questionId: string, updateData: any, server: Server) {
         server
             .to(`${ROOM_PATTERNS.QUESTION_ROOM}${questionId}`)
             .emit(CHAT_EVENTS.QUESTION_UPDATED, {
@@ -121,7 +123,7 @@ export class MessageHandler {
             });
     }
 
-    async notifyConsultantAssigned(
+    notifyConsultantAssigned(
         questionId: string,
         consultant: ConsultantProfile,
         server: Server,

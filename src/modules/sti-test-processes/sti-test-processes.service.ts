@@ -331,7 +331,7 @@ export class StiTestProcessesService {
             [StiTestProcessStatus.CANCELLED]: 'Xét nghiệm đã bị hủy',
         };
 
-        const message = statusMessages[newStatus];
+        const message = statusMessages[newStatus] as string;
         if (message) {
             await this.sendNotificationToPatient(id, message);
         }

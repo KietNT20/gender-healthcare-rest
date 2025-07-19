@@ -30,8 +30,8 @@ export class WsRoomAccessGuard implements CanActivate {
         try {
             // Verify user has access to this question
             const hasAccess = await this.chatService.verifyQuestionAccess(
-                data.questionId,
-                client.user.id,
+                data.questionId as string,
+                client.user.id as string,
             );
 
             if (!hasAccess) {

@@ -65,7 +65,10 @@ export class CreateContraceptiveReminderDto {
     @IsInt({ each: true })
     @Min(0, { each: true })
     @Max(6, { each: true })
-    @ValidateIf((o) => o.frequency === ReminderFrequencyType.WEEKLY)
+    @ValidateIf(
+        (contraceptiveReminder: CreateContraceptiveReminderDto) =>
+            contraceptiveReminder.frequency === ReminderFrequencyType.WEEKLY,
+    )
     @ArrayNotEmpty({
         message: 'daysOfWeek không được để trống khi tần suất là WEEKLY',
     })

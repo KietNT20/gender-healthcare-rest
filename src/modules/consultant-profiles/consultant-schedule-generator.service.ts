@@ -146,7 +146,7 @@ export class ConsultantScheduleGeneratorService {
             return await this.availabilityRepository.save(availability);
         } catch (error) {
             this.logger.error(
-                `Lỗi khi tạo availability slot cho ngày ${date.toISOString().split('T')[0]} từ ${timeSlot.startTime} đến ${timeSlot.endTime}: ${error.message}`,
+                `Lỗi khi tạo availability slot cho ngày ${date.toISOString().split('T')[0]} từ ${timeSlot.startTime} đến ${timeSlot.endTime}: ${error instanceof Error ? error.message : String(error)}`,
             );
             throw error;
         }

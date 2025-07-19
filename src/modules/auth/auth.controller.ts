@@ -99,7 +99,9 @@ export class AuthController {
             const frontendUrl =
                 process.env.FRONTEND_URL || 'http://localhost:3000';
             const errorMessage = encodeURIComponent(
-                error.message || 'Email verification failed',
+                error instanceof Error
+                    ? error.message
+                    : 'Email verification failed',
             );
             return res.redirect(
                 `${frontendUrl}/auth/verify-error?message=${errorMessage}`,
@@ -204,7 +206,9 @@ export class AuthController {
             const frontendUrl =
                 process.env.FRONTEND_URL || 'http://localhost:3000';
             const errorMessage = encodeURIComponent(
-                error.message || 'Invalid or expired reset token',
+                error instanceof Error
+                    ? error.message
+                    : 'Invalid or expired reset token',
             );
             return res.redirect(
                 `${frontendUrl}/auth/reset-error?message=${errorMessage}`,
@@ -249,9 +253,7 @@ export class AuthController {
         description: 'User not authenticated',
     })
     @ResponseMessage('User profile retrieved')
-    async getProfile(@CurrentUser() user: User) {
-        // Return user without sensitive information
-        const { password, refreshToken, ...userProfile } = user;
-        return userProfile;
+    getProfile(@CurrentUser() user: User) {
+        return user;
     }
 }

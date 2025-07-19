@@ -9,6 +9,7 @@ import {
     WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { ConsultantProfile } from '../consultant-profiles/entities/consultant-profile.entity';
 import { CHAT_EVENTS, RESPONSE_STATUS } from './constants/chat.constants';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -83,7 +84,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         } catch (error) {
             this.logger.error(
                 `Failed to join question ${data.questionId}:`,
-                error.message,
+                error instanceof Error ? error.message : String(error),
             );
 
             // Send error acknowledgement
@@ -142,7 +143,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 timestamp: new Date().toISOString(),
             };
         } catch (error) {
-            this.logger.error(`Failed to send message:`, error.message);
+            this.logger.error(
+                `Failed to send message:`,
+                error instanceof Error ? error.message : String(error),
+            );
 
             return {
                 status: RESPONSE_STATUS.ERROR,
@@ -201,7 +205,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 timestamp: new Date().toISOString(),
             };
         } catch (error) {
-            this.logger.error(`Failed to mark message as read:`, error.message);
+            this.logger.error(
+                `Failed to mark message as read:`,
+                error instanceof Error ? error.message : String(error),
+            );
 
             return {
                 status: RESPONSE_STATUS.ERROR,
@@ -214,16 +221,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Public methods for external services
-    public async notifyQuestionUpdate(questionId: string, updateData: any) {
-        await this.messageHandler.notifyQuestionUpdate(
+    public notifyQuestionUpdate(questionId: string, updateData: any) {
+        this.messageHandler.notifyQuestionUpdate(
             questionId,
             updateData,
             this.server,
         );
     }
 
-    public async notifyConsultantAssigned(questionId: string, consultant: any) {
-        await this.messageHandler.notifyConsultantAssigned(
+    public notifyConsultantAssigned(
+        questionId: string,
+        consultant: ConsultantProfile,
+    ) {
+        this.messageHandler.notifyConsultantAssigned(
             questionId,
             consultant,
             this.server,

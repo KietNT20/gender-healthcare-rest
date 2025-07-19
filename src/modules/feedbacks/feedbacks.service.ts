@@ -408,13 +408,12 @@ export class FeedbacksService {
     }
 
     async remove(id: string): Promise<void> {
-        if (!isUUID(id)) {
-            throw new BadRequestException(
-                `Invalid UUID format for feedback ID: ${id}`,
+        const feedback = await this.feedbackRepository.findOneBy({ id });
+        if (!feedback) {
+            throw new NotFoundException(
+                `Feedback with ID: ( ${id} ) not found`,
             );
         }
-
-        const feedback = await this.findOne(id);
         await this.feedbackRepository.softDelete(id);
     }
 }

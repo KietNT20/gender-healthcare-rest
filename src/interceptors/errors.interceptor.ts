@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
     BadGatewayException,
     CallHandler,
@@ -10,11 +11,11 @@ import { catchError } from 'rxjs/operators';
 
 @Injectable()
 export class ErrorsInterceptor implements NestInterceptor {
-    intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
         return next
             .handle()
             .pipe(
-                catchError((err) =>
+                catchError((_err) =>
                     throwError(() => new BadGatewayException()),
                 ),
             );

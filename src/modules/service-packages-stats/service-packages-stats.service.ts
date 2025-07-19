@@ -377,7 +377,9 @@ export class ServicePackagesStatsService {
                 column.eachCell(
                     { includeEmpty: true },
                     (cell: ExcelJS.Cell) => {
-                        const cellLength = cell.text ? cell.text.length : 0;
+                        const cellLength = cell.value
+                            ? cell.value.toString().length
+                            : 0;
                         if (cellLength > maxLength) {
                             maxLength = cellLength;
                         }

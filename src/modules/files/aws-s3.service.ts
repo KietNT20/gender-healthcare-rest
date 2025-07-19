@@ -17,17 +17,7 @@ import {
 import { ConfigType } from '@nestjs/config';
 import { THIRTY_DAYS } from 'src/constant';
 import awsConfig from './config/aws.config';
-
-export interface UploadResult {
-    key: string;
-    url: string;
-    cloudFrontUrl: string;
-    bucket: string;
-    size: number;
-    contentType: string;
-    etag?: string;
-    isPublic: boolean;
-}
+import { UploadResult } from './interfaces';
 
 export interface FileMetadata {
     size: number;

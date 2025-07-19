@@ -90,6 +90,7 @@ export class BlogsService {
             autoPublish,
             ...blogData
         } = createBlogDto;
+
         const blog = this.blogRepository.create({
             ...blogData,
             slug,
@@ -640,6 +641,9 @@ export class BlogsService {
         await this.blogRepository.update(id, {
             status: ContentStatusType.PENDING_REVIEW,
             updatedAt: new Date(),
+            author: {
+                id: authorId,
+            },
         });
 
         const updatedBlog = await this.findOne(id);
@@ -651,7 +655,8 @@ export class BlogsService {
 
         return updatedBlog;
     }
-    async archiveBlog(id: string, userId: string): Promise<Blog> {
+
+    async archiveBlog(id: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {

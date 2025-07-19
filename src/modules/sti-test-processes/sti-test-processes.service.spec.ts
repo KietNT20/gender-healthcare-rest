@@ -1,19 +1,18 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TestResultsService } from '../test-results/test-results.service';
 import { UsersService } from '../users/users.service';
+import { StiTestProcessResponseDto } from './dto/sti-test-process-response.dto';
 import { StiTestProcess } from './entities/sti-test-process.entity';
 import { ProcessPriority, StiSampleType, StiTestProcessStatus } from './enums';
 import { StiTestProcessesService } from './sti-test-processes.service';
 
 describe('StiTestProcessesService', () => {
     let service: StiTestProcessesService;
-    let repository: Repository<StiTestProcess>;
 
     const mockRepository = {
         create: jest.fn(),
@@ -77,9 +76,6 @@ describe('StiTestProcessesService', () => {
         }).compile();
 
         service = module.get<StiTestProcessesService>(StiTestProcessesService);
-        repository = module.get<Repository<StiTestProcess>>(
-            getRepositoryToken(StiTestProcess),
-        );
     });
 
     it('should be defined', () => {
@@ -119,9 +115,19 @@ describe('StiTestProcessesService', () => {
             mockRepository.save.mockResolvedValue(mockStiTestProcess);
 
             // Mock the findById method that will be called at the end
-            jest.spyOn(service, 'findById').mockResolvedValue(
-                mockStiTestProcess as any,
-            );
+            const mockResponseDto: StiTestProcessResponseDto = {
+                id: 'process-id',
+                testCode: 'STI123456',
+                status: StiTestProcessStatus.ORDERED,
+                sampleType: StiSampleType.BLOOD,
+                priority: ProcessPriority.NORMAL,
+                patient: mockUser,
+                service: { id: createDto.serviceId },
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as StiTestProcessResponseDto;
+
+            jest.spyOn(service, 'findById').mockResolvedValue(mockResponseDto);
 
             const result = await service.create(createDto);
 
@@ -244,10 +250,14 @@ describe('StiTestProcessesService', () => {
             mockRepository.update.mockResolvedValue({ affected: 1 });
 
             // Mock findById for the return value
-            jest.spyOn(service, 'findById').mockResolvedValue({
+            const updatedResponseDto: StiTestProcessResponseDto = {
                 ...existingProcess,
                 ...updateDto,
-            } as any);
+            } as StiTestProcessResponseDto;
+
+            jest.spyOn(service, 'findById').mockResolvedValue(
+                updatedResponseDto,
+            );
 
             const result = await service.update(id, updateDto);
 
@@ -274,21 +284,20 @@ describe('StiTestProcessesService', () => {
             const id = 'process-id';
             const newStatus = StiTestProcessStatus.PROCESSING;
 
-            const updatedProcess = {
+            const updatedProcess: StiTestProcessResponseDto = {
                 id,
                 testCode: 'STI123456',
                 status: newStatus,
-            };
+            } as StiTestProcessResponseDto;
 
-            jest.spyOn(service, 'update').mockResolvedValue(
-                updatedProcess as any,
-            );
+            jest.spyOn(service, 'update').mockResolvedValue(updatedProcess);
 
             const result = await service.updateStatus(id, newStatus);
 
             expect(result).toBeDefined();
             expect(result.status).toBe(newStatus);
-            expect(service.update).toHaveBeenCalledWith(id, {
+            const updateSpy = jest.spyOn(service, 'update');
+            expect(updateSpy).toHaveBeenCalledWith(id, {
                 status: newStatus,
             });
         });
@@ -316,9 +325,9 @@ describe('StiTestProcessesService', () => {
 
             expect(result).toBeDefined();
             expect(result.data).toHaveLength(1);
-            expect(result.total).toBe(1);
-            expect(result.page).toBe(1);
-            expect(result.limit).toBe(10);
+            expect(result.meta.totalItems).toBe(1);
+            expect(result.meta.currentPage).toBe(1);
+            expect(result.meta.itemsPerPage).toBe(10);
         });
     });
 });

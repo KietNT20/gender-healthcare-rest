@@ -29,9 +29,23 @@ export class CreateConsultantProfileDto {
             'Chuyên môn của tư vấn viên, ví dụ: "Cardiology", "Psychology".',
         type: [String],
     })
+    @Transform(({ value }) => {
+        // Nếu giá trị là null hoặc undefined, trả về mảng rỗng.
+        if (value === null || value === undefined) {
+            return [];
+        }
+        // Nếu giá trị đã là một mảng (do client gửi nhiều field cùng tên).
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item).trim());
+        }
+        // Nếu giá trị là một chuỗi (do client gửi 1 field duy nhất).
+        return String(value)
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+    })
     @IsArray()
     @IsString({ each: true })
-    @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
     specialties: string[];
 
     @ApiProperty({

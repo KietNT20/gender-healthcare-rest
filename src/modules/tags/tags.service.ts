@@ -1,14 +1,14 @@
 import {
+    ConflictException,
     Injectable,
     NotFoundException,
-    ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import slugify from 'slugify';
+import { Repository } from 'typeorm';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { Tag } from './entities/tag.entity';
-import slugify from 'slugify';
 
 @Injectable()
 export class TagsService {

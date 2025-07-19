@@ -10,6 +10,7 @@ import {
     WebhookDataType,
     WebhookType,
 } from '@payos/node/lib/type';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import PayOS = require('@payos/node');
 
 @Injectable()

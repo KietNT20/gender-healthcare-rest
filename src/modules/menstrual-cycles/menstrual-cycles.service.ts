@@ -76,7 +76,8 @@ export class MenstrualCyclesService {
             cycleStartDate: startDate,
             cycleEndDate: endDate,
             periodLength,
-            // Do NOT set cycleLength for the new cycle, as it is not yet known
+            // Set cycleLength for the new cycle if there's a previous cycle
+            cycleLength: cycleLength,
         });
 
         const savedCycle = await this.cycleRepository.save(newCycle);

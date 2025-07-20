@@ -79,18 +79,12 @@ export class MenstrualCyclesService {
 
         const savedCycle = await this.cycleRepository.save(newCycle);
 
-        // Kiểm tra rối loạn để thông báo
-        const irregularityAlert = await this.checkAndNotifyIrregularity(
-            userId,
-            savedCycle,
-        );
-
         // Kích hoạt dịch vụ dự đoán sau khi tạo chu kỳ mới
         await this.predictionsService.predictAndUpdate(userId);
 
         return {
             cycle: savedCycle,
-            irregularityAlert,
+            irregularityAlert: undefined,
         };
     }
 
@@ -121,8 +115,9 @@ export class MenstrualCyclesService {
         this.cycleRepository.merge(cycle, updateDto);
         const updatedCycle = await this.cycleRepository.save(cycle);
 
-        // Kích hoạt lại dự đoán nếu ngày bắt đầu/kết thúc thay đổi
+        // Kiểm tra rối loạn khi update (người dùng đã biết và cập nhật lại)
         if (updateDto.cycleStartDate || updateDto.cycleEndDate) {
+            await this.checkAndNotifyIrregularity(userId, updatedCycle);
             await this.predictionsService.predictAndUpdate(userId);
         }
 

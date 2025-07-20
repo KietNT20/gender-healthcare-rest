@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
@@ -18,6 +18,8 @@ import { MenstrualCycle } from './entities/menstrual-cycle.entity';
 
 @Injectable()
 export class MenstrualCyclesService {
+    private readonly logger = new Logger(MenstrualCyclesService.name);
+
     constructor(
         @InjectRepository(MenstrualCycle)
         private readonly cycleRepository: Repository<MenstrualCycle>,
@@ -74,7 +76,7 @@ export class MenstrualCyclesService {
             cycleStartDate: startDate,
             cycleEndDate: endDate,
             periodLength,
-            // cycleLength sẽ được cập nhật khi chu kỳ tiếp theo được tạo
+            cycleLength, // Set the calculated cycleLength for the new cycle
         });
 
         const savedCycle = await this.cycleRepository.save(newCycle);
@@ -175,18 +177,21 @@ export class MenstrualCyclesService {
                 isIrregular = this.isIrregularCycle(allCycles);
             }
             // Nếu chỉ có 1 chu kỳ → so sánh với chu kỳ trung bình (28 ngày)
-            else if (allCycles.length === 1 && currentCycle.cycleLength) {
+            else if (allCycles.length === 1) {
                 const avgCycleLength = 28; // Chu kỳ trung bình
                 const threshold = 7; // Ngưỡng chấp nhận
 
-                isIrregular =
-                    Math.abs(currentCycle.cycleLength - avgCycleLength) >
-                    threshold;
+                // Use the current cycle's cycleLength if available, otherwise skip single-cycle check
+                if (currentCycle.cycleLength) {
+                    isIrregular =
+                        Math.abs(currentCycle.cycleLength - avgCycleLength) >
+                        threshold;
+                }
             }
 
             // Nếu phát hiện rối loạn
             if (isIrregular) {
-                console.log(
+                this.logger.log(
                     `Phát hiện rối loạn chu kỳ cho user ${userId}, cycle ID: ${currentCycle.id}`,
                 );
 
@@ -207,7 +212,7 @@ export class MenstrualCyclesService {
             return undefined;
         } catch (error) {
             // Log lỗi nhưng không ảnh hưởng đến việc lưu chu kỳ
-            console.error('Lỗi khi kiểm tra rối loạn chu kỳ:', error);
+            this.logger.error('Lỗi khi kiểm tra rối loạn chu kỳ:', error);
             return undefined;
         }
     }
@@ -238,9 +243,11 @@ export class MenstrualCyclesService {
                 actionUrl: `/menstrual-cycles/${cycle.id}`,
             });
 
-            console.log(`Đã gửi thông báo rối loạn chu kỳ cho user ${user.id}`);
+            this.logger.log(
+                `Đã gửi thông báo rối loạn chu kỳ cho user ${user.id}`,
+            );
         } catch (error) {
-            console.error('Lỗi khi gửi thông báo rối loạn chu kỳ:', error);
+            this.logger.error('Lỗi khi gửi thông báo rối loạn chu kỳ:', error);
         }
     }
 }

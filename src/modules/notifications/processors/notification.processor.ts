@@ -35,6 +35,7 @@ export enum NotificationType {
     OVULATION = 'ovulation',
     PERIOD_START = 'period_start',
     FERTILE_WINDOW = 'fertile_window',
+    IRREGULAR_CYCLE_ALERT = 'irregular_cycle_alert',
 
     // Contraceptive Notifications
     CONTRACEPTIVE = 'contraceptive',
@@ -195,6 +196,13 @@ export class NotificationProcessor extends WorkerHost {
                         email,
                         context.userName as string,
                         context.reason as string,
+                    );
+                    break;
+
+                case NotificationType.IRREGULAR_CYCLE_ALERT:
+                    // Chỉ gửi in-app notification
+                    this.logger.log(
+                        `In-app only notification for irregular cycle alert to user ${data.userId}`,
                     );
                     break;
 

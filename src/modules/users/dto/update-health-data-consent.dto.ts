@@ -8,5 +8,5 @@ export class UpdateHealthDataConsentDto {
     })
     @IsNotEmpty({ message: 'Trạng thái đồng ý là bắt buộc' })
     @IsBoolean({ message: 'Trạng thái đồng ý phải là true hoặc false' })
-    healthDataConsent: boolean;
+    healthDataConsent: boolean = true;
 }

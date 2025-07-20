@@ -9,11 +9,17 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { HealthDataConsentGuard } from 'src/guards/health-data-consent.guard';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { User } from 'src/modules/users/entities/user.entity';
+import { CreateMenstrualCycleResponseDto } from './dto/create-menstrual-cycle-response.dto';
 import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
 import { UpdateMenstrualCycleDto } from './dto/update-menstrual-cycle.dto';
 import { MenstrualCyclesService } from './menstrual-cycles.service';
@@ -29,10 +35,19 @@ export class MenstrualCyclesController {
 
     @Post()
     @ApiOperation({ summary: 'Create a new menstrual cycle' })
+    @ApiResponse({
+        status: 201,
+        description: 'Chu kỳ kinh nguyệt đã được tạo thành công',
+        type: CreateMenstrualCycleResponseDto,
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Dữ liệu không hợp lệ',
+    })
     create(
         @CurrentUser() user: User,
         @Body() createMenstrualCycleDto: CreateMenstrualCycleDto,
-    ) {
+    ): Promise<CreateMenstrualCycleResponseDto> {
         return this.menstrualCyclesService.create(
             user.id,
             createMenstrualCycleDto,

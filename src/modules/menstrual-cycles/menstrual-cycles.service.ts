@@ -82,9 +82,15 @@ export class MenstrualCyclesService {
         // Kích hoạt dịch vụ dự đoán sau khi tạo chu kỳ mới
         await this.predictionsService.predictAndUpdate(userId);
 
+        // Kiểm tra rối loạn khi tạo chu kỳ mới
+        const irregularityAlert = await this.checkAndNotifyIrregularity(
+            userId,
+            savedCycle,
+        );
+
         return {
             cycle: savedCycle,
-            irregularityAlert: undefined,
+            irregularityAlert,
         };
     }
 

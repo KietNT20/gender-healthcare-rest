@@ -8,13 +8,20 @@ import { MenstrualPredictionsService } from 'src/modules/menstrual-predictions/m
 import { NotificationType } from 'src/modules/notifications/processors/notification.processor';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
-import {
-    CreateMenstrualCycleResponseDto,
-    IrregularityAlert,
-} from './dto/create-menstrual-cycle-response.dto';
 import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
 import { UpdateMenstrualCycleDto } from './dto/update-menstrual-cycle.dto';
 import { MenstrualCycle } from './entities/menstrual-cycle.entity';
+
+export interface IrregularityAlert {
+    type: string;
+    message: string;
+    recommendation: string;
+}
+
+export interface CreateMenstrualCycleResponse {
+    cycle: MenstrualCycle;
+    irregularityAlert?: IrregularityAlert;
+}
 
 @Injectable()
 export class MenstrualCyclesService {
@@ -33,7 +40,7 @@ export class MenstrualCyclesService {
     async create(
         userId: string,
         createDto: CreateMenstrualCycleDto,
-    ): Promise<CreateMenstrualCycleResponseDto> {
+    ): Promise<CreateMenstrualCycleResponse> {
         const user = await this.userRepository.findOneBy({ id: userId });
         if (!user) {
             throw new NotFoundException(

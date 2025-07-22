@@ -101,14 +101,6 @@ export class FilterQueryStiTestProcessDto {
     patientNotified?: boolean = false;
 
     @ApiPropertyOptional({
-        description: 'Chỉ hiển thị các xét nghiệm có kết quả',
-        type: 'boolean',
-    })
-    @IsOptional()
-    @IsBoolean()
-    hasResults?: boolean = false;
-
-    @ApiPropertyOptional({
         description: 'Sắp xếp theo trường',
         enum: ['createdAt', 'updatedAt', 'status', 'priority'],
         default: 'createdAt',

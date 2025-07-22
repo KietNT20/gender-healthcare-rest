@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ConflictException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -36,6 +37,19 @@ export class BlogsService {
         authorId: string,
         userRole?: string,
     ): Promise<Blog> {
+        const existingBlog = await this.blogRepository.findOne({
+            where: {
+                title: createBlogDto.title,
+                deletedAt: IsNull(), 
+            },
+        });
+
+        if (existingBlog) {
+            throw new ConflictException(
+                'Tiêu đề của bài viết này bị trùng với một bài viết khác.',
+            );
+        }
+
         // Validate category if provided
         if (createBlogDto.categoryId) {
             const category = await this.categoryRepository.findOne({

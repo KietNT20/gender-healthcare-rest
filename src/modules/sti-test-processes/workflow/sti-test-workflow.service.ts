@@ -111,7 +111,6 @@ export class StiTestWorkflowService {
                     status: StiTestProcessStatus.RESULT_DELIVERED,
                     description: 'Kết quả đã được giao cho bệnh nhân',
                     nextSteps: [
-                        StiTestProcessStatus.CONSULTATION_REQUIRED,
                         StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
                         StiTestProcessStatus.COMPLETED,
                     ],
@@ -120,6 +119,20 @@ export class StiTestWorkflowService {
                         'Xác nhận giao kết quả',
                     ],
                     estimatedDuration: '0',
+                },
+            ],
+            [
+                StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
+                {
+                    name: 'Đã lên lịch theo dõi',
+                    status: StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
+                    description: 'Đã lên lịch các cuộc hẹn theo dõi cần thiết',
+                    nextSteps: [StiTestProcessStatus.COMPLETED],
+                    requirements: [
+                        'Lịch theo dõi được xác nhận',
+                        'Hướng dẫn điều trị',
+                    ],
+                    estimatedDuration: '1',
                 },
             ],
             [
@@ -138,20 +151,6 @@ export class StiTestWorkflowService {
                         'Lịch tư vấn được sắp xếp',
                     ],
                     estimatedDuration: '24-48',
-                },
-            ],
-            [
-                StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
-                {
-                    name: 'Đã lên lịch theo dõi',
-                    status: StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
-                    description: 'Đã lên lịch các cuộc hẹn theo dõi cần thiết',
-                    nextSteps: [StiTestProcessStatus.COMPLETED],
-                    requirements: [
-                        'Lịch theo dõi được xác nhận',
-                        'Hướng dẫn điều trị',
-                    ],
-                    estimatedDuration: '1',
                 },
             ],
             [

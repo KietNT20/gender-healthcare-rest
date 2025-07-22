@@ -295,6 +295,10 @@ export class StiTestWorkflowService {
                 this.validateResultDelivered(validationData);
                 break;
 
+            case StiTestProcessStatus.CONSULTATION_REQUIRED:
+                this.validateConsultationRequired(validationData);
+                break;
+
             case StiTestProcessStatus.FOLLOW_UP_SCHEDULED:
                 this.validateFollowUpScheduled(validationData);
                 break;

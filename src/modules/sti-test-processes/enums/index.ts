@@ -6,7 +6,6 @@ export enum StiTestProcessStatus {
     PROCESSING = 'processing', // Đang xử lý/phân tích
     RESULT_READY = 'result_ready', // Kết quả đã sẵn sàng
     RESULT_DELIVERED = 'result_delivered', // Đã giao kết quả
-    CONSULTATION_REQUIRED = 'consultation_required', // Cần tư vấn thêm
     FOLLOW_UP_SCHEDULED = 'follow_up_scheduled', // Đã lên lịch theo dõi
     COMPLETED = 'completed', // Hoàn thành
     CANCELLED = 'cancelled', // Đã hủy

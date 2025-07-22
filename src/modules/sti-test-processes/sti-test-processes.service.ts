@@ -324,8 +324,6 @@ export class StiTestProcessesService {
                 'Kết quả xét nghiệm đã sẵn sàng',
             [StiTestProcessStatus.RESULT_DELIVERED]:
                 'Đã giao kết quả xét nghiệm',
-            [StiTestProcessStatus.CONSULTATION_REQUIRED]:
-                'Cần tư vấn thêm về kết quả',
             [StiTestProcessStatus.COMPLETED]:
                 'Quá trình xét nghiệm đã hoàn thành',
             [StiTestProcessStatus.CANCELLED]: 'Xét nghiệm đã bị hủy',

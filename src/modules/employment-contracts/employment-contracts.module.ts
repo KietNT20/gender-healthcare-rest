@@ -1,5 +1,7 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { QUEUE_NAMES } from 'src/constant';
 import { ContractFilesModule } from '../contract-files/contract-files.module';
 import { FilesModule } from '../files/files.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -15,6 +17,9 @@ import { EmploymentContract } from './entities/employment-contract.entity';
         FilesModule,
         ContractFilesModule,
         NotificationsModule,
+        BullModule.registerQueue({
+            name: QUEUE_NAMES.NOTIFICATION_QUEUE,
+        }),
     ],
     controllers: [EmploymentContractsController],
     providers: [EmploymentContractsService, EmploymentContractJobsService],

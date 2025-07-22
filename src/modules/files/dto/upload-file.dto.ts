@@ -144,7 +144,9 @@ export class TestUploadDto {
     })
     @IsOptional()
     @IsString()
-    @Transform(({ value }) => value || 'Test upload to AWS S3')
+    @Transform(
+        ({ value }: { value: string }) => value || 'Test upload to AWS S3',
+    )
     description: string = 'Test upload to AWS S3';
 
     @ApiPropertyOptional({

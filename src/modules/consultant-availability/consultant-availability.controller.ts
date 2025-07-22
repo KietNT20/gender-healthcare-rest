@@ -3,7 +3,6 @@ import {
     Controller,
     Delete,
     Get,
-    HttpStatus,
     Param,
     ParseUUIDPipe,
     Post,
@@ -18,7 +17,6 @@ import {
     ApiForbiddenResponse,
     ApiOkResponse,
     ApiOperation,
-    ApiResponse,
     ApiTags,
     ApiUnauthorizedResponse,
 } from '@nestjs/swagger';

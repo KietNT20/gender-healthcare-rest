@@ -91,25 +91,28 @@ export class PaymentCallbackService {
         try {
             const paymentInfo =
                 await this.payOSService.getPaymentLinkInformation(orderCode);
-            if (paymentInfo.status === PayOSPaymentStatus.PAID) {
+            if (paymentInfo.status === 'PAID') {
                 await this.processSuccessfulPayment(payment, { paymentInfo });
                 return this.paymentValidationService.createRedirectResponse(
                     successUrl,
                     { code: '00', status: 'PAID' },
                 );
-            } else if (paymentInfo.status === PayOSPaymentStatus.CANCELLED) {
+            } else if (paymentInfo.status === 'CANCELLED') {
                 return this.paymentValidationService.createRedirectResponse(
                     cancelUrl,
                     { code: '01', status: 'CANCELLED' }, // 01 = FAILED
                 );
-            } else if (paymentInfo.status === PayOSPaymentStatus.PROCESSING) {
+            } else if (paymentInfo.status === 'PROCESSING') {
                 return this.paymentValidationService.createRedirectResponse(
                     `${defaultFrontendDomain}/payment/processing?orderId=${orderCode}`,
                     { code: '01', status: 'PROCESSING' }, // 01 = FAILED (chưa thành công)
                 );
             }
         } catch (error) {
-            this.logger.error('Callback verification failed:', error.message);
+            this.logger.error(
+                'Callback verification failed:',
+                error instanceof Error ? error.stack : String(error),
+            );
         }
 
         // Mặc định chuyển về trang lỗi nếu không xác định được
@@ -152,12 +155,12 @@ export class PaymentCallbackService {
                     orderCode.toString(),
                 );
 
-            if (paymentInfo.status === PayOSPaymentStatus.PAID) {
+            if (paymentInfo.status === 'PAID') {
                 await this.processSuccessfulPayment(payment, {
                     webhookData,
                     paymentInfo,
                 });
-            } else if (paymentInfo.status === PayOSPaymentStatus.CANCELLED) {
+            } else if (paymentInfo.status === 'CANCELLED') {
                 await this.processCancelledPayment(payment, {
                     reason:
                         paymentInfo.cancellationReason ||
@@ -166,7 +169,7 @@ export class PaymentCallbackService {
                     webhookData,
                     paymentInfo,
                 });
-            } else if (paymentInfo.status === PayOSPaymentStatus.PROCESSING) {
+            } else if (paymentInfo.status === 'PROCESSING') {
                 // Payment is still being processed, update gateway response but keep payment pending
                 await this.processProcessingPayment(payment, {
                     webhookData,
@@ -187,12 +190,11 @@ export class PaymentCallbackService {
             return { success: true, message: 'Webhook processed successfully' };
         } catch (error) {
             console.error(
-                `Webhook processing error: ${error.message}`,
-                error.stack,
+                `Webhook processing error: ${error instanceof Error ? error.message : String(error)}`,
             );
             if (error instanceof NotFoundException) throw error;
             throw new InternalServerErrorException(
-                `Webhook processing failed: ${error.message}`,
+                `Webhook processing failed: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
     }
@@ -232,7 +234,7 @@ export class PaymentCallbackService {
             );
         } catch (payosError) {
             console.warn(
-                `Could not cancel on PayOS for order ${payment.invoiceNumber}, but proceeding to cancel in local system. Error: ${payosError.message}`,
+                `Could not cancel on PayOS for order ${payment.invoiceNumber}, but proceeding to cancel in local system. Error: ${payosError instanceof Error ? payosError.message : String(payosError)}`,
             );
         }
 

@@ -35,6 +35,7 @@ export enum NotificationType {
     OVULATION = 'ovulation',
     PERIOD_START = 'period_start',
     FERTILE_WINDOW = 'fertile_window',
+    IRREGULAR_CYCLE_ALERT = 'irregular_cycle_alert',
 
     // Contraceptive Notifications
     CONTRACEPTIVE = 'contraceptive',
@@ -104,7 +105,7 @@ export class NotificationProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(
                 `Failed to process notification job ${job.id}:`,
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
             throw error; // Ném lỗi để BullMQ có thể retry job
         }
@@ -186,15 +187,22 @@ export class NotificationProcessor extends WorkerHost {
                 case NotificationType.PROFILE_APPROVED:
                     await this.mailService.sendConsultantApprovalEmail(
                         email,
-                        context.userName,
+                        context.userName as string,
                     );
                     break;
 
                 case NotificationType.PROFILE_REJECTED:
                     await this.mailService.sendConsultantRejectionEmail(
                         email,
-                        context.userName,
-                        context.reason,
+                        context.userName as string,
+                        context.reason as string,
+                    );
+                    break;
+
+                case NotificationType.IRREGULAR_CYCLE_ALERT:
+                    // Chỉ gửi in-app notification
+                    this.logger.log(
+                        `In-app only notification for irregular cycle alert to user ${data.userId}`,
                     );
                     break;
 
@@ -213,7 +221,7 @@ export class NotificationProcessor extends WorkerHost {
 
                 default:
                     this.logger.warn(
-                        `No email handler for notification type: ${type}`,
+                        `No email handler for notification type: ${type as NotificationType}`,
                     );
             }
         } catch (error) {

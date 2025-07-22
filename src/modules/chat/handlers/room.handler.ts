@@ -6,7 +6,6 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { RedisClientType } from 'redis';
-import { Server } from 'socket.io';
 import { ChatService } from '../chat.service';
 import {
     CHAT_EVENTS,
@@ -59,7 +58,7 @@ export class RoomHandler {
             }
 
             // Join new room
-            client.join(`${ROOM_PATTERNS.QUESTION_ROOM}${questionId}`);
+            await client.join(`${ROOM_PATTERNS.QUESTION_ROOM}${questionId}`);
             client.questionId = questionId;
 
             // Update Redis: Add user to question and track user's rooms
@@ -109,7 +108,7 @@ export class RoomHandler {
         } catch (error) {
             this.logger.error(
                 `Failed to join question ${questionId}:`,
-                error.message,
+                error instanceof Error ? error.message : String(error),
             );
             throw error;
         }
@@ -126,7 +125,7 @@ export class RoomHandler {
         if (!client.user) return;
 
         try {
-            client.leave(`${ROOM_PATTERNS.QUESTION_ROOM}${questionId}`);
+            await client.leave(`${ROOM_PATTERNS.QUESTION_ROOM}${questionId}`);
 
             // Remove from Redis tracking
             const multi = this.redisClient.multi();
@@ -178,7 +177,7 @@ export class RoomHandler {
         }
     }
 
-    async removeUserFromAllRooms(userId: string, server: Server) {
+    async removeUserFromAllRooms(userId: string) {
         try {
             const userRoomsKey = `${REDIS_KEYS.USER_ROOMS}${userId}`;
             const userRooms = await this.redisClient.sMembers(userRoomsKey);

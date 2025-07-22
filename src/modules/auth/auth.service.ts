@@ -14,6 +14,7 @@ import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { JwtPayload } from './interfaces';
 import { HashingProvider } from './providers/hashing.provider';
 
 @Injectable()
@@ -89,12 +90,11 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        // Find user by email
         const user = await this.usersService.findByEmailWithPassword(
             loginDto.email,
         );
         if (!user) {
-            throw new UnauthorizedException('Tài khoản không tồn tại');
+            throw new UnauthorizedException('Không tìm thấy tài khoản của bạn');
         }
 
         // Check if account is active
@@ -103,25 +103,22 @@ export class AuthService {
         }
 
         if (!user.password) {
-            throw new BadRequestException('Password not found');
+            throw new BadRequestException('Vui lòng nhập mật khẩu');
         }
 
-        // Verify password
         const isPasswordValid = await this.hashingProvider.comparePassword(
             loginDto.password,
             user.password,
         );
+
         if (!isPasswordValid) {
-            // Increment login attempts
             await this.usersService.incrementLoginAttempts(user.id);
             throw new UnauthorizedException(
-                'Email hoặc mật khẩu không chính xác',
+                'Mật khẩu không chính xác, vui lòng thử lại.',
             );
         }
 
-        // Reset login attempts on successful login
         await this.usersService.resetLoginAttempts(user.id);
-
         // Update last login
         await this.usersService.updateLastLogin(user.id);
 
@@ -134,7 +131,7 @@ export class AuthService {
         });
 
         // Generate tokens
-        const payload = {
+        const payload: JwtPayload = {
             sub: user.id,
             email: user.email,
             role: user.role.name,
@@ -331,7 +328,7 @@ export class AuthService {
 
     async refreshToken(refreshToken: string) {
         try {
-            const payload = this.jwtService.verify(refreshToken, {
+            const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
             });
 
@@ -362,7 +359,7 @@ export class AuthService {
                 accessToken,
                 newRefreshToken,
             };
-        } catch (error) {
+        } catch {
             throw new UnauthorizedException('Refresh token không hợp lệ');
         }
     }
@@ -386,7 +383,7 @@ export class AuthService {
 
     async verifyToken(token: string) {
         try {
-            const payload = this.jwtService.verify(token);
+            const payload = this.jwtService.verify<JwtPayload>(token);
             const user = await this.usersService.findOne(payload.sub);
 
             if (!user) {
@@ -401,7 +398,7 @@ export class AuthService {
                 isActive: user.isActive,
                 emailVerified: user.emailVerified,
             };
-        } catch (error) {
+        } catch {
             throw new UnauthorizedException('Invalid token');
         }
     }

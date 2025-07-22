@@ -54,7 +54,7 @@ export class ConsultantScheduleCronService {
                         successCount++;
                     } catch (error) {
                         this.logger.error(
-                            `Lỗi khi tạo lịch cho consultant ${profile.id}: ${error.message}`,
+                            `Lỗi khi tạo lịch cho consultant ${profile.id}: ${error instanceof Error ? error.message : String(error)}`,
                         );
                         errorCount++;
                     }
@@ -70,8 +70,8 @@ export class ConsultantScheduleCronService {
             );
         } catch (error) {
             this.logger.error(
-                `Lỗi trong job tự động tạo lịch: ${error.message}`,
-                error.stack,
+                `Lỗi trong job tự động tạo lịch: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     } /**
@@ -117,7 +117,7 @@ export class ConsultantScheduleCronService {
                     }
                 } catch (error) {
                     this.logger.error(
-                        `Lỗi khi dọn dẹp lịch cho consultant ${profile.id}: ${error.message}`,
+                        `Lỗi khi dọn dẹp lịch cho consultant ${profile.id}: ${error instanceof Error ? error.message : String(error)}`,
                     );
                 }
             }
@@ -125,8 +125,8 @@ export class ConsultantScheduleCronService {
             this.logger.log(`Đã dọn dẹp ${cleanedCount} lịch cũ`);
         } catch (error) {
             this.logger.error(
-                `Lỗi trong job dọn dẹp lịch cũ: ${error.message}`,
-                error.stack,
+                `Lỗi trong job dọn dẹp lịch cũ: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -160,7 +160,7 @@ export class ConsultantScheduleCronService {
             this.logger.log(`Đã làm mới lịch cho consultant ${consultantId}`);
         } catch (error) {
             this.logger.error(
-                `Lỗi khi làm mới lịch cho consultant ${consultantId}: ${error.message}`,
+                `Lỗi khi làm mới lịch cho consultant ${consultantId}: ${error instanceof Error ? error.message : String(error)}`,
             );
             throw error;
         }

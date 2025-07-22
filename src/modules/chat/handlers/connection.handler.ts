@@ -89,7 +89,7 @@ export class ConnectionHandler {
             }
         } catch (error) {
             this.logger.error(
-                `Connection failed for socket ${client.id}: ${error.message}`,
+                `Connection failed for socket ${client.id}: ${error instanceof Error ? error.message : String(error)}`,
             );
             client.emit('error', { message: getWsErrorMessage(error) });
             client.disconnect(true);
@@ -168,7 +168,9 @@ export class ConnectionHandler {
             const presenceData = await this.redisClient.get(
                 `${REDIS_KEYS.USER_PRESENCE}${userId}`,
             );
-            return presenceData ? JSON.parse(presenceData) : null;
+            return presenceData
+                ? (JSON.parse(presenceData) as UserPresence)
+                : null;
         } catch (error) {
             this.logger.error('Error getting user presence:', error);
             return null;

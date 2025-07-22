@@ -19,6 +19,7 @@ export interface UploadResult {
     size: number;
     contentType: string;
     etag?: string;
+    isPublic: boolean;
 }
 
 export interface FileUploadDto {

@@ -1,16 +1,16 @@
 import {
+    BadRequestException,
     Injectable,
     NotFoundException,
-    BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { PaymentStatusType } from 'src/enums';
+import { IsNull, Repository } from 'typeorm';
+import { Service } from '../services/entities/service.entity';
+import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
 import { CreatePackageServiceUsageDto } from './dto/create-package-service-usage.dto';
 import { UpdatePackageServiceUsageDto } from './dto/update-package-service-usage.dto';
 import { PackageServiceUsage } from './entities/package-service-usage.entity';
-import { UserPackageSubscription } from '../user-package-subscriptions/entities/user-package-subscription.entity';
-import { Service } from '../services/entities/service.entity';
-import { PaymentStatusType } from 'src/enums';
 
 @Injectable()
 export class PackageServiceUsageService {
@@ -131,8 +131,8 @@ export class PackageServiceUsageService {
         );
     }
 
-    async remove(id: string) {
-        const packageServiceUsage = await this.findOne(id);
+    async remove(id: string): Promise<{ message: string }> {
+        await this.findOne(id);
         await this.packageServiceUsageRepository.softDelete(id);
         return { message: 'Package service usage deleted successfully' };
     }

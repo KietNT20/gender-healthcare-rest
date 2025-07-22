@@ -1,5 +1,5 @@
-import { IsUUID, IsOptional, IsBoolean } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID } from 'class-validator';
 
 export class CreateUserPackageSubscriptionDto {
     @ApiProperty({

@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
 import { MailService } from 'src/modules/mail/mail.service';
+import { CreateNotificationDto } from 'src/modules/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
 
 @Processor(QUEUE_NAMES.CONSULTANT_REGISTRATION_NOTIFICATION)
@@ -30,7 +31,15 @@ export class ConsultantRegistrationNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendNewProfilePending(job: Job) {
-        const { notificationData, emailData } = job.data;
+        const { notificationData, emailData } = job.data as {
+            notificationData: CreateNotificationDto;
+            emailData: {
+                to: string;
+                adminName: string;
+                consultantName: string;
+                reviewUrl: string;
+            };
+        };
         try {
             await this.notificationsService.create(notificationData);
             await this.mailService.sendNewProfilePendingReviewEmail(

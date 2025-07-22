@@ -11,7 +11,7 @@ import { Repository } from 'typeorm';
 import { Document } from '../documents/entities/document.entity';
 import { AwsS3Service } from './aws-s3.service';
 import { UploadPublicPdfMetadataDto } from './dto/upload-file.dto';
-import { FileResult, UploadPublicPdfOptions } from './interfaces';
+import { FileResult, UploadPublicPdfOptions, UploadResult } from './interfaces';
 
 @Injectable()
 export class PublicPdfService {
@@ -280,7 +280,7 @@ export class PublicPdfService {
     private async uploadToS3(
         file: Express.Multer.File,
         fileKey: string,
-    ): Promise<any> {
+    ): Promise<UploadResult> {
         return this.s3Service.uploadFile(file.buffer, fileKey, file.mimetype, {
             forcePublic: true, // Force upload to public bucket
             metadata: {
@@ -294,7 +294,7 @@ export class PublicPdfService {
         file: Express.Multer.File;
         fileKey: string;
         fileHash: string;
-        uploadResult: any;
+        uploadResult: UploadResult;
         entityType: string;
         entityId: string;
         description?: string;

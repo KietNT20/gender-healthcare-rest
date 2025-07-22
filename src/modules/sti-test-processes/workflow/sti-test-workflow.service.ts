@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { StiTestProcessResponseDto } from '../dto/sti-test-process-response.dto';
 import { ValidationDataDto } from '../dto/validation-data.dto';
 import { StiTestProcess } from '../entities/sti-test-process.entity';
-import { StiTestProcessStatus } from '../enums';
+import { DeliveryMethod, StiTestProcessStatus } from '../enums';
 import { StiTestProcessesService } from '../sti-test-processes.service';
 
 export interface WorkflowStep {
@@ -111,7 +111,6 @@ export class StiTestWorkflowService {
                     status: StiTestProcessStatus.RESULT_DELIVERED,
                     description: 'Kết quả đã được giao cho bệnh nhân',
                     nextSteps: [
-                        StiTestProcessStatus.CONSULTATION_REQUIRED,
                         StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
                         StiTestProcessStatus.COMPLETED,
                     ],
@@ -120,6 +119,20 @@ export class StiTestWorkflowService {
                         'Xác nhận giao kết quả',
                     ],
                     estimatedDuration: '0',
+                },
+            ],
+            [
+                StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
+                {
+                    name: 'Đã lên lịch theo dõi',
+                    status: StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
+                    description: 'Đã lên lịch các cuộc hẹn theo dõi cần thiết',
+                    nextSteps: [StiTestProcessStatus.COMPLETED],
+                    requirements: [
+                        'Lịch theo dõi được xác nhận',
+                        'Hướng dẫn điều trị',
+                    ],
+                    estimatedDuration: '1',
                 },
             ],
             [
@@ -138,20 +151,6 @@ export class StiTestWorkflowService {
                         'Lịch tư vấn được sắp xếp',
                     ],
                     estimatedDuration: '24-48',
-                },
-            ],
-            [
-                StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
-                {
-                    name: 'Đã lên lịch theo dõi',
-                    status: StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
-                    description: 'Đã lên lịch các cuộc hẹn theo dõi cần thiết',
-                    nextSteps: [StiTestProcessStatus.COMPLETED],
-                    requirements: [
-                        'Lịch theo dõi được xác nhận',
-                        'Hướng dẫn điều trị',
-                    ],
-                    estimatedDuration: '1',
                 },
             ],
             [
@@ -245,7 +244,7 @@ export class StiTestWorkflowService {
         }
 
         // Thực hiện validation cho bước mới (nếu cần)
-        await this.validateTransition(
+        this.validateTransition(
             currentProcess.status,
             newStatus,
             validationData,
@@ -261,11 +260,11 @@ export class StiTestWorkflowService {
     /**
      * Validation cho việc chuyển đổi trạng thái
      */
-    private async validateTransition(
+    private validateTransition(
         currentStatus: StiTestProcessStatus,
         newStatus: StiTestProcessStatus,
         validationData?: ValidationDataDto,
-    ): Promise<void> {
+    ): void {
         const targetStep = this.workflow.get(newStatus);
         if (!targetStep) return;
 
@@ -294,10 +293,6 @@ export class StiTestWorkflowService {
 
             case StiTestProcessStatus.RESULT_DELIVERED:
                 this.validateResultDelivered(validationData);
-                break;
-
-            case StiTestProcessStatus.CONSULTATION_REQUIRED:
-                this.validateConsultationRequired(validationData);
                 break;
 
             case StiTestProcessStatus.FOLLOW_UP_SCHEDULED:
@@ -453,7 +448,7 @@ export class StiTestWorkflowService {
     private validateSpecialFormats(validationData?: ValidationDataDto): void {
         // Validate email format if delivery method is email
         if (
-            validationData?.deliveryMethod === 'email' &&
+            validationData?.deliveryMethod === DeliveryMethod.EMAIL &&
             validationData?.deliveredBy
         ) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -1,10 +1,13 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { QUEUE_NAMES } from 'src/constant';
+import { TestResultDetails } from '../mail/interfaces';
 import { MailService } from '../mail/mail.service';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
-@Processor('sti-test-process-notification')
+@Processor(QUEUE_NAMES.STI_TEST_PROCESS_NOTIFICATION)
 @Injectable()
 export class StiTestProcessNotificationProcessor extends WorkerHost {
     private readonly logger = new Logger(
@@ -32,7 +35,9 @@ export class StiTestProcessNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendNotification(job: Job) {
-        const { notificationData } = job.data;
+        const { notificationData } = job.data as {
+            notificationData: CreateNotificationDto;
+        };
         try {
             await this.notificationsService.create(notificationData);
             this.logger.log(
@@ -48,7 +53,10 @@ export class StiTestProcessNotificationProcessor extends WorkerHost {
     }
 
     private async handleSendResultEmail(job: Job) {
-        const { email, data } = job.data;
+        const { email, data } = job.data as {
+            email: string;
+            data: TestResultDetails;
+        };
         try {
             await this.mailService.sendTestResultNotification(email, data);
             this.logger.log(`Sent STI result email to ${email}`);

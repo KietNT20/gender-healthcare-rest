@@ -161,7 +161,7 @@ export class TestResultsService {
             await queryRunner.commitTransaction();
 
             // 5. Send notifications (after transaction commits)
-            this.sendResultNotifications(user, savedTestResult, priority);
+            await this.sendResultNotifications(user, savedTestResult, priority);
 
             return savedTestResult;
         } catch (error) {
@@ -379,7 +379,7 @@ export class TestResultsService {
             };
         } catch (error) {
             throw new BadRequestException(
-                `Lỗi khi gửi thông báo: ${error.message}`,
+                `Lỗi khi gửi thông báo: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
     }

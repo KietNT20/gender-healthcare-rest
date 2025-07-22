@@ -25,10 +25,10 @@ import { BlogsService } from './blogs.service';
 import { BlogQueryDto } from './dto/blog-query.dto';
 import { CreateBlogImageDTO } from './dto/create-blog-image.dto';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { GetBlogMonthYear } from './dto/get-blog.dto';
 import { PublishBlogDto } from './dto/publish-blog.dto';
 import { ReviewBlogDto } from './dto/review-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { GetBlogMonthYear } from './dto/get-blog.dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -242,7 +242,7 @@ export class BlogsController {
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
     ) {
-        return this.blogsService.submitForReview(id, currentUser.id);
+        return this.blogsService.submitForReview(id, currentUser);
     }
 
     @Patch(':id/review')
@@ -338,6 +338,6 @@ export class BlogsController {
         @Param('id', ParseUUIDPipe) id: string,
         @CurrentUser() currentUser: User,
     ) {
-        return this.blogsService.archiveBlog(id, currentUser.id);
+        return this.blogsService.archiveBlog(id, currentUser);
     }
 }

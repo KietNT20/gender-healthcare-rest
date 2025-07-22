@@ -15,18 +15,9 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { THIRTY_DAYS } from 'src/constant';
 import awsConfig from './config/aws.config';
-
-export interface UploadResult {
-    key: string;
-    url: string;
-    cloudFrontUrl: string;
-    bucket: string;
-    size: number;
-    contentType: string;
-    etag?: string;
-    isPublic: boolean;
-}
+import { UploadResult } from './interfaces';
 
 export interface FileMetadata {
     size: number;
@@ -290,8 +281,11 @@ export class AwsS3Service {
                 );
 
                 return buffer;
-            } catch (error) {
+            } catch {
                 // Continue to next bucket if file not found
+                this.logger.warn(
+                    `File not found in bucket ${bucketConfig.name} for key: ${key}`,
+                );
                 continue;
             }
         }
@@ -326,8 +320,11 @@ export class AwsS3Service {
                 );
                 deleted = true;
                 break; // Stop after successful deletion
-            } catch (error) {
+            } catch {
                 // Continue to next bucket
+                this.logger.warn(
+                    `File not found in bucket ${bucketConfig.name} for deletion: ${key}`,
+                );
                 continue;
             }
         }
@@ -381,8 +378,11 @@ export class AwsS3Service {
                     bucket: bucketConfig.name,
                     isPublic: bucketConfig.isPublic,
                 };
-            } catch (error) {
+            } catch {
                 // Continue to next bucket
+                this.logger.warn(
+                    `File metadata not found in bucket ${bucketConfig.name} for key: ${key}`,
+                );
                 continue;
             }
         }
@@ -395,7 +395,10 @@ export class AwsS3Service {
     /**
      * Generate signed URL for temporary access (mainly for private files)
      */
-    async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+    async getSignedUrl(
+        key: string,
+        expiresIn: number = THIRTY_DAYS,
+    ): Promise<string> {
         // First check if file is in public bucket
         try {
             const publicBucket = this.getBucketConfig(key, {
@@ -411,8 +414,11 @@ export class AwsS3Service {
             // File exists in public bucket, return direct URL
             this.logger.log(`Returning public URL for ${key}`);
             return this.getCloudFrontUrl(key, publicBucket);
-        } catch (error) {
+        } catch {
             // File not in public bucket, try private bucket with signed URL
+            this.logger.log(
+                `File not found in public bucket, generating signed URL for ${key}`,
+            );
         }
 
         try {
@@ -448,7 +454,7 @@ export class AwsS3Service {
         try {
             await this.getFileMetadata(key);
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     }
@@ -591,7 +597,10 @@ export class AwsS3Service {
     /**
      * Get public URL for public files, signed URL for private files
      */
-    async getAccessUrl(key: string, expiresIn: number = 3600): Promise<string> {
+    async getAccessUrl(
+        key: string,
+        expiresIn: number = THIRTY_DAYS,
+    ): Promise<string> {
         return this.getSignedUrl(key, expiresIn);
     }
 }

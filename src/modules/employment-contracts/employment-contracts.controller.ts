@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     ParseUUIDPipe,
+    Patch,
     Post,
     Put,
     UploadedFile,
@@ -46,6 +47,13 @@ export class EmploymentContractsController {
         return this.employmentContractsService.create(
             createEmploymentContractDto,
         );
+    }
+
+    @Get()
+    @ApiOperation({ summary: 'Get all employment contracts' })
+    @ResponseMessage('Contracts retrieved successfully.')
+    findAll() {
+        return this.employmentContractsService.findAll();
     }
 
     @Post(':id/attach-file')
@@ -90,11 +98,14 @@ export class EmploymentContractsController {
         return this.employmentContractsService.renew(id, renewalData, file);
     }
 
-    @Get()
-    @ApiOperation({ summary: 'Get all employment contracts' })
-    @ResponseMessage('Contracts retrieved successfully.')
-    findAll() {
-        return this.employmentContractsService.findAll();
+    @Patch(':id/terminate')
+    @ApiOperation({ summary: 'Terminate an employment contract' })
+    @ApiOkResponse({
+        description: 'The employment contract has been terminated.',
+    })
+    @ResponseMessage('Contract terminated successfully.')
+    terminate(@Param('id', ParseUUIDPipe) id: string) {
+        return this.employmentContractsService.terminate(id);
     }
 
     @Get(':id')

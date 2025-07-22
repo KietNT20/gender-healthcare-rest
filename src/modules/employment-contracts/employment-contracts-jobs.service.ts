@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
 import { ContractStatusType } from 'src/enums';
-import { Between, LessThan, Repository } from 'typeorm';
+import { Between, LessThan, Not, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { EmploymentContract } from './entities/employment-contract.entity';
 
@@ -68,7 +68,7 @@ export class EmploymentContractJobsService {
         } catch (error) {
             this.logger.error(
                 'Đã xảy ra lỗi khi xử lý hợp đồng hết hạn:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -119,29 +119,56 @@ export class EmploymentContractJobsService {
                 },
             );
 
-            const unActiveUsers = await this.userRepository.find({
-                where: {
-                    employmentContracts: {
-                        status: ContractStatusType.TERMINATED,
-                    },
-                },
-            });
+            // Find users whose ALL employment contracts are TERMINATED
+            // Step 1: Find user IDs who have contracts just terminated
+            const affectedUserIds = [
+                ...new Set(
+                    contractsToTerminate.map((c) => c.user?.id).filter(Boolean),
+                ),
+            ];
 
-            await this.userRepository.update(
-                unActiveUsers.map((user) => user.id),
-                {
+            if (affectedUserIds.length === 0) {
+                this.logger.log(
+                    'Không có người dùng nào bị ảnh hưởng để kiểm tra trạng thái hợp đồng.',
+                );
+                this.logger.log(
+                    `Đã chấm dứt thành công ${updateResult.affected} hợp đồng.`,
+                );
+                return;
+            }
+
+            // Step 2: For each user, check if they have any non-terminated contracts
+            const usersToDeactivate: string[] = [];
+            for (const userId of affectedUserIds) {
+                const nonTerminatedCount =
+                    await this.employmentContractRepository.count({
+                        where: {
+                            user: { id: userId },
+                            status: Not(ContractStatusType.TERMINATED),
+                        },
+                    });
+                if (nonTerminatedCount === 0) {
+                    usersToDeactivate.push(userId);
+                }
+            }
+
+            if (usersToDeactivate.length > 0) {
+                await this.userRepository.update(usersToDeactivate, {
                     isActive: false,
                     updatedAt: new Date(),
-                },
-            );
-
-            this.logger.log(
-                `Đã chấm dứt thành công ${updateResult.affected} hợp đồng.`,
-            );
+                });
+                this.logger.log(
+                    `Đã chấm dứt thành công ${updateResult.affected} hợp đồng và vô hiệu hóa ${usersToDeactivate.length} người dùng.`,
+                );
+            } else {
+                this.logger.log(
+                    `Đã chấm dứt thành công ${updateResult.affected} hợp đồng. Không có người dùng nào bị vô hiệu hóa.`,
+                );
+            }
         } catch (error) {
             this.logger.error(
                 'Đã xảy ra lỗi khi xử lý chấm dứt hợp đồng:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }
@@ -223,7 +250,7 @@ export class EmploymentContractJobsService {
         } catch (error) {
             this.logger.error(
                 'Lỗi khi xử lý gửi thông báo hợp đồng sắp hết hạn:',
-                error.stack,
+                error instanceof Error ? error.stack : undefined,
             );
         }
     }

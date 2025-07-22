@@ -19,11 +19,6 @@ import { NotificationProcessor } from './processors/notification.processor';
     ],
     controllers: [NotificationsController],
     providers: [NotificationsService, NotificationProcessor],
-    exports: [
-        NotificationsService,
-        BullModule.registerQueue({
-            name: QUEUE_NAMES.NOTIFICATION_QUEUE,
-        }),
-    ],
+    exports: [NotificationsService],
 })
 export class NotificationsModule {}

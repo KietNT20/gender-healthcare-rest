@@ -104,6 +104,7 @@ export class BlogsService {
             autoPublish,
             ...blogData
         } = createBlogDto;
+
         const blog = this.blogRepository.create({
             ...blogData,
             slug,
@@ -633,8 +634,7 @@ export class BlogsService {
 
         return updatedBlog;
     }
-
-    async submitForReview(id: string, authorId: string): Promise<Blog> {
+    async submitForReview(id: string, currentUser: User): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
@@ -644,6 +644,18 @@ export class BlogsService {
 
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        // Authorization check: Only the blog author or Admin/Manager can submit for review
+        const isAuthor = blog.author.id === currentUser.id;
+        const isAdminOrManager =
+            currentUser.role?.name === RolesNameEnum.ADMIN ||
+            currentUser.role?.name === RolesNameEnum.MANAGER;
+
+        if (!isAuthor && !isAdminOrManager) {
+            throw new BadRequestException(
+                'Only the blog author or Admin/Manager can submit blogs for review',
+            );
         }
 
         if (blog.status !== ContentStatusType.DRAFT) {
@@ -666,7 +678,8 @@ export class BlogsService {
 
         return updatedBlog;
     }
-    async archiveBlog(id: string, userId: string): Promise<Blog> {
+
+    async archiveBlog(id: string, currentUser: User): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
@@ -676,6 +689,17 @@ export class BlogsService {
 
         if (!blog) {
             throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        // Authorization check: Only Admin/Manager can archive blogs
+        const isAdminOrManager =
+            currentUser.role?.name === RolesNameEnum.ADMIN ||
+            currentUser.role?.name === RolesNameEnum.MANAGER;
+
+        if (!isAdminOrManager) {
+            throw new BadRequestException(
+                'Only Admin/Manager can archive blogs',
+            );
         }
 
         await this.blogRepository.update(id, {

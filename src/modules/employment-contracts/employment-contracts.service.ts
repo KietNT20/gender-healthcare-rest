@@ -101,7 +101,7 @@ export class EmploymentContractsService {
         });
 
         // Step 2: Create the link using ContractFilesService.
-        this.contractFilesService.create({
+        await this.contractFilesService.create({
             contractId: contract.id,
             fileId: uploadedDocument.id,
             fileType: fileType,

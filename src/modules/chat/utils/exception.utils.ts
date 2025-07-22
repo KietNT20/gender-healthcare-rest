@@ -25,7 +25,9 @@ export function convertToWsException(error: any): WsException {
     }
 
     // For other errors, use the original message or a generic one
-    return new WsException(error.message || ERROR_MESSAGES.INTERNAL_ERROR);
+    return new WsException(
+        error instanceof Error ? error.message : ERROR_MESSAGES.INTERNAL_ERROR,
+    );
 }
 
 /**
@@ -47,7 +49,9 @@ export function getWsErrorMessage(error: any): string {
     }
 
     // For other errors, use the original message or a generic one
-    return error.message || ERROR_MESSAGES.INTERNAL_ERROR;
+    return error instanceof Error
+        ? error.message
+        : ERROR_MESSAGES.INTERNAL_ERROR;
 }
 
 /**

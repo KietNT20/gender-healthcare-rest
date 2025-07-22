@@ -97,10 +97,10 @@ import { UsersModule } from './modules/users/users.module';
         }),
         BullModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
+            useFactory: (configService: ConfigService) => ({
                 connection: {
                     host: configService.get('REDIS_HOST'),
-                    port: +configService.get('REDIS_PORT') || 6379,
+                    port: +configService.get('REDIS_PORT'),
                     password: configService.get('REDIS_PASSWORD'),
                     tls:
                         configService.get('NODE_ENV') === 'production'

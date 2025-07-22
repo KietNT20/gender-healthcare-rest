@@ -33,7 +33,7 @@ describe('MailService', () => {
     it('should send welcome email', async () => {
         await service.sendWelcomeEmail('test@example.com', 'Test User');
 
-        expect(mailerService.sendMail).toHaveBeenCalledWith({
+        expect(mailerService['sendMail']).toHaveBeenCalledWith({
             to: 'test@example.com',
             subject: 'Chào mừng bạn đến với Dịch vụ Y tế Giới tính',
             template: './welcome',

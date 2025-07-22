@@ -2,6 +2,7 @@
 export enum StiTestProcessStatus {
     ORDERED = 'ordered', // Đã đặt xét nghiệm
     SAMPLE_COLLECTION_SCHEDULED = 'sample_collection_scheduled', // Đã lên lịch lấy mẫu
+    CONSULTATION_REQUIRED = 'consultation_required', // Cần tư vấn thêm
     SAMPLE_COLLECTED = 'sample_collected', // Đã lấy mẫu
     PROCESSING = 'processing', // Đang xử lý/phân tích
     RESULT_READY = 'result_ready', // Kết quả đã sẵn sàng

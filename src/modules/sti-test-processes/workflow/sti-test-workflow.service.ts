@@ -93,7 +93,10 @@ export class StiTestWorkflowService {
                     status: StiTestProcessStatus.RESULT_READY,
                     description:
                         'Kết quả xét nghiệm đã hoàn thành và chờ giao cho bệnh nhân',
-                    nextSteps: [StiTestProcessStatus.RESULT_DELIVERED],
+                    nextSteps: [
+                        StiTestProcessStatus.RESULT_DELIVERED,
+                        StiTestProcessStatus.CONSULTATION_REQUIRED,
+                    ],
                     requirements: [
                         'Kết quả đã được kiểm tra',
                         'Báo cáo hoàn thành',
@@ -130,6 +133,24 @@ export class StiTestWorkflowService {
                         'Hướng dẫn điều trị',
                     ],
                     estimatedDuration: '1',
+                },
+            ],
+            [
+                StiTestProcessStatus.CONSULTATION_REQUIRED,
+                {
+                    name: 'Cần tư vấn',
+                    status: StiTestProcessStatus.CONSULTATION_REQUIRED,
+                    description:
+                        'Kết quả cần tư vấn thêm từ bác sĩ chuyên khoa',
+                    nextSteps: [
+                        StiTestProcessStatus.FOLLOW_UP_SCHEDULED,
+                        StiTestProcessStatus.COMPLETED,
+                    ],
+                    requirements: [
+                        'Bác sĩ tư vấn được chỉ định',
+                        'Lịch tư vấn được sắp xếp',
+                    ],
+                    estimatedDuration: '24-48',
                 },
             ],
             [

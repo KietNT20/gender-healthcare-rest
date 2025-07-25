@@ -4,6 +4,7 @@ import {
     Injectable,
     InternalServerErrorException,
     NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -134,14 +135,16 @@ export class UsersService {
             );
         }
 
-        const phoneExists = await this.userRepository.findOne({
-            where: { phone: createUserDto.phone },
-        });
+        if (createUserDto.phone) {
+            const phoneExists = await this.userRepository.findOne({
+                where: { phone: createUserDto.phone },
+            });
 
-        if (phoneExists) {
-            throw new ConflictException(
-                'Đã có tài khoản đăng ký với số điện thoại này',
-            );
+            if (phoneExists) {
+                throw new ConflictException(
+                    'Đã có tài khoản đăng ký với số điện thoại này',
+                );
+            }
         }
 
         // Hash password
@@ -441,7 +444,7 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new NotFoundException(
+            throw new UnauthorizedException(
                 'Không tìm thấy tài khoản với email này',
             );
         }
@@ -450,33 +453,6 @@ export class UsersService {
     }
 
     // Auth-related methods
-    async findByEmailWithPassword(email: string): Promise<User> {
-        const user = await this.userRepository.findOne({
-            where: { email: email.toLowerCase(), deletedAt: IsNull() },
-            relations: {
-                role: true,
-            },
-            select: {
-                id: true,
-                email: true,
-                password: true,
-                firstName: true,
-                lastName: true,
-                isActive: true,
-                emailVerified: true,
-                loginAttempts: true,
-            },
-        });
-
-        if (!user) {
-            throw new NotFoundException(
-                'Không tìm thấy người dùng với email này',
-            );
-        }
-
-        return user;
-    }
-
     async findByEmailVerificationToken(token: string): Promise<User> {
         const user = await this.userRepository.findOne({
             where: {
@@ -794,24 +770,28 @@ export class UsersService {
             throw new NotFoundException('Người dùng không tồn tại');
         }
 
-        const emailExists = await this.userRepository.findOneBy({
-            email: updateProfileDto.email,
-        });
+        if (updateProfileDto.email) {
+            const emailExists = await this.userRepository.findOneBy({
+                email: updateProfileDto.email,
+            });
 
-        if (emailExists && emailExists.id !== id) {
-            throw new ConflictException(
-                'Đã có tài khoản đăng ký với email này',
-            );
+            if (emailExists && emailExists.id !== id) {
+                throw new ConflictException(
+                    'Đã có tài khoản đăng ký với email này',
+                );
+            }
         }
 
-        const phoneExists = await this.userRepository.findOneBy({
-            phone: updateProfileDto.phone,
-        });
+        if (updateProfileDto.phone) {
+            const phoneExists = await this.userRepository.findOneBy({
+                phone: updateProfileDto.phone,
+            });
 
-        if (phoneExists && phoneExists.id !== id) {
-            throw new ConflictException(
-                'Đã có tài khoản đăng ký với số điện thoại này',
-            );
+            if (phoneExists && phoneExists.id !== id) {
+                throw new ConflictException(
+                    'Đã có tài khoản đăng ký với số điện thoại này',
+                );
+            }
         }
 
         // Update slug if firstName or lastName is being updated

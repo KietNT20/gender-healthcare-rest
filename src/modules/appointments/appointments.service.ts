@@ -610,6 +610,7 @@ export class AppointmentsService {
 
         if (updateDto.status && updateDto.status !== appointment.status) {
             this.validationService.validateStatusTransition(
+                appointment,
                 appointment.status,
                 updateDto.status,
             );

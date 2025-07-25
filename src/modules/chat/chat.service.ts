@@ -13,7 +13,7 @@ import {
     RolesNameEnum,
     SortOrder,
 } from 'src/enums';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, FindManyOptions, Not, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { FilesService } from '../files/files.service';
@@ -310,14 +310,17 @@ export class ChatService {
         }
 
         // Mark all unread messages as read (except own messages)
-        await this.messageRepository
-            .createQueryBuilder()
-            .update(Message)
-            .set({ isRead: true, updatedAt: new Date() })
-            .where('question.id = :questionId', { questionId })
-            .andWhere('sender.id != :userId', { userId })
-            .andWhere('isRead = false')
-            .execute();
+        await this.messageRepository.update(
+            {
+                question: { id: questionId },
+                sender: { id: Not(userId) },
+                isRead: false,
+            },
+            {
+                isRead: true,
+                updatedAt: new Date(),
+            },
+        );
     }
 
     /**
@@ -739,39 +742,41 @@ export class ChatService {
             throw new NotFoundException('User not found');
         }
 
-        let query = this.questionRepository
-            .createQueryBuilder('question')
-            .leftJoinAndSelect('question.user', 'user')
-            .leftJoinAndSelect('question.appointment', 'appointment')
-            .leftJoinAndSelect('appointment.consultant', 'consultant')
-            .orderBy('question.updatedAt', 'DESC');
+        const findOptions: FindManyOptions<Question> = {
+            relations: {
+                user: true,
+                appointment: {
+                    consultant: true,
+                },
+            },
+            order: {
+                updatedAt: SortOrder.DESC,
+            },
+            where: {},
+        };
 
         // For customers, only their own questions
         if (user.role?.name === RolesNameEnum.CUSTOMER) {
-            query = query.where('question.user.id = :userId', { userId });
+            findOptions.where = { user: { id: userId } };
         }
         // For consultants, only questions where they are the assigned consultant
         else if (user.role?.name === RolesNameEnum.CONSULTANT) {
-            query = query.where('appointment.consultant.id = :userId', {
-                userId,
-            });
+            findOptions.where = {
+                appointment: { consultant: { id: userId } },
+            };
         }
-        // For staff, managers, and admins, all questions
+        // For other roles (except staff/manager/admin), no access to any questions
         else if (
-            [
+            ![
                 RolesNameEnum.STAFF,
                 RolesNameEnum.MANAGER,
                 RolesNameEnum.ADMIN,
             ].includes(user.role?.name)
         ) {
-            // No additional filter needed - they can see all questions
-        }
-        // For other roles, no access to any questions
-        else {
             return [];
         }
 
-        return query.getMany();
+        return this.questionRepository.find(findOptions);
     }
 
     /**

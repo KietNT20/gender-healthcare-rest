@@ -787,13 +787,12 @@ export class ChatService {
             where: { appointment: { id: appointmentId } },
             relations: {
                 user: true,
-                appointment: true,
             },
         });
 
         if (!question) {
             throw new NotFoundException(
-                'Không tìm thấy câu hỏi của buổi tư vấn này',
+                'Chưa có phòng chat cho buổi tư vấn này',
             );
         }
 

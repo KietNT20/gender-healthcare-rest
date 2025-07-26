@@ -66,12 +66,3 @@ export const RESPONSE_STATUS = {
     SUCCESS: 'success',
     ERROR: 'error',
 } as const;
-
-// Message Types (if not already defined in enums)
-export const MESSAGE_TYPES = {
-    TEXT: 'text',
-    FILE: 'file',
-    IMAGE: 'image',
-    AUDIO: 'audio',
-    VIDEO: 'video',
-} as const;

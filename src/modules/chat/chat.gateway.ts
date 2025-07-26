@@ -12,6 +12,7 @@ import { Server } from 'socket.io';
 import { ConsultantProfile } from '../consultant-profiles/entities/consultant-profile.entity';
 import { CHAT_EVENTS, RESPONSE_STATUS } from './constants/chat.constants';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { ChatPaymentGuard } from './guards/chat-payment.guard';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
 import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
@@ -65,7 +66,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard)
+    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard, ChatPaymentGuard)
     @SubscribeMessage(CHAT_EVENTS.JOIN_QUESTION)
     async handleJoinQuestion(
         @MessageBody() data: JoinRoomData,

@@ -12,6 +12,7 @@ import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { Message } from './entities/message.entity';
 import { Question } from './entities/question.entity';
+import { ChatPaymentGuard } from './guards/chat-payment.guard';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
 import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
@@ -103,6 +104,7 @@ import { RedisHelperService } from './redis-helper.service';
         RedisWsThrottleGuard,
         WsJwtGuard,
         WsRoomAccessGuard,
+        ChatPaymentGuard,
         ConnectionHandler,
         RoomHandler,
         MessageHandler,

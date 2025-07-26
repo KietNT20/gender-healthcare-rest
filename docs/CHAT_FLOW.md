@@ -30,7 +30,7 @@ Content-Type: application/json
 ```json
 {
     "title": "Câu hỏi về sức khỏe sinh sản",
-    "content": "Tôi muốn tư vấn về...",
+    "content": "Tôi muốn tư vấn về..."
 }
 ```
 
@@ -72,7 +72,7 @@ Content-Type: application/json
 ```json
 {
     "content": "Xin chào, tôi cần hỗ trợ",
-    "type": "TEXT",
+    "type": "text", // text, file, image, public_pdf
     "questionId": "uuid-question-id"
 }
 ```
@@ -85,7 +85,7 @@ Content-Type: application/json
     "data": {
         "id": "uuid-message-id",
         "content": "Xin chào, tôi cần hỗ trợ",
-        "type": "TEXT",
+        "type": "text", // text, file, image, public_pdf
         "questionId": "uuid-question-id",
         "senderId": "uuid-user-id",
         "createdAt": "2025-06-30T10:05:00.000Z",
@@ -115,7 +115,7 @@ Content-Type: multipart/form-data
 ```
 file: <File> (image/document)
 content: "Đây là file báo cáo của tôi" (optional)
-type: "IMAGE" hoặc "FILE" (optional - auto-detect)
+type: "image" hoặc "file" (optional - auto-detect)
 ```
 
 **Response:**
@@ -126,7 +126,7 @@ type: "IMAGE" hoặc "FILE" (optional - auto-detect)
     "data": {
         "id": "uuid-message-id",
         "content": "image.jpg",
-        "type": "IMAGE",
+        "type": "image", // file, image, public_pdf
         "questionId": "uuid-question-id",
         "senderId": "uuid-user-id",
         "fileUrl": "https://storage.example.com/files/...",
@@ -167,7 +167,7 @@ description: "Kết quả xét nghiệm máu ngày 30/06/2025"
     "data": {
         "id": "uuid-message-id",
         "content": "report.pdf",
-        "type": "IMAGE",
+        "type": "image",
         "questionId": "uuid-question-id",
         "fileUrl": "https://public-bucket.example.com/pdfs/...",
         "description": "Kết quả xét nghiệm máu ngày 30/06/2025"
@@ -207,7 +207,7 @@ limit: 20 (default, max 100)
             {
                 "id": "uuid-message-id",
                 "content": "Xin chào",
-                "type": "TEXT",
+                "type": "text",
                 "senderId": "uuid-user-id",
                 "senderName": "Nguyễn Văn A",
                 "createdAt": "2025-06-30T10:00:00.000Z",
@@ -481,7 +481,7 @@ socket.on('user_left', (data) => {
 const messageData = {
     questionId: 'uuid-question-id',
     content: 'Hello from WebSocket!',
-    type: 'TEXT',
+    type: 'text',
 };
 
 socket.emit('send_message', messageData, (acknowledgement) => {
@@ -505,7 +505,7 @@ socket.on('new_message', (message) => {
 {
     "questionId": "uuid-question-id",
     "content": "Hello from WebSocket!",
-    "type": "TEXT"
+    "type": "text"
 }
 ```
 
@@ -517,7 +517,7 @@ socket.on('new_message', (message) => {
     "data": {
         "id": "uuid-message-id",
         "content": "Hello from WebSocket!",
-        "type": "TEXT",
+        "type": "text",
         "senderId": "uuid-user-id",
         "senderName": "Nguyễn Văn A",
         "questionId": "uuid-question-id",
@@ -678,7 +678,7 @@ class ChatClient {
         });
     }
 
-    sendMessage(questionId, content, type = 'TEXT') {
+    sendMessage(questionId, content, type = 'text') {
         return new Promise((resolve, reject) => {
             this.socket.emit(
                 'send_message',
@@ -730,7 +730,7 @@ Content-Type: application/json
 
 {
   "content": "Hello, this is a test message",
-  "type": "TEXT",
+  "type": "text",
   "questionId": "{{questionId}}"
 }
 ```
@@ -745,7 +745,7 @@ Content-Type: multipart/form-data
 # Form data:
 file: [select file]
 content: "This is my test file"
-type: "IMAGE"
+type: "image"
 ```
 
 ---
@@ -826,7 +826,7 @@ type: "IMAGE"
                     {
                         questionId,
                         content,
-                        type: 'TEXT',
+                        type: 'text',
                     },
                     (ack) => {
                         console.log('Send message response:', ack);
@@ -944,7 +944,7 @@ const ChatComponent = ({ token, questionId }) => {
             {
                 questionId,
                 content: newMessage,
-                type: 'TEXT',
+                type: 'text',
             },
             (ack) => {
                 if (ack.status === 'success') {
@@ -1077,7 +1077,7 @@ for (let i = 0; i < 10; i++) {
     socket.emit('send_message', {
         questionId: 'test-question',
         content: `Message ${i}`,
-        type: 'TEXT',
+        type: 'text',
     });
 }
 // Should be throttled after some requests
@@ -1422,3 +1422,4 @@ if (!allowedTypes.includes(file.type)) {
 ---
 
 _Tài liệu này được cập nhật dựa trên code thực tế của chat module. Hãy thử nghiệm các example trên để đảm bảo tích hợp frontend thành công._
+```

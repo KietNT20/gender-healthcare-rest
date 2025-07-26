@@ -90,9 +90,7 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        const user = await this.usersService.findByEmailWithPassword(
-            loginDto.email,
-        );
+        const user = await this.usersService.findByEmail(loginDto.email);
         if (!user) {
             throw new UnauthorizedException('Không tìm thấy tài khoản của bạn');
         }

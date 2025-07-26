@@ -3,7 +3,12 @@ import {
     ForbiddenException,
     Injectable,
 } from '@nestjs/common';
-import { AppointmentStatusType, RolesNameEnum } from 'src/enums';
+import {
+    AppointmentStatusType,
+    LocationTypeEnum,
+    PaymentStatusType,
+    RolesNameEnum,
+} from 'src/enums';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Appointment } from './entities/appointment.entity';
 
@@ -22,6 +27,10 @@ export class AppointmentValidationService {
     private readonly validTransitions: Partial<
         Record<AppointmentStatusType, AppointmentStatusType[]>
     > = {
+        [AppointmentStatusType.PENDING]: [
+            AppointmentStatusType.CONFIRMED,
+            AppointmentStatusType.CANCELLED,
+        ],
         [AppointmentStatusType.CONFIRMED]: [
             AppointmentStatusType.CHECKED_IN,
             AppointmentStatusType.CANCELLED,
@@ -78,11 +87,14 @@ export class AppointmentValidationService {
 
     /**
      * Kiểm tra xem việc chuyển từ trạng thái hiện tại sang trạng thái mới có hợp lệ không.
+     * Nếu chuyển sang CONFIRMED và appointment là online thì phải có payment COMPLETED.
+     * @param appointment - Đối tượng cuộc hẹn cần kiểm tra.
      * @param currentStatus - Trạng thái hiện tại của cuộc hẹn.
      * @param nextStatus - Trạng thái mới được yêu cầu.
      * @throws {BadRequestException} Nếu việc chuyển đổi không hợp lệ.
      */
     public validateStatusTransition(
+        appointment: Appointment,
         currentStatus: AppointmentStatusType,
         nextStatus: AppointmentStatusType,
     ): void {
@@ -94,6 +106,21 @@ export class AppointmentValidationService {
             throw new BadRequestException(
                 `Không thể chuyển trạng thái từ '${currentStatus}' sang '${nextStatus}'.`,
             );
+        }
+
+        // Nếu chuyển sang CONFIRMED và appointment là online thì phải có payment COMPLETED
+        if (
+            nextStatus === AppointmentStatusType.CONFIRMED &&
+            appointment.appointmentLocation === LocationTypeEnum.ONLINE
+        ) {
+            const totalPaid = (appointment.payments || [])
+                .filter((p) => p.status === PaymentStatusType.COMPLETED)
+                .reduce((sum, p) => sum + Number(p.amount), 0);
+            if (totalPaid < Number(appointment.fixedPrice)) {
+                throw new BadRequestException(
+                    `Lịch tư vấn online chỉ được xác nhận sau khi đã thanh toán đủ số tiền (${appointment.fixedPrice}). Hiện tại mới thanh toán: ${totalPaid}`,
+                );
+            }
         }
     }
 }

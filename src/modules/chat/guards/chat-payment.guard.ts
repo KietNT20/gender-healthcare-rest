@@ -45,24 +45,66 @@ export class ChatPaymentGuard implements CanActivate {
                 appointment.appointmentLocation === LocationTypeEnum.ONLINE &&
                 appointment.consultant
             ) {
+                // Validate fixed price
+                const fixedPrice = this.validateAndParseNumber(
+                    appointment.fixedPrice,
+                    'appointment.fixedPrice',
+                );
+
                 const payments = appointment.payments || [];
                 const totalPaid = payments
                     .filter(
                         (p: Payment) =>
                             p.status === PaymentStatusType.COMPLETED,
                     )
-                    .reduce(
-                        (sum: number, p: Payment) => sum + Number(p.amount),
-                        0,
-                    );
+                    .reduce((sum: number, p: Payment) => {
+                        const amount = this.validateAndParseNumber(
+                            p.amount,
+                            'payment.amount',
+                        );
+                        return sum + amount;
+                    }, 0);
 
-                if (totalPaid < Number(appointment.fixedPrice)) {
+                if (totalPaid < fixedPrice) {
                     throw new Error(
                         'Bạn cần thanh toán đủ số tiền trước khi có thể tham gia phòng chat. ' +
-                            `Số tiền cần thanh toán: ${appointment.fixedPrice}, đã thanh toán: ${totalPaid}`,
+                            `Số tiền cần thanh toán: ${fixedPrice}, đã thanh toán: ${totalPaid}`,
                     );
                 }
             }
         }
+    }
+
+    /**
+     * Validates and parses a number value, throwing an error if invalid
+     * @param value - The value to validate and parse
+     * @param fieldName - The name of the field for error messages
+     * @returns The parsed number
+     * @throws Error if the value is invalid, null, undefined, or NaN
+     */
+    private validateAndParseNumber(value: any, fieldName: string): number {
+        // Check for null or undefined
+        if (value === null || value === undefined) {
+            throw new Error(`${fieldName} is required but was ${value}`);
+        }
+
+        // Convert to number
+        const numValue = Number(value);
+
+        // Check if the result is NaN
+        if (isNaN(numValue)) {
+            throw new Error(
+                `${fieldName} must be a valid number, got: ${value}`,
+            );
+        }
+
+        // Check if the value is negative
+        if (numValue < 0) {
+            throw new Error(
+                `${fieldName} cannot be negative, got: ${numValue}`,
+            );
+        }
+
+        return numValue;
     }
 }

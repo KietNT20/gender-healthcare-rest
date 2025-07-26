@@ -770,29 +770,31 @@ export class UsersService {
             throw new NotFoundException('Người dùng không tồn tại');
         }
 
-        if (updateProfileDto.email) {
+        if (updateProfileDto.email && updateProfileDto.email !== user.email){
             const emailExists = await this.userRepository.findOneBy({
                 email: updateProfileDto.email,
             });
-
+    
             if (emailExists && emailExists.id !== id) {
                 throw new ConflictException(
                     'Đã có tài khoản đăng ký với email này',
                 );
             }
         }
+        
 
-        if (updateProfileDto.phone) {
+        if(updateProfileDto.phone && updateProfileDto.phone !== user.phone) {
             const phoneExists = await this.userRepository.findOneBy({
                 phone: updateProfileDto.phone,
             });
-
+    
             if (phoneExists && phoneExists.id !== id) {
                 throw new ConflictException(
                     'Đã có tài khoản đăng ký với số điện thoại này',
                 );
             }
         }
+        
 
         // Update slug if firstName or lastName is being updated
         let slug = user.slug;

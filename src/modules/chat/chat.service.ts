@@ -780,6 +780,27 @@ export class ChatService {
     }
 
     /**
+     * Get question by ID
+     */
+    async getQuestionById(questionId: string): Promise<Question> {
+        const question = await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: {
+                appointment: {
+                    payments: true,
+                    consultant: true,
+                },
+            },
+        });
+
+        if (!question) {
+            throw new NotFoundException('Room not found');
+        }
+
+        return question;
+    }
+
+    /**
      * Get question by appointment ID
      */
     async getQuestionByAppointmentId(appointmentId: string): Promise<Question> {
@@ -787,13 +808,12 @@ export class ChatService {
             where: { appointment: { id: appointmentId } },
             relations: {
                 user: true,
-                appointment: true,
             },
         });
 
         if (!question) {
             throw new NotFoundException(
-                'Không tìm thấy câu hỏi của buổi tư vấn này',
+                'Chưa có phòng chat cho buổi tư vấn này',
             );
         }
 

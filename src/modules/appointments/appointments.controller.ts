@@ -133,16 +133,6 @@ export class AppointmentsController {
         return this.appointmentsService.findAvailableSlots(findSlotsDto);
     }
 
-    @Get('/me/:id')
-    @ApiOperation({ summary: 'Get appointment details' })
-    @ResponseMessage('Successfully retrieved appointment details.')
-    findOne(
-        @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() currentUser: User,
-    ) {
-        return this.appointmentsService.findOne(id, currentUser);
-    }
-
     @Get('consultant/my-appointments')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.CONSULTANT])
@@ -164,6 +154,16 @@ export class AppointmentsController {
             currentUser,
             queryDto,
         );
+    }
+
+    @Get('/me/:id')
+    @ApiOperation({ summary: 'Get appointment details' })
+    @ResponseMessage('Successfully retrieved appointment details.')
+    findOne(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ) {
+        return this.appointmentsService.findOne(id, currentUser);
     }
 
     @Get(':id')

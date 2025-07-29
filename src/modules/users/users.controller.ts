@@ -52,19 +52,6 @@ export class UsersController {
         return this.usersService.create(createUserDto, actor?.id);
     }
 
-    @Get()
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Get all users with pagination and filters' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Users retrieved successfully',
-    })
-    @ResponseMessage('Users retrieved successfully')
-    findAll(@Query() userQueryDto: UserQueryDto) {
-        return this.usersService.findAll(userQueryDto);
-    }
-
     @Post('bulk')
     @UseGuards(RoleGuard)
     @Roles([RolesNameEnum.ADMIN])
@@ -78,15 +65,17 @@ export class UsersController {
         return this.usersService.createMany(createManyUsersDto);
     }
 
-    @Get('slug/:slug')
-    @ApiOperation({ summary: 'Get user by slug' })
+    @Get()
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Get all users with pagination and filters' })
     @ApiResponse({
         status: HttpStatus.OK,
-        description: 'User retrieved successfully',
+        description: 'Users retrieved successfully',
     })
-    @ResponseMessage('User retrieved successfully')
-    findBySlug(@Param('slug') slug: string) {
-        return this.usersService.findBySlug(slug);
+    @ResponseMessage('Users retrieved successfully')
+    findAll(@Query() userQueryDto: UserQueryDto) {
+        return this.usersService.findAll(userQueryDto);
     }
 
     @Get('me')
@@ -146,6 +135,17 @@ export class UsersController {
             user.id,
             updateConsentDto.healthDataConsent,
         );
+    }
+
+    @Get('slug/:slug')
+    @ApiOperation({ summary: 'Get user by slug' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User retrieved successfully',
+    })
+    @ResponseMessage('User retrieved successfully')
+    findBySlug(@Param('slug') slug: string) {
+        return this.usersService.findBySlug(slug);
     }
 
     @Get(':id')

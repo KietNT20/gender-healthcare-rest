@@ -62,46 +62,6 @@ export class TestResultsController {
     ) {}
 
     // Template endpoints
-    @Get('templates/:serviceType')
-    @ApiOperation({
-        summary: 'Get test result template by service type',
-        description:
-            'Lấy template chuẩn cho từng loại dịch vụ y tế để frontend sử dụng',
-    })
-    @ApiParam({
-        name: 'serviceType',
-        enum: ServiceType,
-        description: 'Type of medical service',
-    })
-    getTemplate(
-        @Param('serviceType') serviceType: ServiceType,
-    ): TestResultTemplateResponseDto {
-        const template =
-            this.testResultTemplateService.getTemplateByServiceType(
-                serviceType,
-            );
-        return {
-            template,
-            metadata: {
-                serviceType,
-                version: '1.0.0',
-                lastUpdated: new Date(),
-                requiredFields: [
-                    'serviceType',
-                    'testName',
-                    'results',
-                    'overallStatus',
-                ],
-                optionalFields: [
-                    'testCode',
-                    'sampleInfo',
-                    'summary',
-                    'recommendations',
-                ],
-            },
-        };
-    }
-
     @Post('validate')
     @ApiOperation({
         summary: 'Validate test result data against template',
@@ -150,7 +110,6 @@ export class TestResultsController {
         };
     }
 
-    // Regular test result endpoints
     @Post()
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
     @UseInterceptors(FileInterceptor('file'))
@@ -178,85 +137,6 @@ export class TestResultsController {
         );
     }
 
-    @Get('appointment/:appointmentId')
-    @ApiOperation({ summary: 'Get test result by appointment ID' })
-    findByAppointmentId(
-        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
-        @CurrentUser() user: User,
-    ) {
-        return this.testResultsService.findByAppointmentId(appointmentId, user);
-    }
-
-    @Get()
-    @ApiOperation({ summary: 'Get all test results' })
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    findAll() {
-        return this.testResultsService.findAll();
-    }
-
-    @Get(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Get a test result by ID' })
-    findOne(@Param('id') id: string) {
-        return this.testResultsService.findOne(id);
-    }
-
-    @Patch(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Update a test result by ID' })
-    update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateTestResultDto: UpdateTestResultDto,
-    ) {
-        return this.testResultsService.update(id, updateTestResultDto);
-    }
-
-    @Delete(':id')
-    @Roles([RolesNameEnum.ADMIN])
-    @ApiOperation({ summary: 'Delete a test result by ID' })
-    @ResponseMessage('Test result deleted successfully.')
-    remove(@Param('id', ParseUUIDPipe) id: string) {
-        return this.testResultsService.remove(id);
-    }
-
-    @Post(':id/send-notification')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({
-        summary: 'Send test result notification to patient',
-        description:
-            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân qua email và in-app notification',
-    })
-    @ApiParam({ name: 'id', description: 'Test result ID' })
-    @ResponseMessage('Test result notification sent successfully.')
-    async sendNotificationToPatient(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() sendNotificationDto: SendNotificationDto,
-    ) {
-        return this.testResultsService.sendNotificationToPatient(
-            id,
-            sendNotificationDto.priorityNotification,
-        );
-    }
-
-    @Post('appointment/:appointmentId/send-notification')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({
-        summary: 'Send test result notification by appointment ID',
-        description:
-            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân theo appointment ID',
-    })
-    @ApiParam({ name: 'appointmentId', description: 'Appointment ID' })
-    @ResponseMessage('Test result notification sent successfully.')
-    async sendNotificationByAppointmentId(
-        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
-        @Body() sendNotificationDto: SendNotificationDto,
-    ) {
-        return this.testResultsService.sendNotificationByAppointmentId(
-            appointmentId,
-            sendNotificationDto.priorityNotification,
-        );
-    }
-
     @Get('patient/my-results')
     @ApiOperation({
         summary: 'Get patient own test results',
@@ -272,6 +152,62 @@ export class TestResultsController {
     @Roles([RolesNameEnum.CUSTOMER])
     async getMyTestResults(@CurrentUser() user: User) {
         return this.testResultsService.findByPatientId(user.id);
+    }
+
+    @Get()
+    @ApiOperation({ summary: 'Get all test results' })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    findAll() {
+        return this.testResultsService.findAll();
+    }
+
+    @Get('templates/:serviceType')
+    @ApiOperation({
+        summary: 'Get test result template by service type',
+        description:
+            'Lấy template chuẩn cho từng loại dịch vụ y tế để frontend sử dụng',
+    })
+    @ApiParam({
+        name: 'serviceType',
+        enum: ServiceType,
+        description: 'Type of medical service',
+    })
+    getTemplate(
+        @Param('serviceType') serviceType: ServiceType,
+    ): TestResultTemplateResponseDto {
+        const template =
+            this.testResultTemplateService.getTemplateByServiceType(
+                serviceType,
+            );
+        return {
+            template,
+            metadata: {
+                serviceType,
+                version: '1.0.0',
+                lastUpdated: new Date(),
+                requiredFields: [
+                    'serviceType',
+                    'testName',
+                    'results',
+                    'overallStatus',
+                ],
+                optionalFields: [
+                    'testCode',
+                    'sampleInfo',
+                    'summary',
+                    'recommendations',
+                ],
+            },
+        };
+    }
+
+    @Get('appointment/:appointmentId')
+    @ApiOperation({ summary: 'Get test result by appointment ID' })
+    findByAppointmentId(
+        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
+        @CurrentUser() user: User,
+    ) {
+        return this.testResultsService.findByAppointmentId(appointmentId, user);
     }
 
     @Get('patient/result/:id')
@@ -292,6 +228,13 @@ export class TestResultsController {
         @CurrentUser() user: User,
     ) {
         return this.testResultsService.findOneByPatient(id, user.id);
+    }
+
+    @Get(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Get a test result by ID' })
+    findOne(@Param('id') id: string) {
+        return this.testResultsService.findOne(id);
     }
 
     @Get(':id/export-pdf')
@@ -377,5 +320,61 @@ export class TestResultsController {
         });
 
         res.send(pdfBuffer);
+    }
+
+    @Post(':id/send-notification')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({
+        summary: 'Send test result notification to patient',
+        description:
+            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân qua email và in-app notification',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @ResponseMessage('Test result notification sent successfully.')
+    async sendNotificationToPatient(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() sendNotificationDto: SendNotificationDto,
+    ) {
+        return this.testResultsService.sendNotificationToPatient(
+            id,
+            sendNotificationDto.priorityNotification,
+        );
+    }
+
+    @Post('appointment/:appointmentId/send-notification')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({
+        summary: 'Send test result notification by appointment ID',
+        description:
+            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân theo appointment ID',
+    })
+    @ApiParam({ name: 'appointmentId', description: 'Appointment ID' })
+    @ResponseMessage('Test result notification sent successfully.')
+    async sendNotificationByAppointmentId(
+        @Param('appointmentId', ParseUUIDPipe) appointmentId: string,
+        @Body() sendNotificationDto: SendNotificationDto,
+    ) {
+        return this.testResultsService.sendNotificationByAppointmentId(
+            appointmentId,
+            sendNotificationDto.priorityNotification,
+        );
+    }
+
+    @Patch(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Update a test result by ID' })
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateTestResultDto: UpdateTestResultDto,
+    ) {
+        return this.testResultsService.update(id, updateTestResultDto);
+    }
+
+    @Delete(':id')
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiOperation({ summary: 'Delete a test result by ID' })
+    @ResponseMessage('Test result deleted successfully.')
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.remove(id);
     }
 }

@@ -294,6 +294,35 @@ export class PaymentsController {
         );
     }
 
+    @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({
+        summary: 'Get payment by ID (Admin, Manager only)',
+        description: 'Lấy thanh toán theo ID - chỉ dành cho admin, manager',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment details retrieved successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Payment not found or access denied',
+    })
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: 'Unauthorized access',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: 'Forbidden access - admin or manager only',
+    })
+    @ResponseMessage('Lấy thông tin thanh toán thành công')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.paymentsService.findOne(id);
+    }
+
     @Get(':id/details')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
@@ -330,35 +359,6 @@ export class PaymentsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.paymentsService.checkUserPaymentStatus(id, currentUser.id);
-    }
-
-    @Get(':id')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiOperation({
-        summary: 'Get payment by ID (Admin, Manager only)',
-        description: 'Lấy thanh toán theo ID - chỉ dành cho admin, manager',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Payment details retrieved successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Payment not found or access denied',
-    })
-    @ApiResponse({
-        status: HttpStatus.UNAUTHORIZED,
-        description: 'Unauthorized access',
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description: 'Forbidden access - admin or manager only',
-    })
-    @ResponseMessage('Lấy thông tin thanh toán thành công')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.paymentsService.findOne(id);
     }
 
     @Patch(':id/cancel')

@@ -92,19 +92,6 @@ export class BlogsController {
         return this.blogsService.findAllPublished(queryDto);
     }
 
-    @Get('slug/:slug')
-    @ApiOperation({
-        summary: 'Get published blog by slug (Public access with view count)',
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Published blog retrieved successfully',
-    })
-    @ResponseMessage('Published blog retrieved successfully')
-    findPublishedBySlug(@Param('slug') slug: string) {
-        return this.blogsService.findBySlug(slug, true);
-    }
-
     @Get('pending-review')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -139,12 +126,6 @@ export class BlogsController {
         return this.blogsService.getMonthlyBlogStats(getBlogMonthYear);
     }
 
-    @Patch('/image/:id')
-    @ApiOperation({ summary: 'Synchronize image to blog' })
-    async syncBlogImages(@Param('id', ParseUUIDPipe) id: string) {
-        return this.blogImageService.syncBlogImages(id);
-    }
-
     @Post('/image')
     @ApiOperation({ summary: 'Add image to blog' })
     async addImageToBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
@@ -155,6 +136,25 @@ export class BlogsController {
     @ApiOperation({ summary: 'Delete image from blog' })
     async removeImageFromBlog(@Body() createBlogImageDTO: CreateBlogImageDTO) {
         return this.blogImageService.removeImageFromBlog(createBlogImageDTO);
+    }
+
+    @Get('slug/:slug')
+    @ApiOperation({
+        summary: 'Get published blog by slug (Public access with view count)',
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Published blog retrieved successfully',
+    })
+    @ResponseMessage('Published blog retrieved successfully')
+    findPublishedBySlug(@Param('slug') slug: string) {
+        return this.blogsService.findBySlug(slug, true);
+    }
+
+    @Patch('/image/:id')
+    @ApiOperation({ summary: 'Synchronize image to blog' })
+    async syncBlogImages(@Param('id', ParseUUIDPipe) id: string) {
+        return this.blogImageService.syncBlogImages(id);
     }
 
     @Get(':id')

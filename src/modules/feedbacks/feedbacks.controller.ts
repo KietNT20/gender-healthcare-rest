@@ -38,7 +38,7 @@ import { FeedbacksService } from './feedbacks.service';
 export class FeedbacksController {
     constructor(
         private readonly feedbacksService: FeedbacksService,
-        private readonly feedbackImageService: FeedbackImageService, // Thêm dependency
+        private readonly feedbackImageService: FeedbackImageService,
     ) {}
 
     /**
@@ -88,6 +88,53 @@ export class FeedbacksController {
     @ResponseMessage('Feedbacks retrieved successfully')
     async findAll(@Query() queryDto: FeedbackQueryDto) {
         return this.feedbacksService.findAll(queryDto);
+    }
+
+    /**
+     * Add image to feedback
+     * @param createFeedbackImageDTO Data to add image to feedback
+     * @returns Success message
+     */
+    @Post('/image')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.MANAGER,
+        RolesNameEnum.ADMIN,
+    ])
+    @ApiOperation({ summary: 'Add image to feedback' })
+    @ApiResponse({ status: 200, description: 'Image added successfully' })
+    @ResponseMessage('Image added successfully')
+    async addImageToFeedback(
+        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ) {
+        await this.feedbackImageService.addImageToFeedback(
+            createFeedbackImageDTO,
+        );
+        return { message: 'Image added successfully' };
+    }
+
+    /**
+     * Remove image from feedback
+     * @param createFeedbackImageDTO Data to remove image from feedback
+     * @returns Success message
+     */
+    @Put('/image')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiOperation({ summary: 'Remove image from feedback' })
+    @ApiResponse({ status: 200, description: 'Image removed successfully' })
+    @ResponseMessage('Image removed successfully')
+    async removeImageFromFeedback(
+        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
+    ) {
+        await this.feedbackImageService.removeImageFromFeedback(
+            createFeedbackImageDTO,
+        );
+        return { message: 'Image removed successfully' };
     }
 
     /**
@@ -191,6 +238,11 @@ export class FeedbacksController {
         return { message: 'Feedback deleted successfully' };
     }
 
+    /**
+     * Synchronize images to feedback
+     * @param id Feedback ID
+     * @returns Success message
+     */
     @Patch('/image/:id')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard)
@@ -204,42 +256,5 @@ export class FeedbacksController {
     async syncFeedbackImages(@Param('id', ParseUUIDPipe) id: string) {
         await this.feedbackImageService.syncFeedbackImages(id);
         return { message: 'Images synchronized successfully' };
-    }
-
-    @Post('/image')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([
-        RolesNameEnum.CUSTOMER,
-        RolesNameEnum.STAFF,
-        RolesNameEnum.MANAGER,
-        RolesNameEnum.ADMIN,
-    ])
-    @ApiOperation({ summary: 'Add image to feedback' })
-    @ApiResponse({ status: 200, description: 'Image added successfully' })
-    @ResponseMessage('Image added successfully')
-    async addImageToFeedback(
-        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
-    ) {
-        await this.feedbackImageService.addImageToFeedback(
-            createFeedbackImageDTO,
-        );
-        return { message: 'Image added successfully' };
-    }
-
-    @Put('/image')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiOperation({ summary: 'Remove image from feedback' })
-    @ApiResponse({ status: 200, description: 'Image removed successfully' })
-    @ResponseMessage('Image removed successfully')
-    async removeImageFromFeedback(
-        @Body() createFeedbackImageDTO: CreateFeedbackImageDTO,
-    ) {
-        await this.feedbackImageService.removeImageFromFeedback(
-            createFeedbackImageDTO,
-        );
-        return { message: 'Image removed successfully' };
     }
 }

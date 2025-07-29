@@ -348,6 +348,7 @@ export class UsersService {
     ): Promise<Paginated<UserResponseDto>> {
         const queryBuilder = this.userRepository
             .createQueryBuilder('user')
+            .leftJoinAndSelect('user.role', 'role')
             .where('user.deletedAt IS NULL');
 
         const { firstName, lastName, email, phone, roleId, isActive } =

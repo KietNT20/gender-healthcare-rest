@@ -20,13 +20,6 @@ import { UpdateDocumentDto } from './dto/update-document.dto';
 export class DocumentsController {
     constructor(private readonly documentsService: DocumentsService) {}
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Get document metadata by ID' })
-    @ResponseMessage('Document metadata retrieved successfully.')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.documentsService.findOne(id);
-    }
-
     @Get('entity/:entityType/:entityId')
     @ApiOperation({ summary: 'Get all documents for a specific entity' })
     @ResponseMessage('Documents for entity retrieved successfully.')
@@ -35,6 +28,13 @@ export class DocumentsController {
         @Param('entityId', ParseUUIDPipe) entityId: string,
     ) {
         return this.documentsService.findByEntity(entityType, entityId);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get document metadata by ID' })
+    @ResponseMessage('Document metadata retrieved successfully.')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.documentsService.findOne(id);
     }
 
     @Get(':id/access-url')

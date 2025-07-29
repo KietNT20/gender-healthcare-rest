@@ -178,8 +178,6 @@ export class ConsultantProfilesController {
         return this.consultantProfilesService.remove(id);
     }
 
-    
-
     @Patch(':id/approve')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])

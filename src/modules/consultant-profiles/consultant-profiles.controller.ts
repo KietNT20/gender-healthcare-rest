@@ -122,6 +122,23 @@ export class ConsultantProfilesController {
         return this.consultantProfilesService.getMyProfile(user.id);
     }
 
+    @Get('pending-approval')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Get all pending consultant profiles for approval',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin, or Manager only).',
+    })
+    @ResponseMessage('Pending profiles retrieved successfully.')
+    findPending() {
+        return this.consultantProfilesService.findPendingProfiles();
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get a single consultant profile by ID' })
     @ResponseMessage('Consultant profile retrieved successfully.')
@@ -161,22 +178,7 @@ export class ConsultantProfilesController {
         return this.consultantProfilesService.remove(id);
     }
 
-    @Get('pending-approval')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
-    @ApiOperation({
-        summary: 'Get all pending consultant profiles for approval',
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description:
-            'Forbidden: You do not have permission (Admin, or Manager only).',
-    })
-    @ResponseMessage('Pending profiles retrieved successfully.')
-    findPending() {
-        return this.consultantProfilesService.findPendingProfiles();
-    }
+    
 
     @Patch(':id/approve')
     @UseGuards(JwtAuthGuard, RoleGuard)

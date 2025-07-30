@@ -56,6 +56,13 @@ export class EmploymentContractsController {
         return this.employmentContractsService.findAll();
     }
 
+    @Get(':id')
+    @ApiOperation({ summary: 'Get a single contract by ID' })
+    @ResponseMessage('Contract retrieved successfully.')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.employmentContractsService.findOne(id);
+    }
+
     @Post(':id/attach-file')
     @UseInterceptors(FileInterceptor('file'))
     @ApiConsumes('multipart/form-data')
@@ -106,13 +113,6 @@ export class EmploymentContractsController {
     @ResponseMessage('Contract terminated successfully.')
     terminate(@Param('id', ParseUUIDPipe) id: string) {
         return this.employmentContractsService.terminate(id);
-    }
-
-    @Get(':id')
-    @ApiOperation({ summary: 'Get a single contract by ID' })
-    @ResponseMessage('Contract retrieved successfully.')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.employmentContractsService.findOne(id);
     }
 
     @Put(':id')

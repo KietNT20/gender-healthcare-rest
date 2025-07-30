@@ -61,6 +61,41 @@ export class TestResultsController {
         private readonly testResultExportPdfService: TestResultExportPdfService,
     ) {}
 
+    // Regular test result endpoints
+    @Post()
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiOperation({
+        summary: 'Create a new test result with file upload',
+        description:
+            'Support both online booking (with appointmentId) and walk-in (with patientId + serviceId)',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        type: CreateTestResultWithFileDto,
+    })
+    @ApiForbiddenResponse({
+        description: 'Forbidden: Admin or Staff role required.',
+    })
+    @ResponseMessage('Test result created successfully.')
+    create(
+        @Body() createTestResultDto: CreateTestResultDto,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        return this.testResultsService.create(
+            createTestResultDto,
+            file,
+            createTestResultDto.priorityNotification,
+        );
+    }
+
+    @Get()
+    @ApiOperation({ summary: 'Get all test results' })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    findAll() {
+        return this.testResultsService.findAll();
+    }
+
     // Template endpoints
     @Get('templates/:serviceType')
     @ApiOperation({
@@ -150,34 +185,6 @@ export class TestResultsController {
         };
     }
 
-    // Regular test result endpoints
-    @Post()
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({
-        summary: 'Create a new test result with file upload',
-        description:
-            'Support both online booking (with appointmentId) and walk-in (with patientId + serviceId)',
-    })
-    @ApiConsumes('multipart/form-data')
-    @ApiBody({
-        type: CreateTestResultWithFileDto,
-    })
-    @ApiForbiddenResponse({
-        description: 'Forbidden: Admin or Staff role required.',
-    })
-    @ResponseMessage('Test result created successfully.')
-    create(
-        @Body() createTestResultDto: CreateTestResultDto,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        return this.testResultsService.create(
-            createTestResultDto,
-            file,
-            createTestResultDto.priorityNotification,
-        );
-    }
-
     @Get('appointment/:appointmentId')
     @ApiOperation({ summary: 'Get test result by appointment ID' })
     findByAppointmentId(
@@ -185,57 +192,6 @@ export class TestResultsController {
         @CurrentUser() user: User,
     ) {
         return this.testResultsService.findByAppointmentId(appointmentId, user);
-    }
-
-    @Get()
-    @ApiOperation({ summary: 'Get all test results' })
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    findAll() {
-        return this.testResultsService.findAll();
-    }
-
-    @Get(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Get a test result by ID' })
-    findOne(@Param('id') id: string) {
-        return this.testResultsService.findOne(id);
-    }
-
-    @Patch(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Update a test result by ID' })
-    update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateTestResultDto: UpdateTestResultDto,
-    ) {
-        return this.testResultsService.update(id, updateTestResultDto);
-    }
-
-    @Delete(':id')
-    @Roles([RolesNameEnum.ADMIN])
-    @ApiOperation({ summary: 'Delete a test result by ID' })
-    @ResponseMessage('Test result deleted successfully.')
-    remove(@Param('id', ParseUUIDPipe) id: string) {
-        return this.testResultsService.remove(id);
-    }
-
-    @Post(':id/send-notification')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({
-        summary: 'Send test result notification to patient',
-        description:
-            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân qua email và in-app notification',
-    })
-    @ApiParam({ name: 'id', description: 'Test result ID' })
-    @ResponseMessage('Test result notification sent successfully.')
-    async sendNotificationToPatient(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() sendNotificationDto: SendNotificationDto,
-    ) {
-        return this.testResultsService.sendNotificationToPatient(
-            id,
-            sendNotificationDto.priorityNotification,
-        );
     }
 
     @Post('appointment/:appointmentId/send-notification')
@@ -294,33 +250,6 @@ export class TestResultsController {
         return this.testResultsService.findOneByPatient(id, user.id);
     }
 
-    @Get(':id/export-pdf')
-    @ApiOperation({
-        summary: 'Export test result as PDF',
-        description: 'Xuất kết quả xét nghiệm ra file PDF để download',
-    })
-    @ApiParam({ name: 'id', description: 'Test result ID' })
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF, RolesNameEnum.CUSTOMER])
-    async exportTestResultToPdf(
-        @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() user: User,
-        @Res() res: Response,
-    ) {
-        const pdfBuffer =
-            await this.testResultExportPdfService.generateTestResultPdf(
-                id,
-                user,
-            );
-
-        res.set({
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="test-result-${id}.pdf"`,
-            'Content-Length': pdfBuffer.length.toString(),
-        });
-
-        res.send(pdfBuffer);
-    }
-
     @Get('consultation/:appointmentId/export-pdf')
     @ApiOperation({
         summary: 'Export consultation report as PDF',
@@ -377,5 +306,76 @@ export class TestResultsController {
         });
 
         res.send(pdfBuffer);
+    }
+
+    @Post(':id/send-notification')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({
+        summary: 'Send test result notification to patient',
+        description:
+            'Gửi thông báo kết quả xét nghiệm cho bệnh nhân qua email và in-app notification',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @ResponseMessage('Test result notification sent successfully.')
+    async sendNotificationToPatient(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() sendNotificationDto: SendNotificationDto,
+    ) {
+        return this.testResultsService.sendNotificationToPatient(
+            id,
+            sendNotificationDto.priorityNotification,
+        );
+    }
+
+    @Get(':id/export-pdf')
+    @ApiOperation({
+        summary: 'Export test result as PDF',
+        description: 'Xuất kết quả xét nghiệm ra file PDF để download',
+    })
+    @ApiParam({ name: 'id', description: 'Test result ID' })
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF, RolesNameEnum.CUSTOMER])
+    async exportTestResultToPdf(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user: User,
+        @Res() res: Response,
+    ) {
+        const pdfBuffer =
+            await this.testResultExportPdfService.generateTestResultPdf(
+                id,
+                user,
+            );
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="test-result-${id}.pdf"`,
+            'Content-Length': pdfBuffer.length.toString(),
+        });
+
+        res.send(pdfBuffer);
+    }
+
+    @Get(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Get a test result by ID' })
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.findOne(id);
+    }
+
+    @Patch(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Update a test result by ID' })
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateTestResultDto: UpdateTestResultDto,
+    ) {
+        return this.testResultsService.update(id, updateTestResultDto);
+    }
+
+    @Delete(':id')
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiOperation({ summary: 'Delete a test result by ID' })
+    @ResponseMessage('Test result deleted successfully.')
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.remove(id);
     }
 }

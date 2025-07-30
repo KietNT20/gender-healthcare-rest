@@ -150,29 +150,6 @@ export class AuthController {
         return this.authService.forgotPassword(email);
     }
 
-    @Put('reset-password/:token')
-    @ApiOperation({ summary: 'Reset password with token' })
-    @ApiParam({
-        name: 'token',
-        description: 'Password reset token',
-        type: String,
-    })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Password reset successful',
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid or expired reset token',
-    })
-    @ResponseMessage('Password reset successful')
-    resetPassword(
-        @Param('token') token: string,
-        @Body() resetPasswordDto: ResetPasswordDto,
-    ) {
-        return this.authService.resetPassword(token, resetPasswordDto.password);
-    }
-
     @Get('reset-password')
     @ApiOperation({
         summary:
@@ -255,5 +232,28 @@ export class AuthController {
     @ResponseMessage('User profile retrieved')
     getProfile(@CurrentUser() user: User) {
         return user;
+    }
+
+    @Put('reset-password/:token')
+    @ApiOperation({ summary: 'Reset password with token' })
+    @ApiParam({
+        name: 'token',
+        description: 'Password reset token',
+        type: String,
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Password reset successful',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid or expired reset token',
+    })
+    @ResponseMessage('Password reset successful')
+    resetPassword(
+        @Param('token') token: string,
+        @Body() resetPasswordDto: ResetPasswordDto,
+    ) {
+        return this.authService.resetPassword(token, resetPasswordDto.password);
     }
 }

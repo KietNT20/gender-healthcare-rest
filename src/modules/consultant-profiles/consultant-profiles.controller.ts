@@ -96,32 +96,6 @@ export class ConsultantProfilesController {
         return this.consultantProfilesService.findAll(queryDto);
     }
 
-    @Put('me')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.CONSULTANT])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Update my consultant profile' })
-    @ResponseMessage('Consultant profile updated successfully.')
-    updateMyProfile(
-        @CurrentUser() user: User,
-        @Body() updateDto: UpdateConsultantProfileDto,
-    ) {
-        return this.consultantProfilesService.updateMyProfile(
-            user.id,
-            updateDto,
-        );
-    }
-
-    @Get('me')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.CONSULTANT])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get my consultant profile' })
-    @ResponseMessage('My consultant profile retrieved successfully.')
-    findMyProfile(@CurrentUser() user: User) {
-        return this.consultantProfilesService.getMyProfile(user.id);
-    }
-
     @Get('pending-approval')
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
@@ -137,6 +111,32 @@ export class ConsultantProfilesController {
     @ResponseMessage('Pending profiles retrieved successfully.')
     findPending() {
         return this.consultantProfilesService.findPendingProfiles();
+    }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.CONSULTANT])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get my consultant profile' })
+    @ResponseMessage('My consultant profile retrieved successfully.')
+    findMyProfile(@CurrentUser() user: User) {
+        return this.consultantProfilesService.getMyProfile(user.id);
+    }
+
+    @Put('me')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.CONSULTANT])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update my consultant profile' })
+    @ResponseMessage('Consultant profile updated successfully.')
+    updateMyProfile(
+        @CurrentUser() user: User,
+        @Body() updateDto: UpdateConsultantProfileDto,
+    ) {
+        return this.consultantProfilesService.updateMyProfile(
+            user.id,
+            updateDto,
+        );
     }
 
     @Get(':id')

@@ -51,16 +51,6 @@ export class CategoriesController {
         return this.categoriesService.findAll();
     }
 
-    @Get('type/:type')
-    @ApiOperation({ summary: 'Get categories by type' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Categories found by type.',
-    })
-    findByType(@Param('type') type: string) {
-        return this.categoriesService.findByType(type);
-    }
-
     @Get('tree/all')
     @ApiOperation({ summary: 'Get category tree structure' })
     @ApiResponse({
@@ -79,6 +69,16 @@ export class CategoriesController {
     })
     getCategoriesWithCounts() {
         return this.categoriesService.findCategoriesWithCounts();
+    }
+
+    @Get('type/:type')
+    @ApiOperation({ summary: 'Get categories by type' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Categories found by type.',
+    })
+    findByType(@Param('type') type: string) {
+        return this.categoriesService.findByType(type);
     }
 
     @Get(':id')

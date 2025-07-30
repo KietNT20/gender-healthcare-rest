@@ -104,6 +104,68 @@ export class ServicesController {
     }
 
     /**
+     * Add an image to a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
+    @Post('image')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Add an image to a service' })
+    @ApiResponse({
+        status: HttpStatus.CREATED,
+        description: 'Image added successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid data',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Service or image not found',
+    })
+    @ApiBody({ type: CreateServiceImageDto })
+    @ResponseMessage('Image added successfully')
+    async addImageToService(
+        @Body() createServiceImageDto: CreateServiceImageDto,
+    ) {
+        await this.serviceImageService.addImageToService(createServiceImageDto);
+        return { message: 'Image added successfully' };
+    }
+
+    /**
+     * Remove an image from a service
+     * @param createServiceImageDto DTO containing serviceId and imageId
+     */
+    @Put('image')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Remove an image from a service' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Image removed successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid data',
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Service or image not found',
+    })
+    @ApiBody({ type: CreateServiceImageDto })
+    @ResponseMessage('Image removed successfully')
+    async removeImageFromService(
+        @Body() createServiceImageDto: CreateServiceImageDto,
+    ) {
+        await this.serviceImageService.removeImageFromService(
+            createServiceImageDto,
+        );
+        return { message: 'Image removed successfully' };
+    }
+
+    /**
      * Get a service by slug
      * @param slug Service slug
      * @returns Service details
@@ -219,68 +281,6 @@ export class ServicesController {
     ): Promise<{ message: string }> {
         await this.servicesService.remove(id);
         return { message: 'Service deleted successfully' };
-    }
-
-    /**
-     * Add an image to a service
-     * @param createServiceImageDto DTO containing serviceId and imageId
-     */
-    @Post('image')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Add an image to a service' })
-    @ApiResponse({
-        status: HttpStatus.CREATED,
-        description: 'Image added successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid data',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Service or image not found',
-    })
-    @ApiBody({ type: CreateServiceImageDto })
-    @ResponseMessage('Image added successfully')
-    async addImageToService(
-        @Body() createServiceImageDto: CreateServiceImageDto,
-    ) {
-        await this.serviceImageService.addImageToService(createServiceImageDto);
-        return { message: 'Image added successfully' };
-    }
-
-    /**
-     * Remove an image from a service
-     * @param createServiceImageDto DTO containing serviceId and imageId
-     */
-    @Put('image')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Remove an image from a service' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Image removed successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Invalid data',
-    })
-    @ApiResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: 'Service or image not found',
-    })
-    @ApiBody({ type: CreateServiceImageDto })
-    @ResponseMessage('Image removed successfully')
-    async removeImageFromService(
-        @Body() createServiceImageDto: CreateServiceImageDto,
-    ) {
-        await this.serviceImageService.removeImageFromService(
-            createServiceImageDto,
-        );
-        return { message: 'Image removed successfully' };
     }
 
     /**

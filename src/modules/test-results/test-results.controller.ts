@@ -308,31 +308,6 @@ export class TestResultsController {
         res.send(pdfBuffer);
     }
 
-    @Get(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Get a test result by ID' })
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.testResultsService.findOne(id);
-    }
-
-    @Patch(':id')
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
-    @ApiOperation({ summary: 'Update a test result by ID' })
-    update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateTestResultDto: UpdateTestResultDto,
-    ) {
-        return this.testResultsService.update(id, updateTestResultDto);
-    }
-
-    @Delete(':id')
-    @Roles([RolesNameEnum.ADMIN])
-    @ApiOperation({ summary: 'Delete a test result by ID' })
-    @ResponseMessage('Test result deleted successfully.')
-    remove(@Param('id', ParseUUIDPipe) id: string) {
-        return this.testResultsService.remove(id);
-    }
-
     @Post(':id/send-notification')
     @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
     @ApiOperation({
@@ -377,5 +352,30 @@ export class TestResultsController {
         });
 
         res.send(pdfBuffer);
+    }
+
+    @Get(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Get a test result by ID' })
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.findOne(id);
+    }
+
+    @Patch(':id')
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.STAFF])
+    @ApiOperation({ summary: 'Update a test result by ID' })
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateTestResultDto: UpdateTestResultDto,
+    ) {
+        return this.testResultsService.update(id, updateTestResultDto);
+    }
+
+    @Delete(':id')
+    @Roles([RolesNameEnum.ADMIN])
+    @ApiOperation({ summary: 'Delete a test result by ID' })
+    @ResponseMessage('Test result deleted successfully.')
+    remove(@Param('id', ParseUUIDPipe) id: string) {
+        return this.testResultsService.remove(id);
     }
 }

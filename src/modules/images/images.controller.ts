@@ -20,13 +20,6 @@ import { ImagesService } from './images.service';
 export class ImagesController {
     constructor(private readonly imagesService: ImagesService) {}
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Get image metadata by ID' })
-    @ResponseMessage('Image metadata retrieved successfully.')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.imagesService.findOne(id);
-    }
-
     @Get('entity/:entityType/:entityId')
     @ApiOperation({ summary: 'Get all images for a specific entity' })
     @ResponseMessage('Images for entity retrieved successfully.')
@@ -35,6 +28,13 @@ export class ImagesController {
         @Param('entityId', ParseUUIDPipe) entityId: string,
     ) {
         return this.imagesService.findByEntity(entityType, entityId);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get image metadata by ID' })
+    @ResponseMessage('Image metadata retrieved successfully.')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.imagesService.findOne(id);
     }
 
     @Patch(':id')

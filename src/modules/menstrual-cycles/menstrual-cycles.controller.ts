@@ -22,9 +22,9 @@ import { User } from 'src/modules/users/entities/user.entity';
 import { CreateMenstrualCycleDto } from './dto/create-menstrual-cycle.dto';
 import { UpdateMenstrualCycleDto } from './dto/update-menstrual-cycle.dto';
 import { MenstrualCycle } from './entities/menstrual-cycle.entity';
-import { 
-    MenstrualCyclesService, 
-    CreateMenstrualCycleResponse 
+import {
+    CreateMenstrualCycleResponse,
+    MenstrualCyclesService,
 } from './menstrual-cycles.service';
 
 @ApiTags('Menstrual Cycles')

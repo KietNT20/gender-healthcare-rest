@@ -10,6 +10,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { Service } from '../services/entities/service.entity';
 import { User } from '../users/entities/user.entity';
 import { AppointmentAttendanceService } from './appointment-attendance.service';
+import { AppointmentAutoCancelService } from './appointment-auto-cancel.service';
 import { AppointmentBookingService } from './appointment-booking.service';
 import { AppointmentMeetingLinkService } from './appointment-meeting-link.service';
 import { AppointmentNotificationProcessor } from './appointment-notification.processor';
@@ -42,6 +43,7 @@ import { StiAppointmentsService } from './sti-appointments.service';
         AppointmentMeetingLinkService,
         StiAppointmentsService,
         AppointmentNotificationProcessor,
+        AppointmentAutoCancelService,
     ],
     exports: [
         AppointmentsService,

@@ -40,7 +40,7 @@ export class BlogsService {
         const existingBlog = await this.blogRepository.findOne({
             where: {
                 title: createBlogDto.title,
-                deletedAt: IsNull(), 
+                deletedAt: IsNull(),
             },
         });
 
@@ -510,7 +510,7 @@ export class BlogsService {
 
         return this.findOne(id);
     }
-    
+
     async reviewBlog(
         id: string,
         reviewBlogDto: ReviewBlogDto,

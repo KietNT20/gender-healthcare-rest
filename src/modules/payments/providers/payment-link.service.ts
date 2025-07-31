@@ -100,6 +100,24 @@ export class PaymentLinkService {
                 user,
             );
 
+        // 1. Chỉ trả về payment nếu status là PENDING
+        const existingPendingPayment =
+            await this.paymentRepositoryService.findPendingPaymentByAppointmentId(
+                appointmentId,
+                userId,
+            );
+        if (existingPendingPayment?.status === PaymentStatusType.PENDING) {
+            return {
+                paymentId: existingPendingPayment.id,
+                checkoutUrl:
+                    existingPendingPayment.gatewayResponse?.checkoutUrl,
+                frontendReturnUrl:
+                    existingPendingPayment.gatewayResponse?.frontendReturnUrl,
+                frontendCancelUrl:
+                    existingPendingPayment.gatewayResponse?.frontendCancelUrl,
+            };
+        }
+
         const finalAmount = this.paymentValidationService.validateAmount(
             appointment.fixedPrice || totalPrice,
         );

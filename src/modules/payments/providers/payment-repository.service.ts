@@ -359,4 +359,18 @@ export class PaymentRepositoryService {
             appointmentsPaid,
         };
     }
+
+    async findPendingPaymentByAppointmentId(
+        appointmentId: string,
+        userId: string,
+    ) {
+        return this.paymentRepository.findOne({
+            where: {
+                appointment: { id: appointmentId },
+                user: { id: userId },
+                status: PaymentStatusType.PENDING,
+            },
+            order: { createdAt: SortOrder.DESC },
+        });
+    }
 }

@@ -5,6 +5,7 @@ import { createClient } from 'redis';
 import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { User } from '../users/entities/user.entity';
+import { ChatCleanupSchedulerService } from './chat-cleanup-scheduler.service';
 import { ChatCleanupService } from './chat-cleanup.service';
 import { ChatRoomCleanupService } from './chat-room-cleanup.service';
 import { ChatController } from './chat.controller';
@@ -99,6 +100,7 @@ import { RedisHelperService } from './redis-helper.service';
         ChatService,
         ChatCleanupService,
         ChatRoomCleanupService,
+        ChatCleanupSchedulerService,
         RedisHelperService,
         RedisHealthService,
         RedisWsThrottleGuard,

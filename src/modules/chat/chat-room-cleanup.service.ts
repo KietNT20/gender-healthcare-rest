@@ -308,4 +308,137 @@ export class ChatRoomCleanupService {
             );
         }
     }
+
+    /**
+     * Clean up all chat rooms older than 2 days
+     * This method will clear both Redis data and optionally archive old questions
+     */
+    async cleanupOldChatRooms(daysOld: number = 2): Promise<{
+        redisCleanupCount: number;
+        archivedQuestionsCount: number;
+    }> {
+        try {
+            this.logger.log(
+                `Starting cleanup of chat rooms older than ${daysOld} days...`,
+            );
+
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+            // Find all questions older than the specified days
+            const oldQuestions = await this.questionRepository.find({
+                where: {
+                    deletedAt: IsNull(),
+                    createdAt: LessThan(cutoffDate),
+                },
+                relations: {
+                    appointment: true,
+                },
+            });
+
+            let redisCleanupCount = 0;
+            let archivedQuestionsCount = 0;
+
+            for (const question of oldQuestions) {
+                try {
+                    // Clean up Redis data for this question
+                    await this.cleanupQuestionRoom(question.id);
+                    redisCleanupCount++;
+
+                    // Optionally archive questions that are very old (older than 30 days)
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                    if (question.createdAt < thirtyDaysAgo) {
+                        // Soft delete the question for very old ones
+                        await this.questionRepository.softDelete(question.id);
+                        archivedQuestionsCount++;
+
+                        this.logger.debug(
+                            `Archived old question: ${question.id} (created: ${question.createdAt.toISOString()})`,
+                        );
+                    }
+
+                    this.logger.debug(
+                        `Cleaned up old chat room: ${question.id} (created: ${question.createdAt.toISOString()})`,
+                    );
+                } catch (error) {
+                    this.logger.error(
+                        `Error cleaning up question room ${question.id}:`,
+                        error,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Old chat rooms cleanup finished. Cleaned up ${redisCleanupCount} Redis rooms, archived ${archivedQuestionsCount} questions`,
+            );
+
+            return {
+                redisCleanupCount,
+                archivedQuestionsCount,
+            };
+        } catch (error) {
+            this.logger.error('Error during old chat rooms cleanup:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Clean up chat rooms for questions without appointments older than 2 days
+     * These are typically standalone questions that haven't been converted to appointments
+     */
+    async cleanupStandaloneQuestions(daysOld: number = 2): Promise<number> {
+        try {
+            this.logger.log(
+                `Starting cleanup of standalone questions older than ${daysOld} days...`,
+            );
+
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+            // Find questions without appointments that are older than specified days
+            const standaloneQuestions = await this.questionRepository.find({
+                where: {
+                    deletedAt: IsNull(),
+                    createdAt: LessThan(cutoffDate),
+                    appointment: IsNull(),
+                },
+            });
+
+            let cleanupCount = 0;
+
+            for (const question of standaloneQuestions) {
+                try {
+                    // Clean up Redis data
+                    await this.cleanupQuestionRoom(question.id);
+
+                    // Soft delete the question
+                    await this.questionRepository.softDelete(question.id);
+
+                    cleanupCount++;
+
+                    this.logger.debug(
+                        `Cleaned up standalone question: ${question.id} (created: ${question.createdAt.toISOString()})`,
+                    );
+                } catch (error) {
+                    this.logger.error(
+                        `Error cleaning up standalone question ${question.id}:`,
+                        error,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Standalone questions cleanup finished. Cleaned up ${cleanupCount} questions`,
+            );
+            return cleanupCount;
+        } catch (error) {
+            this.logger.error(
+                'Error during standalone questions cleanup:',
+                error,
+            );
+            throw error;
+        }
+    }
 }

@@ -126,19 +126,51 @@ export class PaymentLinkService {
             description || `Thanh toán: ${itemName}`
         ).slice(0, 25);
 
-        return this.createPaymentLink({
-            amount: finalAmount,
-            itemName,
-            description: shortDescription,
-            userId,
-            appointmentId,
-            frontendReturnUrl:
-                frontendReturnUrl ||
-                `${this.defaultFrontendDomain}/appointments/payment/success`,
-            frontendCancelUrl:
-                frontendCancelUrl ||
-                `${this.defaultFrontendDomain}/appointments/payment/cancel`,
-        });
+        try {
+            return await this.createPaymentLink({
+                amount: finalAmount,
+                itemName,
+                description: shortDescription,
+                userId,
+                appointmentId,
+                frontendReturnUrl:
+                    frontendReturnUrl ||
+                    `${this.defaultFrontendDomain}/appointments/payment/success`,
+                frontendCancelUrl:
+                    frontendCancelUrl ||
+                    `${this.defaultFrontendDomain}/appointments/payment/cancel`,
+            });
+        } catch (error: any) {
+            // Nếu lỗi unique constraint, trả về payment PENDING cũ
+            if (
+                typeof error === 'object' &&
+                error !== null &&
+                ('code' in error || 'message' in error)
+            ) {
+                const errObj = error as { code?: string; message?: string };
+                if (
+                    errObj.code === '23505' ||
+                    (errObj.message && errObj.message.includes('unique'))
+                ) {
+                    const pending =
+                        await this.paymentRepositoryService.findPendingPaymentByAppointmentId(
+                            appointmentId,
+                            userId,
+                        );
+                    if (pending?.status === PaymentStatusType.PENDING) {
+                        return {
+                            paymentId: pending.id,
+                            checkoutUrl: pending.gatewayResponse?.checkoutUrl,
+                            frontendReturnUrl:
+                                pending.gatewayResponse?.frontendReturnUrl,
+                            frontendCancelUrl:
+                                pending.gatewayResponse?.frontendCancelUrl,
+                        };
+                    }
+                }
+            }
+            throw error;
+        }
     }
 
     /**

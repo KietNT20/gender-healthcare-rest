@@ -5,6 +5,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { RolesNameEnum } from 'src/enums';
 import { Between, FindOptionsWhere, IsNull, Like, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
@@ -162,7 +163,7 @@ export class FeedbacksService {
         return this.feedbackRepository.save(feedback);
     }
 
-    async findAll(queryDto: FeedbackQueryDto) {
+    async findAll(queryDto: FeedbackQueryDto): Promise<Paginated<Feedback>> {
         const {
             page = 1,
             limit = 10,
@@ -246,9 +247,12 @@ export class FeedbacksService {
 
         return {
             data,
-            total,
-            page,
-            limit,
+            meta: {
+                itemsPerPage: limit,
+                totalItems: total,
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+            },
         };
     }
 

@@ -85,6 +85,31 @@ export class StiTestProcessesController {
         return this.stiTestProcessesService.findAll(query);
     }
 
+    @Get('workflow/steps')
+    @ApiOperation({ summary: 'Get list of workflow steps' })
+    @ApiOkResponse({
+        description: 'List of workflow steps',
+    })
+    @ResponseMessage('Get workflow steps successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    getWorkflowSteps() {
+        return this.stiTestWorkflowService.getFullWorkflow();
+    }
+
+    @Get('workflow/next-steps/:status')
+    @ApiOperation({ summary: 'Get list of next workflow steps' })
+    @ApiParam({ name: 'status', description: 'Current status' })
+    @ApiOkResponse({
+        description: 'List of next steps',
+    })
+    @ResponseMessage('Get next steps successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    getNextSteps(@Param('status') status: StiTestProcessStatus) {
+        return this.stiTestWorkflowService.getNextSteps(status);
+    }
+
     @Post('booking/from-service-selection')
     @ApiOperation({ summary: 'Create STI test process from service selection' })
     @ApiResponse({
@@ -123,18 +148,6 @@ export class StiTestProcessesController {
     ])
     async getAvailableStiServices() {
         return this.stiTestIntegrationService.getAvailableStiServices();
-    }
-
-    @Get('workflow/steps')
-    @ApiOperation({ summary: 'Get list of workflow steps' })
-    @ApiOkResponse({
-        description: 'List of workflow steps',
-    })
-    @ResponseMessage('Get workflow steps successfully')
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    getWorkflowSteps() {
-        return this.stiTestWorkflowService.getFullWorkflow();
     }
 
     @Get('statistics/dashboard')
@@ -177,6 +190,51 @@ export class StiTestProcessesController {
         return this.stiTestWorkflowService.getWorkflowStatistics(processes);
     }
 
+    @Get('statistics/patient/:patientId')
+    @ApiOperation({
+        summary: 'Get STI test process statistics for specific patient',
+    })
+    @ApiParam({ name: 'patientId', description: 'Patient ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI test process statistics for patient',
+    })
+    @ResponseMessage('Get STI test statistics for patient successfully')
+    @UseGuards(RoleGuard)
+    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    async getPatientStatistics(
+        @Param('patientId', ParseUUIDPipe) patientId: string,
+    ) {
+        const processes =
+            await this.stiTestProcessesService.findAllForStatisticsByPatient(
+                patientId,
+            );
+        return this.stiTestWorkflowService.getWorkflowStatistics(processes);
+    }
+
+    @Get('services/package/:packageId')
+    @ApiOperation({ summary: 'Get STI services from package' })
+    @ApiParam({ name: 'packageId', description: 'Service package ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'STI services from package',
+    })
+    @ResponseMessage('Get STI services from package successfully')
+    @UseGuards(RoleGuard)
+    @Roles([
+        RolesNameEnum.CUSTOMER,
+        RolesNameEnum.STAFF,
+        RolesNameEnum.ADMIN,
+        RolesNameEnum.MANAGER,
+    ])
+    async getStiServicesFromPackage(
+        @Param('packageId', ParseUUIDPipe) packageId: string,
+    ) {
+        return this.stiTestIntegrationService.getStiServicesFromPackage(
+            packageId,
+        );
+    }
+
     @Get('test-code/:testCode')
     @ApiOperation({ summary: 'Get STI test process by code' })
     @ApiParam({ name: 'testCode', description: 'Test code' })
@@ -206,51 +264,6 @@ export class StiTestProcessesController {
         @Body(ValidationPipe) query: QueryStiTestProcessDto,
     ) {
         return this.stiTestProcessesService.findByPatientId(patientId, query);
-    }
-
-    @Get('services/package/:packageId')
-    @ApiOperation({ summary: 'Get STI services from package' })
-    @ApiParam({ name: 'packageId', description: 'Service package ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'STI services from package',
-    })
-    @ResponseMessage('Get STI services from package successfully')
-    @UseGuards(RoleGuard)
-    @Roles([
-        RolesNameEnum.CUSTOMER,
-        RolesNameEnum.STAFF,
-        RolesNameEnum.ADMIN,
-        RolesNameEnum.MANAGER,
-    ])
-    async getStiServicesFromPackage(
-        @Param('packageId', ParseUUIDPipe) packageId: string,
-    ) {
-        return this.stiTestIntegrationService.getStiServicesFromPackage(
-            packageId,
-        );
-    }
-
-    @Get('statistics/patient/:patientId')
-    @ApiOperation({
-        summary: 'Get STI test process statistics for specific patient',
-    })
-    @ApiParam({ name: 'patientId', description: 'Patient ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'STI test process statistics for patient',
-    })
-    @ResponseMessage('Get STI test statistics for patient successfully')
-    @UseGuards(RoleGuard)
-    @Roles([RolesNameEnum.STAFF, RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    async getPatientStatistics(
-        @Param('patientId', ParseUUIDPipe) patientId: string,
-    ) {
-        const processes =
-            await this.stiTestProcessesService.findAllForStatisticsByPatient(
-                patientId,
-            );
-        return this.stiTestWorkflowService.getWorkflowStatistics(processes);
     }
 
     @Get(':id')

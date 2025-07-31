@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsBoolean,
     IsInt,
@@ -17,7 +17,7 @@ export class CreateFeedbackDto {
     @IsUUID('4')
     userId?: string;
 
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'ID of the service being reviewed',
     })
     @IsOptional()

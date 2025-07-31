@@ -35,6 +35,15 @@ import {
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
     namespace: 'chat',
+    cors: {
+        origin: [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            process.env.FRONTEND_URL,
+        ],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()

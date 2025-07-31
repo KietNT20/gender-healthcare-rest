@@ -8,6 +8,7 @@ import {
     Max,
     Min,
 } from 'class-validator';
+import { TransformEmptyStringToUndefined } from 'src/decorators/transform-null.decorator';
 
 export class CreateFeedbackDto {
     @ApiProperty({
@@ -21,6 +22,7 @@ export class CreateFeedbackDto {
         description: 'ID of the service being reviewed',
     })
     @IsOptional()
+    @TransformEmptyStringToUndefined()
     @IsUUID('4')
     serviceId?: string;
 

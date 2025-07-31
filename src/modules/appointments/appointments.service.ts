@@ -618,14 +618,16 @@ export class AppointmentsService {
 
         // Validate meetingLink nếu có trong updateDto
         if (updateDto.meetingLink !== undefined) {
-            const hasConsultationService = appointment.services.some(
-                (service) => service.requiresConsultant === true,
-            );
-
-            if (updateDto.meetingLink && !hasConsultationService) {
-                throw new BadRequestException(
-                    'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+            if (appointment.services && appointment.services.length > 0) {
+                const hasConsultationService = appointment.services.some(
+                    (service) => service.requiresConsultant === true,
                 );
+
+                if (updateDto.meetingLink && !hasConsultationService) {
+                    throw new BadRequestException(
+                        'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+                    );
+                }
             }
         }
 

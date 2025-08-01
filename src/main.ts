@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { REGEX } from './constant';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { RedisIoAdapter } from './modules/chat/adapters/redis-io.adapter';
 
@@ -30,11 +31,7 @@ async function bootstrap() {
 
     // Enable CORS
     app.enableCors({
-        origin: [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            process.env.FRONTEND_URL,
-        ],
+        origin: [REGEX.LOCALHOST, process.env.FRONTEND_URL],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     });

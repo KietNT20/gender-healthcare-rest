@@ -9,6 +9,7 @@ import {
     WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { REGEX } from 'src/constant';
 import { ConsultantProfile } from '../consultant-profiles/entities/consultant-profile.entity';
 import { CHAT_EVENTS, RESPONSE_STATUS } from './constants/chat.constants';
 import { CreateChatDto } from './dto/create-chat.dto';
@@ -36,11 +37,7 @@ import {
 @WebSocketGateway({
     namespace: 'chat',
     cors: {
-        origin: [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            process.env.FRONTEND_URL,
-        ],
+        origin: [REGEX.LOCALHOST, process.env.FRONTEND_URL],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     },

@@ -173,15 +173,15 @@ export class ServicesService {
             .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL')
             .andWhere(
-                new Brackets((qb) => {
-                    qb.where('LOWER(service.name) LIKE :query', {
-                        query: '%sti%',
-                    })
-                        .orWhere('LOWER(service.description) LIKE :query')
-                        .orWhere('LOWER(category.type) LIKE :query');
-                }),
-            )
-            .getMany();
+                '(LOWER(service.name) LIKE :name OR LOWER(service.description) LIKE :description OR LOWER(category.type) LIKE :categoryType)',
+                {
+                    name: '%sti%',
+                    description: '%sti%',
+                    categoryType: '%sti_test%',
+                },
+            );
+
+        return await queryBuilder.getMany();
     }
 
     /**

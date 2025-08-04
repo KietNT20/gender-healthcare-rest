@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
 import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 import { LocationTypeEnum, SortOrder } from 'src/enums';
-import { Brackets, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { ServiceQueryDto } from './dto/service-query.dto';
@@ -173,15 +173,11 @@ export class ServicesService {
             .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL')
             .andWhere(
-                new Brackets((qb) => {
-                    qb.where('LOWER(service.name) LIKE :query', {
-                        query: '%sti%',
-                    })
-                        .orWhere('LOWER(service.description) LIKE :query')
-                        .orWhere('LOWER(category.type) = :categoryType', {
-                            categoryType: 'sti_test',
-                        });
-                }),
+                '(LOWER(service.name) LIKE :name OR LOWER(category.type) LIKE :categoryType)',
+                {
+                    name: '%sti%',
+                    categoryType: '%sti%',
+                },
             )
             .getMany();
     }

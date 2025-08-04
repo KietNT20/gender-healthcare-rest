@@ -272,7 +272,9 @@ export class FilesController {
 
     @Post('test/upload')
     @UseInterceptors(FileInterceptor('file'))
-    @ApiOperation({ summary: 'Test upload file to AWS S3' })
+    @ApiOperation({
+        summary: 'Test upload file to AWS S3',
+    })
     @ApiConsumes('multipart/form-data')
     @ApiBody({ type: TestUploadDto })
     async testUpload(

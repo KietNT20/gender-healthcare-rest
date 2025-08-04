@@ -167,7 +167,7 @@ export class ServicesService {
      * @returns List of STI services
      */
     async findAllStiServices(): Promise<Service[]> {
-        return await this.serviceRepo
+        const queryBuilder = this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
             .leftJoinAndSelect('service.images', 'images')

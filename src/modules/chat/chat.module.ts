@@ -60,7 +60,6 @@ import { RedisHelperService } from './redis-helper.service';
                     },
                     username: 'default',
                     password: password,
-                    database: 0,
                 });
 
                 client.on('error', (err) => {

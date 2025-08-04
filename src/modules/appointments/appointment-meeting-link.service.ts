@@ -142,15 +142,17 @@ export class AppointmentMeetingLinkService {
             );
         }
 
-        // Kiểm tra xem cuộc hẹn có chứa dịch vụ yêu cầu tư vấn viên không
-        const hasConsultationService = appointment.services.some(
-            (service) => service.requiresConsultant === true,
-        );
-
-        if (!hasConsultationService) {
-            throw new BadRequestException(
-                'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+        if (appointment.services && appointment.services.length > 0) {
+            // Kiểm tra xem cuộc hẹn có chứa dịch vụ yêu cầu tư vấn viên không
+            const hasConsultationService = appointment.services.some(
+                (service) => service.requiresConsultant === true,
             );
+
+            if (!hasConsultationService) {
+                throw new BadRequestException(
+                    'Chỉ có thể gán meeting link cho các cuộc hẹn có dịch vụ yêu cầu tư vấn viên',
+                );
+            }
         }
 
         // Cập nhật meeting link

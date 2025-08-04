@@ -102,11 +102,11 @@ import { UsersModule } from './modules/users/users.module';
                     host: configService.get('REDIS_HOST'),
                     port: +configService.get('REDIS_PORT'),
                     password: configService.get('REDIS_PASSWORD'),
-                    tls:
-                        configService.get('NODE_ENV') === 'production'
-                            ? {}
-                            : undefined,
                 },
+                tls:
+                    configService.get('NODE_ENV') === 'production'
+                        ? {}
+                        : undefined,
                 defaultJobOptions: {
                     removeOnComplete: 10,
                     removeOnFail: 50,

@@ -40,6 +40,7 @@ import { RedisHelperService } from './redis-helper.service';
                 const host = configService.get('REDIS_HOST');
                 const port = +configService.get('REDIS_PORT');
                 const password = configService.get('REDIS_PASSWORD');
+                const username = configService.get('REDIS_USERNAME');
 
                 const client = createClient({
                     socket: {
@@ -58,8 +59,9 @@ import { RedisHelperService } from './redis-helper.service';
                                 ? true
                                 : false,
                     },
-                    username: 'default',
+                    username: username,
                     password: password,
+                    database: 0,
                 });
 
                 client.on('error', (err) => {

@@ -26,6 +26,7 @@ export class RedisIoAdapter extends IoAdapter {
             },
             username: process.env.REDIS_USERNAME,
             password: password,
+            database: 0,
         });
         const subClient = pubClient.duplicate();
         await Promise.all([pubClient.connect(), subClient.connect()]);

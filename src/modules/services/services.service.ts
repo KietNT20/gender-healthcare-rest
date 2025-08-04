@@ -167,21 +167,21 @@ export class ServicesService {
      * @returns List of STI services
      */
     async findAllStiServices(): Promise<Service[]> {
-        const queryBuilder = this.serviceRepo
+        return await this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
             .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL')
             .andWhere(
-                '(LOWER(service.name) LIKE :name OR LOWER(service.description) LIKE :description OR LOWER(category.name) LIKE :categoryName)',
-                {
-                    name: '%sti%',
-                    description: '%sti%',
-                    categoryName: '%sti%',
-                },
-            );
-
-        return await queryBuilder.getMany();
+                new Brackets((qb) => {
+                    qb.where('LOWER(service.name) LIKE :query', {
+                        query: '%sti%',
+                    })
+                        .orWhere('LOWER(service.description) LIKE :query')
+                        .orWhere('LOWER(category.type) LIKE :query');
+                }),
+            )
+            .getMany();
     }
 
     /**

@@ -40,6 +40,9 @@ export class FilesService {
      * Upload image - can be public or private based on isPublic flag
      */
     async uploadImage(options: UploadImageOptions): Promise<FileResult> {
+        this.logger.log(
+            `Starting image upload: ${options.file?.originalname} (${options.file?.size} bytes)`,
+        );
         this.validateUploadImageOptions(options);
 
         const {
@@ -58,6 +61,8 @@ export class FilesService {
                 file.originalname,
             );
 
+            this.logger.log(`Generated temp key: ${tempKey}`);
+
             const uploadResult = await this.s3Service.uploadFile(
                 file.buffer,
                 tempKey,
@@ -72,6 +77,8 @@ export class FilesService {
                 },
             );
 
+            this.logger.log(`S3 upload completed: ${uploadResult.key}`);
+
             // Save to database with isPublic flag
             const image = this.imageRepository.create({
                 name: this.generateFileName(file.originalname),
@@ -84,9 +91,12 @@ export class FilesService {
                 url: '', // Will be updated after processing
             });
 
+            this.logger.log(`Saving image to database...`);
             const savedImage = await this.imageRepository.save(image);
+            this.logger.log(`Image saved to database: ${savedImage.id}`);
 
             // Queue for processing
+            this.logger.log(`Adding image to processing queue...`);
             await this.imageQueue.add(QUEUE_NAMES.IMAGE_PROCESSING, {
                 originalKey: tempKey,
                 type: this.getImageType(entityType),
@@ -99,6 +109,7 @@ export class FilesService {
                     altText,
                 },
             });
+            this.logger.log(`Image added to queue successfully`);
 
             this.logger.log(
                 `Image uploaded and queued: ${savedImage.id} (${isPublic ? 'public' : 'private'})`,

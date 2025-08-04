@@ -47,8 +47,8 @@ export default registerAs('awsConfig', () => ({
 
     // Max file sizes
     maxFileSize: {
-        image: 10 * 1024 * 1024, // 10MB
-        document: 50 * 1024 * 1024, // 50MB
-        temp: 10 * 1024 * 1024, // 10MB
+        image: 20 * 1024 * 1024, // 20MB (match FilesService validation)
+        document: 100 * 1024 * 1024, // 100MB (match FilesService validation)
+        temp: 20 * 1024 * 1024, // 20MB
     },
 }));

@@ -53,7 +53,12 @@ import { RedisHelperService } from './redis-helper.service';
                             );
                             return delay;
                         },
+                        tls:
+                            process.env.NODE_ENV === 'production'
+                                ? true
+                                : false,
                     },
+                    username: 'default',
                     password: password,
                 });
 

@@ -1,14 +1,14 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import slugify from 'slugify';
-import { SortOrder, LocationTypeEnum } from 'src/enums';
-import { IsNull, Repository } from 'typeorm';
+import { Paginated } from 'src/common/pagination/interface/paginated.interface';
+import { LocationTypeEnum, SortOrder } from 'src/enums';
+import { Brackets, IsNull, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
+import { ServiceQueryDto } from './dto/service-query.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
-import { ServiceQueryDto } from './dto/service-query.dto';
-import { Paginated } from 'src/common/pagination/interface/paginated.interface';
 
 @Injectable()
 export class ServicesService {
@@ -167,21 +167,23 @@ export class ServicesService {
      * @returns List of STI services
      */
     async findAllStiServices(): Promise<Service[]> {
-        const queryBuilder = this.serviceRepo
+        return await this.serviceRepo
             .createQueryBuilder('service')
             .leftJoinAndSelect('service.category', 'category')
             .leftJoinAndSelect('service.images', 'images')
             .where('service.deletedAt IS NULL')
             .andWhere(
-                '(LOWER(service.name) LIKE :name OR LOWER(service.description) LIKE :description OR LOWER(category.type) LIKE :categoryType)',
-                {
-                    name: '%sti%',
-                    description: '%sti%',
-                    categoryType: '%sti_test%',
-                },
-            );
-
-        return await queryBuilder.getMany();
+                new Brackets((qb) => {
+                    qb.where('LOWER(service.name) LIKE :query', {
+                        query: '%sti%',
+                    })
+                        .orWhere('LOWER(service.description) LIKE :query')
+                        .orWhere('LOWER(category.type) = :categoryType', {
+                            categoryType: 'sti_test',
+                        });
+                }),
+            )
+            .getMany();
     }
 
     /**

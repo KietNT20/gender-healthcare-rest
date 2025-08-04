@@ -99,8 +99,11 @@ export class BlogsService {
 
         // Create blog with proper type handling
         const {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             tags: tagNames,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             relatedServicesIds,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             autoPublish,
             ...blogData
         } = createBlogDto;
@@ -392,6 +395,7 @@ export class BlogsService {
         }
 
         // Update blog with proper type handling
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { tags, relatedServicesIds, ...updateData } = updateBlogDto;
         await this.blogRepository.update(id, {
             ...updateData,

@@ -87,7 +87,7 @@ export class FilesService {
             const savedImage = await this.imageRepository.save(image);
 
             // Queue for processing
-            await this.imageQueue.add('process-image', {
+            await this.imageQueue.add(QUEUE_NAMES.IMAGE_PROCESSING, {
                 originalKey: tempKey,
                 type: this.getImageType(entityType),
                 isPublic, // Pass to processor

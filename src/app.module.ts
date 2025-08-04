@@ -5,6 +5,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
@@ -81,6 +83,15 @@ import { UsersModule } from './modules/users/users.module';
                 database: configService.get('DATABASE_NAME'),
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
+                autoLoadEntities: true,
+                logging: true,
+                dropSchema: false,
+                ssl: {
+                    rejectUnauthorized: true,
+                    ca: readFileSync(
+                        join(process.cwd(), 'certs', 'global-bundle.pem'),
+                    ).toString(),
+                },
             }),
             inject: [ConfigService],
         }),
@@ -92,6 +103,10 @@ import { UsersModule } from './modules/users/users.module';
                     port: +configService.get('REDIS_PORT'),
                     password: configService.get('REDIS_PASSWORD'),
                 },
+                tls:
+                    configService.get('NODE_ENV') === 'production'
+                        ? {}
+                        : undefined,
                 defaultJobOptions: {
                     removeOnComplete: 10,
                     removeOnFail: 50,

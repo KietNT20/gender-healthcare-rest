@@ -22,7 +22,9 @@ export class RedisIoAdapter extends IoAdapter {
                     );
                     return delay;
                 },
+                tls: process.env.NODE_ENV === 'production' ? true : false,
             },
+            username: process.env.REDIS_USERNAME,
             password: password,
         });
         const subClient = pubClient.duplicate();

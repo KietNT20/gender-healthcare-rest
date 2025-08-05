@@ -318,7 +318,6 @@ export class BlogsService {
                 category: true,
                 author: true,
                 tags: true,
-                reviewedByUser: true,
                 publishedByUser: true,
                 services: true,
                 images: true,
@@ -608,6 +607,7 @@ export class BlogsService {
         publishBlogDto: PublishBlogDto,
         publisherId: string,
     ): Promise<Blog> {
+        // Tìm blog với ít relations hơn để tránh timeout
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
             relations: {
@@ -624,6 +624,8 @@ export class BlogsService {
                 'Only approved blogs can be published',
             );
         }
+
+        // Update blog status với timeout
         await this.blogRepository.update(id, {
             status: ContentStatusType.PUBLISHED,
             publishedAt: new Date(),
@@ -632,13 +634,37 @@ export class BlogsService {
             ...publishBlogDto,
         });
 
-        const updatedBlog = await this.findOne(id);
+        // Lấy blog đã update với ít relations hơn và timeout
+        const updatedBlog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: {
+                author: true,
+                category: true,
+                tags: true,
+            },
+        });
 
-        // Send notification
-        await this.blogNotificationService.notifyBlogPublished(updatedBlog);
+        if (!updatedBlog) {
+            throw new NotFoundException(
+                `Blog with ID ${id} not found after update`,
+            );
+        }
+
+        // Gửi notification bất đồng bộ để tránh timeout
+        this.blogNotificationService
+            .notifyBlogPublished(updatedBlog)
+            .catch((error) => {
+                console.error(
+                    'Failed to send blog published notification:',
+                    error,
+                );
+                // Log thêm thông tin để debug
+                console.error('Blog ID:', id, 'Publisher ID:', publisherId);
+            });
 
         return updatedBlog;
     }
+
     async submitForReview(id: string, currentUser: User): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },

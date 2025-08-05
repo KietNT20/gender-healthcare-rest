@@ -157,62 +157,6 @@ export class BlogsController {
         return this.blogImageService.syncBlogImages(id);
     }
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Get blog by ID' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Blog retrieved successfully',
-    })
-    @ResponseMessage('Blog retrieved successfully')
-    findOne(@Param('id', ParseUUIDPipe) id: string) {
-        return this.blogsService.findOne(id);
-    }
-
-    @Patch(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Blog updated successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description:
-            'Forbidden: You do not have permission (Admin or Manager only).',
-    })
-    @ResponseMessage('Blog updated successfully')
-    update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateBlogDto: UpdateBlogDto,
-    ) {
-        return this.blogsService.update(id, updateBlogDto);
-    }
-
-    @Delete(':id')
-    @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Soft delete blog (Admin or Manager only)' })
-    @ApiResponse({
-        status: HttpStatus.NO_CONTENT,
-        description: 'Blog deleted successfully',
-    })
-    @ApiResponse({
-        status: HttpStatus.FORBIDDEN,
-        description:
-            'Forbidden: You do not have permission (Admin or Manager only).',
-    })
-    @ResponseMessage('Blog deleted successfully')
-    async remove(
-        @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() currentUser: User,
-    ): Promise<{ message: string }> {
-        await this.blogsService.remove(id, currentUser.id);
-        return { message: 'Blog deleted successfully' };
-    }
-
     @Patch(':id/view')
     @ApiOperation({ summary: 'Increment blog view count' })
     @ApiResponse({
@@ -339,5 +283,61 @@ export class BlogsController {
         @CurrentUser() currentUser: User,
     ) {
         return this.blogsService.archiveBlog(id, currentUser);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get blog by ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog retrieved successfully',
+    })
+    @ResponseMessage('Blog retrieved successfully')
+    findOne(@Param('id', ParseUUIDPipe) id: string) {
+        return this.blogsService.findOne(id);
+    }
+
+    @Patch(':id')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update blog by ID (Admin/Manager only)' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Blog updated successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin or Manager only).',
+    })
+    @ResponseMessage('Blog updated successfully')
+    update(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateBlogDto: UpdateBlogDto,
+    ) {
+        return this.blogsService.update(id, updateBlogDto);
+    }
+
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles([RolesNameEnum.ADMIN, RolesNameEnum.MANAGER])
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Soft delete blog (Admin or Manager only)' })
+    @ApiResponse({
+        status: HttpStatus.NO_CONTENT,
+        description: 'Blog deleted successfully',
+    })
+    @ApiResponse({
+        status: HttpStatus.FORBIDDEN,
+        description:
+            'Forbidden: You do not have permission (Admin or Manager only).',
+    })
+    @ResponseMessage('Blog deleted successfully')
+    async remove(
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() currentUser: User,
+    ): Promise<{ message: string }> {
+        await this.blogsService.remove(id, currentUser.id);
+        return { message: 'Blog deleted successfully' };
     }
 }

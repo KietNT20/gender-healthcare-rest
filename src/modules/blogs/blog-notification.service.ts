@@ -98,15 +98,36 @@ export class BlogNotificationService {
      * Thông báo khi blog được publish
      */
     async notifyBlogPublished(blog: Blog): Promise<void> {
-        await this.notificationQueue.add('send-blog-notification', {
-            notificationData: {
-                userId: blog.author.id,
-                title: '🚀 Bài viết đã được xuất bản',
-                content: `Tuyệt vời! Bài viết "${blog.title}" của bạn đã được xuất bản và có thể xem công khai.`,
-                type: 'BLOG_PUBLISHED',
-                actionUrl: `/blogs/public/slug/${blog.slug}`,
-            },
-        });
+        try {
+            await this.notificationQueue.add(
+                'send-blog-notification',
+                {
+                    notificationData: {
+                        userId: blog.author.id,
+                        title: '🚀 Bài viết đã được xuất bản',
+                        content: `Tuyệt vời! Bài viết "${blog.title}" của bạn đã được xuất bản và có thể xem công khai.`,
+                        type: 'BLOG_PUBLISHED',
+                        actionUrl: `/blogs/public/slug/${blog.slug}`,
+                    },
+                },
+                {
+                    // Thêm retry options cho job
+                    attempts: 2,
+                    backoff: {
+                        type: 'exponential',
+                        delay: 2000,
+                    },
+                    removeOnComplete: 10,
+                    removeOnFail: 5,
+                },
+            );
+        } catch (error) {
+            console.error(
+                'Failed to add blog published notification to queue:',
+                error,
+            );
+            // Không throw error để tránh ảnh hưởng đến main flow
+        }
     }
 
     /**

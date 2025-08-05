@@ -84,13 +84,26 @@ import { UsersModule } from './modules/users/users.module';
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                logging: true,
+                // logging: true,
                 dropSchema: false,
                 ssl: {
                     rejectUnauthorized: true,
                     ca: readFileSync(
                         join(process.cwd(), 'certs', 'global-bundle.pem'),
                     ).toString(),
+                },
+                extra: {
+                    connectionTimeoutMillis: 10000,
+                    query_timeout: 30000,
+                    statement_timeout: 30000,
+                    lock_timeout: 10000,
+                    idle_in_transaction_session_timeout: 30000,
+                },
+                pool: {
+                    max: 20,
+                    min: 5,
+                    acquireTimeoutMillis: 30000,
+                    idleTimeoutMillis: 30000,
                 },
             }),
             inject: [ConfigService],
@@ -107,6 +120,16 @@ import { UsersModule } from './modules/users/users.module';
                     configService.get('NODE_ENV') === 'production'
                         ? {}
                         : undefined,
+                // Optimize queue performance
+                defaultJobOptions: {
+                    removeOnComplete: 100,
+                    removeOnFail: 50,
+                    attempts: 3,
+                    backoff: {
+                        type: 'exponential',
+                        delay: 2000,
+                    },
+                },
             }),
             inject: [ConfigService],
         }),

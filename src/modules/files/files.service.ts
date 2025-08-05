@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import * as crypto from 'crypto';
+import sharp from 'sharp';
 import { QUEUE_NAMES, THIRTY_DAYS } from 'src/constant';
 import { SortOrder } from 'src/enums';
 import { sanitizeFilename } from 'src/utils/sanitize-name.util';
@@ -55,6 +56,10 @@ export class FilesService {
         } = options;
 
         try {
+            // Pre-optimize image if it's large to prevent timeouts
+            const optimizedBuffer = await this.preOptimizeImage(file);
+            const isOptimized = optimizedBuffer !== file.buffer;
+
             // Choose upload folder based on isPublic flag (default to false for safety)
             const shouldBePublic = isPublic ?? false;
             const uploadType = shouldBePublic ? 'images' : 'temp';
@@ -64,23 +69,33 @@ export class FilesService {
             );
 
             this.logger.log(
-                `Generated ${shouldBePublic ? 'public' : 'private'} upload key: ${uploadKey}`,
+                `Generated ${shouldBePublic ? 'public' : 'private'} upload key: ${uploadKey}${isOptimized ? ' (pre-optimized)' : ''}`,
             );
 
-            const uploadResult = await this.s3Service.uploadFileWithPrivacy(
-                file.buffer,
-                uploadKey,
-                file.mimetype,
-                shouldBePublic, // Explicitly set privacy
-                {
-                    metadata: {
-                        originalName: file.originalname,
-                        entityType: entityType || '',
-                        entityId: entityId || '',
-                        isPublic: shouldBePublic ? 'true' : 'false',
+            // Upload with timeout protection
+            const uploadResult = (await Promise.race([
+                this.s3Service.uploadFileWithPrivacy(
+                    optimizedBuffer,
+                    uploadKey,
+                    isOptimized ? 'image/webp' : file.mimetype, // Use webp if optimized
+                    shouldBePublic, // Explicitly set privacy
+                    {
+                        metadata: {
+                            originalName: file.originalname,
+                            entityType: entityType || '',
+                            entityId: entityId || '',
+                            isPublic: shouldBePublic ? 'true' : 'false',
+                        },
                     },
-                },
-            );
+                ),
+                new Promise(
+                    (_, reject) =>
+                        setTimeout(
+                            () => reject(new Error('S3 upload timeout')),
+                            30000,
+                        ), // 30s timeout
+                ),
+            ])) as any;
 
             this.logger.log(
                 `S3 upload completed: ${uploadResult.key} (${shouldBePublic ? 'public' : 'private'} bucket)`,
@@ -90,7 +105,7 @@ export class FilesService {
             const image = this.imageRepository.create({
                 name: this.generateFileName(file.originalname),
                 originalName: file.originalname,
-                size: file.size,
+                size: optimizedBuffer.length, // Use optimized size
                 altText,
                 entityType,
                 entityId,
@@ -103,21 +118,36 @@ export class FilesService {
             this.logger.log(`Image saved to database: ${savedImage.id}`);
 
             // Queue for processing only if needed (thumbnails or private images that need optimization)
+            // Make this async to avoid blocking the response
             if (generateThumbnails || !shouldBePublic) {
-                this.logger.log(`Adding image to processing queue...`);
-                await this.imageQueue.add(QUEUE_NAMES.IMAGE_PROCESSING, {
-                    originalKey: uploadKey,
-                    type: this.getImageType(entityType),
-                    isPublic: shouldBePublic, // Pass to processor
-                    generateThumbnails,
-                    metadata: {
-                        imageId: savedImage.id,
-                        entityType,
-                        entityId,
-                        altText,
-                    },
-                });
-                this.logger.log(`Image added to queue successfully`);
+                this.logger.log(`Adding image to processing queue (async)...`);
+
+                // Fire and forget - don't await queue processing
+                this.imageQueue
+                    .add(QUEUE_NAMES.IMAGE_PROCESSING, {
+                        originalKey: uploadKey,
+                        type: this.getImageType(entityType),
+                        isPublic: shouldBePublic, // Pass to processor
+                        generateThumbnails,
+                        metadata: {
+                            imageId: savedImage.id,
+                            entityType,
+                            entityId,
+                            altText,
+                        },
+                    })
+                    .then(() => {
+                        this.logger.log(
+                            `Image added to queue successfully: ${savedImage.id}`,
+                        );
+                    })
+                    .catch((error) => {
+                        this.logger.error(
+                            `Failed to add image to queue: ${savedImage.id}`,
+                            error,
+                        );
+                        // Don't throw error - queue processing shouldn't block upload response
+                    });
             } else {
                 this.logger.log(
                     `Skipping queue processing for public image without thumbnails`,
@@ -132,7 +162,7 @@ export class FilesService {
                 id: savedImage.id,
                 url: uploadResult.cloudFrontUrl || uploadResult.url,
                 originalName: file.originalname,
-                size: file.size,
+                size: optimizedBuffer.length, // Return optimized size
             };
         } catch (error) {
             this.logger.error('Failed to upload image:', error);
@@ -679,6 +709,60 @@ export class FilesService {
                 return 'news';
             default:
                 return 'general';
+        }
+    }
+
+    /**
+     * Pre-optimize image before upload to prevent timeouts
+     */
+    private async preOptimizeImage(file: Express.Multer.File): Promise<Buffer> {
+        try {
+            const metadata = await sharp(file.buffer).metadata();
+            const { width = 0, height = 0, size = 0 } = metadata;
+
+            // Skip optimization for small images
+            if (size < 2 * 1024 * 1024) {
+                // Less than 2MB
+                return file.buffer;
+            }
+
+            this.logger.log(
+                `Pre-optimizing large image: ${width}x${height}, ${(size / 1024 / 1024).toFixed(2)}MB`,
+            );
+
+            // Resize if too large (over 2048px on any side)
+            const maxDimension = 2048;
+            const needsResize = width > maxDimension || height > maxDimension;
+
+            let sharpInstance = sharp(file.buffer);
+
+            if (needsResize) {
+                sharpInstance = sharpInstance.resize(
+                    maxDimension,
+                    maxDimension,
+                    {
+                        fit: 'inside',
+                        withoutEnlargement: true,
+                    },
+                );
+            }
+
+            // Convert to WebP with good quality for faster upload
+            const optimizedBuffer = await sharpInstance
+                .webp({ quality: 90, effort: 4 }) // Good quality, reasonable effort
+                .toBuffer();
+
+            this.logger.log(
+                `Image pre-optimized: ${(optimizedBuffer.length / 1024 / 1024).toFixed(2)}MB`,
+            );
+
+            return optimizedBuffer;
+        } catch (error) {
+            this.logger.warn(
+                'Failed to pre-optimize image, using original:',
+                error,
+            );
+            return file.buffer;
         }
     }
 

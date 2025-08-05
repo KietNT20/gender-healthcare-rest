@@ -120,7 +120,6 @@ export class ConsultantProfile {
     // Relations
     @OneToOne(() => User, (user) => user.consultantProfile, {
         cascade: true,
-        eager: true,
     })
     @JoinColumn()
     user: User;

@@ -452,13 +452,35 @@ export class AppointmentsService {
     async findOne(id: string, currentUser: User): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id, deletedAt: IsNull() },
+            select: {
+                user: {
+                    id: true,
+                    email: true,
+                    googleId: true,
+                    firstName: true,
+                    lastName: true,
+                    slug: true,
+                    dateOfBirth: true,
+                    gender: true,
+                    phone: true,
+                    address: true,
+                    profilePicture: true,
+                },
+                cancelledBy: {
+                    id: true,
+                    email: true,
+                    googleId: true,
+                    firstName: true,
+                    lastName: true,
+                    slug: true,
+                },
+            },
             relations: {
                 user: {
                     role: true,
                 },
                 consultant: {
                     role: true,
-                    consultantAvailabilities: true,
                     consultantProfile: true,
                 },
                 services: true,
@@ -595,10 +617,39 @@ export class AppointmentsService {
         cancelDto: CancelAppointmentDto,
         currentUser: User,
     ): Promise<Appointment> {
+        // Thêm timeout protection cho toàn bộ operation
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+                reject(new Error('Cancel operation timeout after 30 seconds'));
+            }, 30000);
+        });
+
+        const cancelPromise = this.performCancel(id, cancelDto, currentUser);
+
+        return Promise.race([cancelPromise, timeoutPromise]);
+    }
+
+    /**
+     * Thực hiện logic hủy cuộc hẹn với timeout protection
+     */
+    private async performCancel(
+        id: string,
+        cancelDto: CancelAppointmentDto,
+        currentUser: User,
+    ): Promise<Appointment> {
+        this.logger.log(
+            `Starting cancellation for appointment ${id} by user ${currentUser.id}`,
+        );
+
+        // Tối ưu hóa query - chỉ select fields cần thiết
         const appointment = await this.findOne(id, currentUser);
 
         // Ủy thác việc xác thực
         this.validationService.validateCancellation(appointment);
+
+        this.logger.log(
+            `Validation passed for appointment ${id}, updating status to CANCELLED`,
+        );
 
         appointment.status = AppointmentStatusType.CANCELLED;
         appointment.cancellationReason = cancelDto.cancellationReason;
@@ -607,26 +658,100 @@ export class AppointmentsService {
         const savedAppointment =
             await this.appointmentRepository.save(appointment);
 
-        // Cleanup chat room when appointment is cancelled
-        try {
-            await this.chatRoomCleanupService.cleanupRoomOnAppointmentStatusChange(
-                savedAppointment.id,
-                AppointmentStatusType.CANCELLED,
-            );
-        } catch (error) {
-            this.logger.error(
-                'Error cleaning up chat room on cancellation:',
-                error,
-            );
-            // Don't throw error here to avoid breaking the main flow
-        }
-
-        // Ủy thác việc gửi thông báo
-        await this.notificationService.sendCancellationNotifications(
-            savedAppointment,
+        this.logger.log(
+            `Appointment ${id} cancelled successfully, starting background tasks`,
         );
 
+        // Chuyển cleanup và notification thành background tasks để tránh timeout
+        this.performBackgroundCleanup(savedAppointment.id);
+        this.performBackgroundNotification(savedAppointment);
+
+        this.logger.log(`Cancel operation completed for appointment ${id}`);
         return savedAppointment;
+    }
+
+    /**
+     * Thực hiện cleanup trong background để tránh timeout
+     */
+    private performBackgroundCleanup(appointmentId: string): void {
+        setImmediate(() => {
+            this.performCleanupAsync(appointmentId).catch((error) => {
+                this.logger.error(
+                    `Background cleanup failed for appointment ${appointmentId}:`,
+                    error,
+                );
+            });
+        });
+    }
+
+    /**
+     * Thực hiện notification trong background để tránh timeout
+     */
+    private performBackgroundNotification(appointment: Appointment): void {
+        setImmediate(() => {
+            this.performNotificationAsync(appointment).catch((error) => {
+                this.logger.error(
+                    `Background notification failed for appointment ${appointment.id}:`,
+                    error,
+                );
+            });
+        });
+    }
+
+    /**
+     * Async cleanup operation với timeout protection
+     */
+    private async performCleanupAsync(appointmentId: string): Promise<void> {
+        this.logger.log(
+            `Starting background cleanup for appointment ${appointmentId}`,
+        );
+
+        // Thêm timeout cho cleanup operation
+        await Promise.race([
+            this.chatRoomCleanupService.cleanupRoomOnAppointmentStatusChange(
+                appointmentId,
+                AppointmentStatusType.CANCELLED,
+            ),
+            new Promise<never>((_, reject) =>
+                setTimeout(
+                    () => reject(new Error('Cleanup timeout after 10 seconds')),
+                    10000,
+                ),
+            ),
+        ]);
+
+        this.logger.log(
+            `Background cleanup completed for appointment ${appointmentId}`,
+        );
+    }
+
+    /**
+     * Async notification operation với timeout protection
+     */
+    private async performNotificationAsync(
+        appointment: Appointment,
+    ): Promise<void> {
+        this.logger.log(
+            `Starting background notification for appointment ${appointment.id}`,
+        );
+
+        // Thêm timeout cho notification operation
+        await Promise.race([
+            this.notificationService.sendCancellationNotifications(appointment),
+            new Promise<never>((_, reject) =>
+                setTimeout(
+                    () =>
+                        reject(
+                            new Error('Notification timeout after 15 seconds'),
+                        ),
+                    15000,
+                ),
+            ),
+        ]);
+
+        this.logger.log(
+            `Background notification completed for appointment ${appointment.id}`,
+        );
     }
 
     /**

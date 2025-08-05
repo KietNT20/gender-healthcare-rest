@@ -107,10 +107,6 @@ import { UsersModule } from './modules/users/users.module';
                     configService.get('NODE_ENV') === 'production'
                         ? {}
                         : undefined,
-                defaultJobOptions: {
-                    removeOnComplete: 10,
-                    removeOnFail: 50,
-                },
             }),
             inject: [ConfigService],
         }),

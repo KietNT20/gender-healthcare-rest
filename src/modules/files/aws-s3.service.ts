@@ -74,6 +74,12 @@ export class AwsS3Service {
                 secretAccessKey: this.awsConfiguration.credentials
                     .secretAccessKey as string,
             },
+            // Optimize for production performance
+            requestHandler: {
+                requestTimeout: 30000, // 30s timeout for individual requests
+                connectionTimeout: 5000, // 5s connection timeout
+            },
+            maxAttempts: 3, // Retry failed requests up to 3 times
         });
     }
 

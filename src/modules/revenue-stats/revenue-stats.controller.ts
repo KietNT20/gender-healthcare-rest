@@ -22,7 +22,9 @@ export class RevenueStatsController {
     constructor(private readonly revenueStatsService: RevenueStatsService) {}
 
     @Get('monthly')
-    @ApiOperation({ summary: 'Get monthly revenue statistics' })
+    @ApiOperation({
+        summary: 'Get monthly revenue statistics using Repository methods',
+    })
     @ApiResponse({
         status: 200,
         description: 'Monthly revenue retrieved successfully',

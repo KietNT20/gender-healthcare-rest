@@ -115,7 +115,6 @@ export class Blog {
 
     @ManyToOne(() => User, (user) => user.publishedBlogs, {
         nullable: true,
-        eager: true,
     })
     publishedByUser: User;
 

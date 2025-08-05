@@ -43,35 +43,52 @@ export class StiAppointmentsService {
         createStiAppointmentDto: CreateStiAppointmentDto,
         currentUser: User,
     ): Promise<Appointment> {
+        const {
+            stiServiceId,
+            consultantId,
+            sampleCollectionDate,
+            sampleCollectionLocation,
+            notes,
+        } = createStiAppointmentDto;
+
+        // Validate input data first (without transaction)
+        await this.validateInputData(
+            stiServiceId,
+            consultantId,
+            sampleCollectionDate,
+            currentUser.id,
+        );
+
+        // Start transaction for data persistence only
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
+
+        // Set a reasonable timeout for the transaction (30 seconds)
         await queryRunner.startTransaction();
 
+        let savedAppointment: Appointment;
+
         try {
-            const {
-                stiServiceId,
-                consultantId,
-                sampleCollectionDate,
-                sampleCollectionLocation,
-                notes,
-            } = createStiAppointmentDto;
+            // Get validated entities in parallel
+            const [stiService, consultant] = await Promise.all([
+                this.serviceRepository.findOne({
+                    where: { id: stiServiceId },
+                    relations: { category: true },
+                }),
+                consultantId
+                    ? this.userRepository.findOne({
+                          where: { id: consultantId },
+                          relations: { role: true },
+                      })
+                    : Promise.resolve(null),
+            ]);
 
-            // Validate STI service
-            const stiService = await this.validateStiService(stiServiceId);
-
-            // Validate consultant if provided
-            let consultant: User | null = null;
-            if (consultantId) {
-                consultant = await this.validateConsultant(consultantId);
+            // These should not be null as they were already validated
+            if (!stiService) {
+                throw new Error('STI service not found after validation');
             }
 
-            // Validate sample collection date
-            this.validateSampleCollectionDate(sampleCollectionDate);
-
-            // Check for conflicts
-            await this.checkForConflicts(currentUser.id, sampleCollectionDate);
-
-            // Create appointment
+            // Create appointment (entities already validated)
             const appointment = this.appointmentRepository.create({
                 user: currentUser,
                 consultant: consultant || undefined,
@@ -85,36 +102,15 @@ export class StiAppointmentsService {
                 updatedAt: new Date(),
             });
 
-            const savedAppointment =
-                await queryRunner.manager.save(appointment);
+            // Save appointment
+            savedAppointment = await queryRunner.manager.save(appointment);
 
-            // Load complete appointment with relations
-            const completeAppointment = await queryRunner.manager.findOne(
-                Appointment,
-                {
-                    where: { id: savedAppointment.id },
-                    relations: {
-                        user: true,
-                        consultant: true,
-                        services: true,
-                    },
-                },
-            );
-
-            if (!completeAppointment) {
-                throw new Error('Failed to retrieve saved appointment');
-            }
-
-            // Send notification
-            await this.sendStiAppointmentNotification(completeAppointment);
-
+            // Commit transaction quickly
             await queryRunner.commitTransaction();
 
             this.logger.log(
                 `STI appointment created successfully for user ${currentUser.id}`,
             );
-
-            return completeAppointment;
         } catch (error) {
             await queryRunner.rollbackTransaction();
             this.logger.error(
@@ -124,6 +120,65 @@ export class StiAppointmentsService {
         } finally {
             await queryRunner.release();
         }
+
+        setImmediate(() => {
+            void this.sendStiAppointmentNotificationAsync(savedAppointment.id);
+        });
+
+        return savedAppointment;
+    }
+
+    /**
+     * Send notifications asynchronously
+     */
+    private async sendStiAppointmentNotificationAsync(
+        appointmentId: string,
+    ): Promise<void> {
+        try {
+            // Load complete appointment with relations for notifications
+            const completeAppointment =
+                await this.appointmentRepository.findOne({
+                    where: { id: appointmentId },
+                    relations: {
+                        user: true,
+                        consultant: true,
+                        services: true,
+                    },
+                });
+
+            if (completeAppointment) {
+                await this.sendStiAppointmentNotification(completeAppointment);
+            }
+        } catch (notificationError) {
+            this.logger.error(
+                `Failed to send STI appointment notification: ${notificationError instanceof Error ? notificationError.message : String(notificationError)}`,
+            );
+        }
+    }
+
+    /**
+     * Validate all input data before starting transaction
+     */
+    private async validateInputData(
+        stiServiceId: string,
+        consultantId: string | undefined,
+        sampleCollectionDate: Date,
+        userId: string,
+    ): Promise<void> {
+        // Run all validations in parallel
+        const validationPromises = [
+            this.validateStiService(stiServiceId),
+            consultantId
+                ? this.validateConsultant(consultantId)
+                : Promise.resolve(null),
+            this.checkForConflicts(userId, sampleCollectionDate),
+        ];
+
+        // Validate sample collection date (synchronous)
+        this.validateSampleCollectionDate(sampleCollectionDate);
+
+        // Wait for all async validations
+        await Promise.all(validationPromises);
     }
 
     /**
@@ -278,7 +333,8 @@ export class StiAppointmentsService {
         const endTime = new Date(sampleCollectionDate);
         endTime.setMinutes(endTime.getMinutes() + 30); // 30 minutes after
 
-        const conflictingAppointments = await this.appointmentRepository.find({
+        // Use count instead of find for better performance
+        const conflictCount = await this.appointmentRepository.count({
             where: {
                 user: { id: userId },
                 appointmentDate: Between(startTime, endTime),
@@ -286,7 +342,7 @@ export class StiAppointmentsService {
             },
         });
 
-        if (conflictingAppointments.length > 0) {
+        if (conflictCount > 0) {
             throw new ConflictException(
                 'Bạn đã có lịch hẹn khác trong khoảng thời gian này',
             );

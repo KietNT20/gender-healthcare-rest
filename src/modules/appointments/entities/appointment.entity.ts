@@ -107,24 +107,21 @@ export class Appointment {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => User, (user) => user.appointments, {
-        eager: true,
-    })
+    @ManyToOne(() => User, (user) => user.appointments)
     user: User;
 
-    @ManyToOne(() => User, { nullable: true, eager: true })
+    @ManyToOne(() => User, { nullable: true })
     cancelledBy?: User;
 
     @ManyToOne(() => User, (user) => user.consultantAppointments, {
         nullable: true,
-        eager: true,
     })
     consultant?: User;
 
     @ManyToOne(
         () => ConsultantAvailability,
         (consultantAvailability) => consultantAvailability.appointments,
-        { nullable: true, eager: true, onDelete: 'SET NULL' },
+        { nullable: true, onDelete: 'SET NULL' },
     )
     consultantAvailability?: ConsultantAvailability;
 
@@ -151,7 +148,6 @@ export class Appointment {
     @OneToOne(() => Question, (question) => question.appointment, {
         nullable: true,
         cascade: true,
-        eager: true,
     })
     @JoinColumn()
     question?: Question;

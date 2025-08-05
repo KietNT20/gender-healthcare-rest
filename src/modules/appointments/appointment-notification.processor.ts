@@ -3,7 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUE_NAMES } from 'src/constant';
 import { NotificationsService } from 'src/modules/notifications/notifications.service';
-import { SendAppointmentConfirmation } from '../mail/interfaces';
+import {
+    SendAppointmentCancellation,
+    SendAppointmentConfirmation,
+} from '../mail/interfaces';
 import { MailService } from '../mail/mail.service';
 import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 
@@ -26,6 +29,9 @@ export class AppointmentNotificationProcessor extends WorkerHost {
                 break;
             case 'send-appointment-notification':
                 await this.handleSendNotification(job);
+                break;
+            case 'send-cancellation-email':
+                await this.handleSendCancellationEmail(job);
                 break;
             // Thêm các case khác nếu cần
             default:
@@ -62,6 +68,23 @@ export class AppointmentNotificationProcessor extends WorkerHost {
         } catch (err) {
             this.logger.error(
                 `Failed to create notification for user ${notificationData.userId}`,
+                err,
+            );
+            throw err;
+        }
+    }
+
+    private async handleSendCancellationEmail(job: Job<any, any, string>) {
+        const { email, data } = job.data as {
+            email: string;
+            data: SendAppointmentCancellation;
+        };
+        try {
+            await this.mailService.sendAppointmentCancellation(email, data);
+            this.logger.log(`Sent cancellation email to ${email}`);
+        } catch (err) {
+            this.logger.error(
+                `Failed to send cancellation email to ${email}`,
                 err,
             );
             throw err;

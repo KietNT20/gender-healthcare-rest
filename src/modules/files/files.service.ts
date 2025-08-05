@@ -55,29 +55,36 @@ export class FilesService {
         } = options;
 
         try {
-            // Upload to temp folder first (always private)
-            const tempKey = this.s3Service.generateKey(
-                'temp',
+            // Choose upload folder based on isPublic flag (default to false for safety)
+            const shouldBePublic = isPublic ?? false;
+            const uploadType = shouldBePublic ? 'images' : 'temp';
+            const uploadKey = this.s3Service.generateKey(
+                uploadType,
                 file.originalname,
             );
 
-            this.logger.log(`Generated temp key: ${tempKey}`);
+            this.logger.log(
+                `Generated ${shouldBePublic ? 'public' : 'private'} upload key: ${uploadKey}`,
+            );
 
-            const uploadResult = await this.s3Service.uploadFile(
+            const uploadResult = await this.s3Service.uploadFileWithPrivacy(
                 file.buffer,
-                tempKey,
+                uploadKey,
                 file.mimetype,
+                shouldBePublic, // Explicitly set privacy
                 {
                     metadata: {
                         originalName: file.originalname,
                         entityType: entityType || '',
                         entityId: entityId || '',
-                        isPublic: isPublic ? 'true' : 'false',
+                        isPublic: shouldBePublic ? 'true' : 'false',
                     },
                 },
             );
 
-            this.logger.log(`S3 upload completed: ${uploadResult.key}`);
+            this.logger.log(
+                `S3 upload completed: ${uploadResult.key} (${shouldBePublic ? 'public' : 'private'} bucket)`,
+            );
 
             // Save to database with isPublic flag
             const image = this.imageRepository.create({
@@ -87,37 +94,43 @@ export class FilesService {
                 altText,
                 entityType,
                 entityId,
-                isPublic, // Keep this field
-                url: '', // Will be updated after processing
+                isPublic: shouldBePublic, // Use the normalized value
+                url: uploadResult.cloudFrontUrl || uploadResult.url, // Use processed URL
             });
 
             this.logger.log(`Saving image to database...`);
             const savedImage = await this.imageRepository.save(image);
             this.logger.log(`Image saved to database: ${savedImage.id}`);
 
-            // Queue for processing
-            this.logger.log(`Adding image to processing queue...`);
-            await this.imageQueue.add(QUEUE_NAMES.IMAGE_PROCESSING, {
-                originalKey: tempKey,
-                type: this.getImageType(entityType),
-                isPublic, // Pass to processor
-                generateThumbnails,
-                metadata: {
-                    imageId: savedImage.id,
-                    entityType,
-                    entityId,
-                    altText,
-                },
-            });
-            this.logger.log(`Image added to queue successfully`);
+            // Queue for processing only if needed (thumbnails or private images that need optimization)
+            if (generateThumbnails || !shouldBePublic) {
+                this.logger.log(`Adding image to processing queue...`);
+                await this.imageQueue.add(QUEUE_NAMES.IMAGE_PROCESSING, {
+                    originalKey: uploadKey,
+                    type: this.getImageType(entityType),
+                    isPublic: shouldBePublic, // Pass to processor
+                    generateThumbnails,
+                    metadata: {
+                        imageId: savedImage.id,
+                        entityType,
+                        entityId,
+                        altText,
+                    },
+                });
+                this.logger.log(`Image added to queue successfully`);
+            } else {
+                this.logger.log(
+                    `Skipping queue processing for public image without thumbnails`,
+                );
+            }
 
             this.logger.log(
-                `Image uploaded and queued: ${savedImage.id} (${isPublic ? 'public' : 'private'})`,
+                `Image uploaded successfully: ${savedImage.id} (${shouldBePublic ? 'public' : 'private'})`,
             );
 
             return {
                 id: savedImage.id,
-                url: uploadResult.url,
+                url: uploadResult.cloudFrontUrl || uploadResult.url,
                 originalName: file.originalname,
                 size: file.size,
             };

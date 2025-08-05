@@ -74,10 +74,6 @@ export class AwsS3Service {
                 secretAccessKey: this.awsConfiguration.credentials
                     .secretAccessKey as string,
             },
-            requestHandler: {
-                requestTimeout: 60000, // 60 seconds timeout
-                connectionTimeout: 30000, // 30 seconds connection timeout
-            },
         });
     }
 

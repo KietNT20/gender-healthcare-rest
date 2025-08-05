@@ -311,9 +311,25 @@ export class BlogsService {
      * @param id
      * @returns Blog
      */
-    async findOne(id: string) {
+    async findOne(id: string): Promise<Blog> {
         const blog = await this.blogRepository.findOne({
             where: { id, deletedAt: IsNull() },
+            select: {
+                author: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    slug: true,
+                    email: true,
+                },
+                publishedByUser: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    slug: true,
+                    email: true,
+                },
+            },
             relations: {
                 category: true,
                 author: true,
@@ -399,6 +415,7 @@ export class BlogsService {
         await this.blogRepository.update(id, {
             ...updateData,
             slug,
+            status: ContentStatusType.PENDING_REVIEW,
             updatedAt: new Date(),
         });
 
@@ -577,30 +594,70 @@ export class BlogsService {
         }
 
         await this.blogRepository.update(id, updateData);
-        const updatedBlog = await this.findOne(id);
 
-        // Send notifications based on status
-        switch (reviewBlogDto.status) {
-            case ContentStatusType.APPROVED:
-                await this.blogNotificationService.notifyBlogApproved(
-                    updatedBlog,
-                );
-                break;
-            case ContentStatusType.REJECTED:
-                await this.blogNotificationService.notifyBlogRejected(
-                    updatedBlog,
-                    reviewBlogDto.rejectionReason,
-                );
-                break;
-            case ContentStatusType.NEEDS_REVISION:
-                await this.blogNotificationService.notifyBlogNeedsRevision(
-                    updatedBlog,
-                    reviewBlogDto.revisionNotes,
-                );
-                break;
-        }
+        // Lấy blog đã update với ít relations hơn để tránh timeout
+        const updatedBlog = await this.findBlogWithMinimalRelations(id);
+
+        // Send notifications bất đồng bộ để tránh timeout
+        this.sendReviewNotifications(updatedBlog, reviewBlogDto).catch(
+            (error) => {
+                console.error('Failed to send review notifications:', error);
+                console.error('Blog ID:', id, 'Reviewer ID:', reviewerId);
+            },
+        );
 
         return updatedBlog;
+    }
+
+    /**
+     * Helper method để lấy blog với ít relations để tránh timeout
+     */
+    private async findBlogWithMinimalRelations(id: string): Promise<Blog> {
+        const blog = await this.blogRepository.findOne({
+            where: { id, deletedAt: IsNull() },
+            relations: {
+                author: true,
+                category: true,
+                tags: true,
+            },
+        });
+
+        if (!blog) {
+            throw new NotFoundException(`Blog with ID ${id} not found`);
+        }
+
+        return blog;
+    }
+
+    /**
+     * Helper method để gửi notifications bất đồng bộ
+     */
+    private async sendReviewNotifications(
+        blog: Blog,
+        reviewBlogDto: ReviewBlogDto,
+    ): Promise<void> {
+        try {
+            switch (reviewBlogDto.status) {
+                case ContentStatusType.APPROVED:
+                    await this.blogNotificationService.notifyBlogApproved(blog);
+                    break;
+                case ContentStatusType.REJECTED:
+                    await this.blogNotificationService.notifyBlogRejected(
+                        blog,
+                        reviewBlogDto.rejectionReason,
+                    );
+                    break;
+                case ContentStatusType.NEEDS_REVISION:
+                    await this.blogNotificationService.notifyBlogNeedsRevision(
+                        blog,
+                        reviewBlogDto.revisionNotes,
+                    );
+                    break;
+            }
+        } catch (error) {
+            console.error('Error sending review notifications:', error);
+            // Không throw error để tránh ảnh hưởng đến main flow
+        }
     }
     async publishBlog(
         id: string,
@@ -635,20 +692,7 @@ export class BlogsService {
         });
 
         // Lấy blog đã update với ít relations hơn và timeout
-        const updatedBlog = await this.blogRepository.findOne({
-            where: { id, deletedAt: IsNull() },
-            relations: {
-                author: true,
-                category: true,
-                tags: true,
-            },
-        });
-
-        if (!updatedBlog) {
-            throw new NotFoundException(
-                `Blog with ID ${id} not found after update`,
-            );
-        }
+        const updatedBlog = await this.findBlogWithMinimalRelations(id);
 
         // Gửi notification bất đồng bộ để tránh timeout
         this.blogNotificationService
@@ -700,12 +744,19 @@ export class BlogsService {
             updatedAt: new Date(),
         });
 
-        const updatedBlog = await this.findOne(id);
+        // Lấy blog đã update với ít relations hơn để tránh timeout
+        const updatedBlog = await this.findBlogWithMinimalRelations(id);
 
-        // Send notification
-        await this.blogNotificationService.notifyBlogSubmittedForReview(
-            updatedBlog,
-        );
+        // Send notification bất đồng bộ để tránh timeout
+        this.blogNotificationService
+            .notifyBlogSubmittedForReview(updatedBlog)
+            .catch((error) => {
+                console.error(
+                    'Failed to send blog submitted for review notification:',
+                    error,
+                );
+                console.error('Blog ID:', id, 'User ID:', currentUser.id);
+            });
 
         return updatedBlog;
     }
@@ -738,10 +789,19 @@ export class BlogsService {
             updatedAt: new Date(),
         });
 
-        const updatedBlog = await this.findOne(id);
+        // Lấy blog đã update với ít relations hơn để tránh timeout
+        const updatedBlog = await this.findBlogWithMinimalRelations(id);
 
-        // Send notification
-        await this.blogNotificationService.notifyBlogArchived(updatedBlog);
+        // Send notification bất đồng bộ để tránh timeout
+        this.blogNotificationService
+            .notifyBlogArchived(updatedBlog)
+            .catch((error) => {
+                console.error(
+                    'Failed to send blog archived notification:',
+                    error,
+                );
+                console.error('Blog ID:', id, 'User ID:', currentUser.id);
+            });
 
         return updatedBlog;
     }
@@ -830,10 +890,19 @@ export class BlogsService {
             ...publishBlogDto,
         });
 
-        const updatedBlog = await this.findOne(id);
+        // Lấy blog đã update với ít relations hơn để tránh timeout
+        const updatedBlog = await this.findBlogWithMinimalRelations(id);
 
-        // Send notification
-        await this.blogNotificationService.notifyBlogPublished(updatedBlog);
+        // Send notification bất đồng bộ để tránh timeout
+        this.blogNotificationService
+            .notifyBlogPublished(updatedBlog)
+            .catch((error) => {
+                console.error(
+                    'Failed to send direct publish notification:',
+                    error,
+                );
+                console.error('Blog ID:', id, 'Publisher ID:', publisherId);
+            });
 
         return updatedBlog;
     }

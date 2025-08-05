@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as ExcelJS from 'exceljs';
 import { PaymentStatusType } from 'src/enums';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 
 @Injectable()
 export class RevenueStatsService {
@@ -19,49 +19,59 @@ export class RevenueStatsService {
         const startDate = new Date(`${currentYear}-01-01`);
         const endDate = new Date(`${currentYear + 1}-01-01`);
 
-        let query = this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'EXTRACT(MONTH FROM payment.paymentDate) as month',
-                'COALESCE(SUM(payment.amount), 0) as totalRevenue',
-            ])
-            .where('payment.status = :status', {
+        this.logger.log(
+            `Getting monthly revenue stats for year: ${currentYear}, month: ${month || 'all'}`,
+        );
+
+        // Lấy tất cả payments trong năm
+        const payments = await this.paymentRepository.find({
+            where: {
                 status: PaymentStatusType.COMPLETED,
-            })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', {
-                startDate,
-                endDate,
-            })
-            .groupBy('EXTRACT(MONTH FROM payment.paymentDate)')
-            .orderBy('month', 'ASC');
+                paymentDate: Between(startDate, endDate),
+            },
+            select: ['id', 'amount', 'paymentDate'],
+        });
 
-        if (month) {
-            query = query.andWhere(
-                'EXTRACT(MONTH FROM payment.paymentDate) = :month',
-                { month },
-            );
-        }
+        this.logger.log(`Found ${payments.length} completed payments`);
 
-        const monthlyStats = await query.getRawMany();
+        // Xử lý dữ liệu theo tháng
+        const monthlyData = new Map<
+            number,
+            { totalRevenue: number; transactionCount: number }
+        >();
 
-        this.logger.log('Monthly stats raw data:', monthlyStats);
+        payments.forEach((payment) => {
+            const paymentMonth = payment.paymentDate.getMonth() + 1; // getMonth() trả về 0-11
+            const amount = parseFloat(payment.amount.toString());
 
+            if (!monthlyData.has(paymentMonth)) {
+                monthlyData.set(paymentMonth, {
+                    totalRevenue: 0,
+                    transactionCount: 0,
+                });
+            }
+
+            const monthData = monthlyData.get(paymentMonth)!;
+            monthData.totalRevenue += amount;
+            monthData.transactionCount += 1;
+        });
+
+        // Tạo kết quả cho tất cả 12 tháng
         const result = Array(12)
-            .fill(0)
+            .fill(null)
             .map((_, index) => {
                 const monthNum = index + 1;
-                const stat = monthlyStats.find(
-                    (s) => Number(s.month) === monthNum,
-                );
-                if (month && monthNum !== month) return null;
+                const monthData = monthlyData.get(monthNum);
+
+                // Nếu chỉ lấy một tháng cụ thể và không phải tháng này thì return null
+                if (month && monthNum !== month) {
+                    return null;
+                }
+
                 return {
                     month: monthNum,
-                    totalRevenue: stat
-                        ? parseFloat(
-                              stat.totalrevenue || stat.totalRevenue || '0',
-                          )
-                        : 0,
+                    totalRevenue: monthData?.totalRevenue || 0,
+                    transactionCount: monthData?.transactionCount || 0,
                 };
             })
             .filter((r) => r !== null);
@@ -79,69 +89,77 @@ export class RevenueStatsService {
         const startDate = new Date(`${currentYear}-01-01`);
         const endDate = new Date(`${currentYear + 1}-01-01`);
 
-        const yearlyStats = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'EXTRACT(MONTH FROM payment.paymentDate) as month',
-                'COALESCE(SUM(payment.amount), 0) as totalRevenue',
-            ])
-            .where('payment.status = :status', {
+        this.logger.log(
+            `Getting yearly revenue stats for year: ${currentYear}`,
+        );
+
+        // Lấy tất cả payments trong năm
+        const payments = await this.paymentRepository.find({
+            where: {
                 status: PaymentStatusType.COMPLETED,
-            })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', {
-                startDate,
-                endDate,
-            })
-            .groupBy('EXTRACT(MONTH FROM payment.paymentDate)')
-            .orderBy('month', 'ASC')
-            .getRawMany();
+                paymentDate: Between(startDate, endDate),
+            },
+            select: ['id', 'amount', 'paymentDate'],
+            order: {
+                paymentDate: 'ASC',
+            },
+        });
 
-        const monthlyDetails = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'EXTRACT(MONTH FROM payment.paymentDate) as month',
-                'payment.paymentDate',
-                'payment.amount',
-                'payment.id',
-            ])
-            .where('payment.status = :status', {
-                status: PaymentStatusType.COMPLETED,
-            })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', {
-                startDate,
-                endDate,
-            })
-            .orderBy('payment.paymentDate', 'ASC')
-            .getRawMany();
+        this.logger.log(
+            `Found ${payments.length} completed payments for yearly stats`,
+        );
 
-        this.logger.log('Yearly stats raw data:', yearlyStats);
-        this.logger.log('Monthly details raw data:', monthlyDetails);
+        // Xử lý dữ liệu theo tháng
+        const monthlyData = new Map<
+            number,
+            {
+                totalRevenue: number;
+                transactionCount: number;
+                details: Array<{
+                    id: string;
+                    paymentDate: Date;
+                    amount: number;
+                }>;
+            }
+        >();
 
+        payments.forEach((payment) => {
+            const paymentMonth = payment.paymentDate.getMonth() + 1; // getMonth() trả về 0-11
+            const amount = parseFloat(payment.amount.toString());
+
+            if (!monthlyData.has(paymentMonth)) {
+                monthlyData.set(paymentMonth, {
+                    totalRevenue: 0,
+                    transactionCount: 0,
+                    details: [],
+                });
+            }
+
+            const monthData = monthlyData.get(paymentMonth)!;
+            monthData.totalRevenue += amount;
+            monthData.transactionCount += 1;
+            monthData.details.push({
+                id: payment.id,
+                paymentDate: payment.paymentDate,
+                amount: amount,
+            });
+        });
+
+        // Tạo kết quả cho tất cả 12 tháng
         const result = Array(12)
             .fill(null)
             .map((_, index) => {
                 const monthNum = index + 1;
-                const stat = yearlyStats.find(
-                    (s) => Number(s.month) === monthNum,
-                );
+                const monthData = monthlyData.get(monthNum);
+
                 return {
                     month: monthNum,
-                    totalRevenue: stat
-                        ? parseFloat(
-                              stat.totalrevenue || stat.totalRevenue || '0',
-                          )
-                        : null,
-                    details: monthlyDetails
-                        .filter((d) => Number(d.month) === monthNum)
-                        .map((d) => ({
-                            id: d.id,
-                            paymentDate: d.paymentDate,
-                            amount: parseFloat(d.amount),
-                        })),
+                    totalRevenue: monthData?.totalRevenue || null,
+                    details: monthData?.details || [],
                 };
             });
+
+        this.logger.log('Processed yearly result:', result);
 
         return {
             year: currentYear,
@@ -154,44 +172,60 @@ export class RevenueStatsService {
         const startDate = new Date(`${currentYear}-01-01`);
         const endDate = new Date(`${currentYear + 1}-01-01`);
 
-        const monthlyDetails = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'EXTRACT(MONTH FROM payment.paymentDate) as month',
-                'payment.paymentDate',
-                'payment.amount',
-                'payment.id',
-            ])
-            .where('payment.status = :status', {
+        this.logger.log(`Getting monthly details for year: ${currentYear}`);
+
+        // Lấy tất cả payments trong năm
+        const payments = await this.paymentRepository.find({
+            where: {
                 status: PaymentStatusType.COMPLETED,
-            })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', {
-                startDate,
-                endDate,
-            })
-            .orderBy('payment.paymentDate', 'ASC')
-            .getRawMany();
+                paymentDate: Between(startDate, endDate),
+            },
+            select: ['id', 'amount', 'paymentDate'],
+            order: {
+                paymentDate: 'ASC',
+            },
+        });
 
-        console.log('Monthly details raw data:', monthlyDetails);
+        this.logger.log(
+            `Found ${payments.length} completed payments for monthly details`,
+        );
 
+        // Xử lý dữ liệu theo tháng
+        const monthlyData = new Map<
+            number,
+            Array<{ id: string; paymentDate: Date; amount: number }>
+        >();
+
+        payments.forEach((payment) => {
+            const paymentMonth = payment.paymentDate.getMonth() + 1; // getMonth() trả về 0-11
+            const amount = parseFloat(payment.amount.toString());
+
+            if (!monthlyData.has(paymentMonth)) {
+                monthlyData.set(paymentMonth, []);
+            }
+
+            const monthDetails = monthlyData.get(paymentMonth)!;
+            monthDetails.push({
+                id: payment.id,
+                paymentDate: payment.paymentDate,
+                amount: amount,
+            });
+        });
+
+        // Tạo kết quả cho tất cả 12 tháng
         const result = Array(12)
             .fill(null)
             .map((_, index) => {
                 const monthNum = index + 1;
+                const monthDetails = monthlyData.get(monthNum);
+
                 return {
                     month: monthNum,
-                    details: monthlyDetails
-                        .filter((d) => Number(d.month) === monthNum)
-                        .map((d) => ({
-                            id: d.id,
-                            paymentDate: d.paymentDate,
-                            amount: parseFloat(d.amount),
-                        })),
+                    details: monthDetails || [],
                 };
             });
 
-        console.log('Processed monthly details:', result);
+        this.logger.log('Processed monthly details:', result);
 
         return {
             year: currentYear,
@@ -377,53 +411,5 @@ export class RevenueStatsService {
         // Xuất file buffer
         const buffer = await workbook.xlsx.writeBuffer();
         return buffer;
-    }
-
-    async debugPaymentData(year?: number) {
-        const currentYear = year || new Date().getFullYear();
-
-        const allPayments = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'payment.id',
-                'payment.amount',
-                'payment.status',
-                'payment.paymentDate',
-            ])
-            .where('EXTRACT(YEAR FROM payment.paymentDate) = :year', {
-                year: currentYear,
-            })
-            .orderBy('payment.paymentDate', 'ASC')
-            .getMany();
-
-        const completedPayments = await this.paymentRepository
-            .createQueryBuilder('payment')
-            .select([
-                'payment.id',
-                'payment.amount',
-                'payment.status',
-                'payment.paymentDate',
-            ])
-            .where('payment.status = :status', {
-                status: PaymentStatusType.COMPLETED,
-            })
-            .andWhere('payment.paymentDate IS NOT NULL')
-            .andWhere('EXTRACT(YEAR FROM payment.paymentDate) = :year', {
-                year: currentYear,
-            })
-            .orderBy('payment.paymentDate', 'ASC')
-            .getMany();
-
-        console.log('Completed payments:', completedPayments);
-
-        return {
-            allPayments,
-            completedPayments,
-            totalCompleted: completedPayments.length,
-            totalAmount: completedPayments.reduce(
-                (sum, p) => sum + parseFloat(p.amount.toString()),
-                0,
-            ),
-        };
     }
 }

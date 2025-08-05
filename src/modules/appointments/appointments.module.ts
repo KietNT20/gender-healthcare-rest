@@ -12,6 +12,7 @@ import { User } from '../users/entities/user.entity';
 import { AppointmentAttendanceService } from './appointment-attendance.service';
 import { AppointmentAutoCancelService } from './appointment-auto-cancel.service';
 import { AppointmentBookingService } from './appointment-booking.service';
+import { AppointmentCacheService } from './appointment-cache.service';
 import { AppointmentMeetingLinkService } from './appointment-meeting-link.service';
 import { AppointmentNotificationProcessor } from './appointment-notification.processor';
 import { AppointmentNotificationService } from './appointment-notification.service';
@@ -37,6 +38,7 @@ import { StiAppointmentsService } from './sti-appointments.service';
     providers: [
         AppointmentsService,
         AppointmentBookingService,
+        AppointmentCacheService,
         AppointmentValidationService,
         AppointmentNotificationService,
         AppointmentAttendanceService,
@@ -50,6 +52,7 @@ import { StiAppointmentsService } from './sti-appointments.service';
         AppointmentAttendanceService,
         StiAppointmentsService,
         AppointmentNotificationService,
+        AppointmentCacheService,
     ],
 })
 export class AppointmentsModule {}

@@ -28,6 +28,10 @@ import {
 } from 'typeorm';
 
 @Entity()
+@Index(['user', 'consultant', 'appointmentDate'])
+@Index(['consultant', 'status', 'appointmentDate'])
+@Index(['user', 'status'])
+@Index(['appointmentDate', 'status'])
 export class Appointment {
     @PrimaryGeneratedColumn('uuid')
     id: string;

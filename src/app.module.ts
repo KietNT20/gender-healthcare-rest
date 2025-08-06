@@ -5,8 +5,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
@@ -53,7 +51,6 @@ import { UsersModule } from './modules/users/users.module';
     imports: [
         ConfigModule.forRoot({
             envFilePath: ['.env'],
-            // envFilePath: ['.env.development.local'],
             isGlobal: true,
             load: [googleAuthConfig, awsConfig, mailConfig],
         }),
@@ -84,27 +81,7 @@ import { UsersModule } from './modules/users/users.module';
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
                 autoLoadEntities: true,
-                // logging: true,
                 dropSchema: false,
-                ssl: {
-                    rejectUnauthorized: true,
-                    ca: readFileSync(
-                        join(process.cwd(), 'certs', 'global-bundle.pem'),
-                    ).toString(),
-                },
-                // extra: {
-                //     connectionTimeoutMillis: 15000,
-                //     query_timeout: 45000,
-                //     statement_timeout: 45000,
-                //     lock_timeout: 15000,
-                //     idle_in_transaction_session_timeout: 45000,
-                // },
-                // pool: {
-                //     max: 25,
-                //     min: 5,
-                //     acquireTimeoutMillis: 45000,
-                //     idleTimeoutMillis: 45000,
-                // },
             }),
             inject: [ConfigService],
         }),
@@ -115,20 +92,6 @@ import { UsersModule } from './modules/users/users.module';
                     host: configService.get('REDIS_HOST'),
                     port: +configService.get('REDIS_PORT'),
                     password: configService.get('REDIS_PASSWORD'),
-                },
-                tls:
-                    configService.get('NODE_ENV') === 'production'
-                        ? {}
-                        : undefined,
-                // Optimize queue performance
-                defaultJobOptions: {
-                    removeOnComplete: 100,
-                    removeOnFail: 50,
-                    attempts: 3,
-                    backoff: {
-                        type: 'exponential',
-                        delay: 2000,
-                    },
                 },
             }),
             inject: [ConfigService],

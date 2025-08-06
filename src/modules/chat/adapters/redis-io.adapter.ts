@@ -14,19 +14,9 @@ export class RedisIoAdapter extends IoAdapter {
             socket: {
                 host,
                 port,
-                connectTimeout: 30000,
-                reconnectStrategy: (retries) => {
-                    const delay = Math.min(retries * 200, 5000);
-                    console.log(
-                        `Redis reconnect attempt ${retries}, delay: ${delay}ms`,
-                    );
-                    return delay;
-                },
-                tls: process.env.NODE_ENV === 'production' ? true : false,
             },
             username: process.env.REDIS_USERNAME,
             password: password,
-            database: 0,
         });
         const subClient = pubClient.duplicate();
         await Promise.all([pubClient.connect(), subClient.connect()]);

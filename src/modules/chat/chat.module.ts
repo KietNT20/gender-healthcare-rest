@@ -46,22 +46,9 @@ import { RedisHelperService } from './redis-helper.service';
                     socket: {
                         host,
                         port,
-                        connectTimeout: 30000,
-                        reconnectStrategy: (retries) => {
-                            const delay = Math.min(retries * 200, 5000);
-                            console.log(
-                                `Redis reconnect attempt ${retries}, delay: ${delay}ms`,
-                            );
-                            return delay;
-                        },
-                        tls:
-                            process.env.NODE_ENV === 'production'
-                                ? true
-                                : false,
                     },
                     username: username,
                     password: password,
-                    database: 0,
                 });
 
                 client.on('error', (err) => {

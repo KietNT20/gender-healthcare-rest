@@ -124,8 +124,6 @@ export class AppointmentCacheService {
      * Background cleanup of expired cache entries
      */
     cleanupExpiredCache(): void {
-        const now = Date.now();
-
         // Cleanup consultant cache
         for (const [key, value] of this.consultantCache.entries()) {
             if (!this.isCacheValid(value)) {

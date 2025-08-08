@@ -106,7 +106,6 @@ export class AppointmentsService {
         await queryRunner.startTransaction();
 
         try {
-            // **Optimized: Single query để lấy tất cả data cần thiết**
             const [services, consultant] = await Promise.all([
                 // Query services nếu có
                 serviceIds?.length
@@ -121,7 +120,6 @@ export class AppointmentsService {
                       })
                     : Promise.resolve([]),
 
-                // Query consultant với đầy đủ thông tin nếu có
                 consultantId
                     ? queryRunner.manager.findOne(User, {
                           where: {
@@ -208,7 +206,6 @@ export class AppointmentsService {
                 );
             }
 
-            // **Optimized: Parallel validation cho conflict check và slot validation**
             const validationPromises: Promise<any>[] = [];
 
             // Check appointment conflict
@@ -261,7 +258,6 @@ export class AppointmentsService {
 
             await Promise.all(validationPromises);
 
-            // **Calculate price một lần duy nhất**
             let totalPrice = 0;
             if (!services.length && consultant?.consultantProfile) {
                 // Tư vấn tổng quát

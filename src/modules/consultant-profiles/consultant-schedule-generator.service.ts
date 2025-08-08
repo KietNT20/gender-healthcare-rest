@@ -138,7 +138,6 @@ export class ConsultantScheduleGeneratorService {
                 startTime: timeSlot.startTime,
                 endTime: timeSlot.endTime,
                 isAvailable: timeSlot.isAvailable,
-                maxAppointments: timeSlot.maxAppointments || 1,
                 recurring: false, // Đặt false vì đây là lịch cụ thể theo ngày
                 specificDate: date,
             });

@@ -4,7 +4,6 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import {
-    AppointmentStatusType,
     ConsultantSelectionType,
     ProfileStatusType,
     RolesNameEnum,
@@ -24,7 +23,6 @@ import {
     FindAvailableSlotsDto,
     FindAvailableSlotsResponseDto,
 } from './dto/find-available-slots.dto';
-import { Appointment } from './entities/appointment.entity';
 
 /**
  * @class AppointmentBookingService
@@ -138,7 +136,6 @@ export class AppointmentBookingService {
             profile.id,
             dayOfWeek,
             time,
-            date,
             manager,
         );
 
@@ -158,7 +155,6 @@ export class AppointmentBookingService {
         profileId: string,
         dayOfWeek: number,
         time: string,
-        date: Date,
         manager: EntityManager,
     ): Promise<ConsultantAvailability> {
         const availability = await manager.findOne(ConsultantAvailability, {
@@ -174,24 +170,6 @@ export class AppointmentBookingService {
         if (!availability) {
             throw new NotFoundException(
                 'Không tìm thấy lịch làm việc cho tư vấn viên.',
-            );
-        }
-
-        const existingCount = await manager.count(Appointment, {
-            where: {
-                consultantAvailability: { id: availability.id },
-                appointmentDate: date,
-                status: In([
-                    AppointmentStatusType.CONFIRMED,
-                    AppointmentStatusType.PENDING,
-                ]),
-            },
-        });
-        const remainingSlots = availability.maxAppointments - existingCount;
-        // Kiểm tra xem còn slot trống không
-        if (remainingSlots <= 0) {
-            throw new BadRequestException(
-                'Tư vấn viên đã hết lịch trống vào thời gian này.',
             );
         }
 
@@ -375,46 +353,35 @@ export class AppointmentBookingService {
                 },
             );
 
+            // Tạo các slot thời gian cho mỗi availability
             for (const availability of dayAvailabilities) {
-                // Tạo các slot 30 phút trong khoảng thời gian availability
-                const slots = this.generateTimeSlots(
+                const timeSlots = this.generateTimeSlots(
                     availability,
-                    currentDate,
+                    new Date(currentDate),
                     startTime,
                     endTime,
                 );
 
-                for (const slot of slots) {
-                    // Kiểm tra slot này còn trống không
-                    const existingCount = await manager.count(Appointment, {
-                        where: {
-                            consultantAvailability: { id: availability.id },
-                            appointmentDate: slot,
-                            status: In([
-                                AppointmentStatusType.CONFIRMED,
-                                AppointmentStatusType.PENDING,
-                            ]),
+                // Thêm vào danh sách available slots
+                for (const slotDateTime of timeSlots) {
+                    availableSlots.push({
+                        dateTime: slotDateTime,
+                        consultant: {
+                            id: availability.consultantProfile.user.id,
+                            firstName:
+                                availability.consultantProfile.user.firstName,
+                            lastName:
+                                availability.consultantProfile.user.lastName,
+                            specialties:
+                                availability.consultantProfile.specialties ||
+                                [],
+                            rating: availability.consultantProfile.rating || 0,
+                            consultationFee:
+                                availability.consultantProfile
+                                    .consultationFee || 0,
                         },
+                        availabilityId: availability.id,
                     });
-
-                    const remainingSlots =
-                        availability.maxAppointments - existingCount;
-                    if (remainingSlots > 0) {
-                        const profile = availability.consultantProfile;
-                        availableSlots.push({
-                            dateTime: slot,
-                            consultant: {
-                                id: profile.user.id,
-                                firstName: profile.user.firstName,
-                                lastName: profile.user.lastName,
-                                specialties: profile.specialties || [],
-                                rating: profile.rating,
-                                consultationFee: profile.consultationFee,
-                            },
-                            availabilityId: availability.id,
-                            remainingSlots,
-                        });
-                    }
                 }
             }
 

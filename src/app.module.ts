@@ -91,7 +91,6 @@ import { UsersModule } from './modules/users/users.module';
                 connection: {
                     host: configService.get('REDIS_HOST'),
                     port: +configService.get('REDIS_PORT'),
-                    password: configService.get('REDIS_PASSWORD'),
                 },
             }),
             inject: [ConfigService],

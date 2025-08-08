@@ -63,8 +63,8 @@ export class CreateBlogDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsArray()
-    @IsUUID('all', { each: true })
-    relatedServicesIds?: string[];
+    @IsUUID('4', { each: true })
+    relatedServices?: string[];
 
     @ApiPropertyOptional()
     @IsOptional()

@@ -75,7 +75,7 @@ export class ServicePackagesStatsService {
 
         return {
             package: topPackage,
-            subscriptionCount: parseInt(stats[0].subscriptionCount),
+            subscriptionCount: parseInt(String(stats[0].subscriptionCount)),
             month: queryMonth,
             year: queryYear,
         };
@@ -138,7 +138,9 @@ export class ServicePackagesStatsService {
                     durationMonths: pkg.durationMonths,
                     isActive: pkg.isActive,
                 },
-                subscriptionCount: stat ? parseInt(stat.subscriptionCount) : 0,
+                subscriptionCount: stat
+                    ? parseInt(String(stat.subscriptionCount))
+                    : 0,
             };
         });
 
@@ -205,7 +207,7 @@ export class ServicePackagesStatsService {
                 return {
                     package: pkg,
                     subscriptionCount: stat
-                        ? parseInt(stat.subscriptionCount)
+                        ? parseInt(String(stat.subscriptionCount))
                         : 0,
                 };
             })
@@ -377,9 +379,17 @@ export class ServicePackagesStatsService {
                 column.eachCell(
                     { includeEmpty: true },
                     (cell: ExcelJS.Cell) => {
-                        const cellLength = cell.value
-                            ? cell.value.toString().length
-                            : 0;
+                        let cellLength = 0;
+                        if (cell.value) {
+                            if (typeof cell.value === 'string') {
+                                cellLength = cell.value.length;
+                            } else if (typeof cell.value === 'number') {
+                                cellLength = String(cell.value).length;
+                            } else if (typeof cell.value === 'boolean') {
+                                cellLength = String(cell.value).length;
+                            }
+                            // Skip objects to avoid '[object Object]' stringification
+                        }
                         if (cellLength > maxLength) {
                             maxLength = cellLength;
                         }

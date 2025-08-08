@@ -79,15 +79,6 @@ export class Blog {
     @Index()
     publishedAt?: Date;
 
-    @Column({ type: 'uuid', nullable: true })
-    deletedByUserId?: string;
-
-    @Column({ type: 'uuid', nullable: true })
-    authorId?: string;
-
-    @Column({ type: 'uuid', nullable: true })
-    categoryId?: string;
-
     @Column({ default: false })
     autoPublish: boolean;
 
@@ -104,31 +95,27 @@ export class Blog {
     @ManyToOne(() => User, (user) => user.authoredBlogs)
     author: User;
 
-    @ManyToOne(() => Category, (category) => category.blogs, {
-        nullable: true,
-        eager: true,
-    })
+    @ManyToOne(() => Category, (category) => category.blogs)
     category: Category;
 
     @ManyToOne(() => User, (user) => user.reviewedBlogs, { nullable: true })
-    reviewedByUser: User;
+    reviewedByUser?: User;
 
     @ManyToOne(() => User, (user) => user.publishedBlogs, {
         nullable: true,
     })
-    publishedByUser: User;
+    publishedByUser?: User;
 
-    @ManyToMany(() => Service, (service) => service.blogs, { eager: true })
+    @ManyToMany(() => Service, (service) => service.blogs)
     @JoinTable()
     services: Service[];
 
     @OneToMany(() => Image, (image) => image.blog, {
-        eager: true,
         cascade: true,
     })
     images: Image[];
 
-    @ManyToMany(() => Tag, (tag) => tag.blogs, { eager: true, cascade: true })
+    @ManyToMany(() => Tag, (tag) => tag.blogs, { cascade: true })
     @JoinTable()
     tags: Tag[];
 }

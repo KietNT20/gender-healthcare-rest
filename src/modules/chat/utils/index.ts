@@ -1,5 +1,1 @@
-export {
-    convertToWsException,
-    getWsErrorMessage,
-    isHttpException,
-} from './exception.utils';
+export { convertToWsException, getWsErrorMessage } from './exception.utils';

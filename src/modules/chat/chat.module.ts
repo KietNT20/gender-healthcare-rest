@@ -1,105 +1,65 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { createClient } from 'redis';
 import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { User } from '../users/entities/user.entity';
-import { ChatCleanupSchedulerService } from './chat-cleanup-scheduler.service';
-import { ChatCleanupService } from './chat-cleanup.service';
-import { ChatRoomCleanupService } from './chat-room-cleanup.service';
-import { ChatController } from './chat.controller';
-import { ChatGateway } from './chat.gateway';
-import { ChatService } from './chat.service';
+import { ChatCoreService } from './core/services/chat-core.service';
 import { Message } from './entities/message.entity';
 import { Question } from './entities/question.entity';
-import { ChatPaymentGuard } from './guards/chat-payment.guard';
-import { WsJwtGuard } from './guards/ws-jwt.guard';
-import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
-import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
+import { ChatGateway } from './gateway/chat.gateway';
+import { RedisService } from './infrastructure/redis/redis.service';
+
+// Gateway Handlers
 import {
     ConnectionHandler,
     MessageHandler,
     RoomHandler,
     TypingHandler,
-} from './handlers';
-import { RedisHealthService } from './redis-healthcheck.service';
-import { RedisHelperService } from './redis-helper.service';
+} from './gateway/handlers';
+
+// Guards
+import { ChatCleanupSchedulerService } from './chat-cleanup-scheduler.service';
+import { ChatCleanupService } from './chat-cleanup.service';
+import { WsAuthGuard } from './core/guards/ws-auth.guard';
+import { WsRoomAccessGuard } from './core/guards/ws-room-access.guard';
+import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, Message, Question]),
+        JwtModule.registerAsync({
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get('JWT_SECRET'),
+                signOptions: { expiresIn: '1d' },
+            }),
+            inject: [ConfigService],
+        }),
         FilesModule,
         AuthModule,
     ],
-    controllers: [ChatController],
+    controllers: [],
     providers: [
-        {
-            provide: 'REDIS_CLIENT',
-            useFactory: async (configService: ConfigService) => {
-                const host = configService.get('REDIS_HOST');
-                const port = +configService.get('REDIS_PORT');
-                const password = configService.get('REDIS_PASSWORD');
-                const username = configService.get('REDIS_USERNAME');
-
-                const client = createClient({
-                    socket: {
-                        host,
-                        port,
-                    },
-                    username: username,
-                    password: password,
-                });
-
-                client.on('error', (err) => {
-                    console.error('Redis Client Error:', err);
-                });
-
-                client.on('connect', () => {
-                    console.log('Redis Client Connected to AWS ElastiCache');
-                });
-
-                client.on('ready', () => {
-                    console.log('Redis Client Ready');
-                });
-
-                client.on('reconnecting', () => {
-                    console.log('Redis Client Reconnecting...');
-                });
-
-                client.on('end', () => {
-                    console.log('Redis Client Connection Ended');
-                });
-
-                try {
-                    await client.connect();
-                    console.log(
-                        '✅ Successfully connected to AWS ElastiCache Redis',
-                    );
-                    return client;
-                } catch (error) {
-                    console.error('❌ Failed to connect to Redis:', error);
-                    throw error;
-                }
-            },
-            inject: [ConfigService],
-        },
-        ChatGateway,
-        ChatService,
+        ChatCoreService,
+        RedisService,
         ChatCleanupService,
-        ChatRoomCleanupService,
         ChatCleanupSchedulerService,
-        RedisHelperService,
-        RedisHealthService,
-        RedisWsThrottleGuard,
-        WsJwtGuard,
-        WsRoomAccessGuard,
-        ChatPaymentGuard,
+        ChatGateway,
         ConnectionHandler,
         RoomHandler,
         MessageHandler,
         TypingHandler,
+        WsAuthGuard,
+        WsRoomAccessGuard,
+        WsThrottleGuard,
     ],
-    exports: [ChatService, ChatRoomCleanupService],
+    exports: [
+        ChatCoreService,
+        ChatGateway,
+        RedisService,
+        ChatCleanupService,
+        ChatCleanupSchedulerService,
+    ],
 })
 export class ChatModule {}

@@ -1,13 +1,18 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { LocationTypeEnum, PaymentStatusType } from 'src/enums';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
-import { ChatService } from '../chat.service';
+import { Repository } from 'typeorm';
+import { Question } from '../../entities/question.entity';
 
 @Injectable()
 export class ChatPaymentGuard implements CanActivate {
-    constructor(private readonly chatService: ChatService) {}
+    constructor(
+        @InjectRepository(Question)
+        private readonly questionRepository: Repository<Question>,
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const client: Socket = context.switchToWs().getClient();
@@ -35,7 +40,10 @@ export class ChatPaymentGuard implements CanActivate {
     }
 
     private async validatePaymentForRoom(questionId: string): Promise<void> {
-        const question = await this.chatService.getQuestionById(questionId);
+        const question = await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: ['appointment', 'appointment.payments'],
+        });
 
         if (question?.appointment) {
             const appointment = question.appointment;

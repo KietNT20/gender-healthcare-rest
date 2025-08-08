@@ -5,26 +5,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { User } from '../users/entities/user.entity';
+import { ChatCleanupSchedulerService } from './chat-cleanup-scheduler.service';
+import { ChatCleanupService } from './chat-cleanup.service';
+import { ChatRoomCleanupService } from './chat-room-cleanup.service';
+import { ChatController } from './chat.controller';
+import { ChatGateway } from './chat.gateway';
+import { ChatService } from './chat.service';
+import { ChatPaymentGuard } from './core/guards/chat-payment.guard';
+import { WsAuthGuard } from './core/guards/ws-auth.guard';
+import { WsRoomAccessGuard } from './core/guards/ws-room-access.guard';
+import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
 import { ChatCoreService } from './core/services/chat-core.service';
 import { Message } from './entities/message.entity';
 import { Question } from './entities/question.entity';
-import { ChatGateway } from './gateway/chat.gateway';
-import { RedisService } from './infrastructure/redis/redis.service';
-
-// Gateway Handlers
 import {
     ConnectionHandler,
     MessageHandler,
     RoomHandler,
     TypingHandler,
-} from './gateway/handlers';
-
-// Guards
-import { ChatCleanupSchedulerService } from './chat-cleanup-scheduler.service';
-import { ChatCleanupService } from './chat-cleanup.service';
-import { WsAuthGuard } from './core/guards/ws-auth.guard';
-import { WsRoomAccessGuard } from './core/guards/ws-room-access.guard';
-import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
+} from './handlers';
+import { RedisService } from './infrastructure/redis/redis.service';
 
 @Module({
     imports: [
@@ -32,17 +32,20 @@ import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({
                 secret: configService.get('JWT_SECRET'),
-                signOptions: { expiresIn: '1d' },
+                signOptions: {
+                    expiresIn: configService.get('JWT_EXPIRATION_TIME'),
+                },
             }),
             inject: [ConfigService],
         }),
         FilesModule,
         AuthModule,
     ],
-    controllers: [],
+    controllers: [ChatController],
     providers: [
         ChatCoreService,
         RedisService,
+        ChatService,
         ChatCleanupService,
         ChatCleanupSchedulerService,
         ChatGateway,
@@ -53,13 +56,23 @@ import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
         WsAuthGuard,
         WsRoomAccessGuard,
         WsThrottleGuard,
+        ChatPaymentGuard,
+        ChatRoomCleanupService,
+        {
+            provide: 'REDIS_CLIENT',
+            useFactory: (redisService: RedisService) =>
+                redisService.getClient(),
+            inject: [RedisService],
+        },
     ],
     exports: [
         ChatCoreService,
         ChatGateway,
         RedisService,
+        ChatService,
         ChatCleanupService,
         ChatCleanupSchedulerService,
+        ChatRoomCleanupService,
     ],
 })
 export class ChatModule {}

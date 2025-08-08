@@ -12,11 +12,11 @@ import { Server } from 'socket.io';
 import { REGEX } from 'src/constant';
 import { ConsultantProfile } from '../consultant-profiles/entities/consultant-profile.entity';
 import { CHAT_EVENTS, RESPONSE_STATUS } from './constants/chat.constants';
+import { ChatPaymentGuard } from './core/guards/chat-payment.guard';
+import { WsAuthGuard } from './core/guards/ws-auth.guard';
+import { WsRoomAccessGuard } from './core/guards/ws-room-access.guard';
+import { WsThrottleGuard } from './core/guards/ws-throttle.guard';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { ChatPaymentGuard } from './guards/chat-payment.guard';
-import { WsJwtGuard } from './guards/ws-jwt.guard';
-import { WsRoomAccessGuard } from './guards/ws-room-access.guard';
-import { RedisWsThrottleGuard } from './guards/ws-throttle.guard';
 import {
     ConnectionHandler,
     MessageHandler,
@@ -33,7 +33,7 @@ import {
     getWsErrorMessage,
 } from './utils/exception.utils';
 
-@UseGuards(WsJwtGuard)
+@UseGuards(WsAuthGuard)
 @WebSocketGateway({
     namespace: 'chat',
     cors: {
@@ -72,7 +72,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard, ChatPaymentGuard)
+    @UseGuards(WsRoomAccessGuard, WsThrottleGuard, ChatPaymentGuard)
     @SubscribeMessage(CHAT_EVENTS.JOIN_QUESTION)
     async handleJoinQuestion(
         @MessageBody() data: JoinRoomData,
@@ -130,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(WsRoomAccessGuard, RedisWsThrottleGuard)
+    @UseGuards(WsRoomAccessGuard, WsThrottleGuard)
     @SubscribeMessage(CHAT_EVENTS.SEND_MESSAGE)
     async handleSendMessage(
         @MessageBody() data: CreateChatDto,
@@ -164,7 +164,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    @UseGuards(RedisWsThrottleGuard)
+    @UseGuards(WsThrottleGuard)
     @SubscribeMessage(CHAT_EVENTS.TYPING)
     async handleTyping(
         @MessageBody() data: TypingData,

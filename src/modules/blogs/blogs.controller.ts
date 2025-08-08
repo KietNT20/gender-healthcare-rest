@@ -335,9 +335,8 @@ export class BlogsController {
     @ResponseMessage('Blog deleted successfully')
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
-        @CurrentUser() currentUser: User,
     ): Promise<{ message: string }> {
-        await this.blogsService.remove(id, currentUser.id);
+        await this.blogsService.remove(id);
         return { message: 'Blog deleted successfully' };
     }
 }

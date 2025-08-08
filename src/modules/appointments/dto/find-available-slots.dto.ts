@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsDate,
     IsNotEmpty,
-    IsNumber,
     IsOptional,
     IsString,
     IsUUID,
@@ -81,11 +80,6 @@ export class AvailableSlotDto {
     @IsNotEmpty()
     @IsUUID('4')
     availabilityId: string;
-
-    @ApiProperty({ description: 'Số slot còn trống' })
-    @IsNotEmpty()
-    @IsNumber()
-    remainingSlots: number;
 }
 
 export class FindAvailableSlotsResponseDto {

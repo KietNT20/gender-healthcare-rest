@@ -33,9 +33,6 @@ export class ConsultantAvailability {
     @Index()
     isAvailable: boolean;
 
-    @Column({ default: 1 })
-    maxAppointments: number;
-
     @Column({
         type: 'enum',
         enum: LocationTypeEnum,

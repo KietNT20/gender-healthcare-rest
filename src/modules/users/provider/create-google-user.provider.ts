@@ -46,12 +46,10 @@ export class CreateGoogleUserProvider {
             // Handle database constraint violations
             if (error.code === '23505') {
                 // PostgreSQL unique constraint violation
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                if (error.constraint?.includes('email')) {
+                if (String(error.constraint || '').includes('email')) {
                     throw new ConflictException('Email already exists');
                 }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                if (error.constraint?.includes('google_id')) {
+                if (String(error.constraint || '').includes('google_id')) {
                     throw new ConflictException(
                         'Google account already linked',
                     );
@@ -63,8 +61,7 @@ export class CreateGoogleUserProvider {
             }
 
             // Handle other database errors
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            if (error.code && error.code.startsWith('23')) {
+            if (error.code && String(error.code).startsWith('23')) {
                 throw new ConflictException('Database constraint violation');
             }
 

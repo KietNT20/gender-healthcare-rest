@@ -68,9 +68,9 @@ export class BlogsService {
         const slug = await this.generateUniqueSlug(baseSlug);
 
         // Handle tags
-        let tags: Tag[] = [];
+        let blogTags: Tag[] = [];
         if (createBlogDto.tags && createBlogDto.tags.length > 0) {
-            tags = await Promise.all(
+            blogTags = await Promise.all(
                 createBlogDto.tags.map(async (tagName) => {
                     let tag = await this.tagsService.findOneByName(tagName);
                     if (!tag) {
@@ -97,25 +97,32 @@ export class BlogsService {
             publishedByUser = { id: authorId } as User;
         }
 
-        // Create blog with proper type handling
+        // Extract only the properties we need for blog creation
         const {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            tags: tagNames,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            relatedServicesIds,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            autoPublish,
-            ...blogData
+            title,
+            content,
+            featuredImage,
+            seoTitle,
+            seoDescription,
+            excerpt,
+            views,
         } = createBlogDto;
 
         const blog = this.blogRepository.create({
-            ...blogData,
+            title,
+            content,
+            featuredImage,
+            seoTitle,
+            seoDescription,
+            excerpt,
+            views,
             slug,
-            tags,
+            tags: blogTags,
             status: finalStatus,
             publishedAt,
             publishedByUser,
             author: { id: authorId } as User,
+            category: { id: createBlogDto.categoryId } as Category,
         });
 
         const savedBlog = await this.blogRepository.save(blog);
@@ -409,12 +416,41 @@ export class BlogsService {
             slug = await this.generateUniqueSlug(baseSlug, id);
         }
 
-        // Update blog with proper type handling
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { tags, relatedServicesIds, ...updateData } = updateBlogDto;
+        // Handle tags for update
+        let updatedTags: Tag[] = [];
+        if (updateBlogDto.tags && updateBlogDto.tags.length > 0) {
+            updatedTags = await Promise.all(
+                updateBlogDto.tags.map(async (tagName) => {
+                    let tag = await this.tagsService.findOneByName(tagName);
+                    if (!tag) {
+                        tag = await this.tagsService.create({ name: tagName });
+                    }
+                    return tag;
+                }),
+            );
+        }
+
+        // Extract only the properties we need for blog update
+        const {
+            title,
+            content,
+            featuredImage,
+            seoTitle,
+            seoDescription,
+            excerpt,
+            views,
+        } = updateBlogDto;
+
         await this.blogRepository.update(id, {
-            ...updateData,
+            title,
+            content,
+            featuredImage,
+            seoTitle,
+            seoDescription,
+            excerpt,
+            views,
             slug,
+            tags: updatedTags,
             status: ContentStatusType.PENDING_REVIEW,
             updatedAt: new Date(),
         });
@@ -423,18 +459,8 @@ export class BlogsService {
         return updatedBlog;
     }
 
-    async remove(id: string, deletedByUserId?: string) {
-        const blog = await this.blogRepository.findOne({
-            where: { id, deletedAt: IsNull() },
-        });
-        if (!blog) {
-            throw new NotFoundException(`Blog with ID ${id} not found`);
-        }
-        await this.blogRepository.update(id, {
-            deletedAt: new Date(),
-            deletedByUserId,
-            updatedAt: new Date(),
-        });
+    async remove(id: string) {
+        await this.blogRepository.softDelete(id);
     }
 
     async review(id: string, reviewBlogDto: ReviewBlogDto) {
@@ -948,10 +974,14 @@ export class BlogsService {
                 if (month && monthNum !== month) return null;
                 return {
                     month: monthNum,
-                    createdCount: stat ? parseInt(stat.createdcount || '0') : 0,
-                    pendingCount: stat ? parseInt(stat.pendingcount || '0') : 0,
+                    createdCount: stat
+                        ? parseInt(String(stat.createdcount) || '0')
+                        : 0,
+                    pendingCount: stat
+                        ? parseInt(String(stat.pendingcount) || '0')
+                        : 0,
                     approvedCount: stat
-                        ? parseInt(stat.approvedcount || '0')
+                        ? parseInt(String(stat.approvedcount) || '0')
                         : 0,
                 };
             })

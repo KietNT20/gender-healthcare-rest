@@ -178,11 +178,11 @@ export class UserPackageSubscriptionsService {
                             message: `Gói ${sub.package.name} của bạn đã hết hạn vào ngày ${sub.endDate.toISOString()}.`,
                         });
                     }
-                } catch (error) {
+                } catch {
                     // Lỗi riêng lẻ cho từng đăng ký sẽ bị bỏ qua
                 }
             }
-        } catch (error) {
+        } catch {
             throw new BadRequestException(
                 'Lỗi khi cập nhật trạng thái đăng ký',
             );

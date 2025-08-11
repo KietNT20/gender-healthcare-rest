@@ -75,14 +75,12 @@ export class Document {
 
     // Relations
     @ManyToOne(() => TestResult, (testResult) => testResult.documents, {
-        eager: true,
         onDelete: 'SET NULL',
     })
     @Index()
     testResult: TestResult;
 
     @ManyToOne(() => User, (user) => user.documents, {
-        eager: true,
         onDelete: 'SET NULL',
     })
     user: User;
@@ -93,9 +91,6 @@ export class Document {
     @ManyToOne(
         () => ConsultantProfile,
         (consultantProfile) => consultantProfile.documents,
-        {
-            eager: true,
-        },
     )
     @Index()
     consultantProfile: ConsultantProfile;

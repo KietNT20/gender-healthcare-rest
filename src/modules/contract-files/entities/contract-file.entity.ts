@@ -27,9 +27,7 @@ export class ContractFile {
     updatedAt: Date;
 
     // Relations
-    @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles, {
-        eager: true,
-    })
+    @ManyToOne(() => EmploymentContract, (contract) => contract.contractFiles)
     contract: EmploymentContract;
 
     @ManyToOne(() => Document, (document) => document.contractFiles, {

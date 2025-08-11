@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsPositive, Max, Min } from 'class-validator';
 
 export class PaginationDto {

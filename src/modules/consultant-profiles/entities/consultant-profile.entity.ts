@@ -113,9 +113,9 @@ export class ConsultantProfile {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
+    @DeleteDateColumn()
     @Index()
-    deletedAt?: Date;
+    deletedAt: Date;
 
     // Relations
     @OneToOne(() => User, (user) => user.consultantProfile, {

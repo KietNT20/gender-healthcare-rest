@@ -41,9 +41,9 @@ export class Feedback {
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
+    @DeleteDateColumn()
     @Index()
-    deletedAt?: Date;
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.feedbacks)

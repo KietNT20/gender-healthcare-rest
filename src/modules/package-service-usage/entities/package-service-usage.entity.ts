@@ -1,3 +1,5 @@
+import { Service } from 'src/modules/services/entities/service.entity';
+import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
 import {
     Column,
     CreateDateColumn,
@@ -7,8 +9,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { UserPackageSubscription } from 'src/modules/user-package-subscriptions/entities/user-package-subscription.entity';
-import { Service } from 'src/modules/services/entities/service.entity';
 
 @Entity()
 export class PackageServiceUsage {
@@ -24,8 +24,8 @@ export class PackageServiceUsage {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(

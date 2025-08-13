@@ -75,8 +75,8 @@ export class Service {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => Category, (category) => category.services)

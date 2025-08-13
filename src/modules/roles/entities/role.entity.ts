@@ -32,8 +32,8 @@ export class Role {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @OneToMany(() => User, (user) => user.role)

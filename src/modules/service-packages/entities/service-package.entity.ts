@@ -43,8 +43,8 @@ export class ServicePackage {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @OneToMany(

@@ -25,7 +25,7 @@ export class ServicePackage {
     @Column({ type: 'text', nullable: true })
     description?: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'numeric', precision: 15, scale: 0 })
     price: number;
 
     @Column()

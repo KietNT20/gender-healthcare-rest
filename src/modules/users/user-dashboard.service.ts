@@ -20,7 +20,7 @@ export class UserDashboardService {
     ) {}
 
     async getCustomerDashboard(): Promise<CustomerDashboardStats> {
-        // Thống kê tổng số customer đã đăng ký
+        // Statistic total customers
         const totalCustomers = await this.userRepository.count({
             where: {
                 role: {
@@ -30,7 +30,7 @@ export class UserDashboardService {
             },
         });
 
-        // Thống kê customer đang active
+        // Statistic active customers
         const activeCustomers = await this.userRepository.count({
             where: {
                 role: {
@@ -41,7 +41,7 @@ export class UserDashboardService {
             },
         });
 
-        // Thống kê customer theo tháng (đăng ký mới trong tháng hiện tại)
+        // Statistic new customers in current month
         const currentDate = new Date();
         const startOfMonth = new Date(
             currentDate.getFullYear(),
@@ -77,7 +77,7 @@ export class UserDashboardService {
     }
 
     async getConsultantDashboard(): Promise<ConsultantDashboardStats> {
-        // Thống kê tổng số consultant
+        // Statistic total consultants
         const totalConsultants = await this.userRepository.count({
             where: {
                 role: {
@@ -87,7 +87,7 @@ export class UserDashboardService {
             },
         });
 
-        // Thống kê consultant đang active
+        // Statistic active consultants
         const activeConsultants = await this.userRepository.count({
             where: {
                 role: {
@@ -98,7 +98,7 @@ export class UserDashboardService {
             },
         });
 
-        // Thống kê consultant có profile đầy đủ
+        // Statistic consultants with profile
         const consultantsWithProfile = await this.userRepository.count({
             relations: {
                 consultantProfile: true,
@@ -123,7 +123,7 @@ export class UserDashboardService {
         const customerStats = await this.getCustomerDashboard();
         const consultantStats = await this.getConsultantDashboard();
 
-        // Thống kê tổng quan
+        // Statistic total users
         const totalUsers = await this.userRepository.count();
         const totalActiveUsers = await this.userRepository.count({
             where: {
@@ -143,7 +143,7 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê customer theo khoảng thời gian tùy chọn
+     * Statistic customer by period
      */
     async getCustomerStatsByPeriod(
         startDate: Date,
@@ -178,7 +178,7 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê consultant theo khoảng thời gian tùy chọn
+     * Statistic consultant by period
      */
     async getConsultantStatsByPeriod(
         startDate: Date,
@@ -228,13 +228,13 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê user theo giới tính
+     * Statistic user by gender
      */
     async getUserStatsByGender(): Promise<{
         customers: { male: number; female: number; unspecified: number };
         consultants: { male: number; female: number; unspecified: number };
     }> {
-        // Customer stats by gender
+        // Statistic customer by gender
         const customerMale = await this.userRepository.count({
             where: {
                 role: { name: RolesNameEnum.CUSTOMER },
@@ -256,7 +256,7 @@ export class UserDashboardService {
             },
         });
 
-        // Consultant stats by gender
+        // Statistic consultant by gender
         const consultantMale = await this.userRepository.count({
             where: {
                 role: { name: RolesNameEnum.CONSULTANT },
@@ -293,7 +293,7 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê user đăng ký theo 12 tháng gần nhất
+     * Statistic user registration by 12 months
      */
     async getUserRegistrationTrend(): Promise<{
         customers: Array<{ month: string; count: number }>;
@@ -350,10 +350,10 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê user active theo khoảng thời gian (tháng, quý, năm)
-     * @param periodType - Loại khoảng thời gian: 'month', 'quarter', 'year'
-     * @param periodCount - Số lượng khoảng thời gian cần thống kê (mặc định 12)
-     * @param includeCurrentPeriod - Có bao gồm khoảng thời gian hiện tại hay không (mặc định 'true')
+     * Statistic user active by period (month, quarter, year)
+     * @param periodType - Period type: 'month', 'quarter', 'year'
+     * @param periodCount - Number of periods to statistic (default 12)
+     * @param includeCurrentPeriod - Include current period or not (default 'true')
      * @returns Promise<UserActiveStatsPeriod[]>
      */
     async getUserActiveStatsByPeriod(
@@ -374,7 +374,7 @@ export class UserDashboardService {
             let label: string;
 
             if (periodType === 'month') {
-                // Tính theo tháng
+                // Calculate by month
                 const targetDate = new Date(currentDate);
                 targetDate.setMonth(currentDate.getMonth() - i);
 
@@ -398,14 +398,14 @@ export class UserDashboardService {
                     month: '2-digit',
                 });
             } else if (periodType === 'quarter') {
-                // Tính theo quý
+                // Calculate by quarter
                 const currentQuarter = Math.floor(currentDate.getMonth() / 3);
                 const targetQuarter = currentQuarter - i;
 
                 let year = currentDate.getFullYear();
                 let quarter = targetQuarter;
 
-                // Xử lý khi quý âm (sang năm trước)
+                // Handle negative quarter (previous year)
                 while (quarter < 0) {
                     quarter += 4;
                     year -= 1;
@@ -425,7 +425,7 @@ export class UserDashboardService {
 
                 label = `Q${quarter + 1}/${year}`;
             } else {
-                // Tính theo năm
+                // Calculate by year
                 const targetYear = currentDate.getFullYear() - i;
                 startDate = new Date(targetYear, 0, 1);
                 endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
@@ -433,7 +433,7 @@ export class UserDashboardService {
                 label = targetYear.toString();
             }
 
-            // Đếm customer active trong khoảng thời gian
+            // Count customer active in period
             const customerCount = await this.userRepository.count({
                 where: {
                     role: { name: RolesNameEnum.CUSTOMER },
@@ -442,7 +442,7 @@ export class UserDashboardService {
                 },
             });
 
-            // Đếm consultant active trong khoảng thời gian
+            // Count consultant active in period
             const consultantCount = await this.userRepository.count({
                 where: {
                     role: { name: RolesNameEnum.CONSULTANT },
@@ -462,7 +462,7 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê user active so sánh với kỳ trước (tháng trước, quý trước, năm trước)
+     * Statistic user active comparison with previous period (previous month, previous quarter, previous year)
      */
     async getUserActiveStatsComparison(
         periodType: 'month' | 'quarter' | 'year',
@@ -472,7 +472,7 @@ export class UserDashboardService {
         let previousStart: Date, previousEnd: Date, previousLabel: string;
 
         if (periodType === 'month') {
-            // Tháng hiện tại
+            // Current month
             currentStart = new Date(
                 currentDate.getFullYear(),
                 currentDate.getMonth(),
@@ -492,7 +492,7 @@ export class UserDashboardService {
                 month: '2-digit',
             });
 
-            // Tháng trước
+            // Previous month
             const prevMonth = new Date(currentDate);
             prevMonth.setMonth(currentDate.getMonth() - 1);
             previousStart = new Date(
@@ -514,7 +514,7 @@ export class UserDashboardService {
                 month: '2-digit',
             });
         } else if (periodType === 'quarter') {
-            // Quý hiện tại
+            // Current quarter
             const currentQuarter = Math.floor(currentDate.getMonth() / 3);
             const currentQuarterStartMonth = currentQuarter * 3;
             currentStart = new Date(
@@ -533,7 +533,7 @@ export class UserDashboardService {
             );
             currentLabel = `Q${currentQuarter + 1}/${currentDate.getFullYear()}`;
 
-            // Quý trước
+            // Previous quarter
             let prevQuarter = currentQuarter - 1;
             let prevYear = currentDate.getFullYear();
             if (prevQuarter < 0) {
@@ -553,7 +553,7 @@ export class UserDashboardService {
             );
             previousLabel = `Q${prevQuarter + 1}/${prevYear}`;
         } else {
-            // Năm hiện tại
+            // Current year
             currentStart = new Date(currentDate.getFullYear(), 0, 1);
             currentEnd = new Date(
                 currentDate.getFullYear(),
@@ -566,14 +566,14 @@ export class UserDashboardService {
             );
             currentLabel = currentDate.getFullYear().toString();
 
-            // Năm trước
+            // Previous year
             const prevYear = currentDate.getFullYear() - 1;
             previousStart = new Date(prevYear, 0, 1);
             previousEnd = new Date(prevYear, 11, 31, 23, 59, 59, 999);
             previousLabel = prevYear.toString();
         }
 
-        // Thống kê kỳ hiện tại
+        // Statistic current period
         const [currentCustomers, currentConsultants] = await Promise.all([
             this.userRepository.count({
                 where: {
@@ -591,7 +591,7 @@ export class UserDashboardService {
             }),
         ]);
 
-        // Thống kê kỳ trước
+        // Statistic previous period
         const [previousCustomers, previousConsultants] = await Promise.all([
             this.userRepository.count({
                 where: {
@@ -609,7 +609,7 @@ export class UserDashboardService {
             }),
         ]);
 
-        // Tính toán tăng trưởng
+        // Calculate growth
         const customerGrowth = currentCustomers - previousCustomers;
         const consultantGrowth = currentConsultants - previousConsultants;
         const customerGrowthPercent =
@@ -645,7 +645,7 @@ export class UserDashboardService {
     }
 
     /**
-     * Thống kê tổng user active hiện tại theo role
+     * Statistic total active users by role
      */
     async getTotalActiveUsersByRole(): Promise<TotalActiveUsersByRole> {
         const [customers, consultants, staff, managers, admins] =

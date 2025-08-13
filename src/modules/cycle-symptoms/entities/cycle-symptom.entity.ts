@@ -31,9 +31,7 @@ export class CycleSymptom {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms, {
-        eager: true,
-    })
+    @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)
     menstrualCycle: MenstrualCycle;
 
     @ManyToOne(() => Symptom, (symptom) => symptom.cycleSymptoms, {

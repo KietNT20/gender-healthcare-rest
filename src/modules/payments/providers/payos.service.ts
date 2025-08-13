@@ -1,8 +1,4 @@
-import {
-    Injectable,
-    InternalServerErrorException,
-    Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
     CheckoutRequestType,
     CheckoutResponseDataType,
@@ -28,7 +24,7 @@ export class PayOSService {
         const checksumKey = process.env.PAYOS_CHECKSUM_KEY;
 
         if (!clientId || !apiKey || !checksumKey) {
-            throw new InternalServerErrorException('Missing PayOS credentials');
+            throw new Error('Missing PayOS credentials');
         }
 
         this.payOS = new PayOS(clientId, apiKey, checksumKey);
@@ -36,7 +32,7 @@ export class PayOSService {
     }
 
     /**
-     * Tạo link thanh toán cho dữ liệu đơn hàng
+     * Create payment link for order data
      */
     async createPaymentLink(
         request: CheckoutRequestType,
@@ -64,7 +60,7 @@ export class PayOSService {
     }
 
     /**
-     * Lấy thông tin thanh toán của đơn hàng đã tạo link thanh toán
+     * Get payment information of order that has created payment link
      */
     async getPaymentLinkInformation(
         orderCode: string | number,
@@ -91,7 +87,7 @@ export class PayOSService {
     }
 
     /**
-     * Hủy link thanh toán của đơn hàng
+     * Cancel payment link of order
      */
     async cancelPaymentLink(
         orderCode: string | number,
@@ -123,7 +119,7 @@ export class PayOSService {
     }
 
     /**
-     * Xác thực URL Webhook của kênh thanh toán
+     * Confirm webhook URL of payment channel
      */
     async confirmWebhook(webhookUrl: string): Promise<string> {
         try {
@@ -147,7 +143,7 @@ export class PayOSService {
     }
 
     /**
-     * Xác minh dữ liệu nhận được qua webhook sau khi thanh toán
+     * Verify webhook data after payment
      */
     verifyPaymentWebhookData(webhookData: WebhookType): WebhookDataType {
         try {
@@ -173,12 +169,10 @@ export class PayOSService {
     }
 
     /**
-     * Kiểm tra trạng thái kết nối PayOS
+     * Check connection status of PayOS
      */
     healthCheck(): { status: string; timestamp: Date } {
         try {
-            // Có thể test bằng cách gọi một API đơn giản
-            // Hiện tại chỉ return status based on initialization
             return {
                 status: this.payOS ? 'connected' : 'disconnected',
                 timestamp: new Date(),
@@ -196,7 +190,7 @@ export class PayOSService {
     }
 
     /**
-     * Generate random order code
+     * Generate random order code for order
      */
     generateOrderCode(): number {
         const orderCode = Math.floor(Math.random() * 1000000);
@@ -205,7 +199,7 @@ export class PayOSService {
     }
 
     /**
-     * Validate order code format
+     * Validate order code format for order
      */
     validateOrderCode(orderCode: string | number): number {
         const numericOrderCode =

@@ -239,7 +239,7 @@ export class AppointmentsService {
                     }),
             );
 
-            // Validate slot for consultation nếu cần
+            // Validate slot for consultation if needed
             let bookingDetails: any = null;
             if (needsConsultant && consultant) {
                 validationPromises.push(
@@ -260,14 +260,14 @@ export class AppointmentsService {
 
             let totalPrice = 0;
             if (!services.length && consultant?.consultantProfile) {
-                // Tư vấn tổng quát
+                // General consultation
                 totalPrice = this.calculateConsultationFee(
                     consultant.consultantProfile,
                     appointmentDurationMinutes,
                     1,
                 );
             } else {
-                // Có services
+                // Have services
                 totalPrice = this.calculateAppointmentPrice(
                     servicesRequiringConsultant,
                     servicesNotRequiringConsultant,

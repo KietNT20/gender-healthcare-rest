@@ -25,7 +25,6 @@ export class HealthDataConsentGuard implements CanActivate {
             throw new UnauthorizedException('Yêu cầu cần được xác thực');
         }
 
-        // Fetch fresh user data to check consent
         const currentUser = await this.userRepository.findOneBy({
             id: user.id,
         });

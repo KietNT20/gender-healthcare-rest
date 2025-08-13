@@ -51,8 +51,8 @@ export class Category {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @OneToMany(() => Service, (service) => service.category)

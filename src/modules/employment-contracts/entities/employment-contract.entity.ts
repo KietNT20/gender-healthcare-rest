@@ -47,9 +47,9 @@ export class EmploymentContract {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
+    @DeleteDateColumn()
     @Index()
-    deletedAt?: Date;
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.employmentContracts, {

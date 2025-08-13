@@ -70,8 +70,8 @@ export class Document {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => TestResult, (testResult) => testResult.documents, {

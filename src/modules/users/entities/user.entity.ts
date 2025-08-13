@@ -170,8 +170,8 @@ export class User {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => Role, (role) => role.users, {

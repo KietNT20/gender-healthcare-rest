@@ -27,8 +27,8 @@ export class CycleSymptom {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => MenstrualCycle, (cycle) => cycle.cycleSymptoms)

@@ -42,8 +42,8 @@ export class UserPackageSubscription {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     // Relations
     @ManyToOne(() => User, (user) => user.packageSubscriptions)

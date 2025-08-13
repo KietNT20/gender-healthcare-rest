@@ -55,8 +55,8 @@ export class TestResult {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @DeleteDateColumn({ nullable: true })
-    deletedAt?: Date;
+    @DeleteDateColumn()
+    deletedAt: Date;
 
     @OneToMany(() => Document, (document) => document.testResult, {
         cascade: true,

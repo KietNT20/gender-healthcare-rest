@@ -32,7 +32,7 @@ export class Service {
     @Column({ type: 'text' })
     description: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'numeric', precision: 15, scale: 0 })
     price: number;
 
     @Column()
@@ -79,7 +79,7 @@ export class Service {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => Category, (category) => category.services, { eager: true })
+    @ManyToOne(() => Category, (category) => category.services)
     category: Category;
 
     @OneToMany(() => Feedback, (feedback) => feedback.service)

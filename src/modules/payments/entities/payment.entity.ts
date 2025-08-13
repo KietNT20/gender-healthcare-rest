@@ -21,7 +21,7 @@ export class Payment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'numeric', precision: 15, scale: 0 })
     amount: number;
 
     @Column({ length: 50 })
@@ -47,9 +47,9 @@ export class Payment {
     refunded: boolean;
 
     @Column({
-        type: 'decimal',
-        precision: 10,
-        scale: 2,
+        type: 'numeric',
+        precision: 15,
+        scale: 0,
         default: 0,
     })
     refundAmount: number;

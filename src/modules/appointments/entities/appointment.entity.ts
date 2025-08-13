@@ -75,7 +75,7 @@ export class Appointment {
     })
     checkOutTime?: Date;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'numeric', precision: 15, scale: 0 })
     fixedPrice: number;
 
     @Column({

@@ -71,9 +71,9 @@ export class ConsultantProfile {
     educationBackground?: string;
 
     @Column({
-        type: 'decimal',
-        precision: 10,
-        scale: 2,
+        type: 'numeric',
+        precision: 15,
+        scale: 0,
     })
     consultationFee: number;
 

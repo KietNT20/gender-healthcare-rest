@@ -83,35 +83,34 @@ export class CreateGoogleUserProvider {
     }
 
     private async generateUniqueSlug(googleUser: GoogleUser): Promise<string> {
-        // Tạo slug từ tên và email
+        // Create a base slug from the user's name and email
         const userSlug = `${googleUser.firstName || 'User'} ${googleUser.lastName || 'Google'} ${googleUser.email}`;
         const baseSlug = slugify(userSlug, {
             lower: true,
             strict: true,
         });
 
-        // Thêm UUID ngắn để đảm bảo unique
+        // Append a UUID to ensure uniqueness
         const slugWithUuid = `${baseSlug}-${uuidv4().substring(0, 8)}`;
 
-        // Kiểm tra nếu slug đã tồn tại (optional, vì đã có UUID)
+        // Check if the slug already exists
         const existingUser = await this.usersRepository.findOne({
             where: { slug: slugWithUuid },
         });
 
         if (existingUser) {
-            // Nếu trùng (rất hiếm), tạo lại với UUID mới
+            // If slug already exists, generate a new one
             return `${baseSlug}-${uuidv4().substring(0, 8)}`;
         }
 
         return slugWithUuid;
     }
 
-    // Method hỗ trợ kiểm tra user đã tồn tại
     async findExistingGoogleUser(
         googleId: string,
         email: string,
     ): Promise<User | null> {
-        // Tìm theo googleId trước
+        // Find user by googleId first
         let user = await this.usersRepository.findOne({
             where: { googleId },
             relations: {
@@ -120,7 +119,7 @@ export class CreateGoogleUserProvider {
         });
 
         if (!user) {
-            // Tìm theo email nếu không có googleId
+            // Find by email if googleId not found
             user = await this.usersRepository.findOne({
                 where: { email: email.toLowerCase() },
                 relations: {
@@ -136,7 +135,14 @@ export class CreateGoogleUserProvider {
         return user;
     }
 
-    // Method cập nhật thông tin Google cho user hiện có
+    /**
+     * Link Google account to an existing user or create a new user if not found
+     * @param userId
+     * @param googleId
+     * @param profilePicture
+     * @returns User
+     * @throws ConflictException if user not found or already linked
+     */
     async linkGoogleAccount(
         userId: string,
         googleId: string,
